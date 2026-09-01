@@ -262,11 +262,59 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/public-application/usePublicDarkMode.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/public-application/submitApplication.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/public-application/publicOfferContext.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/public-application/publicApplicationDataSource.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/public-application/PublicApplicationLayout.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/public-application/PublicApplicationForm.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/public-application/PublicApplicationApp.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/public-application/NotFoundNotice.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/public-application/LivingExampleApplicationPage.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/public-application/GrowingYourselfUpApplicationPage.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/public-application/CopyApplicationLinkButton.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/providers/types.ts",
           "type": "registry:component"
         },
         {
           "path": "src/components/atomic-crm/providers/supabase/supabase.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/providers/supabase/publicApplicationDataSource.ts",
           "type": "registry:component"
         },
         {

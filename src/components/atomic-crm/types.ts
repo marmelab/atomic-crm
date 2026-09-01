@@ -275,6 +275,9 @@ export type OpportunitySource =
 export type OpportunityEntryPath =
   | "instagram_conversation"
   | "sales_page"
+  // The native public application form (Native Application Intake slice,
+  // §9) — distinct from 'sales_page' (an outbound sales-page visit).
+  | "application_form"
   | "other";
 
 // The `deals` table/resource now models a Leif Opportunity: a specific

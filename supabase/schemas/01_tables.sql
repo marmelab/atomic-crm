@@ -174,7 +174,10 @@ create table public.deals (
     constraint deals_owner_decision_check check (owner_decision in ('would_work_with', 'workshops_only', 'do_not_engage')),
     constraint deals_prospect_decision_check check (prospect_decision in ('yes', 'thinking', 'no')),
     constraint deals_source_check check (source in ('instagram', 'referral', 'podcast', 'workshop', 'substack', 'google', 'other')),
-    constraint deals_entry_path_check check (entry_path in ('instagram_conversation', 'sales_page', 'other'))
+    -- 'application_form' is the native public intake route (Native
+    -- Application Intake slice, §9) — distinct from 'sales_page' (an
+    -- outbound sales-page visit) and 'instagram_conversation' (a DM).
+    constraint deals_entry_path_check check (entry_path in ('instagram_conversation', 'sales_page', 'application_form', 'other'))
 );
 
 -- A submitted program/coaching application. Reached only through its

@@ -28,6 +28,11 @@ export const opportunityEntryPaths: {
 }[] = [
   { value: "instagram_conversation", label: "Instagram Conversation" },
   { value: "sales_page", label: "Sales Page" },
+  // Native Application Intake slice, §9: the public /apply form sets this
+  // automatically — it is not meant to be hand-picked from this list for a
+  // Deal that didn't actually originate there, but stays selectable here
+  // so an internally-created backfill/correction can still use it.
+  { value: "application_form", label: "Application Form" },
   { value: "other", label: "Other" },
 ];
 

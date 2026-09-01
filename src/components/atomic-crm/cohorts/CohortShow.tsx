@@ -13,6 +13,8 @@ import {
 } from "../applications/applicationConstants";
 import { enrollmentStatusLabels } from "../enrollments/enrollmentConstants";
 import type { Cohort } from "../types";
+import { CopyApplicationLinkButton } from "../public-application/CopyApplicationLinkButton";
+import { GrowingYourselfUpApplicationPage } from "../public-application/GrowingYourselfUpApplicationPage";
 import { AddToWaitlistButton } from "../waitlist/AddToWaitlistButton";
 import { WaitlistSection } from "../waitlist/WaitlistSection";
 import { useWaitlistEntries } from "../waitlist/useWaitlistEntries";
@@ -112,6 +114,13 @@ const CohortShowContent = () => {
           }
         />
         <div className="flex items-center gap-2">
+          <CopyApplicationLinkButton
+            path={GrowingYourselfUpApplicationPage.path.replace(
+              ":cohortId",
+              String(record.id),
+            )}
+            label={record.name}
+          />
           <AddToWaitlistButton offerId={record.offer_id} cohortId={record.id} />
           <EditButton />
         </div>

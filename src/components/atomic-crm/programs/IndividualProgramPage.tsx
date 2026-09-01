@@ -7,6 +7,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader, PersonCard, Section } from "../misc/ProgramLayout";
 import { formatMonthDayString } from "../deals/dealUtils";
 import { enrollmentStatusLabels } from "../enrollments/enrollmentConstants";
+import { CopyApplicationLinkButton } from "../public-application/CopyApplicationLinkButton";
+import { LivingExampleApplicationPage } from "../public-application/LivingExampleApplicationPage";
 import { AddToWaitlistButton } from "../waitlist/AddToWaitlistButton";
 import { WaitlistSection } from "../waitlist/WaitlistSection";
 import { useWaitlistEntries } from "../waitlist/useWaitlistEntries";
@@ -84,7 +86,13 @@ export const IndividualProgramPage = () => {
             </>
           }
         />
-        <AddToWaitlistButton offerId={offer.id} cohortId={null} />
+        <div className="flex items-center gap-2">
+          <CopyApplicationLinkButton
+            path={LivingExampleApplicationPage.path}
+            label={offer.name}
+          />
+          <AddToWaitlistButton offerId={offer.id} cohortId={null} />
+        </div>
       </div>
 
       <Section
