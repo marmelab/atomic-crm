@@ -226,10 +226,11 @@ export class ArdleyCrmDevStack extends cdk.Stack {
       ],
     });
 
-    new s3deploy.BucketDeployment(this, "PlaceholderSite", {
+    const spaSource = path.join(__dirname, "../../dist");
+    new s3deploy.BucketDeployment(this, "SpaSite", {
       destinationBucket: siteBucket,
       distribution,
-      sources: [s3deploy.Source.asset("./placeholder-site")],
+      sources: [s3deploy.Source.asset(spaSource)],
     });
 
     new route53.ARecord(this, "SpaAlias", {

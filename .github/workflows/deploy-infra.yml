@@ -54,6 +54,19 @@ jobs:
           bash infra/scripts/sync-seed-sql.sh
           bash infra/scripts/vendor-lambda-deps.sh
 
+      - name: Build Vite SPA
+        working-directory: .
+        env:
+          VITE_CRM_API_URL: https://api.crm.dev.ardley.us
+          VITE_COGNITO_USER_POOL_ID: us-east-1_m3IX8Cc9L
+          VITE_COGNITO_CLIENT_ID: ${{ vars.VITE_COGNITO_CLIENT_ID }}
+          VITE_COGNITO_DOMAIN: https://ardley-app-users-dev.auth.us-east-1.amazoncognito.com
+          VITE_APP_BASE: /
+          VITE_DISABLE_PWA: "true"
+        run: |
+          npm ci
+          npm run build
+
       - name: Configure AWS credentials
         if: ${{ secrets.AWS_ROLE_ARN != '' }}
         uses: aws-actions/configure-aws-credentials@v4

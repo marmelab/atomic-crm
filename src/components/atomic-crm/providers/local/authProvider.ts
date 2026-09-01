@@ -47,9 +47,15 @@ export const getAuthProvider = (): AuthProvider => {
       return Promise.reject();
     },
     logout: async () => {
+      const hadSession = Boolean(readSession());
       clearSession();
-      window.location.assign(hostedLogoutUrl());
-      return Promise.reject();
+      // Only bounce through Cognito hosted logout after a real session.
+      // checkAuth failures also call logout; sending those to /logout
+      // redirects back here and loops.
+      if (hadSession) {
+        window.location.assign(hostedLogoutUrl());
+        return Promise.reject();
+      }
     },
     checkAuth: async () => {
       if (!readSession()) {
