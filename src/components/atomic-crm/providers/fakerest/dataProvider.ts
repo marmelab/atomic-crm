@@ -41,6 +41,7 @@ import {
 import generateData from "./dataGenerator";
 import type { Db } from "./dataGenerator/types";
 import { withSupabaseFilterAdapter } from "./internal/supabaseAdapter";
+import { syncContactRelationshipFields } from "./contactRelationshipFields";
 
 const TASK_MARKED_AS_DONE = "TASK_MARKED_AS_DONE";
 const TASK_MARKED_AS_UNDONE = "TASK_MARKED_AS_UNDONE";
@@ -371,6 +372,14 @@ export const createDataProvider = ({
         const { page, perPage } = pagination;
         const start = (page - 1) * perPage;
         return { data: all.slice(start, start + perPage), total: all.length };
+      }
+      if (resource === "contacts") {
+        // Recompute the derived relationship fields (Contacts UX cleanup
+        // pass) against the CURRENT live data before this read — see
+        // contactRelationshipFields.ts's own header for why this can't be
+        // done by mutating `db` directly (ra-data-fakerest deep-clones on
+        // construction) or through the hook-wrapped `dataProvider`.
+        await syncContactRelationshipFields(baseDataProvider);
       }
       return baseDataProvider.getList(resource, params);
     },

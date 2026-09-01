@@ -122,10 +122,38 @@ select
     (jsonb_path_query_array(co.email_jsonb, '$[*]."email"'))::text as email_fts,
     (jsonb_path_query_array(co.phone_jsonb, '$[*]."number"'))::text as phone_fts,
     c.name as company_name,
-    count(distinct t.id) filter (where t.done_date is null) as nb_tasks
+    count(distinct t.id) filter (where t.done_date is null) as nb_tasks,
+    -- CRM-domain relationship filters (Contacts UX cleanup pass): derived
+    -- from real Deal/Application/Enrollment/Waitlist rows, the same
+    -- "computed column on this view" pattern nb_tasks above already
+    -- established — never a new persisted concept, never mutated data.
+    -- Distinct Offer ids across every one of this Contact's Opportunities,
+    -- for an "Offer History" filter via the same array-containment
+    -- operator (@cs) the existing `tags` filter already uses.
+    coalesce(array_agg(distinct d.offer_id) filter (where d.offer_id is not null), '{}') as offer_ids,
+    -- Has an Enrollment currently in progress (enrollments_status_check:
+    -- 'onboarding'/'active' vs 'offboarding'/'completed').
+    bool_or(e.status in ('onboarding', 'active')) as is_current_client,
+    -- Has an Enrollment that has since ended — independent of
+    -- is_current_client, so someone enrolled again after a past
+    -- completed program still correctly shows as both.
+    bool_or(e.status in ('offboarding', 'completed')) as is_past_client,
+    -- Has ever submitted an Application (any review status) via any of
+    -- their Opportunities.
+    bool_or(app.id is not null) as has_applied,
+    -- Currently on an active Waitlist entry (waiting/invited — the same
+    -- ACTIVE_WAITLIST_STATUSES the rest of the app already treats as
+    -- "active"; converted/removed entries don't count).
+    bool_or(w.status in ('waiting', 'invited')) as is_on_waitlist,
+    -- Has a non-archived Opportunity currently exited into nurture.
+    bool_or(d.outcome = 'nurture' and d.archived_at is null) as has_nurture_deal
 from public.contacts co
     left join public.tasks t on co.id = t.contact_id
     left join public.companies c on co.company_id = c.id
+    left join public.deals d on d.contact_id = co.id
+    left join public.enrollments e on e.opportunity_id = d.id
+    left join public.applications app on app.opportunity_id = d.id
+    left join public.waitlist_entries w on w.contact_id = co.id
 group by co.id, c.name;
 
 create or replace view public.init_state with (security_invoker = off) as

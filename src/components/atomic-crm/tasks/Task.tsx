@@ -141,10 +141,22 @@ export const Task = ({
                     record={task}
                     link="show"
                     className="inline"
+                    // Graceful fallback for a Contact reference that can't
+                    // be shown (UX cleanup pass, §1) — never crashes,
+                    // never renders blank or "undefined". Two distinct
+                    // cases, both bypassing `render` entirely
+                    // (source/reference-field.tsx): a null contact_id
+                    // short-circuits to `empty` before ReferenceFieldBase
+                    // even mounts; a contact_id that fails to resolve (a
+                    // dangling reference) surfaces as `error`, checked
+                    // BEFORE `empty` inside ReferenceFieldView — so both
+                    // props are needed, not just one.
+                    empty="resources.tasks.unknown_contact"
+                    error={translate("resources.tasks.unknown_contact", {
+                      _: "Unknown contact",
+                    })}
                     render={({ referenceRecord }) =>
-                      referenceRecord
-                        ? getContactRepresentation(referenceRecord)
-                        : null
+                      getContactRepresentation(referenceRecord)
                     }
                   />
                 </>

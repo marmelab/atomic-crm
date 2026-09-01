@@ -330,6 +330,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/providers/fakerest/contactRelationshipFields.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/providers/fakerest/authProvider.ts",
           "type": "registry:component"
         },
@@ -1127,6 +1131,10 @@
         },
         {
           "path": "src/components/atomic-crm/cohorts/index.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/cohorts/humanizeCohortName.ts",
           "type": "registry:component"
         },
         {

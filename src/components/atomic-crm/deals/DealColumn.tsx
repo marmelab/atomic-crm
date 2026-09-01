@@ -19,6 +19,16 @@ export const DealColumn = ({
       <div className="flex flex-col items-center">
         <h3 className="text-base font-medium">
           {findDealLabel(dealStages, stage)}
+          {/* Opportunity count alongside the stage name (UX cleanup pass,
+              §2) — funnel volume next to dollar value, without a bulky
+              badge; deals.length is exactly the visible/current
+              Opportunities in this column (the same array DealCard.tsx
+              already renders below, and totalAmount below is already
+              derived from). Card dimensions/content are untouched. */}
+          <span className="text-muted-foreground font-normal">
+            {" "}
+            · {deals.length}
+          </span>
         </h3>
         <p className="text-sm text-muted-foreground">
           {totalAmount.toLocaleString("en-US", {

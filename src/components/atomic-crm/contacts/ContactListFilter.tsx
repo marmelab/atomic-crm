@@ -1,132 +1,108 @@
-import { endOfYesterday, startOfMonth, startOfWeek, subMonths } from "date-fns";
-import { CheckSquare, Clock, Tag, TrendingUp, Users } from "lucide-react";
-import {
-  useGetIdentity,
-  useGetList,
-  useListContext,
-  useTranslate,
-} from "ra-core";
+import { BookOpen, CheckSquare, ShieldCheck, Users } from "lucide-react";
+import { useGetList, useListContext, useTranslate } from "ra-core";
 import { ToggleFilterButton } from "@/components/admin/toggle-filter-button";
-import { Badge } from "@/components/ui/badge";
 
 import { FilterCategory } from "../filters/FilterCategory";
-import { Status } from "../misc/Status";
-import { useConfigurationContext } from "../root/ConfigurationContext";
 import { ResponsiveFilters } from "../misc/ResponsiveFilters";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ActiveFilterButton } from "../misc/ActiveFilterButton";
+import type { Offer } from "../types";
 
+// Contacts UX cleanup pass: replaces the generic Atomic CRM filter set
+// (last_seen date ranges, Cold/Warm/Hot/In Contract note temperature,
+// generic fixture tags, "Me"/account-manager) with filters backed by this
+// CRM's own real domain relationships — every value here reads a genuine
+// structured field or a derived contacts_summary column (see that view's
+// own header, and providers/fakerest/contactRelationshipFields.ts for the
+// dev/demo mirror), never an inferred/fabricated lifecycle state.
 export const ContactListFilter = () => {
-  const { noteStatuses } = useConfigurationContext();
   const isMobile = useIsMobile();
-  const { identity } = useGetIdentity();
   const translate = useTranslate();
-  const { data } = useGetList("tags", {
-    pagination: { page: 1, perPage: 10 },
+  const { data: offers } = useGetList<Offer>("offers", {
+    pagination: { page: 1, perPage: 20 },
     sort: { field: "name", order: "ASC" },
   });
 
   return (
     <ResponsiveFilters
+      // Unlike ToggleFilterButton/ActiveFilterButton's own `label` (a
+      // translation key they resolve internally), SearchInput's
+      // `placeholder` is a plain HTML input attribute — it needs the
+      // already-translated string, not the key itself.
       searchInput={{
         placeholder: translate("resources.contacts.filters.search"),
       }}
     >
       <FilterCategory
-        label="resources.contacts.fields.last_seen"
-        icon={<Clock />}
+        label="resources.contacts.filters.relationship"
+        icon={<Users />}
       >
         <ToggleFilterButton
           className="w-auto md:w-full justify-between h-10 md:h-8"
-          label="resources.contacts.filters.today"
-          value={{
-            "last_seen@gte": endOfYesterday().toISOString(),
-            "last_seen@lte": undefined,
-          }}
+          label="resources.contacts.filters.current_client"
+          value={{ is_current_client: true }}
           size={isMobile ? "lg" : undefined}
         />
         <ToggleFilterButton
           className="w-auto md:w-full justify-between h-10 md:h-8"
-          label="resources.contacts.filters.this_week"
-          value={{
-            "last_seen@gte": startOfWeek(new Date()).toISOString(),
-            "last_seen@lte": undefined,
-          }}
+          label="resources.contacts.filters.past_client"
+          value={{ is_past_client: true }}
           size={isMobile ? "lg" : undefined}
         />
         <ToggleFilterButton
           className="w-auto md:w-full justify-between h-10 md:h-8"
-          label="resources.contacts.filters.before_this_week"
-          value={{
-            "last_seen@gte": undefined,
-            "last_seen@lte": startOfWeek(new Date()).toISOString(),
-          }}
+          label="resources.contacts.filters.applicant"
+          value={{ has_applied: true }}
           size={isMobile ? "lg" : undefined}
         />
         <ToggleFilterButton
           className="w-auto md:w-full justify-between h-10 md:h-8"
-          label="resources.contacts.filters.before_this_month"
-          value={{
-            "last_seen@gte": undefined,
-            "last_seen@lte": startOfMonth(new Date()).toISOString(),
-          }}
+          label="resources.contacts.filters.waitlist"
+          value={{ is_on_waitlist: true }}
           size={isMobile ? "lg" : undefined}
         />
         <ToggleFilterButton
           className="w-auto md:w-full justify-between h-10 md:h-8"
-          label="resources.contacts.filters.before_last_month"
-          value={{
-            "last_seen@gte": undefined,
-            "last_seen@lte": subMonths(
-              startOfMonth(new Date()),
-              1,
-            ).toISOString(),
-          }}
+          label="resources.contacts.filters.nurture"
+          value={{ has_nurture_deal: true }}
           size={isMobile ? "lg" : undefined}
         />
       </FilterCategory>
 
       <FilterCategory
-        label="resources.notes.fields.status"
-        icon={<TrendingUp />}
+        label="resources.contacts.filters.sales_eligibility"
+        icon={<ShieldCheck />}
       >
-        {noteStatuses.map((status) => (
-          <ToggleFilterButton
-            key={status.value}
-            className="w-auto md:w-full justify-between h-10 md:h-8"
-            label={
-              <span>
-                {status.label} <Status status={status.value} />
-              </span>
-            }
-            value={{ status: status.value }}
-            size={isMobile ? "lg" : undefined}
-          />
-        ))}
+        <ToggleFilterButton
+          className="w-auto md:w-full justify-between h-10 md:h-8"
+          label="resources.contacts.filters.eligibility_normal"
+          value={{ sales_eligibility: "normal" }}
+          size={isMobile ? "lg" : undefined}
+        />
+        <ToggleFilterButton
+          className="w-auto md:w-full justify-between h-10 md:h-8"
+          label="resources.contacts.filters.eligibility_dne"
+          value={{ sales_eligibility: "do_not_engage" }}
+          size={isMobile ? "lg" : undefined}
+        />
       </FilterCategory>
 
-      <FilterCategory label="resources.contacts.filters.tags" icon={<Tag />}>
-        {data &&
-          data.map((record) => (
+      {offers && offers.length > 0 && (
+        <FilterCategory
+          label="resources.contacts.filters.offer_history"
+          icon={<BookOpen />}
+        >
+          {offers.map((offer) => (
             <ToggleFilterButton
               className="w-auto md:w-full justify-between h-10 md:h-8"
-              key={record.id}
-              label={
-                <Badge
-                  variant="secondary"
-                  className="text-black text-sm md:text-xs font-normal cursor-pointer"
-                  style={{
-                    backgroundColor: record?.color,
-                  }}
-                >
-                  {record?.name}
-                </Badge>
-              }
-              value={{ "tags@cs": `{${record.id}}` }}
+              key={offer.id}
+              label={offer.name}
+              value={{ "offer_ids@cs": `{${offer.id}}` }}
               size={isMobile ? "lg" : undefined}
             />
           ))}
-      </FilterCategory>
+        </FilterCategory>
+      )}
 
       <FilterCategory
         icon={<CheckSquare />}
@@ -139,27 +115,13 @@ export const ContactListFilter = () => {
           size={isMobile ? "lg" : undefined}
         />
       </FilterCategory>
-
-      <FilterCategory
-        icon={<Users />}
-        label="resources.contacts.fields.sales_id"
-      >
-        <ToggleFilterButton
-          className="w-full justify-between h-10 md:h-8"
-          label="crm.common.me"
-          value={{ sales_id: identity?.id }}
-          size={isMobile ? "lg" : undefined}
-        />
-      </FilterCategory>
     </ResponsiveFilters>
   );
 };
 
 export const ContactListFilterSummary = () => {
-  const { noteStatuses } = useConfigurationContext();
-  const { identity } = useGetIdentity();
-  const { data } = useGetList("tags", {
-    pagination: { page: 1, perPage: 10 },
+  const { data: offers } = useGetList<Offer>("offers", {
+    pagination: { page: 1, perPage: 20 },
     sort: { field: "name", order: "ASC" },
   });
   const { filterValues } = useListContext();
@@ -175,75 +137,48 @@ export const ContactListFilterSummary = () => {
     <div className="flex flex-wrap items-start mb-4 gap-1">
       <ActiveFilterButton
         className="w-auto justify-between h-8"
-        label="resources.contacts.filters.today"
-        value={{
-          "last_seen@gte": endOfYesterday().toISOString(),
-          "last_seen@lte": undefined,
-        }}
+        label="resources.contacts.filters.current_client"
+        value={{ is_current_client: true }}
       />
       <ActiveFilterButton
         className="w-auto justify-between h-8"
-        label="resources.contacts.filters.this_week"
-        value={{
-          "last_seen@gte": startOfWeek(new Date()).toISOString(),
-          "last_seen@lte": undefined,
-        }}
+        label="resources.contacts.filters.past_client"
+        value={{ is_past_client: true }}
       />
       <ActiveFilterButton
         className="w-auto justify-between h-8"
-        label="resources.contacts.filters.before_this_week"
-        value={{
-          "last_seen@gte": undefined,
-          "last_seen@lte": startOfWeek(new Date()).toISOString(),
-        }}
+        label="resources.contacts.filters.applicant"
+        value={{ has_applied: true }}
       />
       <ActiveFilterButton
         className="w-auto justify-between h-8"
-        label="resources.contacts.filters.before_this_month"
-        value={{
-          "last_seen@gte": undefined,
-          "last_seen@lte": startOfMonth(new Date()).toISOString(),
-        }}
+        label="resources.contacts.filters.waitlist"
+        value={{ is_on_waitlist: true }}
       />
       <ActiveFilterButton
         className="w-auto justify-between h-8"
-        label="resources.contacts.filters.before_last_month"
-        value={{
-          "last_seen@gte": undefined,
-          "last_seen@lte": subMonths(startOfMonth(new Date()), 1).toISOString(),
-        }}
+        label="resources.contacts.filters.nurture"
+        value={{ has_nurture_deal: true }}
       />
 
-      {noteStatuses.map((status) => (
-        <ActiveFilterButton
-          key={status.value}
-          className="w-auto justify-between h-8"
-          label={
-            <span>
-              {status.label} <Status status={status.value} />
-            </span>
-          }
-          value={{ status: status.value }}
-        />
-      ))}
+      <ActiveFilterButton
+        className="w-auto justify-between h-8"
+        label="resources.contacts.filters.eligibility_normal"
+        value={{ sales_eligibility: "normal" }}
+      />
+      <ActiveFilterButton
+        className="w-auto justify-between h-8"
+        label="resources.contacts.filters.eligibility_dne"
+        value={{ sales_eligibility: "do_not_engage" }}
+      />
 
-      {data &&
-        data.map((record) => (
+      {offers &&
+        offers.map((offer) => (
           <ActiveFilterButton
             className="w-auto justify-between h-8"
-            key={record.id}
-            label={
-              <Badge
-                variant="secondary"
-                className="text-black text-sm md:text-xs font-normal cursor-pointer"
-                style={{
-                  backgroundColor: record?.color,
-                }}
-              >
-                {record?.name}
-              </Badge>
-            }
-            value={{ "tags@cs": `{${record.id}}` }}
+            key={offer.id}
+            label={offer.name}
+            value={{ "offer_ids@cs": `{${offer.id}}` }}
           />
         ))}
 
@@ -251,12 +186,6 @@ export const ContactListFilterSummary = () => {
         className="w-auto justify-between h-8"
         label="resources.tasks.filters.with_pending"
         value={{ "nb_tasks@gt": 0 }}
-      />
-
-      <ActiveFilterButton
-        className="w-auto justify-between h-8"
-        label="resources.contacts.filters.managed_by_me"
-        value={{ sales_id: identity?.id }}
       />
     </div>
   );

@@ -28,11 +28,14 @@ const Wrapper = ({ children }: { children: React.ReactNode }) => (
     dataProvider={fakeDataProvider({ tasks: [], contacts: [], sales: [] })}
     i18nProvider={{
       translate: (key, options) => {
-        if (typeof options?._ === "string") {
-          return options._;
-        }
         if (key === "crm.common.load_more") {
           return "Load more";
+        }
+        if (key === "resources.tasks.unknown_contact") {
+          return "Unknown contact";
+        }
+        if (typeof options?._ === "string") {
+          return options._;
         }
         return key;
       },
@@ -103,5 +106,37 @@ describe("TaskListFilter", () => {
 
     expect(container.textContent?.match(/call-\d+/g) ?? []).toHaveLength(8);
     expect(container.textContent).not.toContain("Load more");
+  });
+
+  // ReferenceField short-circuits to its own `empty` prop BEFORE ever
+  // calling `render` when the reference doesn't resolve (both for a null
+  // id and for an id that fails to fetch) — a fallback written inside
+  // `render` alone (the first version of this fix) never actually runs,
+  // silently rendering nothing after the type label's trailing colon.
+  // Regression coverage for exactly that (UX cleanup pass, §1: "graceful
+  // fallback... rather than crashing or showing undefined").
+  it("shows a graceful fallback, not a blank space, when a Task's Contact can't be resolved", async () => {
+    const orphanTask = {
+      id: 99,
+      due_date: iso(today),
+      done_date: null,
+      contact_id: 12345, // no matching Contact in this fixture
+      sales_id: null,
+      type: "review_application",
+      text: "Should not render",
+    };
+    const screen = await render(
+      <TaskListFilter
+        tasks={[orphanTask]}
+        title="Today"
+        isMobile={false}
+        showContact
+      />,
+      { wrapper: Wrapper },
+    );
+
+    await expect
+      .element(screen.getByText("Review Application: Unknown contact"))
+      .toBeInTheDocument();
   });
 });

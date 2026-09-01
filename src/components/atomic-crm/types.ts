@@ -107,6 +107,17 @@ export type Contact = {
   phone_jsonb: PhoneNumberAndType[];
   nb_tasks?: number;
   company_name?: string;
+  // contacts_summary's computed relationship columns (Contacts UX cleanup
+  // pass) — derived from real Deal/Application/Enrollment/Waitlist rows,
+  // never persisted/mutated data. Optional: only present when read through
+  // the "contacts" resource (which both providers route to
+  // contacts_summary), not on a bare contacts-table row.
+  offer_ids?: Identifier[];
+  is_current_client?: boolean;
+  is_past_client?: boolean;
+  has_applied?: boolean;
+  is_on_waitlist?: boolean;
+  has_nurture_deal?: boolean;
 } & Pick<RaRecord, "id">;
 
 export type ContactNote = {

@@ -217,6 +217,15 @@ describe("Opportunities pipeline (DealList) route", () => {
     await expect
       .element(screen.getByText("Growing Yourself Up · $1.40K"))
       .toBeInTheDocument();
+    // Column heading shows the visible Opportunity count alongside the
+    // stage name (UX cleanup pass, §2) — both seeded deals are in "Call
+    // Booked", an empty column ("Interested") shows 0.
+    await expect
+      .element(screen.getByText("Call Booked · 2"))
+      .toBeInTheDocument();
+    await expect
+      .element(screen.getByText("Interested · 0"))
+      .toBeInTheDocument();
   });
 });
 

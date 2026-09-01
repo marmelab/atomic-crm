@@ -43,7 +43,11 @@ export const ContactList = () => {
       title={false}
       actions={<ContactListActions />}
       perPage={25}
-      sort={{ field: "last_seen", order: "DESC" }}
+      // "Last seen" isn't a meaningful concept for this CRM (Contacts UX
+      // cleanup pass) — alphabetical by name is the simple, truthful
+      // default until a real business-specific "recent activity" concept
+      // exists.
+      sort={{ field: "last_name", order: "ASC" }}
       exporter={exporter}
     >
       <ContactListLayoutDesktop />
@@ -86,7 +90,7 @@ const ContactBulkActionButtons = () => (
 
 const ContactListActions = () => (
   <TopToolbar>
-    <SortButton fields={["first_name", "last_name", "last_seen"]} />
+    <SortButton fields={["first_name", "last_name"]} />
     <ContactImportButton />
     <ExportButton exporter={exporter} />
     <CreateButton />
@@ -100,7 +104,11 @@ export const ContactListMobile = () => {
   return (
     <InfiniteListBase
       perPage={25}
-      sort={{ field: "last_seen", order: "DESC" }}
+      // "Last seen" isn't a meaningful concept for this CRM (Contacts UX
+      // cleanup pass) — alphabetical by name is the simple, truthful
+      // default until a real business-specific "recent activity" concept
+      // exists.
+      sort={{ field: "last_name", order: "ASC" }}
       exporter={exporter}
       queryOptions={{
         onError: () => {
