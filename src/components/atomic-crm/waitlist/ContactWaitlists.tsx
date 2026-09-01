@@ -42,9 +42,9 @@ export const ContactWaitlists = ({ contactId }: { contactId: Identifier }) => {
       </h3>
       <div className="flex flex-col gap-2">
         {entries.map((entry) => (
-          <Card key={entry.entryId}>
-            <CardContent className="flex flex-col gap-2 py-3">
-              <div className="flex items-center justify-between gap-4">
+          <Card key={entry.entryId} className="p-0">
+            <CardContent className="flex flex-col gap-1.5 px-4 py-2.5">
+              <div className="flex items-center justify-between gap-3">
                 <div className="flex min-w-0 flex-col">
                   <Link
                     to={entry.programPath}
@@ -58,7 +58,10 @@ export const ContactWaitlists = ({ contactId }: { contactId: Identifier }) => {
                     {detailLine(entry, translate)}
                   </span>
                 </div>
-                <Badge variant={waitlistEntryStatusBadgeVariant[entry.status]}>
+                <Badge
+                  variant={waitlistEntryStatusBadgeVariant[entry.status]}
+                  className="shrink-0"
+                >
                   {waitlistEntryStatusLabels[entry.status]}
                 </Badge>
               </div>

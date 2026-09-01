@@ -100,7 +100,6 @@ export const useComingUpItems = (): {
       cohortEvents,
       limit: MAX_ITEMS,
     });
-     
   }, [
     isPending,
     cohorts,

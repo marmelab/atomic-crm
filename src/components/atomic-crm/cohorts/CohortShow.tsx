@@ -171,8 +171,6 @@ const CohortShowContent = () => {
         )}
       </Section>
 
-      <WaitlistSection entries={waitlist} />
-
       <Section
         title={translate("resources.applications.name", { smart_count: 2 })}
       >
@@ -205,6 +203,11 @@ const CohortShowContent = () => {
           </div>
         )}
       </Section>
+
+      {/* Density pass, §1: Waitlist comes after Applications — Applications/
+          People Deciding are active sales activity, Waitlist is passive/
+          future intent. */}
+      <WaitlistSection entries={waitlist} />
 
       <Section
         title={translate("crm.programs.cohort_details", {

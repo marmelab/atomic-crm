@@ -131,8 +131,8 @@ export const IndividualProgramPage = () => {
         ) : (
           <div className="flex flex-col gap-2">
             {upcomingOpenings.map((opening) => (
-              <Card key={opening.date}>
-                <CardContent className="py-3">
+              <Card key={opening.date} className="p-0">
+                <CardContent className="px-4 py-2.5">
                   <p className="text-sm font-medium">
                     {formatMonthDayString(opening.date)}
                     {" — "}
@@ -142,7 +142,7 @@ export const IndividualProgramPage = () => {
                       count: opening.count,
                     })}
                   </p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-muted-foreground truncate">
                     {opening.clients
                       .map((client) =>
                         translate("crm.programs.opening_completes", {

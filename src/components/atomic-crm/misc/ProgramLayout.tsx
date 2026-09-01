@@ -51,6 +51,17 @@ export const Section = ({
 // question) plus a short trailing context (a Badge, a status string, a
 // date) — the same shape as the Living Example page's Current Clients /
 // Upcoming Openings rows.
+//
+// Density pass: Card's own default `py-6` was compounding with this row's
+// `py-3` (48px + 24px of pure vertical padding per row before any content)
+// — the CRM-wide "oversized list card" complaint traced back to exactly
+// this. `p-0` on Card removes its ambient padding (same technique
+// waitlist/WaitlistSection.tsx's own outer Card already uses), leaving
+// CardContent's own tight `px-4 py-2.5` — the Waitlist row's own density —
+// as the only padding. Still one full rounded Card per record (not merged
+// into a shared divide-y list): every PersonCard-based section (Enrolled
+// Clients, People Deciding, Applications, Current Clients, and the single
+// "Related Sales" card on the Application detail page) gets this for free.
 export const PersonCard = ({
   contactId,
   to,
@@ -64,12 +75,12 @@ export const PersonCard = ({
   meta?: ReactNode;
   trailing?: ReactNode;
 }) => (
-  <Card>
-    <CardContent className="flex items-center justify-between gap-4 py-3">
+  <Card className="p-0">
+    <CardContent className="flex items-center justify-between gap-3 px-4 py-2.5">
       <div className="flex min-w-0 flex-col">
         <Link
           to={to ?? `/contacts/${contactId}/show`}
-          className="text-sm font-medium hover:underline"
+          className="text-sm font-medium hover:underline truncate"
         >
           {name}
         </Link>
@@ -77,7 +88,7 @@ export const PersonCard = ({
           <span className="text-xs text-muted-foreground truncate">{meta}</span>
         )}
       </div>
-      {trailing}
+      {trailing && <div className="shrink-0">{trailing}</div>}
     </CardContent>
   </Card>
 );
