@@ -62,7 +62,24 @@ export const DealCardContent = ({
                 />
               </p>
             </div>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs text-muted-foreground mt-1 truncate">
+              {/* What they're applying for, alongside the value (Native
+                  Application Intake acceptance-repair pass, round 2): the
+                  card previously showed only name + amount, with no way to
+                  tell a Living Example card from a Growing Yourself Up one
+                  at a glance. offers' own recordRepresentation is "name"
+                  (offers/index.ts), so this renders the real offer display
+                  name — never an internal code. Cohort identity isn't
+                  added here for GYU (out of scope for this small pass —
+                  the offer name alone already answers "what are they
+                  applying for"); DealShow.tsx remains the place for full
+                  Offer + Cohort detail. */}
+              <ReferenceField
+                source="offer_id"
+                reference="offers"
+                link={false}
+              />
+              {" · "}
               <NumberField
                 source="amount"
                 options={{

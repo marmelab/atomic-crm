@@ -144,21 +144,26 @@ const buildTestCrm = (
 describe("Dashboard — Needs Attention (Tasks)", () => {
   it("buckets Overdue/Today/Next 7 Days correctly and excludes Completed/Cancelled", async () => {
     await page.viewport(1280, 900);
+    // Tasks information-hierarchy pass: the primary title is now
+    // "{Task Type}: {Person Name}" (tasks/Task.tsx), not task.text — every
+    // task here shares Contact 1 ("Ada Lovelace", buildContact's default),
+    // so each needs its own distinguishable `type` instead of relying on
+    // `text` to tell the buckets apart.
     const tasks: Task[] = [
-      task({ id: 1, due_date: daysFromNow(-3), text: "Overdue task" }),
-      task({ id: 2, due_date: daysFromNow(0), text: "Today task" }),
-      task({ id: 3, due_date: daysFromNow(3), text: "Next 7 days task" }),
+      task({ id: 1, due_date: daysFromNow(-3), type: "overdue-task" }),
+      task({ id: 2, due_date: daysFromNow(0), type: "today-task" }),
+      task({ id: 3, due_date: daysFromNow(3), type: "next-7-days-task" }),
       task({
         id: 4,
         due_date: daysFromNow(0),
-        text: "Completed task",
+        type: "completed-task",
         status: "completed",
         done_date: daysFromNow(-1),
       }),
       task({
         id: 5,
         due_date: daysFromNow(0),
-        text: "Cancelled task",
+        type: "cancelled-task",
         status: "cancelled",
       }),
     ];
@@ -166,16 +171,20 @@ describe("Dashboard — Needs Attention (Tasks)", () => {
     const { element } = buildTestCrm(["/"], { tasks });
     const screen = await render(element);
 
-    await expect.element(screen.getByText("Overdue task")).toBeInTheDocument();
-    await expect.element(screen.getByText("Today task")).toBeInTheDocument();
     await expect
-      .element(screen.getByText("Next 7 days task"))
+      .element(screen.getByText("overdue-task: Ada Lovelace"))
       .toBeInTheDocument();
     await expect
-      .element(screen.getByText("Completed task"))
+      .element(screen.getByText("today-task: Ada Lovelace"))
+      .toBeInTheDocument();
+    await expect
+      .element(screen.getByText("next-7-days-task: Ada Lovelace"))
+      .toBeInTheDocument();
+    await expect
+      .element(screen.getByText("completed-task: Ada Lovelace"))
       .not.toBeInTheDocument();
     await expect
-      .element(screen.getByText("Cancelled task"))
+      .element(screen.getByText("cancelled-task: Ada Lovelace"))
       .not.toBeInTheDocument();
   });
 });

@@ -137,6 +137,40 @@ describe("submitApplication — Living Example (individual offer)", () => {
     expect(tasks[0].done_date).toBeFalsy();
   });
 
+  // Acceptance-repair pass: dashboard/DashboardTasks.tsx filters its own
+  // task query by `filter: { sales_id: identity?.id }` (the logged-in
+  // user's own tasks) — a Task created with no sales_id at all (public
+  // submission has no logged-in identity to attribute it to) silently
+  // never matched that filter and so never appeared on the Dashboard, even
+  // though it fully existed (visible on the Contact page's own unfiltered
+  // task list). This asserts against the EXACT same filter shape the
+  // Dashboard uses, not just that a task exists somewhere.
+  it("creates the Review Application Task with the administrator Sale's id, so the Dashboard's own sales_id-filtered query finds it", async () => {
+    const { dataProvider } = buildFixtures();
+
+    await submitApplication(dataProvider, {
+      offerId: LE_OFFER_ID,
+      firstName: "Lau",
+      lastName: "Repair",
+      email: "lau.repair@example.com",
+      answers: { why_this_program: "..." },
+    });
+
+    // createCrmDb's own default sales fixture is the administrator (id 0)
+    // — see @/test/StoryWrapper.tsx's baseSale.
+    const { data: dashboardVisibleTasks } = await dataProvider.getList<Task>(
+      "tasks",
+      {
+        filter: { sales_id: 0 },
+        pagination: { page: 1, perPage: 10 },
+        sort: { field: "id", order: "ASC" },
+      },
+    );
+    expect(dashboardVisibleTasks).toHaveLength(1);
+    expect(dashboardVisibleTasks[0]!.type).toBe("review_application");
+    expect(dashboardVisibleTasks[0]!.status).toBe("pending");
+  });
+
   it("reuses an existing Contact matched by normalized email (case/whitespace-insensitive)", async () => {
     const { dataProvider } = buildFixtures({
       contacts: [

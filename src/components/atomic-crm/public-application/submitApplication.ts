@@ -1,6 +1,6 @@
 import type { DataProvider, Identifier } from "ra-core";
 
-import type { Application, Cohort, Contact, Deal, Offer } from "../types";
+import type { Application, Cohort, Contact, Deal, Offer, Sale } from "../types";
 import { validateOfferCohort } from "../deals/offerCohortValidation";
 import { getDenverDateString } from "../dashboard/artOracle/selectDailyArtwork";
 import { isContactDoNotEngage } from "../contacts/doNotEngageGuard";
@@ -167,6 +167,7 @@ export const submitApplication = async (
     await ensureReviewApplicationTask(dataProvider, {
       contactId: contact.id,
       applicantName: `${contact.first_name} ${contact.last_name}`.trim(),
+      salesId: await resolveDefaultTaskSalesId(dataProvider),
     });
   }
 
@@ -289,6 +290,33 @@ const findOrCreateDeal = async (
     },
   });
   return { deal: created, reused: false };
+};
+
+// Acceptance-repair pass: dashboard/DashboardTasks.tsx filters its "Overdue
+// / Today / Next 7 Days" query by `sales_id: identity?.id` (the logged-in
+// user's own tasks). A Task created with no `sales_id` at all — which is
+// what every public submission produced before this fix, since there is no
+// logged-in identity during an anonymous intake request — silently never
+// matches that filter and so never appears on the Dashboard, even though
+// the task genuinely exists (visible on the Contact page's own task list,
+// which has no such filter). This app has exactly one real owner: the
+// `sales` row with `administrator: true` (this app's own single-operator
+// convention — see sales/SalesList.tsx's own "Admin" badge, and every
+// FakeRest fixture seeds exactly one). Resolving and assigning it at
+// intake, only for the Task, is the minimal fix: Contact/Deal creation
+// intentionally still don't set sales_id (mirrors
+// waitlist/waitlistActions.ts's convertToOpportunity, and neither the
+// Applications list nor the Contacts list filters by owner the way the
+// Dashboard's task view does — both already worked before this repair).
+const resolveDefaultTaskSalesId = async (
+  dataProvider: DataProvider,
+): Promise<Identifier | undefined> => {
+  const { data: administrators } = await dataProvider.getList<Sale>("sales", {
+    filter: { administrator: true },
+    pagination: { page: 1, perPage: 1 },
+    sort: { field: "id", order: "ASC" },
+  });
+  return administrators[0]?.id;
 };
 
 // Idempotent: a double-click, a refresh after submit, or a repeat POST for

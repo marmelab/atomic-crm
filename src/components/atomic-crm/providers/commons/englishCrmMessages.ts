@@ -524,7 +524,6 @@ export const englishCrmMessages = {
         tomorrow: "Tomorrow",
         with_pending: "With pending tasks",
       },
-      regarding_contact: "(Re: %{name})",
       updated: "Task updated",
     },
     tags: {

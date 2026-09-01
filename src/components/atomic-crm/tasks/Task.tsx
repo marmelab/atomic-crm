@@ -9,7 +9,6 @@ import {
 } from "ra-core";
 import { useEffect, useState } from "react";
 import { ReferenceField } from "@/components/admin/reference-field";
-import { DateField } from "@/components/admin/date-field";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -21,11 +20,24 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import { useConfigurationContext } from "../root/ConfigurationContext";
-import type { Contact, Task as TData } from "../types";
+import { formatTimestampString } from "../deals/dealUtils";
+import type { Contact, LabeledValue, Task as TData } from "../types";
 import { taskStatusLabels } from "./taskConstants";
 import { TaskEdit } from "./TaskEdit";
 import { TaskEditSheet } from "./TaskEditSheet";
 import { useIsMobile } from "@/hooks/use-mobile";
+
+// The configured label for a task's type (e.g. "review_application" ->
+// "Review Application"), falling back to the raw value for a type not in
+// the configured list, or null if the task has none at all (nullable at
+// the DB level — see supabase/schemas/01_tables.sql's tasks.type).
+const typeLabel = (
+  task: Pick<TData, "type">,
+  taskTypes: LabeledValue[],
+): string | null => {
+  if (!task.type) return null;
+  return taskTypes.find((t) => t.value === task.type)?.label ?? task.type;
+};
 
 export const Task = ({
   task,
@@ -105,23 +117,40 @@ export const Task = ({
             className="mt-1"
           />
           <div className={`flex-grow ${task.done_date ? "line-through" : ""}`}>
-            <div className="text-sm">
-              {task.type && (
+            <div className="text-sm font-semibold">
+              {/* Primary title, information-hierarchy pass: "What I need to
+                  do, and who for" — "{Task Type}: {Person Name}" — replaces
+                  the old "{Type} {task.text}" + trailing "(Re: {name})"
+                  (task.text was frequently faker-generated filler in
+                  fixtures, not a genuinely useful description, so it's
+                  dropped from this compact row rather than concatenated
+                  into the title; a real custom note still belongs on the
+                  Task's own edit/detail view, untouched by this pass).
+                  showContact (unchanged meaning: are we somewhere the
+                  contact isn't already obvious, e.g. the Dashboard or a
+                  cross-contact task list — never a Contact's own page,
+                  which never passes it) decides whether the name is shown
+                  at all; when it isn't, the type label alone is the title. */}
+              {showContact ? (
                 <>
-                  <span className="font-semibold text-sm">
-                    {(() => {
-                      const matchedTaskType = taskTypes.find(
-                        (taskType) => taskType.value === task.type,
-                      );
-                      return matchedTaskType
-                        ? matchedTaskType.label
-                        : task.type;
-                    })()}
-                  </span>
-                  &nbsp;
+                  {typeLabel(task, taskTypes) &&
+                    `${typeLabel(task, taskTypes)}: `}
+                  <ReferenceField<TData, Contact>
+                    source="contact_id"
+                    reference="contacts"
+                    record={task}
+                    link="show"
+                    className="inline"
+                    render={({ referenceRecord }) =>
+                      referenceRecord
+                        ? getContactRepresentation(referenceRecord)
+                        : null
+                    }
+                  />
                 </>
+              ) : (
+                (typeLabel(task, taskTypes) ?? task.text)
               )}
-              {task.text}
               {/* Pending/Completed are already conveyed by the checkbox and
                   strikethrough; only the less obvious states get a badge. */}
               {(task.status === "waiting" || task.status === "cancelled") && (
@@ -133,27 +162,14 @@ export const Task = ({
             <div className="text-sm text-muted-foreground">
               {translate("resources.tasks.fields.due_short")}
               &nbsp;
-              <DateField source="due_date" record={task} showDate showTime />
-              {showContact && (
-                <ReferenceField<TData, Contact>
-                  source="contact_id"
-                  reference="contacts"
-                  record={task}
-                  link="show"
-                  className="inline text-sm text-muted-foreground"
-                  render={({ referenceRecord }) => {
-                    if (!referenceRecord) return null;
-                    return (
-                      <>
-                        {" "}
-                        {translate("resources.tasks.regarding_contact", {
-                          name: getContactRepresentation(referenceRecord),
-                        })}
-                      </>
-                    );
-                  }}
-                />
-              )}
+              {/* Date only, no time-of-day (Tasks UX cleanup) — reuses
+                  dealUtils.ts's own formatTimestampString, the same "PP"
+                  (e.g. "Feb 20, 2025") formatter already used for other
+                  timestamptz columns like Application.submitted_at.
+                  Display-only: task.due_date itself is untouched, still
+                  the full timestamp used for sorting/overdue logic/
+                  automation (tasksPredicate.ts). */}
+              {formatTimestampString(task.due_date)}
             </div>
           </div>
         </div>

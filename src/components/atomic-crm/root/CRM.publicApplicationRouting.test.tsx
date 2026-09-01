@@ -14,6 +14,7 @@ import type {
   Application,
   Cohort,
   Contact,
+  ContactNote,
   Deal,
   Offer,
   Task,
@@ -87,10 +88,14 @@ const septemberCohort: Cohort = {
   updated_at: "2025-01-01T00:00:00.000Z",
 };
 
-const buildSharedDb = (contacts: Contact[] = []) =>
+const buildSharedDb = (
+  contacts: Contact[] = [],
+  contactNotes: ContactNote[] = [],
+) =>
   createDataProvider({
     db: createCrmDb({
       contacts,
+      contact_notes: contactNotes,
       offers: [livingExample, gyuOffer],
       offer_payment_options: [],
       cohorts: [septemberCohort],
@@ -265,6 +270,99 @@ describe("Public /apply routes — unauthenticated access + shared demo state", 
     const adminScreen = await renderAdminRoute(dataProvider, "/applications");
     await expect
       .element(adminScreen.getByText("Tycho Repair"))
+      .toBeInTheDocument();
+  });
+
+  // Acceptance-repair pass, round 2: the Contact/Application/Opportunity
+  // chain already proved itself visible above via the Applications list —
+  // that list has no owner filter, so it never exposed this bug. The
+  // Dashboard's own Tasks section (dashboard/DashboardTasks.tsx) is
+  // different: it queries `filter: { sales_id: identity?.id }` — a Task
+  // created with no sales_id at all (every one intake produced before this
+  // repair) silently never matches and never appears here, even though it
+  // fully exists. This asserts against that EXACT query's own rendered
+  // output, not just the isolated task-creation helper, per the human
+  // acceptance condition ("navigate to the Dashboard... confirm a visible
+  // Review Application task").
+  it("Living Example: the Review Application Task is visible on the Dashboard's own Today bucket, not just the Applications list", async () => {
+    await page.viewport(1280, 900);
+    // Dashboard.tsx gates its real content behind an onboarding stepper
+    // until at least one Contact and one ContactNote exist (see
+    // CRM.routing.test.tsx's own identical seeding) — an unrelated
+    // baseline record, distinct from the applicant this test submits.
+    const baselineContact = buildContact({ id: 99, first_name: "Baseline" });
+    const baselineNote: ContactNote = {
+      id: 1,
+      contact_id: 99,
+      text: "Seed note",
+      date: "2025-01-01T00:00:00.000Z",
+      sales_id: 0,
+      status: "warm",
+    };
+    const dataProvider = buildSharedDb([baselineContact], [baselineNote]);
+    const screen = await renderPublicRoute(
+      dataProvider,
+      "/apply/living-example",
+    );
+
+    await screen.getByLabelText("First name").fill("Lau");
+    await screen.getByLabelText("Last name").fill("Repair");
+    await screen.getByLabelText("Email").fill("lau.repair@example.com");
+    await screen
+      .getByLabelText("Why this program?")
+      .fill("Reproducing the missing Dashboard task.");
+    await screen.getByRole("button", { name: "Submit application" }).click();
+    await expect
+      .element(screen.getByText("Application received"))
+      .toBeInTheDocument();
+
+    // Same identity id (0) as the administrator Sale createCrmDb seeds by
+    // default — the exact match resolveDefaultTaskSalesId's fix depends on.
+    const adminScreen = await renderAdminRoute(dataProvider, "/");
+    await expect
+      .element(adminScreen.getByText("Business at a Glance"))
+      .toBeInTheDocument();
+    // Primary title format: "{Task Type}: {Person Name}" (Tasks
+    // information-hierarchy pass) — not task.text.
+    await expect
+      .element(adminScreen.getByText("Review Application: Lau Repair"))
+      .toBeInTheDocument();
+  });
+
+  it("Growing Yourself Up (cohort 1): the Review Application Task is visible on the Dashboard's own Today bucket", async () => {
+    await page.viewport(1280, 900);
+    const baselineContact = buildContact({ id: 99, first_name: "Baseline" });
+    const baselineNote: ContactNote = {
+      id: 1,
+      contact_id: 99,
+      text: "Seed note",
+      date: "2025-01-01T00:00:00.000Z",
+      sales_id: 0,
+      status: "warm",
+    };
+    const dataProvider = buildSharedDb([baselineContact], [baselineNote]);
+    const screen = await renderPublicRoute(
+      dataProvider,
+      "/apply/growing-yourself-up/1",
+    );
+
+    await screen.getByLabelText("First name").fill("Sable");
+    await screen.getByLabelText("Last name").fill("Repair");
+    await screen.getByLabelText("Email").fill("sable.repair@example.com");
+    await screen
+      .getByLabelText("Why this cohort?")
+      .fill("Reproducing the missing Dashboard task for GYU.");
+    await screen.getByRole("button", { name: "Submit application" }).click();
+    await expect
+      .element(screen.getByText("Application received"))
+      .toBeInTheDocument();
+
+    const adminScreen = await renderAdminRoute(dataProvider, "/");
+    await expect
+      .element(adminScreen.getByText("Business at a Glance"))
+      .toBeInTheDocument();
+    await expect
+      .element(adminScreen.getByText("Review Application: Sable Repair"))
       .toBeInTheDocument();
   });
 

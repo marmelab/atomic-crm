@@ -8,13 +8,18 @@ import { TaskListFilter } from "./TasksListFilter";
 const today = new Date();
 const iso = (d: Date) => d.toISOString();
 
+// Tasks information-hierarchy pass: the primary title is now
+// "{Task Type}: {Person Name}" (or just the type when there's no contact
+// context to show — see tasks/Task.tsx's own typeLabel helper), not
+// task.text — so each task needs a distinguishable `type` (not `text`) to
+// count how many are visibly rendered after "Load more".
 const createTask = (id: number, dueDate: Date, doneDate?: Date) => ({
   id,
   due_date: iso(dueDate),
   done_date: doneDate ? iso(doneDate) : null,
   contact_id: null,
   sales_id: null,
-  type: "Call",
+  type: `call-${id}`,
   text: `Task ${id}`,
 });
 
@@ -91,12 +96,12 @@ describe("TaskListFilter", () => {
       },
     );
 
-    expect(container.textContent?.match(/Task \d+/g) ?? []).toHaveLength(5);
+    expect(container.textContent?.match(/call-\d+/g) ?? []).toHaveLength(5);
     const loadMore = getByText("Load more");
 
     await loadMore.click();
 
-    expect(container.textContent?.match(/Task \d+/g) ?? []).toHaveLength(8);
+    expect(container.textContent?.match(/call-\d+/g) ?? []).toHaveLength(8);
     expect(container.textContent).not.toContain("Load more");
   });
 });

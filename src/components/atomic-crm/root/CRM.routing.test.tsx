@@ -76,10 +76,11 @@ const buildTestCrm = (
   initialEntries: string[],
   deals: Db["deals"] = [],
   enrollments: Db["enrollments"] = [],
+  extraContacts: Db["contacts"] = [],
 ) => {
   const dataProvider = createDataProvider({
     db: createCrmDb({
-      contacts: [buildContact({ id: 1 })],
+      contacts: [buildContact({ id: 1 }), ...extraContacts],
       contact_notes: [seededContactNote],
       offers: [livingExample, gyuOffer],
       cohorts: [septemberCohort],
@@ -162,9 +163,9 @@ describe("CRM Dashboard and Cohort routes at a narrow (sub-768px) viewport", () 
 // regression: the lazy-loaded /deals route still mounts and renders real
 // data through to completion, with no dead-route fallback.
 describe("Opportunities pipeline (DealList) route", () => {
-  it("renders the Kanban board via its lazy-loaded route", async () => {
+  it("renders the Kanban board via its lazy-loaded route, with each card showing what the person is applying for", async () => {
     await page.viewport(1280, 900);
-    const deal: Db["deals"][number] = {
+    const leDeal: Db["deals"][number] = {
       id: 1,
       name: "Ada Lovelace — The Living Example",
       contact_id: 1,
@@ -177,12 +178,45 @@ describe("Opportunities pipeline (DealList) route", () => {
       created_at: "2025-01-01T00:00:00.000Z",
       updated_at: "2025-01-01T00:00:00.000Z",
     };
-    const screen = await render(buildTestCrm(["/deals"], [deal]));
+    // Acceptance-repair pass, round 2: the Kanban card previously showed
+    // only the Contact's name and the amount, with no way to tell a Living
+    // Example card apart from a Growing Yourself Up one at a glance —
+    // seeding one of each proves DealCard.tsx renders the actual Offer
+    // name (offers' own recordRepresentation), not a shared/blank label.
+    const gyuContact = buildContact({
+      id: 2,
+      first_name: "Geralyn",
+      last_name: "Marsh",
+    });
+    const gyuDeal: Db["deals"][number] = {
+      id: 2,
+      name: "Geralyn Marsh — Growing Yourself Up",
+      contact_id: 2,
+      offer_id: 2,
+      cohort_id: 1,
+      stage: "call_booked",
+      outcome: null,
+      amount: 1400,
+      sales_id: 0,
+      index: 1,
+      created_at: "2025-01-01T00:00:00.000Z",
+      updated_at: "2025-01-01T00:00:00.000Z",
+    };
+    const screen = await render(
+      buildTestCrm(["/deals"], [leDeal, gyuDeal], [], [gyuContact]),
+    );
 
     await expect.element(screen.getByText("Not Found")).not.toBeInTheDocument();
     // Each Kanban card shows its linked Contact's name, not the Deal's own
     // `name` field — see DealCard.tsx.
     await expect.element(screen.getByText("Ada Lovelace")).toBeInTheDocument();
+    await expect.element(screen.getByText("Geralyn Marsh")).toBeInTheDocument();
+    await expect
+      .element(screen.getByText("The Living Example · $4.00K"))
+      .toBeInTheDocument();
+    await expect
+      .element(screen.getByText("Growing Yourself Up · $1.40K"))
+      .toBeInTheDocument();
   });
 });
 

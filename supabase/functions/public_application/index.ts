@@ -301,6 +301,23 @@ const findOrCreateApplication = async (params: {
 
 const REVIEW_APPLICATION_TASK_TYPE = "review_application";
 
+// Acceptance-repair pass: the Dashboard's own task view (DashboardTasks.tsx)
+// filters by `sales_id: identity?.id` (the logged-in user's own tasks). A
+// Task created with no sales_id at all — every one this function produced
+// before this fix, since there is no logged-in identity during a public
+// submission — never matches that filter and so never surfaces there, even
+// though it genuinely exists (see submitApplication.ts's own
+// resolveDefaultTaskSalesId, which this mirrors: this app has exactly one
+// real owner, the `sales` row with administrator = true).
+const resolveDefaultTaskSalesId = async (): Promise<number | undefined> => {
+  const { data: administrators } = await supabaseAdmin
+    .from("sales")
+    .select("id")
+    .eq("administrator", true)
+    .limit(1);
+  return administrators?.[0]?.id;
+};
+
 const ensureReviewApplicationTask = async (
   contactId: number,
   applicantName: string,
@@ -313,12 +330,14 @@ const ensureReviewApplicationTask = async (
   const hasPending = (existingTasks ?? []).some((task) => !task.done_date);
   if (hasPending) return;
 
+  const salesId = await resolveDefaultTaskSalesId();
   await supabaseAdmin.from("tasks").insert({
     contact_id: contactId,
     type: REVIEW_APPLICATION_TASK_TYPE,
     text: `Review ${applicantName}'s application`,
     due_date: new Date().toISOString(),
     status: "pending",
+    ...(salesId != null ? { sales_id: salesId } : {}),
   });
 };
 
