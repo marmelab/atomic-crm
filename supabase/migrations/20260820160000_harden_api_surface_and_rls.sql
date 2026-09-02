@@ -7,8 +7,13 @@
 -- 0025 public_bucket_allows_listing
 --                               the attachments bucket is public, so its broad
 --                               SELECT policy only enabled enumeration.
--- 0026/0027 pg_graphql          the reflected GraphQL schema is a second, unused
---                               API surface; both lints gate on the extension.
+-- 0026 pg_graphql_anon_table_exposed
+--                               fixed by the anon revoke below: with no grants
+--                               on public, anon reflects nothing. pg_graphql
+--                               stays installed, so 0027 (relations visible to
+--                               authenticated) keeps firing - that is the
+--                               intended behaviour of the GraphQL API and the
+--                               lint is informational.
 -- 0028/0029 definer functions    helpers move to the unexposed `private` schema,
 --                               trigger functions lose their API-role grants.
 
@@ -179,5 +184,3 @@ alter default privileges for role postgres in schema public revoke all on tables
 -- The bucket is public, so objects are served by URL without any policy on
 -- storage.objects; this one only enabled enumeration. See 07_storage.sql.
 drop policy if exists "Attachments 1mt4rzk_0" on storage.objects;
-
-drop extension if exists pg_graphql cascade;
