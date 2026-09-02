@@ -112,7 +112,6 @@ select
     co.last_seen,
     co.has_newsletter,
     co.status,
-    co.sales_eligibility,
     co.tags,
     co.company_id,
     co.sales_id,
@@ -123,6 +122,12 @@ select
     (jsonb_path_query_array(co.phone_jsonb, '$[*]."number"'))::text as phone_fts,
     c.name as company_name,
     count(distinct t.id) filter (where t.done_date is null) as nb_tasks,
+    -- Trailing position matches the migration chain exactly (Postgres's
+    -- CREATE OR REPLACE VIEW forbids reordering an existing column — see
+    -- 20260831110000_application_review_outcomes.sql's own comment on this
+    -- same column) — kept here too so a fresh `db reset` produces the
+    -- identical column order and `db diff` never sees a phantom difference.
+    co.sales_eligibility,
     -- CRM-domain relationship filters (Contacts UX cleanup pass): derived
     -- from real Deal/Application/Enrollment/Waitlist rows, the same
     -- "computed column on this view" pattern nb_tasks above already

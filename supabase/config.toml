@@ -172,3 +172,12 @@ verify_jwt = false
 verify_jwt = false
 [functions.mcp]
 verify_jwt = false
+# Live Acuity Connection slice: Acuity's webhook POST carries no Supabase
+# JWT (it's an external caller with no CRM session, same as every other
+# function above) — without this, Supabase's default verify_jwt = true
+# would reject every real webhook delivery with 401 before this function's
+# own code (and its own x-acuity-signature check, see acuitySignature.ts)
+# ever runs. Found missing during this slice's audit — the function itself
+# was already written expecting to be reachable unauthenticated.
+[functions.acuity_webhook]
+verify_jwt = false

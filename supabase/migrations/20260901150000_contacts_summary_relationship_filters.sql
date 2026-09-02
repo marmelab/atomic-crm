@@ -25,7 +25,6 @@ select
     co.last_seen,
     co.has_newsletter,
     co.status,
-    co.sales_eligibility,
     co.tags,
     co.company_id,
     co.sales_id,
@@ -36,6 +35,12 @@ select
     (jsonb_path_query_array(co.phone_jsonb, '$[*]."number"'))::text as phone_fts,
     c.name as company_name,
     count(distinct t.id) filter (where t.done_date is null) as nb_tasks,
+    -- Same trailing-position requirement as
+    -- 20260831110000_application_review_outcomes.sql — this migration's
+    -- own prior contacts_summary already has sales_eligibility as its last
+    -- column (per that fix), so it must stay last here too, before these
+    -- genuinely new columns.
+    co.sales_eligibility,
     coalesce(array_agg(distinct d.offer_id) filter (where d.offer_id is not null), '{}') as offer_ids,
     bool_or(e.status in ('onboarding', 'active')) as is_current_client,
     bool_or(e.status in ('offboarding', 'completed')) as is_past_client,
