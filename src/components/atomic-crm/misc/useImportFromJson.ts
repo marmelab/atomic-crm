@@ -802,8 +802,3 @@ const isTask = (data: any): data is TaskImport =>
   data.sales_id != null &&
   data.contact_id != null &&
   data.text != null;
-
-/**
- * Maps a company size number to the appropriate size category.
- * Categories: 1, 10, 50, 250, 500
- */

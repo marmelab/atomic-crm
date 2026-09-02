@@ -2,6 +2,7 @@ import { useDataProvider, useGetIdentity } from "ra-core";
 import { useCallback, useMemo } from "react";
 
 import type { Tag } from "../types";
+import { createEachRow } from "../dataImport/createEachRow";
 import { fetchRecordsWithCache } from "../dataImport/fetchRecordsWithCache";
 import { useCompanyResolver } from "../dataImport/useCompanyResolver";
 
@@ -64,9 +65,9 @@ export function useContactImport() {
         getTags(batch.flatMap((batch) => parseTags(batch.tags))),
       ]);
 
-      await Promise.all(
+      return createEachRow(
         batch.map(
-          async ({
+          ({
             first_name,
             last_name,
             gender,

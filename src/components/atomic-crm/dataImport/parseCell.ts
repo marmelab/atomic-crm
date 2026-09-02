@@ -16,12 +16,38 @@ export const toNumber = (cell: ImportCell): number | undefined => {
   return Number.isFinite(value) ? value : undefined;
 };
 
-/** Cell content as an ISO 8601 date, or undefined when it is empty or invalid. */
+/**
+ * Cell content as a whole number, for the integer columns of the database: an
+ * amount of `4500.50` would make PostgREST reject the whole row with
+ * `invalid input syntax for type bigint`.
+ */
+export const toInteger = (cell: ImportCell): number | undefined => {
+  const value = toNumber(cell);
+  return value === undefined ? undefined : Math.round(value);
+};
+
+const isoDateRegex = /^\d{4}-\d{2}-\d{2}$/;
+
+/**
+ * Cell content as an ISO 8601 date, or undefined when it is empty or is not a
+ * plain `YYYY-MM-DD` date — the format the sample CSV documents.
+ *
+ * Only that format is accepted because `new Date(text)` reads anything else as
+ * local midnight: in a timezone ahead of UTC, `09/30/2026` becomes
+ * `2026-09-29T22:00:00Z`, which a `date` column truncates to the day before.
+ * `dealUtils.formatISODateString` refuses `new Date` for the same reason on the
+ * read path.
+ */
 export const toIsoDate = (cell: ImportCell): string | undefined => {
   const text = toText(cell);
-  if (text === undefined) return undefined;
-  const date = new Date(text);
-  return Number.isNaN(date.getTime()) ? undefined : date.toISOString();
+  if (text === undefined || !isoDateRegex.test(text)) return undefined;
+  // Parsed as UTC midnight, so the stored day is the one the CSV names
+  const date = new Date(`${text}T00:00:00.000Z`);
+  if (Number.isNaN(date.getTime())) return undefined;
+  // An impossible day rolls over rather than failing — "2026-02-31" becomes
+  // March 3 — so the parsed date has to name the day back
+  const iso = date.toISOString();
+  return iso.startsWith(text) ? iso : undefined;
 };
 
 /**

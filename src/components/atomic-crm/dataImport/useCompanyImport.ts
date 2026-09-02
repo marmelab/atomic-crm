@@ -3,6 +3,7 @@ import { useDataProvider, useGetIdentity } from "ra-core";
 
 import { mapSizeToCategory } from "../companies/sizes";
 import { useConfigurationContext } from "../root/ConfigurationContext";
+import { createEachRow } from "./createEachRow";
 import { toConfiguredValue, toNumber, toText } from "./parseCell";
 import type { ImportCell, ProcessImportBatch } from "./types";
 
@@ -16,8 +17,8 @@ export function useCompanyImport(): ProcessImportBatch {
   const dataProvider = useDataProvider();
 
   return useCallback(
-    async (batch) => {
-      await Promise.all(
+    (batch) =>
+      createEachRow(
         batch.map((row) =>
           dataProvider.create("companies", {
             data: {
@@ -40,8 +41,7 @@ export function useCompanyImport(): ProcessImportBatch {
             },
           }),
         ),
-      );
-    },
+      ),
     [companySectors, dataProvider, identity?.id],
   );
 }

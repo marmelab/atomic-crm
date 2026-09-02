@@ -450,6 +450,7 @@ export const frenchCrmMessages = {
       sample_download: "Télécharger un exemple CSV",
       sample_hint:
         "Voici un exemple de fichier CSV que vous pouvez utiliser comme modèle",
+      start: "Démarrer l'import",
       stop: "Arrêter l'importation",
       title: "Importer des données",
     },

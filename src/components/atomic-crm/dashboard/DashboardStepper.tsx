@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { CheckCircle, Circle, Plus } from "lucide-react";
 import type { Identifier } from "ra-core";
-import { useTranslate } from "ra-core";
+import { useCreatePath, useTranslate } from "ra-core";
 import { useState } from "react";
 import { Link } from "react-router";
 
@@ -21,6 +21,7 @@ export const DashboardStepper = ({
   contactId?: Identifier;
 }) => {
   const translate = useTranslate();
+  const createPath = useCreatePath();
   const appbarHeight = useAppBarHeight();
   const isMobile = useIsMobile();
   const [contactCreateOpen, setContactCreateOpen] = useState(false);
@@ -100,7 +101,12 @@ export const DashboardStepper = ({
                       </Button>
                     ) : (
                       <Button asChild className="w-fit">
-                        <Link role="button" to="/contacts/create">
+                        <Link
+                          to={createPath({
+                            resource: "contacts",
+                            type: "create",
+                          })}
+                        >
                           {addContactLabel}
                         </Link>
                       </Button>
@@ -134,7 +140,13 @@ export const DashboardStepper = ({
                     </Button>
                   ) : (
                     <Button asChild disabled={step < 2} className="w-fit">
-                      <Link role="button" to={`/contacts/${contactId}/show`}>
+                      <Link
+                        to={createPath({
+                          resource: "contacts",
+                          type: "show",
+                          id: contactId,
+                        })}
+                      >
                         {translate("resources.notes.action.add", {
                           _: "Add note",
                         })}

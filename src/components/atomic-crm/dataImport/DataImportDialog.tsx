@@ -47,8 +47,16 @@ export function DataImportDialog({
   const translate = useTranslate();
   const getResourceLabel = useGetResourceLabel();
   const refresh = useRefresh();
-  const [resource, setResource] = useState(resources[0]);
+  const [resourceName, setResourceName] = useState(resources[0].name);
   const [file, setFile] = useState<File | null>(null);
+
+  // The resource is read from `resources` on every render, keeping only the
+  // selected name in state: `useConfigurationLoader` fills the configuration
+  // asynchronously, so a resource object captured at mount would keep its
+  // `processBatch` pinned to `defaultConfiguration` — importing a deal into a
+  // stage that does not exist in a customized pipeline, and with no `sales_id`.
+  const resource =
+    resources.find(({ name }) => name === resourceName) ?? resources[0];
 
   // Importing a single resource names the dialog after it, falling back to the
   // generic heading for a resource that has no title of its own.
@@ -61,6 +69,7 @@ export function DataImportDialog({
   });
   const { importer, parseCsv, reset } = usePapaParse<ImportRow>({
     batchSize: 10,
+    textColumns: resource.textColumns,
     processBatch: resource.processBatch,
   });
 
@@ -76,7 +85,7 @@ export function DataImportDialog({
     const next = resources.find((candidate) => candidate.name === name);
     if (!next) return;
     setFile(null);
-    setResource(next);
+    setResourceName(next.name);
   };
 
   const handleFileChange = (file: File | null) => {
@@ -220,7 +229,7 @@ export function DataImportDialog({
           <FormToolbar>
             {importer.state === "idle" ? (
               <Button onClick={startImport} disabled={!file}>
-                {translate("crm.data_import.button")}
+                {translate("crm.data_import.start")}
               </Button>
             ) : (
               <Button

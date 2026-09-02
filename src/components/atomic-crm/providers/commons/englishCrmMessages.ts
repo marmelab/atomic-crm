@@ -443,6 +443,7 @@ export const englishCrmMessages = {
       running: "The import is running, please do not close this tab.",
       sample_download: "Download CSV sample",
       sample_hint: "Here is a sample CSV file you can use as a template",
+      start: "Start import",
       stop: "Stop import",
       title: "Import data",
     },
