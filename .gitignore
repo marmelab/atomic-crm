@@ -11,6 +11,8 @@
 # testing
 /coverage
 __screenshots__
+.vitest-attachments/
+test-results/
 
 # production
 /build
@@ -50,7 +52,6 @@ public/r/
 # Playwright
 .playwright-mcp/
 node_modules/
-/test-results/
 /playwright-report/
 /blob-report/
 /playwright/.cache/

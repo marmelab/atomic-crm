@@ -193,6 +193,23 @@ async function createContact({
   return data;
 }
 
+export const NOTIFICATION = {
+  created: "Element created",
+  updated: "Element updated",
+  dealUpdated: "Deal updated",
+  taskAdded: "Task added",
+  taskUpdated: "Task updated",
+  profileUpdated: "Your profile has been updated",
+} as const;
+
+export const CREATE_BUTTON = {
+  mobile: "Create",
+  contacts: "Create contact",
+  companies: "Create Company",
+  deals: "Create deal",
+  tasks: "Add Task",
+} as const;
+
 const getMenuMethod = ({ page }: { page: Page; isMobile: boolean }) => ({
   goToDashboard: async () => {
     await page.getByRole("link", { name: "Dashboard" }).click();
