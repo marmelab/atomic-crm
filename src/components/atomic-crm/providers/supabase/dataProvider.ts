@@ -402,15 +402,11 @@ const applyFullTextSearch = (columns: string[]) => (params: GetListParams) => {
 
 const uploadToBucket = async (fi: RAFile) => {
   if (!fi.src.startsWith("blob:") && !fi.src.startsWith("data:")) {
-    // Sign URL check if path exists in the bucket
+    // Already an object of our bucket: nothing to re-upload. `path` is only set
+    // by our own uploads, so this needs no read on storage.objects (a SELECT
+    // policy there would let any signed-in user list every attachment).
     if (fi.path) {
-      const { error } = await getSupabaseClient()
-        .storage.from(ATTACHMENTS_BUCKET)
-        .createSignedUrl(fi.path, 60);
-
-      if (!error) {
-        return fi;
-      }
+      return fi;
     }
   }
 
