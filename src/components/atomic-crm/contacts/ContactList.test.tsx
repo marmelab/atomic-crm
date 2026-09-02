@@ -1,11 +1,14 @@
 import { render } from "vitest-browser-react";
+import { page } from "vitest/browser";
 
 import {
+  AdminAccountManagerFilter,
   DesktopEmpty,
   DesktopSuccess,
   DesktopLoading,
   DesktopError,
   BulkTagButton,
+  NonAdminAccountManagerFilter,
 } from "./ContactList.stories";
 
 afterEach(() => {
@@ -127,6 +130,58 @@ describe("ContactList", () => {
     await expect.element(screen.getByText("Prospect").first()).toBeVisible();
     // close the notification
     await screen.getByRole("button", { name: /close/i }).click();
+  });
+
+  describe("account manager filter", () => {
+    beforeAll(() => {
+      page.viewport(1600, 900);
+    });
+
+    it("restricts the list to the contacts of the account manager an admin picks", async () => {
+      const screen = await render(<AdminAccountManagerFilter />);
+
+      await expect.element(screen.getByText("Ada Lovelace")).toBeVisible();
+      await expect.element(screen.getByText("Grace Hopper")).toBeVisible();
+
+      await screen.getByRole("combobox", { name: "Account manager" }).click();
+      await screen.getByRole("option", { name: "Marie Curie" }).click();
+
+      await expect.element(screen.getByText("Grace Hopper")).toBeVisible();
+      await expect
+        .element(screen.getByText("Ada Lovelace"))
+        .not.toBeInTheDocument();
+    });
+
+    it("offers no account manager picker to a user who is not an admin", async () => {
+      const screen = await render(<NonAdminAccountManagerFilter />);
+
+      await expect.element(screen.getByText("Me")).toBeVisible();
+      await expect
+        .element(screen.getByRole("combobox", { name: "Account manager" }))
+        .not.toBeInTheDocument();
+    });
+  });
+
+  describe("account manager filter on mobile", () => {
+    beforeAll(() => {
+      page.viewport(375, 667);
+    });
+
+    it("picks an account manager from inside the filter sheet", async () => {
+      const screen = await render(<AdminAccountManagerFilter />);
+
+      await expect.element(screen.getByText("Ada Lovelace")).toBeVisible();
+
+      await screen.getByRole("button", { name: "Add filter" }).click();
+      await screen.getByRole("combobox", { name: "Account manager" }).click();
+      await screen.getByRole("option", { name: "Marie Curie" }).click();
+      await screen.getByRole("button", { name: "Confirm" }).click();
+
+      await expect.element(screen.getByText("Grace Hopper")).toBeVisible();
+      await expect
+        .element(screen.getByText("Ada Lovelace"))
+        .not.toBeInTheDocument();
+    });
   });
 });
 

@@ -162,6 +162,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/sales/useCanFilterByAccountManager.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/sales/index.ts",
           "type": "registry:component"
         },
@@ -179,6 +183,10 @@
         },
         {
           "path": "src/components/atomic-crm/sales/SalesCreate.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/sales/AccountManagerInput.tsx",
           "type": "registry:component"
         },
         {
@@ -479,6 +487,10 @@
         },
         {
           "path": "src/components/atomic-crm/misc/ActiveFilterButton.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/login/authConfig.ts",
           "type": "registry:component"
         },
         {

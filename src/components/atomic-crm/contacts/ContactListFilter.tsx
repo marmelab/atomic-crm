@@ -15,12 +15,16 @@ import { useConfigurationContext } from "../root/ConfigurationContext";
 import { ResponsiveFilters } from "../misc/ResponsiveFilters";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ActiveFilterButton } from "../misc/ActiveFilterButton";
+import { AccountManagerFilter } from "../sales/AccountManagerInput";
+import { useCanFilterByAccountManager } from "../sales/useCanFilterByAccountManager";
 
 export const ContactListFilter = () => {
   const { noteStatuses } = useConfigurationContext();
   const isMobile = useIsMobile();
   const { identity } = useGetIdentity();
   const translate = useTranslate();
+  const { canFilter: canFilterByAccountManager } =
+    useCanFilterByAccountManager();
   const { data } = useGetList("tags", {
     pagination: { page: 1, perPage: 10 },
     sort: { field: "name", order: "ASC" },
@@ -150,6 +154,7 @@ export const ContactListFilter = () => {
           value={{ sales_id: identity?.id }}
           size={isMobile ? "lg" : undefined}
         />
+        {canFilterByAccountManager && <AccountManagerFilter />}
       </FilterCategory>
     </ResponsiveFilters>
   );

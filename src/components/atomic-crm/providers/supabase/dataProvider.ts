@@ -293,6 +293,9 @@ const lifeCycleCallbacks: ResourceCallbacks[] = [
   },
   {
     resource: "sales",
+    beforeGetList: async (params) => {
+      return applyFullTextSearch(["first_name", "last_name"])(params);
+    },
     beforeSave: async (data: Sale, _, __) => {
       if (data.avatar) {
         await uploadToBucket(data.avatar);

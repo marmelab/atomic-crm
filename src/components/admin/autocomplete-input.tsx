@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react";
 import { useCallback } from "react";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -81,6 +81,7 @@ export const AutocompleteInput = (
     Partial<Pick<InputProps, "source">> &
     ChoicesProps & {
       className?: string;
+      clearable?: boolean;
       disableValue?: string;
       filterToQuery?: (searchText: string) => any;
       translateChoice?: boolean;
@@ -91,6 +92,7 @@ export const AutocompleteInput = (
     } & Pick<PopoverProps, "modal">,
 ) => {
   const {
+    clearable = false,
     filterToQuery = DefaultFilterToQuery,
     inputText,
     create,
@@ -114,6 +116,10 @@ export const AutocompleteInput = (
   const translate = useTranslate();
   const { placeholder = translate("ra.action.search", { _: "Search..." }) } =
     props;
+  const hasLabel = props.label !== false;
+  const accessibleName =
+    !hasLabel && props.placeholder ? placeholder : undefined;
+  const isClearable = clearable && !isRequired && !!field.value;
 
   const getRecordRepresentation = useGetRecordRepresentation(resource);
   const { getChoiceText, getChoiceValue } = useChoices({
@@ -153,30 +159,25 @@ export const AutocompleteInput = (
     }
   });
 
+  const handleReset = useEvent(() => {
+    field.onChange("");
+    setFilterValue("");
+    if (isFromReference) {
+      setFilters(filterToQuery(""));
+    }
+    setOpen(false);
+  });
+
   const handleChange = useCallback(
     (choice: any) => {
       if (field.value === getChoiceValue(choice) && !isRequired) {
-        field.onChange("");
-        setFilterValue("");
-        if (isFromReference) {
-          setFilters(filterToQuery(""));
-        }
-        setOpen(false);
+        handleReset();
         return;
       }
       field.onChange(getChoiceValue(choice));
       setOpen(false);
     },
-    [
-      field,
-      getChoiceValue,
-      isRequired,
-      setFilterValue,
-      isFromReference,
-      setFilters,
-      filterToQuery,
-      setOpen,
-    ],
+    [field, getChoiceValue, isRequired, handleReset, setOpen],
   );
 
   const {
@@ -220,22 +221,38 @@ export const AutocompleteInput = (
         )}
         <FormControl>
           <Popover open={open} onOpenChange={handleOpenChange} modal={modal}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                role="combobox"
-                aria-expanded={open}
-                aria-labelledby={uniqueId}
-                className="w-full justify-between h-auto py-1.75 font-normal"
-              >
-                {selectedChoice ? (
-                  getInputText(selectedChoice)
-                ) : (
-                  <span className="text-muted-foreground">{placeholder}</span>
-                )}
-                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-              </Button>
-            </PopoverTrigger>
+            <div className="relative">
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={open}
+                  aria-label={accessibleName}
+                  aria-labelledby={hasLabel ? uniqueId : undefined}
+                  className={cn(
+                    "w-full justify-between h-auto py-1.75 font-normal",
+                    isClearable && "pr-9",
+                  )}
+                >
+                  {selectedChoice ? (
+                    getInputText(selectedChoice)
+                  ) : (
+                    <span className="text-muted-foreground">{placeholder}</span>
+                  )}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              {isClearable && (
+                <button
+                  type="button"
+                  aria-label={translate("ra.action.clear_input_value")}
+                  className="absolute right-8 top-1/2 -translate-y-1/2 text-muted-foreground opacity-50 hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 rounded-sm"
+                  onClick={handleReset}
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
             <PopoverContent className="w-full max-w-(--radix-popover-trigger-width) p-0">
               {/* We handle the filtering ourselves */}
               <Command shouldFilter={!isFromReference}>
