@@ -128,6 +128,19 @@ describe("ContactList", () => {
     // close the notification
     await screen.getByRole("button", { name: /close/i }).click();
   });
+
+  it("imports contacts from a dialog with no resource to pick", async () => {
+    const screen = await render(<DesktopEmpty />);
+
+    await screen.getByRole("button", { name: "Import CSV" }).click();
+
+    await expect
+      .element(screen.getByRole("heading", { name: "Import contacts" }))
+      .toBeVisible();
+    await expect
+      .element(screen.getByLabelText("Resource"))
+      .not.toBeInTheDocument();
+  });
 });
 
 const getSelectionCheckboxes = (container: HTMLElement) =>

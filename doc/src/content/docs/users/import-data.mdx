@@ -1,17 +1,22 @@
 ---
 title: Importing and Exporting Data
-description: This document explains how to import and export contacts in Atomic CRM.
+description: This document explains how to import and export data in Atomic CRM.
 ---
 
 Whether you are starting to use Atomic CRM, or want to migrate from another CRM, you can import your contacts, companies, tasks, notes, tags and deals in a few clicks. You can also export your contacts and companies in CSV format, and your contacts as vCard files.
 
-## Import Contacts From CSV
+## Import Data From CSV
 
-Atomic CRM displays an import contact buttons in the initial user onboarding page, and in the contacts page. When clicking on it, a modal is displayed to upload a CSV file.
+Atomic CRM imports contacts, companies and deals from CSV files. Two buttons open the same import dialog:
+
+- **Import data**, on the initial user onboarding page, lets you choose the resource to import into.
+- **Import CSV**, on the contacts, companies and deals pages, imports into that resource directly.
 
 <video src="https://github.com/user-attachments/assets/a1133cf0-0287-4fc0-b61b-5a0b88617cfc" controls className="w-full aspect-1304/814"></video>
 
-An example of the expected CSV file is available in the contact import modal:
+For each resource, the dialog offers a sample CSV file to download, showing the expected columns. Columns the CRM does not know are ignored, and columns you omit are left empty.
+
+### Contacts
 
 ```csv
 first_name,last_name,gender,title,background,first_seen,last_seen,has_newsletter,status,tags,linkedin_url,company,email_work,email_home,email_other,phone_work,phone_home,phone_other
@@ -20,6 +25,26 @@ Jane,Doe,female,Designer,,2024-07-01T00:00:00+00:00,2024-07-01T11:54:49.95+00:00
 ```
 
 When importing contacts, companies and tags will be automatically matched if they exist on the system, or imported otherwise.
+
+### Companies
+
+```csv
+name,sector,size,linkedin_url,website,phone_number,address,zipcode,city,state_abbr,country,description,revenue,tax_identifier
+Acme,Information Technology,50,https://www.linkedin.com/company/acme,https://acme.example,555-0100,1 Main Street,10001,New York,NY,USA,Long-time partner on print projects,5M,US-123456789
+Globex,Industrials,250,,https://globex.example,555-0111,42 Industrial Road,60601,Chicago,IL,USA,,20M,
+```
+
+The `name` column is required. `sector` is matched against the company sectors configured in your CRM, either by stored value or by the label displayed in the app; a sector matching none of them is left empty.
+
+### Deals
+
+```csv
+name,company,category,stage,amount,expected_closing_date,description
+New website,Acme,Website design,Opportunity,12000,2026-09-30,Redesign of the public website
+Print campaign,Globex,Print project,Proposal Sent,4500,2026-10-15,
+```
+
+The `name` column is required. The `company` column holds a company name: an existing company is reused, an unknown one is created. `category` and `stage` are matched against the deal categories and stages configured in your CRM, by stored value or displayed label. Since a deal always belongs to a stage, an empty or unrecognized `stage` falls back to the first stage of your pipeline.
 
 ## Export Contacts To CSV
 
@@ -153,7 +178,7 @@ Atomic CRM allows to import contacts, companies, tasks, notes, tags and deals fr
 }
 ```
 
-To display the import page, click on the User menu in the top right corner, and click on "Import data".
+To display the import page, click on the User menu in the top right corner, and click on "Import from JSON".
 
 ![Import data menu](../../images/import-data-menu.png)
 

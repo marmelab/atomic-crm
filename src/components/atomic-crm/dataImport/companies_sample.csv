@@ -1,0 +1,3 @@
+name,sector,size,linkedin_url,website,phone_number,address,zipcode,city,state_abbr,country,description,revenue,tax_identifier
+Acme,Information Technology,50,https://www.linkedin.com/company/acme,https://acme.example,555-0100,1 Main Street,10001,New York,NY,USA,Long-time partner on print projects,5M,US-123456789
+Globex,Industrials,250,,https://globex.example,555-0111,42 Industrial Road,60601,Chicago,IL,USA,,20M,
