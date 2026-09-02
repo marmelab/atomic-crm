@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en" translate="no" class="notranslate">
+    <head>
+        <meta charset="utf-8" />
+        <meta
+            name="viewport"
+            content="minimum-scale=1, initial-scale=1, width=device-width, shrink-to-fit=no"
+        />
+        <meta name="theme-color" content="#000000" />
+        <meta name="robots" content="noindex" />
+        <title>Leif CRM</title>
+        <!--
+          GitHub Pages deep-link shim (Native Application Intake real-hosting
+          repair): GitHub Pages is this app's actual deploy target (see
+          .github/workflows/deploy.yml) and is a pure static host — any
+          request path with no matching file gets served THIS file verbatim,
+          with the browser's address bar left showing the originally
+          requested (bad) URL. The whole app lives behind ra-core's default
+          HashRouter (see CRM.tsx's DesktopAdmin comment for why), so a
+          plain link like ".../apply/living-example" never reaches the
+          router at all without this redirect.
+
+          This is the canonical STATIC mirror of
+          src/deepLinkRedirect.ts's computeDeepLinkRedirect — public/ is
+          served by GitHub Pages verbatim (Vite does not process it, so this
+          script can't import that module directly), the exact constraint
+          every Deno Edge Function in supabase/functions/ already works
+          around by hand-mirroring its own src/ reference implementation.
+          Keep the two in sync by hand if either changes;
+          deepLinkRedirect.mirrorCheck.test.ts asserts they still agree.
+
+          Deliberately an ALLOWLIST of known public routes, not a catch-all:
+          a 404 also fires for a genuinely broken link or a missing static
+          asset (a typo'd path, a stale bookmark, a renamed asset file), and
+          blindly redirecting those into the hash-routed app would produce a
+          confusing "app loaded but nothing matches" state instead of an
+          honest 404. Anything that doesn't match falls through to the
+          plain "Page not found" body below — no redirect attempted.
+
+          The script runs at the end of <body>, not here in <head>: a real-
+          browser adversarial check against this exact file (Native
+          Application Intake slice) found the fallback branch threw
+          (`document.getElementById('not-found')` is null before the body
+          parses), which the redirect branch never hit but the honest-404
+          branch always did — leaving a silent blank page with a console
+          error instead of the intended message.
+        -->
+    </head>
+    <body>
+        <noscript>You need to enable JavaScript to run this app.</noscript>
+        <div id="not-found" hidden>
+            <p>Page not found.</p>
+        </div>
+        <script>
+            (function () {
+                var DEEP_LINK_PATTERNS = [
+                    /\/apply\/living-example\/?$/,
+                    /\/apply\/growing-yourself-up\/[^/]+\/?$/,
+                ];
+
+                function computeDeepLinkRedirect(pathname, search) {
+                    for (var i = 0; i < DEEP_LINK_PATTERNS.length; i++) {
+                        var match = DEEP_LINK_PATTERNS[i].exec(pathname);
+                        if (!match) continue;
+                        var route = match[0].replace(/\/$/, '');
+                        var base = pathname.slice(0, match.index);
+                        return base + '/#' + route + search;
+                    }
+                    return null;
+                }
+
+                var redirect = computeDeepLinkRedirect(
+                    window.location.pathname,
+                    window.location.search
+                );
+                if (redirect) {
+                    // replace(), not href=, so the broken pre-redirect URL
+                    // never enters browser history — back/forward stays sane.
+                    window.location.replace(redirect);
+                } else {
+                    document.getElementById('not-found').hidden = false;
+                }
+            })();
+        </script>
+    </body>
+</html>

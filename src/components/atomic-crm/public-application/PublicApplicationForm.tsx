@@ -214,6 +214,11 @@ export const PublicApplicationForm = ({
             id={question.key}
             rows={4}
             placeholder={question.placeholder}
+            // Client-side mirror of submitApplication.ts's own
+            // MAX_ANSWER_LENGTH (defense in depth / better UX — the
+            // server-side check is the real enforcement boundary, since a
+            // scripted caller never runs this client code at all).
+            maxLength={5000}
             value={values.answers[question.key] ?? ""}
             aria-invalid={!!fieldErrors[question.key]}
             onChange={(e) =>

@@ -80,6 +80,41 @@ const isCohortAcceptingApplications = (
   return true;
 };
 
+// Flat, user-authored answers (strings in practice, typed as `unknown` on
+// Application to match the JSONB column) — a per-key value comparison is
+// enough; no nested structures to deep-compare. Key order doesn't matter
+// (both sides are sorted before comparing), and neither side ever includes
+// a timestamp or generated id, so this can't be tripped up by a volatile
+// value making an otherwise-identical retry look "changed" (real-
+// infrastructure idempotency-refinement pass, requirement: "do not let
+// volatile/request-generated values cause an otherwise identical retry to
+// look changed").
+const answersEqual = (
+  a: Record<string, unknown>,
+  b: Record<string, string>,
+): boolean => {
+  const aKeys = Object.keys(a).sort();
+  const bKeys = Object.keys(b).sort();
+  if (aKeys.length !== bKeys.length) return false;
+  return aKeys.every((key, i) => key === bKeys[i] && a[key] === b[key]);
+};
+
+// Rate-limiting/abuse-protection assessment (real-infrastructure
+// verification pass): an adversarial payload-size test against the real
+// deployed function found NO server-side bound on an answer's length at
+// all — a 2MB string was accepted and stored verbatim. Genuine free-text
+// answers are realistically a paragraph or two; this cap is generous for
+// that while closing the storage/cost-abuse vector a scripted caller could
+// otherwise exploit repeatedly. Client-side mirror:
+// PublicApplicationForm.tsx's own textarea maxLength (defense in depth,
+// not the enforcement boundary — this check is).
+const MAX_ANSWER_LENGTH = 5000;
+
+const isWithinAnswerLengthLimit = (answers: Record<string, string>): boolean =>
+  Object.values(answers).every(
+    (value) => typeof value === "string" && value.length <= MAX_ANSWER_LENGTH,
+  );
+
 export const submitApplication = async (
   dataProvider: DataProvider,
   input: PublicApplicationInput,
@@ -96,6 +131,12 @@ export const submitApplication = async (
     return {
       status: "validation-error",
       message: "A valid email is required.",
+    };
+  }
+  if (!isWithinAnswerLengthLimit(input.answers)) {
+    return {
+      status: "validation-error",
+      message: "One of your answers is too long. Please shorten it.",
     };
   }
 
@@ -130,21 +171,55 @@ export const submitApplication = async (
     }
   }
 
-  const contact = await findOrCreateContact(dataProvider, {
-    firstName,
-    lastName,
-    email,
-    phone,
-  });
+  // Read current state ONCE, before any write, so an exact-duplicate retry
+  // (double-click, a browser/network retry, or a deliberate resubmission
+  // whose content genuinely didn't change) can be recognized and answered
+  // with ZERO writes — not even the Contact's own last_seen bump.
+  // Everything below either short-circuits on this read-only snapshot or
+  // mutates using it directly, rather than re-querying (real-
+  // infrastructure idempotency-refinement pass).
+  const existingContact = await findExistingContactByEmail(dataProvider, email);
+  const isDne = existingContact
+    ? await isContactDoNotEngage(dataProvider, existingContact.id)
+    : false;
+  // DNE never reuses (§5, unchanged): always creates a fresh Deal/
+  // Application below, so it's never eligible for the exact-retry or
+  // update-in-place paths — searching for an active Deal at all would
+  // silently reactivate one, exactly what "never silently reactivate a
+  // DNE contact" forbids.
+  const existingActiveDeal =
+    existingContact && !isDne
+      ? await findActiveDeal(dataProvider, {
+          contactId: existingContact.id,
+          offerId: offer.id,
+          cohortId: cohort?.id ?? null,
+        })
+      : null;
+  const existingPendingApplication = existingActiveDeal
+    ? await findPendingApplication(dataProvider, existingActiveDeal.id)
+    : null;
 
-  const isDne = await isContactDoNotEngage(dataProvider, contact.id);
+  if (
+    existingPendingApplication &&
+    answersEqual(existingPendingApplication.raw_answers, input.answers)
+  ) {
+    // True state-level no-op: same applicant, same active Deal, same
+    // still-pending Application, byte-for-byte identical answers. Nothing
+    // downstream (Contact, Deal/stage, Task due date, history) is touched.
+    return {
+      status: "submitted",
+      applicationId: existingPendingApplication.id,
+      dneAutoResolved: false,
+    };
+  }
 
-  const { deal, reused } = await findOrCreateDeal(dataProvider, {
-    contact,
-    offer,
-    cohort,
-    isDne,
-  });
+  const contact = existingContact
+    ? await touchExistingContact(dataProvider, existingContact)
+    : await createContact(dataProvider, { firstName, lastName, email, phone });
+
+  const { deal, reused } = existingActiveDeal
+    ? { deal: existingActiveDeal, reused: true }
+    : await createDeal(dataProvider, { contact, offer, cohort, isDne });
 
   if (reused && !isDne) {
     // Reusing writes nothing to "deals", so the centralized afterCreate
@@ -154,15 +229,31 @@ export const submitApplication = async (
     await syncWaitlistForActiveDeal(deal, dataProvider);
   }
 
-  const application = await findOrCreateApplication(dataProvider, {
-    deal,
-    answers: input.answers,
-    isDne,
-  });
+  const application = existingPendingApplication
+    ? // Present but didn't match the exact-retry check above: the
+      // applicant materially changed their answers before anyone
+      // reviewed the pending Application (idempotency-refinement pass,
+      // requirement 2). Update in place — same Application row, same
+      // Deal, same Contact, same Task — only the content Leif will
+      // actually see when reviewing changes.
+      await updatePendingApplication(
+        dataProvider,
+        existingPendingApplication,
+        input.answers,
+      )
+    : await findOrCreateApplication(dataProvider, {
+        deal,
+        answers: input.answers,
+        isDne,
+      });
 
   // Review Application Task: never created for the DNE auto-resolve path
   // — there is nothing pending for Leif to decide, the outcome is already
   // durable (confirmed decision, Native Application Intake slice §5/§8).
+  // ensureReviewApplicationTask itself is idempotent (skips creation if a
+  // pending one already exists), so the existing Task's due date is never
+  // reset by a resubmission that reuses it — including the update-in-place
+  // path just above.
   if (!isDne) {
     await ensureReviewApplicationTask(dataProvider, {
       contactId: contact.id,
@@ -181,22 +272,10 @@ export const submitApplication = async (
 // Normalized-email match (case/whitespace-insensitive), reused as the
 // primary durable matching key (§5). No name-only fallback: a same-name
 // different-email applicant is a distinct Contact until proven otherwise.
-// Existing Contact data is never overwritten — only `last_seen` is
-// touched, a metadata timestamp, not "meaningful" identity data.
-const findOrCreateContact = async (
+const findExistingContactByEmail = async (
   dataProvider: DataProvider,
-  {
-    firstName,
-    lastName,
-    email,
-    phone,
-  }: {
-    firstName: string;
-    lastName: string;
-    email: string;
-    phone: string | null;
-  },
-): Promise<Contact> => {
+  email: string,
+): Promise<Contact | null> => {
   // Full-table scan: correct at this app's actual scale (§12 allows a
   // documented dev-only limitation; a real production hardening pass
   // would add a normalized/indexed email column instead). The Edge
@@ -207,26 +286,47 @@ const findOrCreateContact = async (
     pagination: { page: 1, perPage: 1000 },
     sort: { field: "id", order: "ASC" },
   });
-  const existing = contacts.find((contact) =>
-    (contact.email_jsonb ?? []).some(
-      (entry) => entry.email && normalizeEmail(entry.email) === email,
-    ),
+  return (
+    contacts.find((contact) =>
+      (contact.email_jsonb ?? []).some(
+        (entry) => entry.email && normalizeEmail(entry.email) === email,
+      ),
+    ) ?? null
   );
-  if (existing) {
-    await dataProvider.update("contacts", {
-      id: existing.id,
-      data: { last_seen: new Date().toISOString() },
-      previousData: existing,
-    });
-    return existing;
-  }
+};
 
+// Existing Contact data is never overwritten — only `last_seen` is
+// touched, a metadata timestamp, not "meaningful" identity data. Skipped
+// entirely by the exact-retry fast path above (§ idempotency refinement).
+const touchExistingContact = async (
+  dataProvider: DataProvider,
+  existing: Contact,
+): Promise<Contact> => {
+  await dataProvider.update("contacts", {
+    id: existing.id,
+    data: { last_seen: new Date().toISOString() },
+    previousData: existing,
+  });
+  return existing;
+};
+
+const createContact = async (
+  dataProvider: DataProvider,
+  params: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string | null;
+  },
+): Promise<Contact> => {
   const { data: created } = await dataProvider.create<Contact>("contacts", {
     data: {
-      first_name: firstName,
-      last_name: lastName,
-      email_jsonb: [{ email, type: "Other" }],
-      phone_jsonb: phone ? [{ number: phone, type: "Other" }] : [],
+      first_name: params.firstName,
+      last_name: params.lastName,
+      email_jsonb: [{ email: params.email, type: "Other" }],
+      phone_jsonb: params.phone
+        ? [{ number: params.phone, type: "Other" }]
+        : [],
       tags: [],
       has_newsletter: false,
       first_seen: new Date().toISOString(),
@@ -238,20 +338,41 @@ const findOrCreateContact = async (
 };
 
 // Duplicate-Opportunity avoidance mirrors waitlist/waitlistActions.ts's
-// convertToOpportunity exactly (§7): reuse an existing active Deal for the
-// same Contact + Offer + Cohort rather than creating a second one, and
-// never mutate its stage on reuse (the one existing precedent for this
-// exact decision — a Deal already further along than "Application
-// Received" should not visually regress, and one already at "Interested"
-// still correctly reflects that an application now also exists via the
-// Application row itself).
-//
-// DNE contacts skip the reuse search entirely (§5): reusing an existing
-// active Deal would silently reactivate it, exactly what "never silently
-// reactivate a DNE contact" forbids. A DNE applicant instead always gets a
-// fresh Deal created already in the exited state below, preserving the
-// historical fact that they applied again without touching any other Deal.
-const findOrCreateDeal = async (
+// convertToOpportunity exactly (§7): an existing active Deal for the same
+// Contact + Offer + Cohort is reused rather than a second one created.
+const findActiveDeal = async (
+  dataProvider: DataProvider,
+  {
+    contactId,
+    offerId,
+    cohortId,
+  }: {
+    contactId: Identifier;
+    offerId: Identifier;
+    cohortId: Identifier | null;
+  },
+): Promise<Deal | null> => {
+  const { data: existingDeals } = await dataProvider.getList<Deal>("deals", {
+    filter: {
+      contact_id: contactId,
+      offer_id: offerId,
+      ...(cohortId != null ? { cohort_id: cohortId } : {}),
+    },
+    pagination: { page: 1, perPage: 100 },
+    sort: { field: "id", order: "ASC" },
+  });
+  return existingDeals.find(isActiveDeal) ?? null;
+};
+
+// Never mutates stage on creation beyond the initial value below (the one
+// existing precedent for this exact decision — a Deal already further
+// along than "Application Received" should not visually regress, and one
+// already at "Interested" still correctly reflects that an application now
+// also exists via the Application row itself). DNE contacts always land
+// here (never reuse, §5): a fresh Deal already in the exited state,
+// preserving the historical fact that they applied again without touching
+// any other Deal.
+const createDeal = async (
   dataProvider: DataProvider,
   {
     contact,
@@ -260,22 +381,6 @@ const findOrCreateDeal = async (
     isDne,
   }: { contact: Contact; offer: Offer; cohort: Cohort | null; isDne: boolean },
 ): Promise<{ deal: Deal; reused: boolean }> => {
-  if (!isDne) {
-    const { data: existingDeals } = await dataProvider.getList<Deal>("deals", {
-      filter: {
-        contact_id: contact.id,
-        offer_id: offer.id,
-        ...(cohort != null ? { cohort_id: cohort.id } : {}),
-      },
-      pagination: { page: 1, perPage: 100 },
-      sort: { field: "id", order: "ASC" },
-    });
-    const existingActive = existingDeals.find(isActiveDeal);
-    if (existingActive) {
-      return { deal: existingActive, reused: true };
-    }
-  }
-
   const { data: created } = await dataProvider.create<Deal>("deals", {
     data: {
       contact_id: contact.id,
@@ -319,11 +424,57 @@ const resolveDefaultTaskSalesId = async (
   return administrators[0]?.id;
 };
 
-// Idempotent: a double-click, a refresh after submit, or a repeat POST for
-// the same resolved Deal reuses the most recent existing Application
-// rather than creating a second one (§12). A DNE application is recorded
-// already reviewed (status set directly, reviewed_at = submitted_at) since
-// the outcome is already durable — mirrors reviewApplication.ts's own
+// The most recent Application for a Deal, but ONLY if it's still pending
+// review — an already-reviewed Application (approved / needs_higher_care /
+// not_fit / do_not_engage) is never eligible for the exact-retry or
+// update-in-place paths (§ idempotency refinement, requirements 1-2 are
+// both explicitly scoped to "while the existing Application is still
+// pending"): once Leif has acted, a later resubmission must not silently
+// rewrite what he already reviewed.
+const findPendingApplication = async (
+  dataProvider: DataProvider,
+  dealId: Identifier,
+): Promise<Application | null> => {
+  const { data: existing } = await dataProvider.getList<Application>(
+    "applications",
+    {
+      filter: { opportunity_id: dealId },
+      pagination: { page: 1, perPage: 10 },
+      sort: { field: "id", order: "DESC" },
+    },
+  );
+  const mostRecent = existing[0];
+  return mostRecent && mostRecent.status === "pending" ? mostRecent : null;
+};
+
+// Applies a materially-changed resubmission to the still-pending
+// Application already found by findPendingApplication — same row, same id,
+// only raw_answers/submitted_at move.
+const updatePendingApplication = async (
+  dataProvider: DataProvider,
+  existing: Application,
+  answers: Record<string, string>,
+): Promise<Application> => {
+  const { data: updated } = await dataProvider.update<Application>(
+    "applications",
+    {
+      id: existing.id,
+      data: {
+        raw_answers: answers,
+        submitted_at: new Date().toISOString(),
+      },
+      previousData: existing,
+    },
+  );
+  return updated;
+};
+
+// Idempotent: reached only when there's no still-pending Application to
+// update in place — either none exists yet for this Deal, or the most
+// recent one has already been reviewed (returned as-is, never rewritten;
+// see findPendingApplication above). A DNE application is recorded already
+// reviewed (status set directly, reviewed_at = submitted_at) since the
+// outcome is already durable — mirrors reviewApplication.ts's own
 // do_not_engage branch shape.
 const findOrCreateApplication = async (
   dataProvider: DataProvider,

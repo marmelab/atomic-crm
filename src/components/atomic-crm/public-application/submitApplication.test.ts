@@ -5,6 +5,7 @@ import { createCrmDb, buildContact } from "@/test/StoryWrapper";
 import type {
   Application,
   Cohort,
+  Contact,
   Deal,
   Offer,
   Task,
@@ -270,6 +271,240 @@ describe("submitApplication — Living Example (individual offer)", () => {
     expect(taskCount).toBe(1);
   });
 
+  // Idempotency-refinement pass (real-infrastructure verification found
+  // an exact retry and a deliberate, content-changed resubmission were
+  // being treated identically — both just reused the original Application
+  // untouched, silently discarding a genuine correction). These three
+  // tests pin the refined contract precisely.
+  it("exact retry (byte-for-byte identical answers) while pending is a true no-op: unchanged submitted_at, Contact/Deal/Task untouched", async () => {
+    const { dataProvider } = buildFixtures();
+    const input = {
+      offerId: LE_OFFER_ID,
+      firstName: "Ada",
+      lastName: "Retry",
+      email: "ada.retry@example.com",
+      answers: { why_this_program: "Exact retry test." },
+    };
+
+    const first = await submitApplication(dataProvider, input);
+    expect(first.status).toBe("submitted");
+    if (first.status !== "submitted") throw new Error("unreachable");
+
+    const { data: applicationAfterFirst } =
+      await dataProvider.getOne<Application>("applications", {
+        id: first.applicationId,
+      });
+    const { data: contactsBefore } = await dataProvider.getList<Contact>(
+      "contacts",
+      {
+        pagination: { page: 1, perPage: 10 },
+        sort: { field: "id", order: "ASC" },
+      },
+    );
+    const { data: dealsBefore } = await dataProvider.getList<Deal>("deals", {
+      pagination: { page: 1, perPage: 10 },
+      sort: { field: "id", order: "ASC" },
+    });
+    const { data: tasksBefore } = await dataProvider.getList<Task>("tasks", {
+      pagination: { page: 1, perPage: 10 },
+      sort: { field: "id", order: "ASC" },
+    });
+
+    // A real tick, so an incorrect timestamp bump would be observable.
+    await new Promise((resolve) => setTimeout(resolve, 5));
+    const second = await submitApplication(dataProvider, input);
+    expect(second.status).toBe("submitted");
+    if (second.status !== "submitted") throw new Error("unreachable");
+    expect(second.applicationId).toBe(first.applicationId);
+
+    const { data: applicationAfterSecond } =
+      await dataProvider.getOne<Application>("applications", {
+        id: first.applicationId,
+      });
+    expect(applicationAfterSecond.submitted_at).toBe(
+      applicationAfterFirst.submitted_at,
+    );
+    expect(applicationAfterSecond.raw_answers).toEqual(
+      applicationAfterFirst.raw_answers,
+    );
+
+    const { data: contactsAfter, total: contactCount } =
+      await dataProvider.getList<Contact>("contacts", {
+        pagination: { page: 1, perPage: 10 },
+        sort: { field: "id", order: "ASC" },
+      });
+    expect(contactCount).toBe(1);
+    expect(contactsAfter[0]!.last_seen).toBe(contactsBefore[0]!.last_seen);
+
+    const { data: dealsAfter, total: dealCount } =
+      await dataProvider.getList<Deal>("deals", {
+        pagination: { page: 1, perPage: 10 },
+        sort: { field: "id", order: "ASC" },
+      });
+    expect(dealCount).toBe(1);
+    expect(dealsAfter[0]).toEqual(dealsBefore[0]);
+
+    const { data: tasksAfter, total: taskCount } =
+      await dataProvider.getList<Task>("tasks", {
+        pagination: { page: 1, perPage: 10 },
+        sort: { field: "id", order: "ASC" },
+      });
+    expect(taskCount).toBe(1);
+    expect(tasksAfter[0]).toEqual(tasksBefore[0]);
+  });
+
+  it("a materially changed pending resubmission updates raw_answers and submitted_at in place, with no duplicate Contact/Deal/Application/Task and no Task reset", async () => {
+    const { dataProvider } = buildFixtures();
+    const baseInput = {
+      offerId: LE_OFFER_ID,
+      firstName: "Ada",
+      lastName: "Update",
+      email: "ada.update@example.com",
+      answers: { why_this_program: "Original answer." },
+    };
+
+    const first = await submitApplication(dataProvider, baseInput);
+    expect(first.status).toBe("submitted");
+    if (first.status !== "submitted") throw new Error("unreachable");
+
+    const { data: applicationAfterFirst } =
+      await dataProvider.getOne<Application>("applications", {
+        id: first.applicationId,
+      });
+    const { data: tasksBefore } = await dataProvider.getList<Task>("tasks", {
+      pagination: { page: 1, perPage: 10 },
+      sort: { field: "id", order: "ASC" },
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 5));
+    const second = await submitApplication(dataProvider, {
+      ...baseInput,
+      answers: { why_this_program: "UPDATED, corrected answer." },
+    });
+    expect(second.status).toBe("submitted");
+    if (second.status !== "submitted") throw new Error("unreachable");
+    // Same Application row reused, not a second one.
+    expect(second.applicationId).toBe(first.applicationId);
+
+    const { data: applicationAfterSecond } =
+      await dataProvider.getOne<Application>("applications", {
+        id: first.applicationId,
+      });
+    expect(applicationAfterSecond.raw_answers).toEqual({
+      why_this_program: "UPDATED, corrected answer.",
+    });
+    expect(applicationAfterSecond.submitted_at).not.toBe(
+      applicationAfterFirst.submitted_at,
+    );
+    expect(
+      new Date(applicationAfterSecond.submitted_at).getTime(),
+    ).toBeGreaterThan(new Date(applicationAfterFirst.submitted_at).getTime());
+
+    const { total: contactCount } = await dataProvider.getList("contacts", {
+      pagination: { page: 1, perPage: 10 },
+      sort: { field: "id", order: "ASC" },
+    });
+    expect(contactCount).toBe(1);
+    const { total: dealCount } = await dataProvider.getList("deals", {
+      pagination: { page: 1, perPage: 10 },
+      sort: { field: "id", order: "ASC" },
+    });
+    expect(dealCount).toBe(1);
+    const { total: applicationCount } = await dataProvider.getList(
+      "applications",
+      {
+        pagination: { page: 1, perPage: 10 },
+        sort: { field: "id", order: "ASC" },
+      },
+    );
+    expect(applicationCount).toBe(1);
+
+    const { data: tasksAfter, total: taskCount } =
+      await dataProvider.getList<Task>("tasks", {
+        pagination: { page: 1, perPage: 10 },
+        sort: { field: "id", order: "ASC" },
+      });
+    expect(taskCount).toBe(1);
+    expect(tasksAfter[0]!.due_date).toBe(tasksBefore[0]!.due_date);
+    expect(tasksAfter[0]!.status).toBe(tasksBefore[0]!.status);
+  });
+
+  it("a later legitimate reapplication, once the prior Deal is no longer active, creates a fresh Deal + Application rather than reusing or overwriting the old one", async () => {
+    const pastDeal: Deal = {
+      id: 999,
+      name: "Returning Applicant — The Living Example",
+      contact_id: CONTACT_ID,
+      offer_id: LE_OFFER_ID,
+      cohort_id: null,
+      stage: "won",
+      outcome: null,
+      owner_decision: null,
+      amount: 4000,
+      created_at: "2026-01-01T00:00:00.000Z",
+      updated_at: "2026-01-01T00:00:00.000Z",
+      sales_id: 0,
+      index: 0,
+      stage_entered_at: "2026-01-01T00:00:00.000Z",
+    } as Deal;
+    const pastApplication: Application = {
+      id: 555,
+      opportunity_id: 999,
+      status: "approved",
+      submitted_at: "2026-01-01T00:00:00.000Z",
+      reviewed_at: "2026-01-02T00:00:00.000Z",
+      raw_answers: { why_this_program: "First time around." },
+      summary: null,
+      created_at: "2026-01-01T00:00:00.000Z",
+      updated_at: "2026-01-01T00:00:00.000Z",
+    };
+    const { dataProvider } = buildFixtures({
+      contacts: [
+        {
+          id: CONTACT_ID,
+          email_jsonb: [{ email: "returning@example.com", type: "Work" }],
+        },
+      ],
+      deals: [pastDeal],
+      applications: [pastApplication],
+    });
+
+    const result = await submitApplication(dataProvider, {
+      offerId: LE_OFFER_ID,
+      firstName: "Returning",
+      lastName: "Applicant",
+      email: "returning@example.com",
+      answers: { why_this_program: "Applying again, later." },
+    });
+
+    expect(result.status).toBe("submitted");
+    if (result.status !== "submitted") throw new Error("unreachable");
+    expect(result.applicationId).not.toBe(pastApplication.id);
+
+    const { data: newApplication } = await dataProvider.getOne<Application>(
+      "applications",
+      { id: result.applicationId },
+    );
+    expect(newApplication.raw_answers).toEqual({
+      why_this_program: "Applying again, later.",
+    });
+
+    // The prior cycle's already-reviewed Application is untouched.
+    const { data: oldApplicationStillIntact } =
+      await dataProvider.getOne<Application>("applications", {
+        id: pastApplication.id,
+      });
+    expect(oldApplicationStillIntact.status).toBe("approved");
+    expect(oldApplicationStillIntact.raw_answers).toEqual({
+      why_this_program: "First time around.",
+    });
+
+    const { total: dealCount } = await dataProvider.getList("deals", {
+      pagination: { page: 1, perPage: 10 },
+      sort: { field: "id", order: "ASC" },
+    });
+    expect(dealCount).toBe(2);
+  });
+
   it("rejects an invalid offer id without creating any record", async () => {
     const { dataProvider } = buildFixtures();
 
@@ -306,6 +541,38 @@ describe("submitApplication — Living Example (individual offer)", () => {
       sort: { field: "id", order: "ASC" },
     });
     expect(total).toBe(0);
+  });
+
+  it("rejects an answer over the length cap as a validation error, without creating any record (rate-limiting/abuse-protection pass)", async () => {
+    const { dataProvider } = buildFixtures();
+
+    const result = await submitApplication(dataProvider, {
+      offerId: LE_OFFER_ID,
+      firstName: "Too",
+      lastName: "Long",
+      email: "too.long@example.com",
+      answers: { why_this_program: "x".repeat(5001) },
+    });
+    expect(result.status).toBe("validation-error");
+
+    const { total } = await dataProvider.getList("contacts", {
+      pagination: { page: 1, perPage: 10 },
+      sort: { field: "id", order: "ASC" },
+    });
+    expect(total).toBe(0);
+  });
+
+  it("accepts an answer exactly at the length cap", async () => {
+    const { dataProvider } = buildFixtures();
+
+    const result = await submitApplication(dataProvider, {
+      offerId: LE_OFFER_ID,
+      firstName: "Exactly",
+      lastName: "AtCap",
+      email: "exactly.at.cap@example.com",
+      answers: { why_this_program: "x".repeat(5000) },
+    });
+    expect(result.status).toBe("submitted");
   });
 
   it("converts a matching active Waitlist entry (§13 sync invariant)", async () => {

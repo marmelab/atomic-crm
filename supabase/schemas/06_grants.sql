@@ -81,6 +81,12 @@ grant all on table public.companies to service_role;
 grant all on table public.contacts to anon;
 grant all on table public.contacts to authenticated;
 grant all on table public.contacts to service_role;
+-- Narrowed for anon: RLS already restricts all access to `authenticated`
+-- (05_policies.sql), and nothing in the app touches contacts through the
+-- anon role (public_application uses service_role) -- see
+-- 20260902020000_contacts_deals_tasks_anon_grant_drift.sql for why this
+-- exists as an explicit revoke rather than simply not granting "all".
+revoke select, insert, update, delete on table public.contacts from anon;
 
 grant all on table public.contact_notes to anon;
 grant all on table public.contact_notes to authenticated;
@@ -89,6 +95,8 @@ grant all on table public.contact_notes to service_role;
 grant all on table public.deals to anon;
 grant all on table public.deals to authenticated;
 grant all on table public.deals to service_role;
+-- Narrowed for anon: same rationale as contacts above.
+revoke select, insert, update, delete on table public.deals from anon;
 
 grant all on table public.deal_notes to anon;
 grant all on table public.deal_notes to authenticated;
@@ -105,6 +113,8 @@ grant all on table public.tags to service_role;
 grant all on table public.tasks to anon;
 grant all on table public.tasks to authenticated;
 grant all on table public.tasks to service_role;
+-- Narrowed for anon: same rationale as contacts above.
+revoke select, insert, update, delete on table public.tasks from anon;
 
 grant all on table public.configuration to anon;
 grant all on table public.configuration to authenticated;

@@ -12,6 +12,19 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
       "port": 5173
+    },
+    {
+      "name": "dev-live-verification",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "vite",
+        "--force",
+        "--mode",
+        "production",
+        "--port",
+        "5175"
+      ],
+      "port": 5175
     }
   ]
 }
