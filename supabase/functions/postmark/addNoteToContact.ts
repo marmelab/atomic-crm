@@ -110,7 +110,48 @@ export const getOrCreateContactFromEmailInfo = async ({
   return newContacts[0];
 };
 
+export const findActiveSaleByEmail = async (salesEmail: string) => {
+  const normalizedEmail = salesEmail.trim().toLowerCase();
+
+  const byPrimaryEmail = await supabaseAdmin
+    .from("sales")
+    .select("*")
+    .eq("email", normalizedEmail)
+    .neq("disabled", true)
+    .maybeSingle();
+
+  if (byPrimaryEmail.error || byPrimaryEmail.data) {
+    return byPrimaryEmail;
+  }
+
+  const bySecondaryEmail = await supabaseAdmin
+    .from("sales")
+    .select("*")
+    .contains("secondary_emails", JSON.stringify([normalizedEmail]))
+    .neq("disabled", true)
+    .order("id", { ascending: true })
+    .limit(2);
+
+  if (bySecondaryEmail.error) {
+    return { data: null, error: bySecondaryEmail.error };
+  }
+
+  const matches = bySecondaryEmail.data ?? [];
+
+  if (matches.length > 1) {
+    console.error(
+      `Ambiguous sender ${normalizedEmail}: registered as a secondary email by sales ${matches
+        .map((sale: { id: number }) => sale.id)
+        .join(", ")}. Refusing to attribute the note.`,
+    );
+    return { data: null, error: null };
+  }
+
+  return { data: matches[0] ?? null, error: null };
+};
+
 export const addNoteToContact = async ({
+  sales,
   salesEmail,
   email,
   domain,
@@ -121,6 +162,7 @@ export const addNoteToContact = async ({
   companyName,
   website,
 }: {
+  sales: { id: number };
   salesEmail: string;
   email: string;
   domain: string;
@@ -131,28 +173,6 @@ export const addNoteToContact = async ({
   companyName: string;
   website: string;
 }) => {
-  const { data: sales, error: fetchSalesError } = await supabaseAdmin
-    .from("sales")
-    .select("*")
-    .eq("email", salesEmail)
-    .neq("disabled", true)
-    .maybeSingle();
-
-  if (fetchSalesError) {
-    return new Response(
-      `Could not fetch sales from database, email: ${salesEmail}`,
-      { status: 500 },
-    );
-  }
-  if (!sales) {
-    // Return a 403 to let Postmark know that it's no use to retry this request
-    // https://postmarkapp.com/developer/webhooks/inbound-webhook#errors-and-retries
-    return new Response(
-      `Unable to find (active) sales in database, email: ${salesEmail}`,
-      { status: 403 },
-    );
-  }
-
   const { contact, error } = await getOrCreateContactFromEmailInfo({
     email,
     firstName,

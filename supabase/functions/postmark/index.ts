@@ -4,7 +4,7 @@
 
 // Setup type definitions for built-in Supabase Runtime APIs
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { addNoteToContact } from "./addNoteToContact.ts";
+import { addNoteToContact, findActiveSaleByEmail } from "./addNoteToContact.ts";
 import {
   getForwardedMailContent,
   stripSubjectForwardingPrefix,
@@ -52,9 +52,23 @@ Deno.serve(async (req) => {
     );
   }
 
-  const allSales = await supabaseAdmin.from("sales").select("email");
+  const allSales = await supabaseAdmin
+    .from("sales")
+    .select("email, secondary_emails");
+
+  if (allSales.error) {
+    console.error("Could not fetch sales emails:", allSales.error);
+    return new Response("Could not fetch sales from database", { status: 500 });
+  }
+
   const salesEmails =
-    allSales.data?.map((s: { email: string }) => s.email) ?? [];
+    allSales.data
+      ?.flatMap((s: { email: string; secondary_emails: unknown }) => [
+        s.email,
+        ...(Array.isArray(s.secondary_emails) ? s.secondary_emails : []),
+      ])
+      .filter((email: unknown): email is string => typeof email === "string")
+      .map((email: string) => email.toLowerCase()) ?? [];
 
   const firstToEmail = (ToFull[0]?.Email || "").toLowerCase();
 
@@ -98,7 +112,29 @@ Deno.serve(async (req) => {
 
   const contacts = extractMailContactData(ToFull);
 
+  const { data: sales, error: fetchSalesError } =
+    await findActiveSaleByEmail(salesEmail);
+
+  if (fetchSalesError) {
+    console.error("Could not fetch the sender's sale:", fetchSalesError);
+    return new Response(
+      `Could not fetch sales from database, email: ${salesEmail}`,
+      { status: 500 },
+    );
+  }
+
+  if (!sales) {
+    // Return a 403 to let Postmark know that it's no use to retry this request
+    // https://postmarkapp.com/developer/webhooks/inbound-webhook#errors-and-retries
+    return new Response(
+      `Unable to find (active) sales in database, email: ${salesEmail}`,
+      { status: 403 },
+    );
+  }
+
   const attachments = await extractAndUploadAttachments(Attachments);
+
+  const failedContacts: string[] = [];
 
   for (const {
     firstName,
@@ -116,7 +152,8 @@ Deno.serve(async (req) => {
       });
     }
 
-    await addNoteToContact({
+    const errorResponse = await addNoteToContact({
+      sales,
       salesEmail,
       email,
       domain,
@@ -127,6 +164,25 @@ Deno.serve(async (req) => {
       companyName,
       website,
     });
+
+    if (errorResponse) {
+      console.error(
+        `Could not add the note for ${email}: ${await errorResponse.text()}`,
+      );
+      failedContacts.push(email);
+    }
+  }
+
+  if (failedContacts.length) {
+    // A partial failure answers 403 so Postmark does not redeliver: the notes
+    // already written are not idempotent and would be duplicated. When every
+    // contact failed there is no note to duplicate, so a retry is safe.
+    // https://postmarkapp.com/developer/webhooks/inbound-webhook#errors-and-retries
+    const status = failedContacts.length === contacts.length ? 500 : 403;
+    return new Response(
+      `Could not add the note for: ${failedContacts.join(", ")}`,
+      { status },
+    );
   }
 
   return new Response("OK");

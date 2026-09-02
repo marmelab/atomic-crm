@@ -294,6 +294,8 @@ export const frenchCrmMessages = {
         first_name: "Prénom",
         last_name: "Nom",
         email: "E-mail",
+        secondary_email: "E-mail secondaire",
+        secondary_emails: "E-mails secondaires",
         administrator: "Admin",
         disabled: "Désactivé",
       },
@@ -535,6 +537,17 @@ export const frenchCrmMessages = {
       label: "Navigation CRM",
     },
     profile: {
+      add_secondary_email: "Ajouter un e-mail",
+      email_taken: "%{email} est déjà utilisée par un autre utilisateur",
+      no_secondary_emails: "Aucun",
+      secondary_email_invalid: "%{email} n'est pas une adresse e-mail valide",
+      secondary_email_is_primary: "%{email} est déjà votre adresse principale",
+      secondary_email_taken:
+        "%{email} est déjà utilisée par un autre utilisateur",
+      too_many_secondary_emails:
+        "Vous ne pouvez pas ajouter plus de 10 adresses e-mail secondaires",
+      secondary_emails_help:
+        "Autres adresses depuis lesquelles vous envoyez des e-mails. Laissez-en une vide pour la supprimer.",
       inbound: {
         description:
           "Vous pouvez commencer à envoyer des e-mails vers l'adresse de réception de votre serveur, par exemple en l'ajoutant au champ %{field}. Atomic CRM traitera les e-mails et ajoutera des notes aux contacts correspondants.",
