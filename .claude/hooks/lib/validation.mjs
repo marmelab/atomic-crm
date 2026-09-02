@@ -122,7 +122,8 @@ const TAIL_LINES = { format: 15, typecheck: 20, lint: 30, unit: 40, e2e: 50 };
 
 // A step is skipped when its `condition` is not met. `pathExists` gates on a
 // path under the repo (e.g. the supabase/functions unit-fn gate); `modeNot`
-// skips when MODE equals the given value (e.g. e2e in demo mode).
+// skips when MODE equals the given value (no step uses it today, and MODE is set
+// only by a managed launcher, never by this repo's settings.json).
 function stepSkipped(ctx, step) {
   const c = step.condition;
   if (!c) return false;
@@ -177,7 +178,8 @@ function runStep(ctx, step, { cwd, base }) {
 // every developer stop). Steps are declared in harness.config.json's
 // `validation.steps` (single source of truth, shared with bash-guard) and run in
 // config order: steps without `cwd:"repo"` run per dirty worktree (fail-fast);
-// `cwd:"repo"` steps (e2e) run once in the repo after the per-worktree pass.
+// `cwd:"repo"` steps run once in the repo after the per-worktree pass (none today:
+// e2e is end-of-feature only, run by the orchestrator on the session worktree).
 // VALIDATE_DRY_RUN=1 skips everything, =fail simulates a failure. A malformed
 // config fails closed. Returns { ok:true, skipReason? } or { ok:false, step, output }.
 export function runValidationSteps(ctx, { worktree = "", base = "" } = {}) {
@@ -236,7 +238,7 @@ export function runValidationSteps(ctx, { worktree = "", base = "" } = {}) {
     const r = runStep(ctx, step, { cwd: ctx.repo, base });
     if (!r.ok) {
       progress(`[validate:repo] ${step.id} FAILED`);
-      ctx.log(`FAIL step=${step.id} exit`);
+      ctx.log(`FAIL step=${step.id}\n${r.output}`);
       return { ok: false, step: step.id, output: r.output + "\n" };
     }
     ctx.log(`${step.id} OK`);

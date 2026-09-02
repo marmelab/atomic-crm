@@ -88,6 +88,21 @@ mistake would be most costly. Rules:
   items (style, naming, things the hooks already catch).
 - `Hotspots for human review: none identified` is a valid, complete section.
 
+**Record your verdict flag (required, do this BEFORE emitting the contract line).** The
+end-of-feature e2e suite is launched by a hook on your stop, and it keys off this flag, so a
+`BLOCKED` review never pays for a 10-minute suite. Write it yourself with a single Bash call:
+a post-stop transcript read races the flush and silently drops the verdict. The flag dir is
+`${TICKETS_DIR}/reviews`, and the key is the literal `FEATURE` (this pass has no `TASK_ID`):
+
+- APPROVED:
+  ```bash
+  RD="${TICKETS_DIR}/reviews" && mkdir -p "$RD" && touch "$RD/FEATURE-quality-reviewer"
+  ```
+- BLOCKED:
+  ```bash
+  RD="${TICKETS_DIR}/reviews" && rm -f "$RD/FEATURE-quality-reviewer"
+  ```
+
 OUTPUT CONTRACT (text, no `SendMessage`), last line exactly one of:
 - `APPROVED`: no imperative findings. Put any non-blocking notes (nits, cleanliness, ponytail
   `net: -N lines`) and the Hotspots section ABOVE the line; the orchestrator forwards them to the
@@ -454,13 +469,16 @@ interactively via the Playwright MCP against a demo-mode server you start inside
    (`kill <pid>` of the `dev:demo` process you started). Leaving it running
    stalls the SubagentStop validation chain.
 
-A red criterion verified here is a `[FAIL]` → REJECTED. The `npx playwright
-screenshot --headless <url> out.png` CLI remains a fallback for a single static
-shot when no interaction is needed.
+A red criterion verified here is a `[FAIL]` → REJECTED. For a single static shot
+with no interaction, use `browser_navigate` + `browser_take_screenshot` as above:
+there is no `npx playwright screenshot` CLI in the pinned Playwright (1.60 exposes
+only `playwright trace screenshot`).
 
 ### C.4 e2e spec sanity (read-only)
 
-Execution is the SubagentStop validation chain's job (`validate-on-stop.mjs`).
+Execution happens once at end-of-feature, on the integrated `_session` worktree
+(`.claude/scripts/e2e-smoke.sh`, driven by the orchestrator); the per-ticket
+SubagentStop chain does NOT run e2e.
 Here you only verify the spec file exists when acceptance criteria require it and
 that it targets the right route/component. (Presence of a test for every new
 behavior is also enforced by A.7.)

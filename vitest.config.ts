@@ -75,6 +75,7 @@ export default defineConfig({
           name: "claude",
           environment: "node",
           include: [".claude/**/*.test.mjs"],
+          setupFiles: ["./.claude/hooks/test/setup-tmp-root.mjs"],
           // These tests spawn `node` subprocesses and do real git/worktree work,
           // so they need more headroom than the default 5s.
           testTimeout: 30000,
