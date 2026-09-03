@@ -1,7 +1,7 @@
-import { useQueryClient } from "@tanstack/react-query";
 import { LoaderCircle, RotateCw } from "lucide-react";
-import { useTranslate } from "ra-core";
 import { useCallback, useEffect, useRef, useState } from "react";
+
+import { useRefreshData } from "./useRefreshData";
 
 /** Finger travel below which we cannot tell a pull from a tap, so we stay passive. */
 const GESTURE_SLOP = 8;
@@ -11,21 +11,31 @@ const DRAG_RESISTANCE = 0.5;
 const TRIGGER_DISTANCE = 64;
 /** The control never travels further than this, however hard the user pulls. */
 const MAX_DISTANCE = 96;
-/** Keep the spinner up at least this long, so a cache-warm refresh is not a flash. */
-const MIN_SPINNER_MS = 400;
+
+/** True when the element scrolls on its own and has somewhere to scroll to. */
+const isScroller = (node: Element) => {
+  const { overflowY } = getComputedStyle(node);
+  return (
+    (overflowY === "auto" || overflowY === "scroll") &&
+    node.scrollHeight > node.clientHeight
+  );
+};
 
 /**
- * True when a pull starting on `target` should scroll the page rather than refresh it:
- * some ancestor is already scrolled down, or the touch is inside a dialog/sheet, which
- * owns its own scrolling.
+ * True when a pull starting on `target` belongs to something else than the page: an
+ * ancestor scrolls on its own or is already scrolled down, or the touch is inside an
+ * overlay. Overlays are matched on their two portal roots — Radix's popper wrapper
+ * (select, dropdown menu, popover, command) and the dialog role (dialog and, since
+ * vaul renders one too, sheet) — rather than on the role of the panel itself, which
+ * varies (dialog, listbox, menu, …) and is portalled out of its own sheet anyway.
  */
 const isScrollGesture = (target: EventTarget | null) => {
   let node = target instanceof Element ? target : null;
-  if (node?.closest('[role="dialog"], [data-vaul-drawer]')) {
+  if (node?.closest('[role="dialog"], [data-radix-popper-content-wrapper]')) {
     return true;
   }
   while (node) {
-    if (node.scrollTop > 0) {
+    if (node.scrollTop > 0 || isScroller(node)) {
       return true;
     }
     node = node.parentElement;
@@ -34,59 +44,61 @@ const isScrollGesture = (target: EventTarget | null) => {
 };
 
 /**
- * Mobile pull-to-refresh: pulling down from the top of the page reveals a refresh
- * button that follows the finger, and releasing it past the trigger distance refetches
- * every active query — the mobile equivalent of the desktop <RefreshButton>, which is
- * hidden on small screens. Tapping the button while it is visible refreshes too.
+ * Mobile pull-to-refresh: pulling down from the top of the page reveals an indicator
+ * that follows the finger, and releasing it past the trigger distance refetches every
+ * active query. The indicator is decorative — the gesture's accessible counterpart is
+ * the <MobileRefreshButton> in the header.
  *
  * Mounted once by <MobileLayout>: it listens on the document, so it covers every mobile
- * page without each of them having to opt in.
+ * page without each of them having to opt in. Native overscroll (Chrome for Android's
+ * own pull-to-refresh, the iOS rubber-band) is suppressed in CSS, by the
+ * `overscroll-behavior-y: none` in index.css, so all our listeners stay passive.
  */
 export const PullToRefresh = () => {
-  const queryClient = useQueryClient();
-  const translate = useTranslate();
+  const { refresh, isRefreshing } = useRefreshData();
   const [distance, setDistance] = useState(0);
-  const [isRefreshing, setIsRefreshing] = useState(false);
   // The gesture runs on raw DOM events, so its inputs are read from refs rather than
   // from state, which would be a render behind.
   const distanceRef = useRef(0);
   const isRefreshingRef = useRef(false);
   const startYRef = useRef<number | null>(null);
 
+  useEffect(() => {
+    isRefreshingRef.current = isRefreshing;
+  }, [isRefreshing]);
+
   const moveTo = useCallback((value: number) => {
     distanceRef.current = value;
     setDistance(value);
   }, []);
 
-  const refresh = useCallback(async () => {
-    if (isRefreshingRef.current) {
-      return;
-    }
+  // Holds the indicator at the trigger distance for as long as the refresh runs.
+  const pullRefresh = useCallback(async () => {
     isRefreshingRef.current = true;
-    setIsRefreshing(true);
     moveTo(TRIGGER_DISTANCE);
     try {
-      // Same effect as ra-core's useRefresh, but awaitable so the spinner can stop
-      // when the data has actually come back.
-      await Promise.all([
-        queryClient.invalidateQueries(),
-        new Promise((resolve) => setTimeout(resolve, MIN_SPINNER_MS)),
-      ]);
+      await refresh();
     } finally {
-      isRefreshingRef.current = false;
-      setIsRefreshing(false);
       moveTo(0);
     }
-  }, [moveTo, queryClient]);
+  }, [moveTo, refresh]);
 
   useEffect(() => {
     const onTouchStart = (event: TouchEvent) => {
-      startYRef.current =
-        event.touches.length === 1 &&
-        !isRefreshingRef.current &&
-        !isScrollGesture(event.target)
-          ? event.touches[0].clientY
-          : null;
+      if (
+        event.touches.length !== 1 ||
+        isRefreshingRef.current ||
+        isScrollGesture(event.target)
+      ) {
+        // Not our gesture. A second finger landing mid-pull ends up here, so drop the
+        // indicator too, or it would stay on screen and stay armed.
+        startYRef.current = null;
+        if (!isRefreshingRef.current) {
+          moveTo(0);
+        }
+        return;
+      }
+      startYRef.current = event.touches[0].clientY;
     };
 
     const onTouchMove = (event: TouchEvent) => {
@@ -98,20 +110,19 @@ export const PullToRefresh = () => {
         moveTo(0);
         return;
       }
-      // We own the gesture from here: suppress the native overscroll, which on Chrome
-      // for Android is its own pull-to-refresh reloading the whole page.
-      event.preventDefault();
       moveTo(Math.min(MAX_DISTANCE, (delta - GESTURE_SLOP) * DRAG_RESISTANCE));
     };
 
     const onTouchEnd = () => {
-      if (startYRef.current === null) {
+      const startY = startYRef.current;
+      startYRef.current = null;
+      if (isRefreshingRef.current) {
         return;
       }
-      startYRef.current = null;
-      if (distanceRef.current >= TRIGGER_DISTANCE) {
-        void refresh();
+      if (startY !== null && distanceRef.current >= TRIGGER_DISTANCE) {
+        void pullRefresh();
       } else {
+        // Also covers the abandoned pull of a gesture we gave up on mid-way.
         moveTo(0);
       }
     };
@@ -122,16 +133,16 @@ export const PullToRefresh = () => {
     };
 
     document.addEventListener("touchstart", onTouchStart, { passive: true });
-    document.addEventListener("touchmove", onTouchMove, { passive: false });
-    document.addEventListener("touchend", onTouchEnd);
-    document.addEventListener("touchcancel", onTouchCancel);
+    document.addEventListener("touchmove", onTouchMove, { passive: true });
+    document.addEventListener("touchend", onTouchEnd, { passive: true });
+    document.addEventListener("touchcancel", onTouchCancel, { passive: true });
     return () => {
       document.removeEventListener("touchstart", onTouchStart);
       document.removeEventListener("touchmove", onTouchMove);
       document.removeEventListener("touchend", onTouchEnd);
       document.removeEventListener("touchcancel", onTouchCancel);
     };
-  }, [moveTo, refresh]);
+  }, [moveTo, pullRefresh]);
 
   if (distance === 0 && !isRefreshing) {
     return null;
@@ -140,13 +151,13 @@ export const PullToRefresh = () => {
   const progress = Math.min(1, distance / TRIGGER_DISTANCE);
 
   return (
-    <div className="fixed inset-x-0 top-0 z-50 flex justify-center pointer-events-none">
-      <button
-        type="button"
-        aria-label={translate("ra.action.refresh")}
-        disabled={isRefreshing}
-        onClick={() => void refresh()}
-        className="-mt-12 flex size-10 items-center justify-center rounded-full bg-secondary text-secondary-foreground shadow-md pointer-events-auto"
+    <div
+      aria-hidden="true"
+      data-testid="pull-to-refresh"
+      className="fixed inset-x-0 top-0 z-50 flex justify-center pointer-events-none"
+    >
+      <div
+        className="-mt-12 flex size-10 items-center justify-center rounded-full bg-secondary text-secondary-foreground shadow-md"
         style={{
           transform: `translateY(${distance}px)`,
           opacity: isRefreshing ? 1 : progress,
@@ -160,7 +171,7 @@ export const PullToRefresh = () => {
             style={{ transform: `rotate(${progress * 270}deg)` }}
           />
         )}
-      </button>
+      </div>
     </div>
   );
 };

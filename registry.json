@@ -510,11 +510,19 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/layout/useRefreshData.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/layout/TopToolbar.tsx",
           "type": "registry:component"
         },
         {
           "path": "src/components/atomic-crm/layout/PullToRefresh.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/layout/MobileRefreshButton.tsx",
           "type": "registry:component"
         },
         {
