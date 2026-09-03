@@ -15,21 +15,21 @@ import {
 } from "@/test/StoryWrapper";
 import type { Db } from "@/components/atomic-crm/providers/fakerest/dataGenerator/types";
 
-// Onboarding-gate real-infrastructure repair: found via real human Auth
-// acceptance testing, not fixtures — an administrator whose only Contact
-// arrived through the public application form (real production behavior:
-// Contact/Deal/Application/Task created automatically, never a Contact
-// Note) was permanently stuck behind DashboardStepper's "Add your first
-// note" step, with no legitimate way through it. Every other Dashboard
-// test in this codebase seeds both a Contact AND a Contact Note by
-// default (see Dashboard.comingUp.test.tsx's buildTestCrm), which is
-// exactly why this exact "1 Contact, 0 Contact Notes" administrator state
-// was never exercised by any existing test before this bug reached a real
-// user.
+// Onboarding-gate real-infrastructure repair, round 2: found via real human
+// Auth acceptance testing — after round 1 (removing the Contact-Note
+// requirement) shipped, cleaning up the disposable test Contact used to
+// verify it returned the real CRM to zero Contacts, and the stock
+// "What's next? / Add your first contact" stepper reappeared for Leif's
+// own already-initialized administrator account. The lesson: CRM
+// initialization must never be inferred from business-data counts — an
+// initialized CRM with zero Contacts is still an initialized CRM (that is
+// already authProvider.ts's own job, via init_state/the `sales` table,
+// independent of Contacts). The Dashboard now has NO business-data gate at
+// all; every section renders its own empty state.
 const buildTestCrm = (overrides: Partial<Db> = {}) => {
   const dataProvider = createDataProvider({
     db: createCrmDb({
-      contacts: [buildContact({ id: 1 })],
+      contacts: [],
       contact_notes: [],
       offers: [],
       cohorts: [],
@@ -68,7 +68,7 @@ const buildTestCrm = (overrides: Partial<Db> = {}) => {
 };
 
 describe("Dashboard onboarding gate — an initialized administrator is never blocked by starter-data requirements", () => {
-  it("a Contact with zero Contact Notes still reaches the real Dashboard, not the onboarding stepper", async () => {
+  it("zero Contacts and zero Contact Notes still reaches the real Dashboard with empty-state sections, not the onboarding stepper", async () => {
     await page.viewport(1280, 900);
     const { element } = buildTestCrm();
     const screen = await render(element);
@@ -80,18 +80,23 @@ describe("Dashboard onboarding gate — an initialized administrator is never bl
       .element(screen.getByText("What's next?"))
       .not.toBeInTheDocument();
     await expect
+      .element(screen.getByText("Add your first contact"))
+      .not.toBeInTheDocument();
+    await expect
       .element(screen.getByText("Add your first note"))
       .not.toBeInTheDocument();
   });
 
-  it("zero Contacts still shows the lightweight onboarding stepper (step 1 preserved)", async () => {
+  it("a Contact with zero Contact Notes still reaches the real Dashboard, not the onboarding stepper", async () => {
     await page.viewport(1280, 900);
-    const { element } = buildTestCrm({ contacts: [] });
+    const { element } = buildTestCrm({ contacts: [buildContact({ id: 1 })] });
     const screen = await render(element);
 
-    await expect.element(screen.getByText("What's next?")).toBeInTheDocument();
     await expect
       .element(screen.getByRole("heading", { name: "Tasks" }))
+      .toBeInTheDocument();
+    await expect
+      .element(screen.getByText("What's next?"))
       .not.toBeInTheDocument();
   });
 });
