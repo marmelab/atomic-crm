@@ -102,6 +102,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/tasks/useTaskActionDestination.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/tasks/tasksPredicate.ts",
           "type": "registry:component"
         },
@@ -110,7 +114,15 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/tasks/taskActionDestination.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/tasks/postponeTaskDate.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/tasks/actionDestinationTestFixtures.tsx",
           "type": "registry:component"
         },
         {
