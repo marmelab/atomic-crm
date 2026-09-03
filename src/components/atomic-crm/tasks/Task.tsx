@@ -9,6 +9,7 @@ import {
   useUpdate,
 } from "ra-core";
 import { useEffect, useState } from "react";
+import { Link } from "react-router";
 import { ReferenceField } from "@/components/admin/reference-field";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -27,6 +28,8 @@ import { computePostponeDueDate } from "./postponeTaskDate";
 import { taskStatusLabels } from "./taskConstants";
 import { TaskEdit } from "./TaskEdit";
 import { TaskEditSheet } from "./TaskEditSheet";
+import type { TaskActionDestination } from "./useTaskActionDestination";
+import { useTaskActionDestination } from "./useTaskActionDestination";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 // The configured label for a task's type (e.g. "review_application" ->
@@ -39,6 +42,54 @@ const typeLabel = (
 ): string | null => {
   if (!task.type) return null;
   return taskTypes.find((t) => t.value === task.type)?.label ?? task.type;
+};
+
+// The task's primary action: a real, keyboard/mobile-accessible <Link>
+// to the resolved Application/Deal when useTaskActionDestination found
+// one, or a same-styled button that opens the Task's own edit view when
+// it didn't (no destination resolved yet, no type-specific screen exists,
+// or the linked record is gone) — never a dead, non-interactive label,
+// and never a silent no-op. stopPropagation matches the existing Checkbox
+// pattern just above: the row's own onClick (mobile-only, toggles done_date)
+// must not also fire when this is what was actually tapped.
+const TaskActionLabel = ({
+  label,
+  suffix = "",
+  destination,
+  onOpenTaskDetail,
+}: {
+  label: string | null;
+  suffix?: string;
+  destination: TaskActionDestination | null;
+  onOpenTaskDetail: () => void;
+}) => {
+  if (!label) return null;
+  const text = `${label}${suffix}`;
+
+  if (destination && destination.kind !== "task-detail") {
+    return (
+      <Link
+        to={destination.to}
+        className="hover:underline"
+        onClick={(event) => event.stopPropagation()}
+      >
+        {text}
+      </Link>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      className="hover:underline cursor-pointer text-left"
+      onClick={(event) => {
+        event.stopPropagation();
+        onOpenTaskDetail();
+      }}
+    >
+      {text}
+    </button>
+  );
 };
 
 export const Task = ({
@@ -97,6 +148,16 @@ export const Task = ({
   const handleEdit = () => {
     setOpenEdit(true);
   };
+
+  // Task-as-action-launcher repair pass (found via real human Auth
+  // acceptance testing): the type label used to be plain, non-interactive
+  // text — the only clickable part of the row was the Contact name, which
+  // took a reviewer to the Contact page, not to the Application/Deal
+  // where the requested action actually happens. Resolved once per row via
+  // the shared, centralized policy (taskActionDestination.ts /
+  // useTaskActionDestination.ts) — reused by every Task-rendering surface
+  // in the app (there is exactly one, Task.tsx), never guessed here.
+  const { destination } = useTaskActionDestination(task);
 
   const taskTitle = (() => {
     const type = typeLabel(task, taskTypes);
@@ -191,11 +252,22 @@ export const Task = ({
                   contact isn't already obvious, e.g. the Dashboard or a
                   cross-contact task list — never a Contact's own page,
                   which never passes it) decides whether the name is shown
-                  at all; when it isn't, the type label alone is the title. */}
+                  at all; when it isn't, the type label alone is the title.
+                  Two distinct destinations, deliberately not one ambiguous
+                  link across the whole title (task-as-action-launcher
+                  repair pass): the type label is the task's own primary
+                  action (Application/Deal, resolved above); the Contact
+                  name stays its own separate link to the Contact page —
+                  useful in its own right, and not what "click the task"
+                  should mean. */}
               {showContact ? (
                 <>
-                  {typeLabel(task, taskTypes) &&
-                    `${typeLabel(task, taskTypes)}: `}
+                  <TaskActionLabel
+                    label={typeLabel(task, taskTypes)}
+                    suffix=": "
+                    destination={destination}
+                    onOpenTaskDetail={handleEdit}
+                  />
                   <ReferenceField<TData, Contact>
                     source="contact_id"
                     reference="contacts"
@@ -222,7 +294,11 @@ export const Task = ({
                   />
                 </>
               ) : (
-                (typeLabel(task, taskTypes) ?? task.text)
+                <TaskActionLabel
+                  label={typeLabel(task, taskTypes) ?? task.text}
+                  destination={destination}
+                  onOpenTaskDetail={handleEdit}
+                />
               )}
               {/* Pending/Completed are already conveyed by the checkbox and
                   strikethrough; only the less obvious states get a badge. */}

@@ -143,6 +143,54 @@
       </div>
     </div>
     <noscript>You need to enable JavaScript to run this app.</noscript>
+    <!--
+      Auth password-recovery/invite real-infrastructure repair: reproduced
+      against the real linked project (a fresh recovery link generated via
+      the Admin API, consumed exactly as a real click would). A Supabase
+      recovery/invite email link redirects the browser to
+      "<site_url>/#access_token=...&refresh_token=...&type=recovery&...",
+      the legacy implicit-grant hash shape ra-supabase-core's own
+      checkAuth/getUrlParams expects — but this app's HashRouter treats
+      that SAME hash as an (unroutable) navigation target and replaces it
+      with the default unauthenticated route before any of the app's own
+      recovery-aware code (including @supabase/supabase-js's own
+      detectSessionInUrl, which races the very same hash) ever gets a
+      chance to read it. The original tokens are gone by the time any
+      React/router code runs — this is the exact "app loads at the right
+      URL but shows Sign In instead of Set Password" bug found during real
+      Auth acceptance testing, not a URL-format or config problem.
+      Fixed at the only point that's guaranteed to run before the app's
+      module script (this file's own <script type="module"> below always
+      executes after every plain synchronous script that precedes it):
+      rewrite the raw callback hash into the app's own recognized
+      "/set-password" route hash immediately, so the very first render the
+      router ever does already sees a real, recognized route carrying the
+      tokens as its query string — never the unrouted token dump. Mirrors
+      auth-callback.html's own established pattern for the same class of
+      problem (a static, framework-free script intercepting a Supabase
+      auth redirect before the SPA mounts).
+
+      This is the canonical STATIC mirror of
+      src/authRecoveryRedirect.ts's computeRecoveryRedirectHash — index.html
+      is served verbatim (Vite doesn't process it as a module import
+      target), the same constraint public/404.html and every Deno Edge
+      Function already work around by hand-mirroring their own src/
+      reference implementation. Keep the two in sync by hand if either
+      changes; authRecoveryRedirect.mirrorCheck.test.ts asserts they
+      still agree.
+    -->
+    <script>
+      (function () {
+        var hash = window.location.hash;
+        if (
+          hash.indexOf("access_token=") !== -1 &&
+          (hash.indexOf("type=recovery") !== -1 ||
+            hash.indexOf("type=invite") !== -1)
+        ) {
+          window.location.hash = "/set-password?" + hash.slice(1);
+        }
+      })();
+    </script>
     <script type="module" src="<%= mainScript %>"></script>
   </body>
 </html>

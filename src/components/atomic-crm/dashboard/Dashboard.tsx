@@ -1,6 +1,6 @@
 import { useGetList, useTranslate } from "ra-core";
 
-import type { Contact, ContactNote } from "../types";
+import type { Contact } from "../types";
 import { ArtOracleCard } from "./artOracle/ArtOracleCard";
 import { BusinessAtAGlance } from "./BusinessAtAGlance";
 import { ComingUp } from "./ComingUp";
@@ -15,33 +15,39 @@ import { PeopleDeciding } from "./PeopleDeciding";
 // business events in time order) > Business capacity > People Deciding /
 // Art Oracle > Latest Activity (collapsed) — see the Dashboard/Today slice
 // report, extended by the Next Up / Temporal Intelligence slice report.
+//
+// Onboarding-gate real-infrastructure repair: this used to ALSO require at
+// least one Contact Note (DashboardStepper step 2, "Add your first note")
+// before showing any of the above at all. That's stock starter-template
+// onboarding, written when every Contact necessarily arrived through a
+// human manually using the CRM. The Native Application Intake path (real-
+// infrastructure verification slice) proved this false in production: a
+// real prospect applying through the public form creates a Contact/Deal/
+// Application/Task automatically, but never a Contact Note — an
+// administrator whose very first real data arrives that way (exactly
+// Leif's own real account, confirmed via human Auth acceptance testing)
+// was permanently stuck behind "manufacture a note to unlock your own
+// CRM," with no legitimate way through it. A real Contact already existing
+// is enough evidence the CRM is in real use; requiring a Note specifically
+// was arbitrary, not a genuine initialization signal, and never true
+// (this app's own auth flow already has its own, separate "is initialized"
+// check — see authProvider.ts's getIsInitialized/init_state — which this
+// duplicated with a narrower, stricter condition). Step 1 (at least one
+// Contact) is kept: a truly empty, fresh install still gets a lightweight
+// nudge instead of a confusing blank Dashboard.
 export const Dashboard = () => {
   const translate = useTranslate();
-  const {
-    data: dataContact,
-    total: totalContact,
-    isPending: isPendingContact,
-  } = useGetList<Contact>("contacts", {
-    pagination: { page: 1, perPage: 1 },
-  });
-
-  const { total: totalContactNotes, isPending: isPendingContactNotes } =
-    useGetList<ContactNote>("contact_notes", {
+  const { total: totalContact, isPending: isPendingContact } =
+    useGetList<Contact>("contacts", {
       pagination: { page: 1, perPage: 1 },
     });
 
-  const isPending = isPendingContact || isPendingContactNotes;
-
-  if (isPending) {
+  if (isPendingContact) {
     return null;
   }
 
   if (!totalContact) {
     return <DashboardStepper step={1} />;
-  }
-
-  if (!totalContactNotes) {
-    return <DashboardStepper step={2} contactId={dataContact?.[0]?.id} />;
   }
 
   return (
