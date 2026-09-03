@@ -186,3 +186,14 @@ input[type="time"] {
 body {
   font-family: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
 }
+
+/* The mobile pull-to-refresh (see layout/PullToRefresh.tsx) owns the overscroll
+   gesture: without this, Chrome for Android runs its own pull-to-refresh — a full
+   page reload — on top of ours, and iOS rubber-bands the page under the indicator.
+   Suppressing both here is what lets our touch listeners stay passive.
+   767px is the mobile breakpoint of useIsMobile(). */
+@media (max-width: 767px) {
+  html {
+    overscroll-behavior-y: none;
+  }
+}
