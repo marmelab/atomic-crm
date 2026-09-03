@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router";
 import { useAuthProvider, useTranslate } from "ra-core";
 import { Layout } from "@/components/supabase/layout";
 import { Button } from "@/components/ui/button";
