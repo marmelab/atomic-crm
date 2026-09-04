@@ -74,6 +74,11 @@ export const defaultTaskTypes = [
   // safely matched to exactly one active Opportunity, rather than burying
   // it — see sales-calls/resolveSalesCallTask.ts.
   { value: "resolve_sales_call", label: "Resolve Sales Call" },
+  // GYU real-infrastructure slice, human-acceptance repair pass: surfaces
+  // an Opportunity left at Call Booked with no active appointment after a
+  // cancellation, so it never silently strands — see
+  // sales-calls/salesCallCancelledTask.ts.
+  { value: "sales_call_cancelled", label: "Sales Call Cancelled" },
   { value: "other", label: "Other" },
 ];
 

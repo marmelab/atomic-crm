@@ -98,8 +98,8 @@ const CohortShowContent = () => {
                   })}`}
                 {peopleDeciding.length > 0 &&
                   ` · ${translate("crm.dashboard.people_deciding_count", {
-                    _: "%{count} people deciding",
-                    count: peopleDeciding.length,
+                    _: "%{smart_count} person deciding |||| %{smart_count} people deciding",
+                    smart_count: peopleDeciding.length,
                   })}`}
                 {waitlist.length > 0 &&
                   ` · ${translate("resources.waitlist_entries.count", {

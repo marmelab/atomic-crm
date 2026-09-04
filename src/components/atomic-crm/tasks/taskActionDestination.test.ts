@@ -15,6 +15,7 @@ describe("classifyTaskActionKind", () => {
     "check_payment",
     "send_contract",
     "complete_access",
+    "sales_call_cancelled",
   ])("routes %s to opportunity-context", (type) => {
     expect(classifyTaskActionKind(type)).toBe("opportunity-context");
   });

@@ -5,6 +5,7 @@ import {
   ensureSalesCallTask,
   updateSalesCallTaskDueDate,
 } from "./salesCallTask";
+import { completeSalesCallCancelledTask } from "./salesCallCancelledTask";
 import { ensureResolveSalesCallTask } from "./resolveSalesCallTask";
 import { resolveDefaultTaskSalesId } from "./resolveDefaultTaskSalesId";
 
@@ -117,6 +118,12 @@ export const bookSalesCall = async (
       scheduledAt: input.scheduledAt,
       salesId,
     });
+    // The person is back on the calendar — resolves any "sales call was
+    // cancelled, decide next steps" task a prior cancellation on this same
+    // Opportunity left open (GYU real-infrastructure slice, human-
+    // acceptance repair pass; see cancelSalesCall.ts). A safe no-op when
+    // no such task is pending.
+    await completeSalesCallCancelledTask(dataProvider, input.contactId, now);
   } else {
     await ensureResolveSalesCallTask(dataProvider, {
       contactId: input.contactId,

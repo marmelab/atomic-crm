@@ -166,6 +166,52 @@ describe("matchAcuityBooking", () => {
     }
   });
 
+  it("resolves a group Offer's own canonical appointment type (mapped at the Offer level, not per-Cohort), matching by Contact+Offer alone and trusting the Deal's own already-set cohort_id", async () => {
+    // GYU real-infrastructure slice, sealing pass: GYU's real appointment
+    // type ("Let's Meet") is one canonical type shared by every Cohort,
+    // durably mapped on the Offer itself — not a per-Cohort mapping. This
+    // must still resolve as a group Offer match (never mislabeled
+    // "individual" merely because the match came from the offers table),
+    // with cohort left null (the appointment type alone can't identify a
+    // specific Cohort) — offerCohortAcuityMapping.ts's own resolver
+    // comment explains why this is safe: the matched Deal already carries
+    // its own correct cohort_id from application time, untouched here.
+    const groupOfferWithOwnMapping: Offer = {
+      ...buildGroupOffer(),
+      acuity_appointment_type_id: "gyu-canonical-type",
+    };
+    const contact = buildContact({ id: CONTACT_ID });
+    const deal = buildDeal({ offer_id: 2, cohort_id: COHORT_ID });
+    const dataProvider = createDataProvider({
+      db: createCrmDb({
+        contacts: [contact],
+        offers: [groupOfferWithOwnMapping],
+        cohorts: [buildCohort()],
+        deals: [deal],
+      }),
+      silent: true,
+      latency: 0,
+    });
+
+    const result = await matchAcuityBooking(dataProvider, {
+      email: "ada@example.com",
+      firstName: "Ada",
+      lastName: "Lovelace",
+      acuityAppointmentTypeId: "gyu-canonical-type",
+    });
+
+    expect(result.status).toBe("matched");
+    if (result.status === "matched") {
+      expect(result.offer.id).toBe(2);
+      expect(result.offer.type).toBe("group");
+      // The match came from the Offer, not the Cohort — matchAcuityBooking
+      // never derives a cohort from an Offer-level mapping.
+      expect(result.cohort).toBeNull();
+      // But the matched Opportunity's own cohort_id survives untouched.
+      expect(result.opportunity.cohort_id).toBe(COHORT_ID);
+    }
+  });
+
   it("does not fabricate a match for an unmapped Acuity appointment type — no Contact is even created", async () => {
     const dataProvider = createDataProvider({
       db: createCrmDb({

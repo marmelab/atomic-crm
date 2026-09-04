@@ -651,7 +651,8 @@ export const englishCrmMessages = {
       next_openings_in_month: "%{count} openings in %{month}",
       capacity_enrolled: "enrolled",
       seats_remaining: "%{count} seats left",
-      people_deciding_count: "%{count} people deciding",
+      people_deciding_count:
+        "%{smart_count} person deciding |||| %{smart_count} people deciding",
       people_deciding_title: "People Deciding",
       people_deciding_orientation:
         "Who is currently deciding and may need your attention.",

@@ -663,7 +663,8 @@ export const frenchCrmMessages = {
       next_openings_in_month: "%{count} places disponibles en %{month}",
       capacity_enrolled: "inscrits",
       seats_remaining: "%{count} places restantes",
-      people_deciding_count: "%{count} personnes en réflexion",
+      people_deciding_count:
+        "%{smart_count} personne en réflexion |||| %{smart_count} personnes en réflexion",
       people_deciding_title: "Personnes en réflexion",
       people_deciding_orientation:
         "Qui est actuellement en train de décider et pourrait avoir besoin de votre attention.",

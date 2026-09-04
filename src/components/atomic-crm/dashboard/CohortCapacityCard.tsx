@@ -70,8 +70,8 @@ export const CohortCapacityCard = ({ cohort }: { cohort: Cohort }) => {
           {inSalesCount > 0 && (
             <p className="text-sm text-muted-foreground">
               {translate("crm.dashboard.people_deciding_count", {
-                _: "%{count} people deciding",
-                count: inSalesCount,
+                _: "%{smart_count} person deciding |||| %{smart_count} people deciding",
+                smart_count: inSalesCount,
               })}
             </p>
           )}

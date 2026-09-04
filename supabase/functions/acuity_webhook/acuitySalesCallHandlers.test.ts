@@ -244,6 +244,48 @@ describe("acuitySalesCallHandlers", () => {
       expect(fakeDb.current.tables.sales_call_events).toHaveLength(1);
       expect(fakeDb.current.tables.tasks).toHaveLength(1);
     });
+
+    it("a fresh booking for the same Opportunity completes a pending Sales Call Cancelled task", async () => {
+      fakeDb.current = seedWith({
+        contacts: [
+          {
+            id: 1,
+            first_name: "Ada",
+            last_name: "Lovelace",
+            email_jsonb: [{ email: "ada@example.com", type: "Home" }],
+          },
+        ],
+        deals: [
+          {
+            id: 1,
+            contact_id: 1,
+            offer_id: 1,
+            cohort_id: null,
+            stage: "call_booked",
+            outcome: null,
+            archived_at: null,
+          },
+        ],
+        tasks: [
+          {
+            id: 1,
+            contact_id: 1,
+            type: "sales_call_cancelled",
+            due_date: "2026-09-05T00:00:00.000Z",
+            done_date: null,
+            status: "pending",
+          },
+        ],
+      });
+
+      await handleScheduled(buildAppointment(), "acuity-rebook");
+
+      const followUpTask = fakeDb.current.tables.tasks.find(
+        (task) => task.id === 1,
+      )!;
+      expect(followUpTask.status).toBe("completed");
+      expect(followUpTask.done_date).toBeTruthy();
+    });
   });
 
   describe("handleRescheduled", () => {
@@ -426,6 +468,14 @@ describe("acuitySalesCallHandlers", () => {
       expect(fakeDb.current.tables.tasks[0].status).toBe("cancelled");
       // Never attendance, never a stage change.
       expect(fakeDb.current.tables.deals[0].stage).toBe("call_booked");
+      // GYU real-infrastructure slice, human-acceptance repair pass: the
+      // Opportunity is still Call Booked with no active call — a new
+      // "decide what happens next" task must exist, not silently strand.
+      const followUpTasks = fakeDb.current.tables.tasks.filter(
+        (task) => task.type === "sales_call_cancelled",
+      );
+      expect(followUpTasks).toHaveLength(1);
+      expect(followUpTasks[0].status).toBe("pending");
     });
 
     it("a duplicate cancellation webhook is a safe no-op", async () => {
@@ -448,6 +498,72 @@ describe("acuitySalesCallHandlers", () => {
 
       expect(body).toEqual({ status: "unknown-appointment" });
       expect(fakeDb.current.tables.sales_call_events).toHaveLength(0);
+    });
+
+    it("does not create a follow-up task when the booking was never matched to an Opportunity", async () => {
+      const db = bookedFixture();
+      db.tables.sales_calls[0].opportunity_id = null;
+      fakeDb.current = db;
+
+      await handleCanceled("acuity-1");
+
+      const followUpTasks = fakeDb.current.tables.tasks.filter(
+        (task) => task.type === "sales_call_cancelled",
+      );
+      expect(followUpTasks).toHaveLength(0);
+    });
+
+    it("does not create a follow-up task when the Opportunity already moved past Call Booked", async () => {
+      fakeDb.current = bookedFixture();
+      fakeDb.current.tables.deals = [
+        {
+          id: 1,
+          contact_id: 1,
+          offer_id: 1,
+          cohort_id: null,
+          stage: "committed",
+          outcome: null,
+          archived_at: null,
+        },
+      ];
+
+      await handleCanceled("acuity-1");
+
+      const followUpTasks = fakeDb.current.tables.tasks.filter(
+        (task) => task.type === "sales_call_cancelled",
+      );
+      expect(followUpTasks).toHaveLength(0);
+    });
+
+    it("does not create a follow-up task when another currently-booked call already covers the Opportunity", async () => {
+      fakeDb.current = bookedFixture();
+      fakeDb.current.tables.deals = [
+        {
+          id: 1,
+          contact_id: 1,
+          offer_id: 1,
+          cohort_id: null,
+          stage: "call_booked",
+          outcome: null,
+          archived_at: null,
+        },
+      ];
+      fakeDb.current.tables.sales_calls.push({
+        id: 2,
+        opportunity_id: 1,
+        contact_id: 1,
+        status: "booked",
+        scheduled_at: "2026-09-12T18:00:00.000Z",
+        reschedule_count: 0,
+        acuity_appointment_id: "acuity-2",
+      });
+
+      await handleCanceled("acuity-1");
+
+      const followUpTasks = fakeDb.current.tables.tasks.filter(
+        (task) => task.type === "sales_call_cancelled",
+      );
+      expect(followUpTasks).toHaveLength(0);
     });
   });
 });

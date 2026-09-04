@@ -41,6 +41,11 @@ const APPLICATION_REVIEW_TYPES: ReadonlySet<string> = new Set([
 // truthful current destination for them too (not an invented one), and
 // this policy's job is exactly to make swapping in a real screen later, if
 // one gets built, a one-line change here rather than a Dashboard rewrite.
+// sales_call_cancelled (GYU real-infrastructure slice, human-acceptance
+// repair pass): only ever created against a specific, already-matched
+// Opportunity (see cancelSalesCall.ts's ensureFollowUpIfStranded) — unlike
+// resolve_sales_call below, there's no ambiguity to fall back on, so this
+// belongs here too, not with the task-detail fallback types.
 const OPPORTUNITY_CONTEXT_TYPES: ReadonlySet<string> = new Set([
   "sales_call",
   "follow_up",
@@ -48,6 +53,7 @@ const OPPORTUNITY_CONTEXT_TYPES: ReadonlySet<string> = new Set([
   "check_payment",
   "send_contract",
   "complete_access",
+  "sales_call_cancelled",
 ]);
 
 // resolve_sales_call: resolveSalesCallTask.ts's own comment already says

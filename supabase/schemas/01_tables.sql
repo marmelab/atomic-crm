@@ -85,10 +85,20 @@ create table public.offers (
     max_active_clients smallint,
     is_active boolean not null default true,
     -- Acuity/Sales Call Lifecycle slice: durable mapping to the Acuity
-    -- appointment type whose bookings are this Offer's sales calls (only
-    -- meaningful for an individual Offer — a group Offer maps per-Cohort
-    -- instead, see cohorts.acuity_appointment_type_id below). Stable ID,
-    -- never a display-name match.
+    -- appointment type whose bookings are this Offer's sales calls. For an
+    -- individual Offer this is the only level a mapping can live at. A
+    -- group Offer may ALSO carry one here (GYU real-infrastructure slice,
+    -- sealing pass): the correct, durable home for one canonical
+    -- appointment type meant to serve every Cohort of that Offer (e.g.
+    -- GYU's real "Let's Meet" type — one calendar for all rounds, not one
+    -- per Cohort). A specific Cohort can still override with its own
+    -- mapping when a round genuinely needs a separate appointment type/
+    -- calendar — see cohorts.acuity_appointment_type_id below; a Cohort-
+    -- level mapping is checked second and takes precedence for its own
+    -- Cohort. See sales-calls/offerCohortAcuityMapping.ts's own resolver
+    -- comment for the full matching rationale (why an Offer-level match on
+    -- a group Offer never needs to also identify a specific Cohort here).
+    -- Stable ID, never a display-name match.
     acuity_appointment_type_id text,
     created_at timestamp with time zone not null default now(),
     updated_at timestamp with time zone not null default now(),
@@ -132,9 +142,14 @@ create table public.cohorts (
     slack_channel_id text,
     calendar_id text,
     -- Acuity/Sales Call Lifecycle slice: the Acuity appointment type whose
-    -- bookings are this Cohort's sales calls (a GYU cohort typically gets
-    -- its own appointment type/calendar per round). Stable ID mapping —
-    -- see offers.acuity_appointment_type_id for the individual-Offer case.
+    -- bookings are this Cohort's sales calls, for the case a specific
+    -- round needs its own separate appointment type/calendar rather than
+    -- sharing the group Offer's canonical one (see
+    -- offers.acuity_appointment_type_id above, which is where a single
+    -- shared mapping for every Cohort of a group Offer belongs instead —
+    -- GYU's real mapping lives there, not here, since one appointment type
+    -- serves all of its rounds). Stable ID mapping, never a display-name
+    -- match.
     acuity_appointment_type_id text,
     created_at timestamp with time zone not null default now(),
     updated_at timestamp with time zone not null default now(),

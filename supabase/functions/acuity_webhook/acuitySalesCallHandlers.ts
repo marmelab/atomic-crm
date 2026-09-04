@@ -80,6 +80,29 @@ const ensureTask = async (params: {
   });
 };
 
+// Completing manually here (rather than deleting) must never affect sales
+// status — same rule as every completion helper in this app. A safe no-op
+// when no such task is pending.
+const completeTaskIfPending = async (params: {
+  contactId: number;
+  type: string;
+  completedAt: string;
+}) => {
+  const { data: existingTasks } = await supabaseAdmin
+    .from("tasks")
+    .select("id, done_date")
+    .eq("contact_id", params.contactId)
+    .eq("type", params.type);
+  const pending = (
+    (existingTasks ?? []) as { id: number; done_date: string | null }[]
+  ).find((task) => !task.done_date);
+  if (!pending) return;
+  await supabaseAdmin
+    .from("tasks")
+    .update({ done_date: params.completedAt, status: "completed" })
+    .eq("id", pending.id);
+};
+
 // Only the exact "Approved -> Call Booked" transition — an Opportunity
 // already further along is left exactly where it is. This is a plain
 // `update deals set stage = ...`, so it goes through the same Postgres
@@ -163,6 +186,15 @@ export const handleScheduled = async (
       text: `Sales call with ${contactName}`,
       dueDate: appointment.datetime,
     });
+    // The person is back on the calendar — resolves any "sales call was
+    // cancelled, decide next steps" task a prior cancellation on this same
+    // Opportunity left open (GYU real-infrastructure slice, human-
+    // acceptance repair pass). Mirrors bookSalesCall.ts's own call.
+    await completeTaskIfPending({
+      contactId: contact.id,
+      type: "sales_call_cancelled",
+      completedAt: new Date().toISOString(),
+    });
   } else {
     // Never fabricate an Opportunity to make the webhook "succeed" — the
     // booking is preserved with opportunity_id null and surfaced via the
@@ -244,16 +276,80 @@ export const handleRescheduled = async (
   return jsonResponse({ status: "rescheduled" });
 };
 
+// GYU real-infrastructure slice, human-acceptance repair pass: mirrors
+// src/components/atomic-crm/sales-calls/cancelSalesCall.ts's own
+// ensureFollowUpIfStranded exactly — NO ACTIVE SALES CALL + OPPORTUNITY
+// STILL CALL_BOOKED must always leave a human task visible, so a
+// cancellation (which deliberately never regresses the Opportunity's
+// stage) never lets a lead silently strand. See that file's own comment
+// for the full rationale; this is the hand-mirrored production copy
+// (Deno Edge Functions can't import from src/).
+const ensureSalesCallCancelledFollowUp = async (params: {
+  opportunityId: number | null;
+  contactId: number;
+}): Promise<void> => {
+  if (params.opportunityId == null) return;
+
+  const { data: deal } = await supabaseAdmin
+    .from("deals")
+    .select("id, stage")
+    .eq("id", params.opportunityId)
+    .maybeSingle();
+  if (!deal || deal.stage !== "call_booked") return;
+
+  const { data: otherBooked } = await supabaseAdmin
+    .from("sales_calls")
+    .select("id")
+    .eq("opportunity_id", params.opportunityId)
+    .eq("status", "booked")
+    .limit(1);
+  if (otherBooked && otherBooked.length > 0) return;
+
+  const { data: existingTask } = await supabaseAdmin
+    .from("tasks")
+    .select("id, done_date")
+    .eq("contact_id", params.contactId)
+    .eq("type", "sales_call_cancelled");
+  const pending = (
+    (existingTask ?? []) as { id: number; done_date: string | null }[]
+  ).find((task) => !task.done_date);
+  if (pending) return;
+
+  const { data: contact } = await supabaseAdmin
+    .from("contacts")
+    .select("first_name, last_name")
+    .eq("id", params.contactId)
+    .maybeSingle();
+  const contactName = contact
+    ? `${contact.first_name ?? ""} ${contact.last_name ?? ""}`.trim()
+    : "This contact";
+
+  const salesId = await resolveDefaultTaskSalesId();
+  await supabaseAdmin.from("tasks").insert({
+    contact_id: params.contactId,
+    type: "sales_call_cancelled",
+    text: `${contactName}'s sales call was cancelled — decide next steps`,
+    due_date: new Date().toISOString(),
+    status: "pending",
+    ...(salesId != null ? { sales_id: salesId } : {}),
+  });
+};
+
 export const handleCanceled = async (
   acuityAppointmentId: string,
 ): Promise<Response> => {
   const { data: existing } = await supabaseAdmin
     .from("sales_calls")
-    .select("id, contact_id, status")
+    .select("id, contact_id, opportunity_id, status")
     .eq("acuity_appointment_id", acuityAppointmentId)
     .maybeSingle();
   if (!existing) return jsonResponse({ status: "unknown-appointment" });
-  const row = existing as { id: number; contact_id: number; status: string };
+  const row = existing as {
+    id: number;
+    contact_id: number;
+    opportunity_id: number | null;
+    status: string;
+  };
   if (row.status === "cancelled") {
     return jsonResponse({ status: "already-cancelled" });
   }
@@ -283,6 +379,11 @@ export const handleCanceled = async (
       .update({ status: "cancelled" })
       .eq("id", pending.id);
   }
+
+  await ensureSalesCallCancelledFollowUp({
+    opportunityId: row.opportunity_id,
+    contactId: row.contact_id,
+  });
 
   return jsonResponse({ status: "cancelled" });
 };
