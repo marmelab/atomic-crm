@@ -866,6 +866,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/deals/resolveAuthorizedCheckoutTerms.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/deals/recordOfferPageOpened.ts",
           "type": "registry:component"
         },
