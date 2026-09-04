@@ -56,6 +56,11 @@ create table public.contacts (
     -- Applications slice, §7), the anchor a future Kit suppression sync
     -- would read from.
     sales_eligibility text not null default 'normal',
+    -- Stripe test-mode integration slice: one Stripe Customer per Contact,
+    -- reused across every Deal/Checkout for them rather than creating a
+    -- new one per payment attempt. Never raw card/bank data — an
+    -- identifier only.
+    stripe_customer_id text,
     constraint contacts_sales_eligibility_check check (sales_eligibility in ('normal', 'do_not_engage'))
 );
 
@@ -204,6 +209,21 @@ create table public.deals (
     -- token, if ever — a lightweight signal ("did they even look"), not a
     -- state machine. Never touched again after the first open.
     offer_page_opened_at timestamp with time zone,
+    -- Stripe test-mode integration slice: the minimal identifiers needed to
+    -- observe and safely re-enter the payment/schedule-adoption sequence —
+    -- never raw card/bank/payment-method data. stripe_checkout_session_id
+    -- is the LATEST attempt (a Deal can retry Checkout after an abandoned
+    -- session). stripe_subscription_id/stripe_subscription_schedule_id are
+    -- only ever set for an installment plan (PIF has neither — a one-time
+    -- Checkout Session needs no ongoing Stripe object). Whether the
+    -- schedule's future phase has been configured yet is deliberately NOT
+    -- persisted here — it's derived live from the real Stripe schedule's
+    -- own phase count each time (see recordDealCheckoutCompleted.ts),
+    -- never a separate CRM-side flag that could drift from Stripe's actual
+    -- state.
+    stripe_checkout_session_id text,
+    stripe_subscription_id text,
+    stripe_subscription_schedule_id text,
     created_at timestamp with time zone not null default now(),
     updated_at timestamp with time zone not null default now(),
     archived_at timestamp with time zone,
@@ -576,6 +596,12 @@ create index deals_cohort_id_idx on public.deals using btree (cohort_id);
 -- Offer Page token — the public route's only lookup key, so a collision
 -- here would be a genuine security bug, not just a data-integrity nicety.
 create unique index deals_offer_page_token_idx on public.deals (offer_page_token) where (offer_page_token is not null);
+-- Stripe test-mode integration slice: data-integrity guards — a real
+-- Stripe Subscription/Schedule must never end up cross-wired to two
+-- different Deals.
+create unique index deals_stripe_subscription_id_idx on public.deals (stripe_subscription_id) where (stripe_subscription_id is not null);
+create unique index deals_stripe_subscription_schedule_id_idx on public.deals (stripe_subscription_schedule_id) where (stripe_subscription_schedule_id is not null);
+create unique index contacts_stripe_customer_id_idx on public.contacts (stripe_customer_id) where (stripe_customer_id is not null);
 create index offer_payment_options_offer_id_idx on public.offer_payment_options using btree (offer_id);
 create index cohorts_offer_id_idx on public.cohorts using btree (offer_id);
 create index applications_opportunity_id_idx on public.applications using btree (opportunity_id);

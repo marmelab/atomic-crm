@@ -55,6 +55,18 @@ const paymentOption: OfferPaymentOption = {
   updated_at: "2025-01-01T00:00:00.000Z",
 };
 
+const installmentPaymentOption: OfferPaymentOption = {
+  id: 5,
+  offer_id: 2,
+  name: "Monthly",
+  total: 1400,
+  installments: 2,
+  installment_amount: 700,
+  is_public: true,
+  created_at: "2025-01-01T00:00:00.000Z",
+  updated_at: "2025-01-01T00:00:00.000Z",
+};
+
 const buildDeal = (overrides: Partial<Deal> = {}): Deal => ({
   id: 1,
   name: "Ada Lovelace — Growing Yourself Up",
@@ -81,8 +93,10 @@ const renderOfferPageRoute = async (deal: Deal, initialEntry: string) => {
         buildContact({ id: 1, first_name: "Ada", last_name: "Lovelace" }),
       ],
       offers: [gyuOffer],
-      offer_payment_options: [paymentOption],
+      offer_payment_options: [paymentOption, installmentPaymentOption],
       deals: [deal],
+      enrollments: [],
+      cohorts: [],
     } as any),
     silent: true,
     latency: 0,
@@ -168,7 +182,73 @@ describe("Public /offer/:token route — unauthenticated access + real wiring", 
     );
 
     await expect
-      .element(screen.getByText("This offer has already been completed."))
+      .element(screen.getByText("Payment received ✓"))
       .toBeInTheDocument();
+  });
+
+  it("a Deal already Won on an installment plan says the FIRST payment was received, never implying the whole plan is paid", async () => {
+    await page.viewport(1280, 900);
+    const { screen } = await renderOfferPageRoute(
+      buildDeal({
+        stage: "won",
+        selected_payment_option_id: 5,
+        selected_payment_total: 1400,
+        selected_installment_count: 2,
+        selected_installment_amount: 700,
+      }),
+      "/offer/real-token-123",
+    );
+
+    await expect
+      .element(screen.getByText("Payment received ✓"))
+      .toBeInTheDocument();
+    // The plan's shape ("2 × $700 USD") stays visible per Leif's own
+    // instruction to keep the selected payment option visible — but it is
+    // never left to stand alone, since read in isolation it could imply
+    // both installments already happened.
+    await expect
+      .element(screen.getByText("2 × $700 USD", { exact: true }))
+      .toBeInTheDocument();
+    await expect
+      .element(
+        screen.getByText(
+          "First payment of $700 USD received — 1 more payment of $700 USD remaining.",
+        ),
+      )
+      .toBeInTheDocument();
+  });
+
+  it("clicking Pay on a real payment option completes the Deal through the real fulfillment path, then shows the completed state", async () => {
+    await page.viewport(1280, 900);
+    const { dataProvider, screen } = await renderOfferPageRoute(
+      buildDeal(),
+      "/offer/real-token-123",
+    );
+
+    await expect.element(screen.getByText("Pay in Full")).toBeInTheDocument();
+    const payButtons = screen.getByRole("button", { name: "Pay" });
+    await payButtons.first().click();
+
+    // Dev/demo has no real Stripe to redirect to, so createCheckout
+    // completes the Deal directly through the exact same
+    // recordDealPaymentSucceeded path a real webhook would eventually
+    // reach — proving the click really does something, not a fake
+    // illusion.
+    await expect
+      .element(screen.getByText("Payment received ✓"))
+      .toBeInTheDocument();
+
+    const { data: deal } = await dataProvider.getOne<Deal>("deals", {
+      id: 1,
+    });
+    expect(deal.stage).toBe("won");
+    expect(deal.selected_payment_option_id).toBeTruthy();
+
+    const { data: enrollments } = await dataProvider.getList("enrollments", {
+      filter: { opportunity_id: 1 },
+      pagination: { page: 1, perPage: 10 },
+      sort: { field: "id", order: "ASC" },
+    });
+    expect(enrollments).toHaveLength(1);
   });
 });

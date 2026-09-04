@@ -97,6 +97,10 @@ export const generateContacts = (db: Db, size = 500): Required<Contact>[] => {
       sales_id: company.sales_id!,
       nb_tasks: 0,
       linkedin_url: null,
+      // Stripe test-mode integration slice: fake contacts never have a real
+      // Stripe Customer until the FakeRest data provider's own createCheckout
+      // path creates+persists one (see publicOfferPageDataSource.ts).
+      stripe_customer_id: null,
     };
   });
 };

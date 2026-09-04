@@ -181,3 +181,13 @@ verify_jwt = false
 # was already written expecting to be reachable unauthenticated.
 [functions.acuity_webhook]
 verify_jwt = false
+# Stripe test-mode integration slice: Stripe's webhook POST carries no
+# Supabase JWT either (an external caller, same reasoning as
+# acuity_webhook immediately above) — its own Stripe-Signature header
+# (verified via the official Stripe library in index.ts) is the real
+# authentication here. stripe_checkout (Checkout Session creation) is NOT
+# listed here on purpose: it's invoked by our own browser code via
+# supabase.functions.invoke(), which sends the anon key as a valid
+# Supabase JWT automatically — same as offer_page/public_application.
+[functions.stripe_webhook]
+verify_jwt = false

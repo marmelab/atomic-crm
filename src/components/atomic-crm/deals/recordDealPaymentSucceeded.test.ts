@@ -2,7 +2,13 @@ import { describe, expect, it } from "vitest";
 
 import { createDataProvider } from "../providers/fakerest/dataProvider";
 import { createCrmDb, buildContact } from "@/test/StoryWrapper";
-import type { Cohort, Deal, Enrollment, Offer } from "../types";
+import type {
+  Cohort,
+  Deal,
+  Enrollment,
+  Offer,
+  OfferPaymentOption,
+} from "../types";
 import { recordDealPaymentSucceeded } from "./recordDealPaymentSucceeded";
 
 // Payment domain foundation slice: the Won boundary is the FIRST
@@ -67,7 +73,25 @@ const buildDeal = (overrides: Partial<Deal> = {}): Deal => ({
   ...overrides,
 });
 
-const buildFixtures = (dealOverrides: Partial<Deal> = {}) => {
+const buildPaymentOption = (
+  overrides: Partial<OfferPaymentOption> = {},
+): OfferPaymentOption => ({
+  id: 5,
+  offer_id: OFFER_ID,
+  name: "Monthly",
+  total: 1400,
+  installments: 2,
+  installment_amount: 700,
+  is_public: true,
+  created_at: "2026-01-01T00:00:00.000Z",
+  updated_at: "2026-01-01T00:00:00.000Z",
+  ...overrides,
+});
+
+const buildFixtures = (
+  dealOverrides: Partial<Deal> = {},
+  offerPaymentOptions: OfferPaymentOption[] = [buildPaymentOption()],
+) => {
   const contact = buildContact({ id: CONTACT_ID });
   const offer = buildOffer();
   const cohort = buildCohort();
@@ -80,6 +104,7 @@ const buildFixtures = (dealOverrides: Partial<Deal> = {}) => {
       cohorts: [cohort],
       deals: [deal],
       enrollments: [],
+      offer_payment_options: offerPaymentOptions,
     }),
     silent: true,
     latency: 0,
@@ -234,5 +259,38 @@ describe("recordDealPaymentSucceeded", () => {
       sort: { field: "id", order: "ASC" },
     });
     expect(total).toBe(1);
+  });
+
+  it("freezes the commercial snapshot to the actually-paid option exactly at Won — not before", async () => {
+    // resolveAuthorizedCheckoutTerms.ts is deliberately read-only, so
+    // nothing froze this Deal's payment option during Checkout — this is
+    // where that freeze happens, via the option Stripe actually charged.
+    const { dataProvider } = buildFixtures();
+
+    const result = await recordDealPaymentSucceeded(dataProvider, DEAL_ID, {
+      paymentOptionId: 5,
+    });
+    expect(result.status).toBe("won");
+
+    const { data: deal } = await dataProvider.getOne<Deal>("deals", {
+      id: DEAL_ID,
+    });
+    expect(deal.selected_payment_option_id).toBe(5);
+    expect(deal.selected_installment_count).toBe(2);
+    expect(deal.selected_installment_amount).toBe(700);
+  });
+
+  it("is a no-op on the option freeze when the Deal already has that exact option set (e.g. Leif pre-authorized it)", async () => {
+    const { dataProvider } = buildFixtures({ selected_payment_option_id: 5 });
+
+    const result = await recordDealPaymentSucceeded(dataProvider, DEAL_ID, {
+      paymentOptionId: 5,
+    });
+    expect(result.status).toBe("won");
+
+    const { data: deal } = await dataProvider.getOne<Deal>("deals", {
+      id: DEAL_ID,
+    });
+    expect(deal.selected_payment_option_id).toBe(5);
   });
 });

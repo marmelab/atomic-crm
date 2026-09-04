@@ -103,6 +103,9 @@ export type Contact = {
   sales_id?: Identifier;
   status: string;
   sales_eligibility: ContactSalesEligibility;
+  // Stripe test-mode integration slice: one Stripe Customer per Contact,
+  // reused across every Deal/Checkout for them. Never raw card/bank data.
+  stripe_customer_id?: string | null;
   background: string;
   phone_jsonb: PhoneNumberAndType[];
   nb_tasks?: number;
@@ -421,6 +424,14 @@ export type Deal = {
   // First time the Offer Page was actually opened with a valid token, if
   // ever. Never touched again after the first open.
   offer_page_opened_at?: string | null;
+  // Stripe test-mode integration slice: minimal identifiers to observe and
+  // safely re-enter the payment/schedule-adoption sequence. See
+  // supabase/schemas/01_tables.sql's own comment for the exact rationale —
+  // never raw card/bank data, and the schedule's own configuration state
+  // is deliberately not persisted here (derived live from Stripe instead).
+  stripe_checkout_session_id?: string | null;
+  stripe_subscription_id?: string | null;
+  stripe_subscription_schedule_id?: string | null;
   created_at: string;
   updated_at: string;
   archived_at?: string | null;

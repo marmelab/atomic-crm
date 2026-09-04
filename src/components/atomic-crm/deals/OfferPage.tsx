@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router";
 
+import { Button } from "@/components/ui/button";
 import { NotFoundNotice } from "../public-application/NotFoundNotice";
 import { PublicApplicationLayout } from "../public-application/PublicApplicationLayout";
 import { useConfigurationContext } from "../root/ConfigurationContext";
@@ -8,12 +9,29 @@ import { formatOfferPageAmount } from "./offerPageMoney";
 import type { PublicOfferPageContext } from "./publicOfferPageContext";
 import type { PublicOfferPageDataSource } from "./publicOfferPageDataSource";
 
-// Payment domain foundation slice: /offer/:token — the personalized Offer
-// Page. Read-only in this slice (no Stripe yet, §6/§B of the payment
-// audit): shows the frozen price and the payment option(s) this specific
-// prospect is authorized to see, records the first real open, and stops
-// there. A future slice adds the actual payment CTA once Stripe Checkout
-// exists — deliberately not built here to avoid inert, throwaway UI.
+// Payment domain foundation + Stripe test-mode integration slices:
+// /offer/:token — the personalized Offer Page. Shows the frozen price and
+// the payment option(s) this specific prospect is authorized to see,
+// records the first real open, and lets them start a real Checkout for
+// whichever option they choose. The browser only ever sends the option's
+// id — every commercial term actually charged is resolved fresh from CRM
+// state server-side (resolveAuthorizedCheckoutTerms.ts /
+// stripe_checkout/index.ts), never trusted from here.
+const errorMessageFor = (
+  status: "not-found" | "already-won" | "unauthorized-option" | "error",
+): string => {
+  switch (status) {
+    case "already-won":
+      return "This offer has already been completed.";
+    case "unauthorized-option":
+      return "That payment option isn't available for this offer. Please refresh the page.";
+    case "not-found":
+      return "This link isn't available right now.";
+    default:
+      return "Something went wrong on our end. Please try again.";
+  }
+};
+
 export const OfferPage = ({
   dataSource,
 }: {
@@ -24,6 +42,8 @@ export const OfferPage = ({
   const [context, setContext] = useState<PublicOfferPageContext | "pending">(
     "pending",
   );
+  const [payingOptionId, setPayingOptionId] = useState<string | null>(null);
+  const [payError, setPayError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!token) {
@@ -59,6 +79,34 @@ export const OfferPage = ({
     );
   }
 
+  const handlePay = async (optionId: string) => {
+    if (!token) return;
+    setPayingOptionId(optionId);
+    setPayError(null);
+    try {
+      const result = await dataSource.createCheckout(token, optionId);
+      if (result.status !== "created") {
+        setPayError(errorMessageFor(result.status));
+        setPayingOptionId(null);
+        return;
+      }
+      if (/^https?:\/\//.test(result.url)) {
+        // A real Stripe Checkout URL — leaves this page entirely.
+        window.location.href = result.url;
+        return;
+      }
+      // Dev/demo completion (no real Stripe to redirect to) — refresh in
+      // place rather than relying on a hash-only navigation to re-trigger
+      // this component's own data fetch.
+      const refreshed = await dataSource.getContext(token);
+      setContext(refreshed);
+      setPayingOptionId(null);
+    } catch {
+      setPayError(errorMessageFor("error"));
+      setPayingOptionId(null);
+    }
+  };
+
   return (
     <PublicApplicationLayout
       title={`${context.offerName}${context.cohortName ? ` — ${context.cohortName}` : ""}`}
@@ -69,6 +117,22 @@ export const OfferPage = ({
       }
     >
       <div className="flex flex-col gap-4">
+        {context.alreadyWon && (
+          // Human-acceptance repair: a bare "already completed" notice read
+          // as ambiguous to a prospect who had just paid — they couldn't
+          // tell whether their payment actually went through. Make the
+          // payment status itself unmistakable, distinct from the "here's
+          // what happens next" line.
+          <div className="flex flex-col gap-1">
+            <span className="text-base font-semibold text-foreground">
+              Payment received ✓
+            </span>
+            <p className="text-sm text-muted-foreground">
+              You're all set. I've received your payment and will be in touch
+              with your next steps.
+            </p>
+          </div>
+        )}
         <div className="flex flex-col gap-1">
           <span className="text-xs text-muted-foreground tracking-wide">
             Price
@@ -80,33 +144,63 @@ export const OfferPage = ({
         {context.paymentOptions.length > 0 && (
           <div className="flex flex-col gap-2">
             <span className="text-xs text-muted-foreground tracking-wide">
-              {context.paymentOptions.length > 1
-                ? "Payment options"
-                : "Payment option"}
+              {context.alreadyWon
+                ? "Payment plan"
+                : context.paymentOptions.length > 1
+                  ? "Payment options"
+                  : "Payment option"}
             </span>
             <div className="flex flex-col gap-2">
               {context.paymentOptions.map((option) => (
                 <div
                   key={option.id}
-                  className="rounded-lg border p-3 flex flex-col gap-0.5"
+                  className="rounded-lg border p-3 flex flex-col gap-2"
                 >
-                  <span className="text-sm font-medium">{option.name}</span>
-                  <span className="text-sm text-muted-foreground">
-                    {option.installments === 1
-                      ? `${formatOfferPageAmount(option.total, currency)} once`
-                      : `${option.installments} × ${formatOfferPageAmount(option.installmentAmount, currency)}`}
-                  </span>
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-sm font-medium">{option.name}</span>
+                    <span className="text-sm text-muted-foreground">
+                      {option.installments === 1
+                        ? `${formatOfferPageAmount(option.total, currency)} once`
+                        : `${option.installments} × ${formatOfferPageAmount(option.installmentAmount, currency)}`}
+                    </span>
+                    {context.alreadyWon && option.installments > 1 && (
+                      // Never imply the whole plan is paid — only the
+                      // first installment has actually been charged at
+                      // this point (Architecture B: the remaining
+                      // iterations are scheduled, not yet collected).
+                      <span className="text-sm text-muted-foreground">
+                        First payment of{" "}
+                        {formatOfferPageAmount(
+                          option.installmentAmount,
+                          currency,
+                        )}{" "}
+                        received — {option.installments - 1} more payment
+                        {option.installments - 1 === 1 ? "" : "s"} of{" "}
+                        {formatOfferPageAmount(
+                          option.installmentAmount,
+                          currency,
+                        )}{" "}
+                        remaining.
+                      </span>
+                    )}
+                  </div>
+                  {!context.alreadyWon && (
+                    <Button
+                      onClick={() => handlePay(String(option.id))}
+                      disabled={payingOptionId != null}
+                      size="sm"
+                    >
+                      {payingOptionId === String(option.id)
+                        ? "Redirecting…"
+                        : "Pay"}
+                    </Button>
+                  )}
                 </div>
               ))}
             </div>
           </div>
         )}
-        {context.alreadyWon && (
-          <p className="text-sm text-muted-foreground">
-            This offer has already been completed. Reach out if you have any
-            questions.
-          </p>
-        )}
+        {payError && <p className="text-sm text-destructive">{payError}</p>}
       </div>
     </PublicApplicationLayout>
   );

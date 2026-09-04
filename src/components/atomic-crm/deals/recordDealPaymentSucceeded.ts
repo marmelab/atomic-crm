@@ -53,9 +53,21 @@ export type RecordDealPaymentSucceededResult =
 // cancelSalesCall.ts: re-reads the current Deal rather than trusting the
 // caller, so a duplicate or out-of-order webhook delivery can never
 // double-process.
+//
+// paymentOptionId, when provided, is the option the successful payment was
+// actually for (resolveAuthorizedCheckoutTerms.ts's own read-only
+// authorization already validated it before Checkout was ever created) —
+// this is where the Deal's commercial snapshot gets frozen
+// (selected_payment_option_id, via the existing handle_deal_saved()
+// trigger), deliberately not any earlier: a prospect's in-progress choice
+// must stay freely changeable across an abandoned/retried Checkout
+// attempt, so freezing happens exactly when a payment actually succeeds,
+// never before. A no-op if the Deal already has this exact option set
+// (e.g. Leif pre-authorized it, or a duplicate webhook delivery).
 export const recordDealPaymentSucceeded = async (
   dataProvider: DataProvider,
   dealId: Identifier,
+  { paymentOptionId }: { paymentOptionId?: Identifier } = {},
 ): Promise<RecordDealPaymentSucceededResult> => {
   const { data: deal } = await dataProvider
     .getOne<Deal>("deals", { id: dealId })
@@ -71,9 +83,18 @@ export const recordDealPaymentSucceeded = async (
     return { status: "outcome-conflict", outcome: deal.outcome };
   }
 
+  const needsOptionFreeze =
+    paymentOptionId != null &&
+    String(deal.selected_payment_option_id ?? "") !== String(paymentOptionId);
+
   await dataProvider.update<Deal>("deals", {
     id: deal.id,
-    data: { stage: "won" },
+    data: {
+      stage: "won",
+      ...(needsOptionFreeze
+        ? { selected_payment_option_id: paymentOptionId }
+        : {}),
+    },
     previousData: deal,
   });
 
