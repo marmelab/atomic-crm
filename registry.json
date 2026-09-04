@@ -394,6 +394,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/providers/supabase/publicOfferPageDataSource.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/providers/supabase/publicApplicationDataSource.ts",
           "type": "registry:component"
         },
@@ -862,6 +866,22 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/deals/recordOfferPageOpened.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/deals/recordDealPaymentSucceeded.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/deals/publicOfferPageDataSource.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/deals/publicOfferPageContext.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/deals/personContext.ts",
           "type": "registry:component"
         },
@@ -871,6 +891,14 @@
         },
         {
           "path": "src/components/atomic-crm/deals/opportunityConstants.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/deals/offerPageToken.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/deals/offerPageMoney.ts",
           "type": "registry:component"
         },
         {
@@ -907,6 +935,10 @@
         },
         {
           "path": "src/components/atomic-crm/deals/OpportunitiesIterator.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/deals/OfferPage.tsx",
           "type": "registry:component"
         },
         {
