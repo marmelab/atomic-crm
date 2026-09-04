@@ -254,6 +254,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/sales-calls/salesCallCancelledTask.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/sales-calls/resolveSalesCallTask.ts",
           "type": "registry:component"
         },
