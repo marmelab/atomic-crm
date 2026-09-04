@@ -1,5 +1,6 @@
 import { CRM } from "@/components/atomic-crm/root/CRM";
 import { supabasePublicApplicationDataSource } from "@/components/atomic-crm/providers/supabase/publicApplicationDataSource";
+import { supabasePublicOfferPageDataSource } from "@/components/atomic-crm/providers/supabase/publicOfferPageDataSource";
 
 /**
  * Application entry point
@@ -39,7 +40,10 @@ import { supabasePublicApplicationDataSource } from "@/components/atomic-crm/pro
 // only everywhere), so this entry explicitly passes the Edge-Function-
 // backed data source.
 const App = () => (
-  <CRM publicApplicationDataSource={supabasePublicApplicationDataSource} />
+  <CRM
+    publicApplicationDataSource={supabasePublicApplicationDataSource}
+    publicOfferPageDataSource={supabasePublicOfferPageDataSource}
+  />
 );
 
 export default App;

@@ -1,0 +1,12 @@
+-- Payment domain foundation slice, correction: the previous migration
+-- (20260904180000_deal_offer_page.sql) added enrollments_opportunity_id_idx
+-- without first checking whether this table already had a uniqueness
+-- guarantee on opportunity_id — it does: enrollments_opportunity_id_key
+-- (20260830130000_offers_cohorts_applications_enrollments.sql), backing an
+-- already-live, already-deployed handle_deal_won() trigger that creates an
+-- Opportunity's Enrollment automatically the moment its stage genuinely
+-- becomes 'won' (confirmed against the real linked project: the trigger is
+-- enabled and fired correctly during this slice's own real-infrastructure
+-- verification). The new index was pure redundant dead weight — same
+-- column, same uniqueness, no additional guarantee. Dropped.
+DROP INDEX IF EXISTS "public"."enrollments_opportunity_id_idx";

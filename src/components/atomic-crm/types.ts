@@ -414,6 +414,13 @@ export type Deal = {
   selected_payment_total?: number | null;
   selected_installment_count?: number | null;
   selected_installment_amount?: number | null;
+  // Payment domain foundation slice: the opaque public token the
+  // personalized Offer Page resolves by — never the Deal's own sequential
+  // id. Generated once, when the Deal first reaches Committed.
+  offer_page_token?: string | null;
+  // First time the Offer Page was actually opened with a valid token, if
+  // ever. Never touched again after the first open.
+  offer_page_opened_at?: string | null;
   created_at: string;
   updated_at: string;
   archived_at?: string | null;

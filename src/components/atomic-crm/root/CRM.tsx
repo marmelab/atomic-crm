@@ -37,6 +37,9 @@ import { LivingExampleApplicationPage } from "../public-application/LivingExampl
 import { GrowingYourselfUpApplicationPage } from "../public-application/GrowingYourselfUpApplicationPage";
 import { createDataProviderPublicApplicationDataSource } from "../public-application/publicApplicationDataSource";
 import type { PublicApplicationDataSource } from "../public-application/publicApplicationDataSource";
+import { OfferPage } from "../deals/OfferPage";
+import { createDataProviderPublicOfferPageDataSource } from "../deals/publicOfferPageDataSource";
+import type { PublicOfferPageDataSource } from "../deals/publicOfferPageDataSource";
 import {
   getAuthProvider as defaultAuthProviderBuilder,
   getDataProvider as defaultDataProviderBuilder,
@@ -92,6 +95,10 @@ export type CRMProps = {
   // an integration forgets to pass one (fails loud — RLS rejects the
   // call — rather than silently misbehaving).
   publicApplicationDataSource?: PublicApplicationDataSource;
+  // Payment domain foundation slice: same dual-implementation boundary as
+  // publicApplicationDataSource above, for the public personalized Offer
+  // Page (/offer/:token) — see deals/publicOfferPageDataSource.ts.
+  publicOfferPageDataSource?: PublicOfferPageDataSource;
 } & Partial<ConfigurationContextValue>;
 
 /**
@@ -153,6 +160,7 @@ export const CRM = ({
   store = defaultStore,
   disableTelemetry,
   publicApplicationDataSource,
+  publicOfferPageDataSource,
   ...rest
 }: CRMProps) => {
   const resolvedPublicApplicationDataSource = useMemo(
@@ -160,6 +168,12 @@ export const CRM = ({
       publicApplicationDataSource ??
       createDataProviderPublicApplicationDataSource(dataProvider),
     [publicApplicationDataSource, dataProvider],
+  );
+  const resolvedPublicOfferPageDataSource = useMemo(
+    () =>
+      publicOfferPageDataSource ??
+      createDataProviderPublicOfferPageDataSource(dataProvider),
+    [publicOfferPageDataSource, dataProvider],
   );
 
   useEffect(() => {
@@ -256,6 +270,7 @@ export const CRM = ({
       requireAuth
       disableTelemetry
       publicApplicationDataSource={resolvedPublicApplicationDataSource}
+      publicOfferPageDataSource={resolvedPublicOfferPageDataSource}
       {...rest}
     />
   );
@@ -266,9 +281,14 @@ const DesktopAdmin = (
     dashboard?: DashboardComponent;
     layout?: LayoutComponent;
     publicApplicationDataSource: PublicApplicationDataSource;
+    publicOfferPageDataSource: PublicOfferPageDataSource;
   },
 ) => {
-  const { publicApplicationDataSource, ...adminProps } = props;
+  const {
+    publicApplicationDataSource,
+    publicOfferPageDataSource,
+    ...adminProps
+  } = props;
   return (
     <Admin
       layout={adminProps.layout ?? Layout}
@@ -321,6 +341,10 @@ const DesktopAdmin = (
             />
           }
         />
+        <Route
+          path={OfferPage.path}
+          element={<OfferPage dataSource={publicOfferPageDataSource} />}
+        />
       </CustomRoutes>
 
       <CustomRoutes>
@@ -363,9 +387,14 @@ const MobileAdmin = (
     dashboard?: DashboardComponent;
     layout?: LayoutComponent;
     publicApplicationDataSource: PublicApplicationDataSource;
+    publicOfferPageDataSource: PublicOfferPageDataSource;
   },
 ) => {
-  const { publicApplicationDataSource, ...adminProps } = props;
+  const {
+    publicApplicationDataSource,
+    publicOfferPageDataSource,
+    ...adminProps
+  } = props;
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
@@ -419,6 +448,10 @@ const MobileAdmin = (
                 dataSource={publicApplicationDataSource}
               />
             }
+          />
+          <Route
+            path={OfferPage.path}
+            element={<OfferPage dataSource={publicOfferPageDataSource} />}
           />
         </CustomRoutes>
         <CustomRoutes>

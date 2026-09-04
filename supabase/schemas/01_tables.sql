@@ -190,6 +190,20 @@ create table public.deals (
     selected_payment_total numeric(10, 2),
     selected_installment_count smallint,
     selected_installment_amount numeric(10, 2),
+    -- Payment domain foundation slice: the ONLY way the public personalized
+    -- Offer Page resolves a Deal — opaque and random, never the Deal's own
+    -- sequential id (which would let one prospect enumerate another's name
+    -- and frozen price). Generated once, when the Deal first reaches
+    -- Committed (see sales-calls/completeSalesCallOutcome.ts); null before
+    -- that. No "active/expired/superseded" status: there is only ever one
+    -- current commercial snapshot per Deal (handle_deal_saved() already
+    -- re-freezes it in place on change), so the same token always reflects
+    -- whatever is currently authorized — nothing to supersede.
+    offer_page_token text,
+    -- First time the public Offer Page was actually opened with a valid
+    -- token, if ever — a lightweight signal ("did they even look"), not a
+    -- state machine. Never touched again after the first open.
+    offer_page_opened_at timestamp with time zone,
     created_at timestamp with time zone not null default now(),
     updated_at timestamp with time zone not null default now(),
     archived_at timestamp with time zone,
@@ -558,6 +572,10 @@ create index deals_company_id_idx on public.deals using btree (company_id);
 create index deals_contact_id_idx on public.deals using btree (contact_id);
 create index deals_offer_id_idx on public.deals using btree (offer_id);
 create index deals_cohort_id_idx on public.deals using btree (cohort_id);
+-- Payment domain foundation slice: at most one Deal may ever claim a given
+-- Offer Page token — the public route's only lookup key, so a collision
+-- here would be a genuine security bug, not just a data-integrity nicety.
+create unique index deals_offer_page_token_idx on public.deals (offer_page_token) where (offer_page_token is not null);
 create index offer_payment_options_offer_id_idx on public.offer_payment_options using btree (offer_id);
 create index cohorts_offer_id_idx on public.cohorts using btree (offer_id);
 create index applications_opportunity_id_idx on public.applications using btree (opportunity_id);

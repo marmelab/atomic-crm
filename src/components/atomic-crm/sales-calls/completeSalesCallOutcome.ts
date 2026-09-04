@@ -16,6 +16,7 @@ import { DEFAULT_THINKING_FOLLOW_UP_DAYS } from "./salesCallConstants";
 import { completeSalesCallTask } from "./salesCallTask";
 import { ensureFollowUpTask } from "./followUpTask";
 import { resolveDefaultTaskSalesId } from "./resolveDefaultTaskSalesId";
+import { ensureOfferPageToken } from "../deals/offerPageToken";
 
 export type CompleteSalesCallOutcomeInput = {
   dataProvider: DataProvider;
@@ -138,6 +139,14 @@ export const completeSalesCallOutcome = async (
       followUpDate: dealUpdate.follow_up_date!,
       salesId: await resolveDefaultTaskSalesId(dataProvider),
     });
+  }
+
+  // Payment domain foundation slice: reaching Committed is what generates
+  // the personalized Offer Page's access token — see offerPageToken.ts's
+  // own comment for why it's idempotent and never rotates an
+  // already-issued link.
+  if (dealUpdate.stage === "committed") {
+    await ensureOfferPageToken(dataProvider, deal.id);
   }
 
   return { status: "completed" };

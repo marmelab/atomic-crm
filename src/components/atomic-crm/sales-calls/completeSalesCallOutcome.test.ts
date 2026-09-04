@@ -88,7 +88,7 @@ const buildFixtures = ({
 };
 
 describe("completeSalesCallOutcome", () => {
-  it("Attended + Would Work With + Yes: Opportunity progresses to Committed, the Sales Call task completes, no Follow-up task is created", async () => {
+  it("Attended + Would Work With + Yes: Opportunity progresses to Committed, the Sales Call task completes, no Follow-up task is created, and an Offer Page token is generated", async () => {
     const { dataProvider } = buildFixtures();
 
     const result = await completeSalesCallOutcome({
@@ -108,6 +108,9 @@ describe("completeSalesCallOutcome", () => {
     expect(deal.owner_decision).toBe("would_work_with");
     expect(deal.prospect_decision).toBe("yes");
     expect(deal.outcome).toBeNull();
+    // Payment domain foundation slice: reaching Committed generates the
+    // personalized Offer Page's own opaque access token.
+    expect(deal.offer_page_token).toBeTruthy();
 
     const { data: task } = await dataProvider.getOne<Task>("tasks", {
       id: TASK_ID,
@@ -141,6 +144,8 @@ describe("completeSalesCallOutcome", () => {
     expect(deal.stage).toBe("decision");
     expect(deal.prospect_decision).toBe("thinking");
     expect(deal.follow_up_date).not.toBeNull();
+    // Only Committed generates an Offer Page token — Decision does not.
+    expect(deal.offer_page_token).toBeFalsy();
 
     const { data: followUps } = await dataProvider.getList<Task>("tasks", {
       filter: { contact_id: CONTACT_ID, type: "follow_up" },
