@@ -16,8 +16,10 @@ import type {
   Deal,
   DealNote,
   Enrollment,
+  EnrollmentOnboardingItem,
   Offer,
   OfferPaymentOption,
+  OnboardingRequirementTemplate,
   Sale,
   SalesCall,
   SalesFormData,
@@ -298,14 +300,119 @@ async function ensureEnrollmentForWonDeal(
     cohort = data;
   }
 
-  await dataProvider.create("enrollments", {
-    data: {
-      opportunity_id: deal.id,
-      status: "onboarding",
-      start_date: cohort?.program_start_at?.split("T")[0] ?? null,
-      end_date: cohort?.program_end_at?.split("T")[0] ?? null,
+  const { data: enrollment } = await dataProvider.create<Enrollment>(
+    "enrollments",
+    {
+      data: {
+        opportunity_id: deal.id,
+        status: "onboarding",
+        start_date: cohort?.program_start_at?.split("T")[0] ?? null,
+        end_date: cohort?.program_end_at?.split("T")[0] ?? null,
+      },
     },
-  });
+  );
+
+  await seedOnboardingChecklistForEnrollment(dataProvider, deal, enrollment);
+}
+
+// Contracts + Onboarding slice: mirrors set_task_enrollment_id_consistency()
+// exactly — a Task pointing at onboarding_item_id must always also point
+// at that item's own enrollment_id (auto-filled when omitted, rejected
+// when it mismatches) so Task -> Enrollment navigation stays deterministic
+// rather than trusting every future write to get both fields right by
+// hand.
+async function applyTaskEnrollmentConsistency(
+  data: Partial<Task>,
+  dataProvider: DataProvider,
+): Promise<Partial<Task>> {
+  if (data.onboarding_item_id == null) return data;
+
+  const item = await dataProvider
+    .getOne<EnrollmentOnboardingItem>("enrollment_onboarding_items", {
+      id: data.onboarding_item_id,
+    })
+    .then(({ data }) => data)
+    .catch(() => null);
+  if (!item) {
+    throw new Error(`Invalid onboarding_item_id ${data.onboarding_item_id}`);
+  }
+  if (data.enrollment_id == null) {
+    return { ...data, enrollment_id: item.enrollment_id };
+  }
+  if (String(data.enrollment_id) !== String(item.enrollment_id)) {
+    throw new Error(
+      `enrollment_id ${data.enrollment_id} does not match onboarding_item_id ${data.onboarding_item_id}'s own enrollment_id ${item.enrollment_id}`,
+    );
+  }
+  return data;
+}
+
+// Contracts + Onboarding slice: mirrors handle_deal_won()'s own checklist
+// + Task seeding exactly — snapshots the currently-active requirement
+// templates for this Deal's Offer onto the new Enrollment, one Task per
+// REQUIRED item only. Called exactly once, right after the Enrollment
+// itself is created above, so it inherits that same idempotency.
+async function seedOnboardingChecklistForEnrollment(
+  dataProvider: DataProvider,
+  deal: Deal,
+  enrollment: Enrollment,
+): Promise<void> {
+  const { data: templates } =
+    await dataProvider.getList<OnboardingRequirementTemplate>(
+      "onboarding_requirement_templates",
+      {
+        filter: { offer_id: deal.offer_id, is_active: true },
+        pagination: { page: 1, perPage: 50 },
+        sort: { field: "sort_order", order: "ASC" },
+      },
+    );
+  if (templates.length === 0) return;
+
+  let contactName = deal.name;
+  if (deal.contact_id != null) {
+    const contact = await dataProvider
+      .getOne<Contact>("contacts", { id: deal.contact_id })
+      .then(({ data }) => data)
+      .catch(() => null);
+    const name =
+      `${contact?.first_name ?? ""} ${contact?.last_name ?? ""}`.trim();
+    if (name) contactName = name;
+  }
+
+  for (const template of templates) {
+    const { data: item } = await dataProvider.create<EnrollmentOnboardingItem>(
+      "enrollment_onboarding_items",
+      {
+        data: {
+          enrollment_id: enrollment.id,
+          requirement_key: template.key,
+          label: template.label,
+          task_text_template: template.task_text_template,
+          is_required: template.is_required,
+          sort_order: template.sort_order,
+          status: "pending",
+          completed_at: null,
+          external_ref: null,
+        },
+      },
+    );
+
+    if (template.is_required) {
+      const dueDate = new Date();
+      dueDate.setDate(dueDate.getDate() + 3);
+      await dataProvider.create("tasks", {
+        data: {
+          contact_id: deal.contact_id,
+          type: "onboarding_item",
+          text: template.task_text_template.replace("{name}", contactName),
+          due_date: dueDate.toISOString(),
+          status: "pending",
+          enrollment_id: enrollment.id,
+          onboarding_item_id: item.id,
+        },
+      });
+    }
+  }
 }
 
 export interface CreateFakeRestDataProviderOptions {
@@ -670,6 +777,10 @@ export const createDataProvider = ({
       } satisfies ResourceCallbacks<Contact>,
       {
         resource: "tasks",
+        beforeCreate: async (params, dataProvider) => ({
+          ...params,
+          data: await applyTaskEnrollmentConsistency(params.data, dataProvider),
+        }),
         afterCreate: async (result, dataProvider) => {
           // update the task count in the related contact
           const { contact_id } = result.data;
@@ -685,9 +796,12 @@ export const createDataProvider = ({
           });
           return result;
         },
-        beforeUpdate: async (params) => {
+        beforeUpdate: async (params, dataProvider) => {
           const { data, previousData } = params;
-          let nextData = data;
+          let nextData = await applyTaskEnrollmentConsistency(
+            data,
+            dataProvider,
+          );
           if (previousData.done_date !== data.done_date) {
             taskUpdateType = data.done_date
               ? TASK_MARKED_AS_DONE
@@ -698,7 +812,7 @@ export const createDataProvider = ({
             // by this checkbox, so they're only touched here on the way
             // back to Pending).
             nextData = {
-              ...data,
+              ...nextData,
               status: data.done_date ? "completed" : "pending",
             };
           } else {
@@ -723,6 +837,42 @@ export const createDataProvider = ({
               },
               previousData: contact,
             });
+
+            // Contracts + Onboarding slice: mirrors
+            // sync_onboarding_item_from_task() exactly — a Task pointing
+            // at a specific checklist item has its done-ness mirrored onto
+            // that item. Only fires on a genuine done_date change (the
+            // outer `if` above), so a cancelled Task (status changes,
+            // done_date does not) never touches the checklist — the
+            // checklist stays the durable source of truth.
+            if (result.data.onboarding_item_id != null) {
+              const { data: item } = await dataProvider.getOne(
+                "enrollment_onboarding_items",
+                { id: result.data.onboarding_item_id },
+              );
+              if (
+                taskUpdateType === TASK_MARKED_AS_DONE &&
+                item.status !== "done"
+              ) {
+                await dataProvider.update("enrollment_onboarding_items", {
+                  id: item.id,
+                  data: {
+                    status: "done",
+                    completed_at: item.completed_at ?? result.data.done_date,
+                  },
+                  previousData: item,
+                });
+              } else if (
+                taskUpdateType === TASK_MARKED_AS_UNDONE &&
+                item.status === "done"
+              ) {
+                await dataProvider.update("enrollment_onboarding_items", {
+                  id: item.id,
+                  data: { status: "pending", completed_at: null },
+                  previousData: item,
+                });
+              }
+            }
           }
           return result;
         },
@@ -742,6 +892,40 @@ export const createDataProvider = ({
           return result;
         },
       } satisfies ResourceCallbacks<Task>,
+      {
+        resource: "enrollments",
+        beforeUpdate: async (params, dataProvider) => {
+          // Contracts + Onboarding slice: mirrors
+          // enforce_enrollment_activation_requirements() exactly — the
+          // DB-level guard against activating an Enrollment with
+          // incomplete required onboarding, closing the gap left by
+          // ClientEdit.tsx's plain status field. Only guards the
+          // onboarding -> active direction; a manual correction back to
+          // onboarding stays ungated.
+          if (
+            params.data.status === "active" &&
+            params.previousData.status === "onboarding"
+          ) {
+            const { data: items } = await dataProvider.getList(
+              "enrollment_onboarding_items",
+              {
+                filter: { enrollment_id: params.id },
+                pagination: { page: 1, perPage: 100 },
+                sort: { field: "id", order: "ASC" },
+              },
+            );
+            const incomplete = items.some(
+              (item) => item.is_required && item.status !== "done",
+            );
+            if (incomplete) {
+              throw new Error(
+                `Cannot activate enrollment ${params.id}: required onboarding items incomplete`,
+              );
+            }
+          }
+          return params;
+        },
+      } satisfies ResourceCallbacks<Enrollment>,
       {
         resource: "companies",
         beforeCreate: async (params) => {

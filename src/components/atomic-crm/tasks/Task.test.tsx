@@ -85,6 +85,23 @@ describe("Task checkbox", () => {
     await expect.element(checkbox).not.toHaveAttribute("disabled");
   });
 
+  // Human-acceptance repair (Contracts + Onboarding slice): the assertion
+  // above alone let a real bug through — the checkbox was never disabled,
+  // but the shared Checkbox component (src/components/ui/checkbox.tsx)
+  // never declared `cursor-pointer` for its enabled state at all, so a
+  // plain <button>'s browser default read as "you can't click this." This
+  // test harness doesn't load the app's real Tailwind-processed stylesheet
+  // (only main.tsx does, which no test renders through), so computed style
+  // can't be asserted meaningfully here — asserting the class itself is
+  // present is the accurate, environment-independent regression guard.
+  it("declares the interactive pointer cursor class, not just the disabled-state one", async () => {
+    const screen = await renderTask(buildTask());
+    const checkboxLocator = screen.getByRole("checkbox");
+    await expect.element(checkboxLocator).toBeInTheDocument();
+    const checkbox = checkboxLocator.element() as HTMLElement;
+    expect(checkbox.classList.contains("cursor-pointer")).toBe(true);
+  });
+
   it("checks immediately on click", async () => {
     const screen = await renderTask(buildTask());
     const checkbox = screen.getByRole("checkbox");

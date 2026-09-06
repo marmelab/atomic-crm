@@ -33,6 +33,7 @@ import { ChangelogPage } from "../misc/ChangelogPage";
 import { GroupProgramPage } from "../programs/GroupProgramPage";
 import { IndividualProgramPage } from "../programs/IndividualProgramPage";
 import { ProgramsPage } from "../programs/ProgramsPage";
+import { ResolveSalesCallPage } from "../sales-calls/ResolveSalesCallPage";
 import { LivingExampleApplicationPage } from "../public-application/LivingExampleApplicationPage";
 import { GrowingYourselfUpApplicationPage } from "../public-application/GrowingYourselfUpApplicationPage";
 import { createDataProviderPublicApplicationDataSource } from "../public-application/publicApplicationDataSource";
@@ -358,6 +359,10 @@ const DesktopAdmin = (
           element={<IndividualProgramPage />}
         />
         <Route path={GroupProgramPage.path} element={<GroupProgramPage />} />
+        <Route
+          path={ResolveSalesCallPage.path}
+          element={<ResolveSalesCallPage />}
+        />
       </CustomRoutes>
       <Resource name="deals" {...deals} />
       <Resource name="applications" {...applications} />
@@ -466,6 +471,10 @@ const MobileAdmin = (
             element={<IndividualProgramPage />}
           />
           <Route path={GroupProgramPage.path} element={<GroupProgramPage />} />
+          <Route
+            path={ResolveSalesCallPage.path}
+            element={<ResolveSalesCallPage />}
+          />
         </CustomRoutes>
         {/* Opportunities/Programs/Clients are primary mobile nav destinations
             (see layout/MobileNavigation.tsx); Applications joins Contacts/

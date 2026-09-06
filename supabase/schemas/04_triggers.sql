@@ -76,6 +76,33 @@ create or replace trigger set_task_sales_id_trigger
     before insert on public.tasks
     for each row execute function public.set_sales_id_default();
 
+-- Contracts + Onboarding slice: keep a Task's enrollment_id consistent
+-- with its onboarding_item_id before the row is ever written (touches
+-- disjoint columns from set_task_sales_id_trigger above, so ordering
+-- between the two doesn't matter).
+create or replace trigger set_task_enrollment_id_consistency_trigger
+    before insert or update on public.tasks
+    for each row execute function public.set_task_enrollment_id_consistency();
+
+-- Contracts + Onboarding slice: Task -> checklist-item sync, the other
+-- direction of the two-way sync application code implements for
+-- checklist -> Task (see completeOnboardingItem.ts). Only fires on a
+-- genuine done_date change, so an unrelated Task edit (retitling it,
+-- changing its due date) never touches the checklist.
+create or replace trigger on_task_onboarding_sync
+    after update on public.tasks
+    for each row
+    when (old.done_date is distinct from new.done_date)
+    execute function public.sync_onboarding_item_from_task();
+
+-- Contracts + Onboarding slice: DB-level guard against activating an
+-- Enrollment with incomplete required onboarding — closes the gap left by
+-- ClientEdit.tsx's plain status field (and any other direct write) that
+-- doesn't go through activateEnrollment.ts's own application-level check.
+create or replace trigger enforce_enrollment_activation_requirements_trigger
+    before update on public.enrollments
+    for each row execute function public.enforce_enrollment_activation_requirements();
+
 -- Auto-fetch company logo from website favicon on save
 create or replace trigger company_saved
     before insert or update on public.companies

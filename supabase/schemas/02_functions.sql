@@ -320,6 +320,9 @@ CREATE OR REPLACE FUNCTION "public"."handle_deal_won"() RETURNS "trigger"
     AS $$
 declare
   v_cohort cohorts%ROWTYPE;
+  v_enrollment_id bigint;
+  v_contact_name text;
+  v_item record;
 begin
   if new.stage = 'won' and (tg_op = 'INSERT' or old.stage is distinct from 'won') then
     if new.cohort_id is not null then
@@ -328,6 +331,10 @@ begin
 
     -- Idempotent: the unique constraint on enrollments.opportunity_id means
     -- re-saving Won (or this trigger re-firing) never creates a duplicate.
+    -- `returning ... into` only actually assigns on the genuine-insert
+    -- path — the on-conflict no-op leaves v_enrollment_id null, which is
+    -- exactly the signal the Contracts + Onboarding block below needs to
+    -- stay just as replay-safe as the Enrollment creation it's gated on.
     insert into enrollments (opportunity_id, status, start_date, end_date)
     values (
       new.id,
@@ -335,7 +342,144 @@ begin
       v_cohort.program_start_at::date,
       v_cohort.program_end_at::date
     )
-    on conflict (opportunity_id) do nothing;
+    on conflict (opportunity_id) do nothing
+    returning id into v_enrollment_id;
+
+    if v_enrollment_id is not null then
+      select trim(both ' ' from coalesce(first_name, '') || ' ' || coalesce(last_name, ''))
+        into v_contact_name
+        from contacts where id = new.contact_id;
+      if v_contact_name is null or v_contact_name = '' then
+        v_contact_name := new.name;
+      end if;
+
+      -- Seed this Enrollment's checklist from whichever requirement
+      -- templates are currently active for this Deal's Offer (snapshotted,
+      -- not a live reference — see onboarding_requirement_templates' own
+      -- comment), one Task per REQUIRED item only (optional items get no
+      -- auto-task — Contracts + Onboarding slice, §8/§11 of the
+      -- architecture review).
+      for v_item in
+        insert into enrollment_onboarding_items
+          (enrollment_id, requirement_key, label, task_text_template, is_required, sort_order)
+        select v_enrollment_id, t.key, t.label, t.task_text_template, t.is_required, t.sort_order
+        from onboarding_requirement_templates t
+        where t.offer_id = new.offer_id and t.is_active
+        returning id, is_required, task_text_template
+      loop
+        if v_item.is_required then
+          insert into tasks (contact_id, type, text, due_date, status, enrollment_id, onboarding_item_id)
+          values (
+            new.contact_id,
+            'onboarding_item',
+            replace(v_item.task_text_template, '{name}', v_contact_name),
+            -- Deliberately NOT now() — every required item due immediately
+            -- at Enrollment creation would produce artificial overdue
+            -- noise (someone paying late in the day reads as instantly
+            -- behind). The Dashboard's Needs Onboarding section (driven
+            -- directly off Enrollment state, not Tasks) is the primary
+            -- "this person cannot disappear" signal; these Tasks' Overdue
+            -- bucket is a secondary nudge, so a few real days of slack is
+            -- correct, not a compromise.
+            now() + interval '3 days',
+            'pending',
+            v_enrollment_id,
+            v_item.id
+          );
+        end if;
+      end loop;
+    end if;
+  end if;
+  return new;
+end;
+$$;
+
+-- Contracts + Onboarding slice: Task -> business-context integrity. A Task
+-- pointing at a specific checklist item must always also point at that
+-- item's own Enrollment (never onboarding_item_id set with a mismatched or
+-- missing enrollment_id) — cheap to enforce here rather than trusting every
+-- future insert/update call site to get both columns right by hand.
+CREATE OR REPLACE FUNCTION "public"."set_task_enrollment_id_consistency"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    SET "search_path" TO 'public'
+    AS $$
+declare
+  v_item_enrollment_id bigint;
+begin
+  if new.onboarding_item_id is not null then
+    select enrollment_id into v_item_enrollment_id
+      from enrollment_onboarding_items where id = new.onboarding_item_id;
+    if v_item_enrollment_id is null then
+      raise exception 'Invalid onboarding_item_id %', new.onboarding_item_id;
+    end if;
+    if new.enrollment_id is null then
+      new.enrollment_id := v_item_enrollment_id;
+    elsif new.enrollment_id <> v_item_enrollment_id then
+      raise exception 'enrollment_id % does not match onboarding_item_id %''s own enrollment_id %',
+        new.enrollment_id, new.onboarding_item_id, v_item_enrollment_id;
+    end if;
+  end if;
+  return new;
+end;
+$$;
+
+-- Contracts + Onboarding slice: the Task -> checklist-item half of the
+-- two-way sync (architecture review, §8). Fires whenever a Task pointing
+-- at a specific item transitions its done-ness in either direction —
+-- completing (or reopening) the Task marks that ONE item done (or
+-- reopens it back to pending). Deliberately does NOT run the other way
+-- (a cancelled Task never completes its item, and never reverts a
+-- directly-completed item to pending) — the checklist item is the
+-- durable source of truth Leif approved; a Task is only ever a reminder.
+-- The reverse direction (completing an item directly also completes its
+-- linked Task) is application-layer (completeOnboardingItem.ts) rather
+-- than a second DB trigger — checklist items only have one write surface
+-- in this slice, so there's no "many entry points" risk to guard against
+-- at the DB level the way Task edits (checkbox, edit sheet, mobile list)
+-- already have.
+CREATE OR REPLACE FUNCTION "public"."sync_onboarding_item_from_task"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    SET "search_path" TO 'public'
+    AS $$
+begin
+  if new.onboarding_item_id is null then
+    return new;
+  end if;
+
+  if new.done_date is not null and old.done_date is null then
+    update enrollment_onboarding_items
+      set status = 'done', completed_at = coalesce(completed_at, new.done_date), updated_at = now()
+      where id = new.onboarding_item_id and status <> 'done';
+  elsif new.done_date is null and old.done_date is not null then
+    update enrollment_onboarding_items
+      set status = 'pending', completed_at = null, updated_at = now()
+      where id = new.onboarding_item_id and status = 'done';
+  end if;
+
+  return new;
+end;
+$$;
+
+-- Contracts + Onboarding slice: the DB-level half of the Onboarding ->
+-- Active guard (architecture review, §6). activateEnrollment.ts is the
+-- normal write path and already checks this before writing, but
+-- ClientEdit.tsx's plain status field (and any direct API write) goes
+-- through this same table — this closes that gap rather than trusting
+-- every future write path to remember the invariant. Only guards the
+-- onboarding -> active direction; a manual correction back to onboarding
+-- stays ungated.
+CREATE OR REPLACE FUNCTION "public"."enforce_enrollment_activation_requirements"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    SET "search_path" TO 'public'
+    AS $$
+begin
+  if new.status = 'active' and old.status = 'onboarding' then
+    if exists (
+      select 1 from enrollment_onboarding_items
+      where enrollment_id = new.id and is_required and status <> 'done'
+    ) then
+      raise exception 'Cannot activate enrollment %: required onboarding items incomplete', new.id;
+    end if;
   end if;
   return new;
 end;

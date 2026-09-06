@@ -13,19 +13,26 @@ describe("classifyTaskActionKind", () => {
     "follow_up",
     "nurture_follow_up",
     "check_payment",
-    "send_contract",
-    "complete_access",
     "sales_call_cancelled",
   ])("routes %s to opportunity-context", (type) => {
     expect(classifyTaskActionKind(type)).toBe("opportunity-context");
   });
 
-  it.each(["resolve_sales_call", "other"])(
-    "routes %s to task-detail (no dedicated action screen exists yet)",
-    (type) => {
-      expect(classifyTaskActionKind(type)).toBe("task-detail");
-    },
-  );
+  it("routes onboarding_item to enrollment-context (Contracts + Onboarding slice — retires send_contract/complete_access, which used to live in the opportunity-context set above)", () => {
+    expect(classifyTaskActionKind("onboarding_item")).toBe(
+      "enrollment-context",
+    );
+  });
+
+  it("routes resolve_sales_call to resolve-sales-call (Unmatched Sales Call Resolution slice — no longer falls back to the generic Task editor)", () => {
+    expect(classifyTaskActionKind("resolve_sales_call")).toBe(
+      "resolve-sales-call",
+    );
+  });
+
+  it("routes other to task-detail (no dedicated action screen exists yet)", () => {
+    expect(classifyTaskActionKind("other")).toBe("task-detail");
+  });
 
   it("routes an unrecognized/custom task type to task-detail (fails safe, never throws or guesses)", () => {
     expect(classifyTaskActionKind("a_custom_deployment_type")).toBe(

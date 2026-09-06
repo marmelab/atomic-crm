@@ -61,6 +61,13 @@ export function formatTimestampString(timestamp: string) {
   return format(new Date(timestamp), "PP");
 }
 
+// Same timestamptz shape as formatTimestampString, plus the time of day
+// ("Sep 3, 4:00 PM") — for the few places the time genuinely matters, e.g.
+// a Sales Call's own scheduled_at (Unmatched Sales Call Resolution slice).
+export function formatTimestampWithTimeString(timestamp: string) {
+  return format(new Date(timestamp), "PP · p");
+}
+
 // Short "Oct 31" form of a "YYYY-MM-DD" (or "YYYY-MM") date-only string —
 // the same UTC/local-safe manual parsing as formatISODateString above (a
 // bare `new Date(str).toLocaleDateString()` risks an off-by-one day

@@ -8,11 +8,15 @@ import {
   buildTestCrm,
 } from "./actionDestinationTestFixtures";
 
-// sales_call, follow_up, nurture_follow_up, check_payment, send_contract,
-// complete_access all classify as "opportunity-context" — the real
+// sales_call, follow_up, nurture_follow_up, check_payment,
+// sales_call_cancelled all classify as "opportunity-context" — the real
 // screen that already exists for "go work this Opportunity" today is
 // DealShow (/deals/:id/show), confirmed against current code (embeds both
 // DealSalesCallSection and DealApplicationAndEnrollment), not invented.
+// send_contract/complete_access used to live here too — retired
+// (Contracts + Onboarding slice) in favor of onboarding_item, which
+// resolves deterministically to enrollment-context instead — see
+// taskActionDestination.test.ts.
 describe("Task action destination — opportunity-context task types", () => {
   it("a Sales Call task opens the relevant Deal, not a dead link", async () => {
     await page.viewport(1280, 900);

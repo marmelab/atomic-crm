@@ -12,6 +12,7 @@ import {
   addReviewApplicationTaskFixtures,
 } from "./leifProofSliceFixtures";
 import { generateOffers } from "./offers";
+import { generateOnboardingRequirementTemplates } from "./onboardingRequirements";
 import { generateSales } from "./sales";
 import { backfillSalesCallsForCallLifecycleDeals } from "./salesCalls";
 import { generateTags } from "./tags";
@@ -32,6 +33,9 @@ export default (): Db => {
   db.cohorts = generateCohorts();
   db.applications = [];
   db.enrollments = [];
+  db.onboarding_requirement_templates =
+    generateOnboardingRequirementTemplates();
+  db.enrollment_onboarding_items = [];
   db.waitlist_entries = [];
   db.sales_calls = [];
   db.sales_call_events = [];

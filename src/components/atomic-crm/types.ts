@@ -241,6 +241,53 @@ export type Enrollment = {
   updated_at: string;
 } & Pick<RaRecord, "id">;
 
+// Contracts + Onboarding slice: the offer-specific requirement catalog —
+// few rows, changes rarely, managed via migration (no admin UI in v1, same
+// posture as OfferPaymentOption). Never read by the UI directly; only the
+// Won-transition seeding logic (handle_deal_won() / its FakeRest mirror)
+// reads this, to snapshot label/task_text_template/is_required onto each
+// new Enrollment's own enrollment_onboarding_items rows.
+export type OnboardingRequirementTemplate = {
+  offer_id: Identifier;
+  key: string;
+  label: string;
+  task_text_template: string;
+  is_required: boolean;
+  sort_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+} & Pick<RaRecord, "id">;
+
+// 'sent' is only ever used by the 'contract' item (not_sent -> sent ->
+// done, UI-relabeled "Signed" for that one row) — every other item goes
+// straight pending -> done. See enrollment_onboarding_items' own schema
+// comment for why this is one shared enum rather than a per-requirement
+// column.
+export type EnrollmentOnboardingItemStatus = "pending" | "sent" | "done";
+
+// One row per (Enrollment x applicable requirement) — Contracts +
+// Onboarding slice. label/is_required are snapshotted at creation time
+// from onboarding_requirement_templates (never a live reference), so a
+// later template edit never rewrites an already-created Enrollment's own
+// checklist history.
+export type EnrollmentOnboardingItem = {
+  enrollment_id: Identifier;
+  requirement_key: string;
+  label: string;
+  // Snapshotted alongside label — only ever read again by
+  // reopenOnboardingItem.ts, when it needs to recreate a Task from
+  // scratch (the original was cancelled, not merely completed).
+  task_text_template: string;
+  is_required: boolean;
+  sort_order: number;
+  status: EnrollmentOnboardingItemStatus;
+  completed_at?: string | null;
+  external_ref?: string | null;
+  created_at: string;
+  updated_at: string;
+} & Pick<RaRecord, "id">;
+
 export type WaitlistEntryStatus =
   | "waiting"
   | "invited"
@@ -320,6 +367,12 @@ export type SalesCall = {
   source: SalesCallSource;
   acuity_appointment_id?: string | null;
   acuity_appointment_type_id?: string | null;
+  // Unmatched Sales Call Resolution slice: distinct from opportunity_id —
+  // "deliberately not a sales situation" is a different durable state than
+  // "not yet resolved", never overloaded onto the same null. Set together;
+  // opportunity_id stays null forever once dismissed_at is set.
+  dismissed_at?: string | null;
+  dismissal_reason?: string | null;
   created_at: string;
   updated_at: string;
 } & Pick<RaRecord, "id">;
@@ -328,7 +381,10 @@ export type SalesCallEventKind =
   | "booked"
   | "rescheduled"
   | "cancelled"
-  | "attendance_recorded";
+  | "attendance_recorded"
+  // Unmatched Sales Call Resolution slice.
+  | "opportunity_attached"
+  | "dismissed";
 
 // The append-only lifecycle history a SalesCall's current-state row can't
 // hold on its own (Acuity/Sales Call Lifecycle slice, per Leif's own
@@ -346,6 +402,8 @@ export type SalesCallEvent = {
   new_scheduled_at?: string | null;
   // Only set for kind = "attendance_recorded".
   attendance?: SalesCallAttendance | null;
+  // Only set for kind = "dismissed".
+  dismissal_reason?: string | null;
   created_at: string;
 } & Pick<RaRecord, "id">;
 
@@ -492,9 +550,26 @@ export type Task = {
   // completing/uncompleting via the checkbox toggles both. "waiting" and
   // "cancelled" are set explicitly via the task form. Tasks are reminders,
   // never sales-status controls — this field never mutates, and is never
-  // mutated by, Opportunity/Application/Enrollment state.
+  // mutated by, Opportunity/Application state. ONE deliberate exception
+  // (Contracts + Onboarding slice): completing/reopening a Task linked to
+  // onboarding_item_id below IS mirrored onto that one Enrollment
+  // checklist item — see sync_onboarding_item_from_task() — cancelling
+  // never is (the checklist stays the durable source of truth).
   status?: TaskStatus;
   sales_id?: Identifier;
+  // Contracts + Onboarding slice: Task points AT its business context —
+  // nullable, only ever set for auto-created onboarding_item Tasks (every
+  // other type still resolves via the existing contact_id heuristic in
+  // useTaskActionDestination.ts). onboarding_item_id is only ever set
+  // together with a matching enrollment_id (see
+  // set_task_enrollment_id_consistency()).
+  enrollment_id?: Identifier | null;
+  onboarding_item_id?: Identifier | null;
+  // Unmatched Sales Call Resolution slice: only ever set for
+  // resolve_sales_call Tasks — a returning Contact can have more than one
+  // unresolved booking at once, so contact_id alone can't disambiguate
+  // which one this Task is about.
+  sales_call_id?: Identifier | null;
 } & Pick<RaRecord, "id">;
 
 export type ActivityCompanyCreated = {

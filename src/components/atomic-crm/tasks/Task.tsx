@@ -9,7 +9,7 @@ import {
   useUpdate,
 } from "ra-core";
 import { useEffect, useState } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { ReferenceField } from "@/components/admin/reference-field";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -26,6 +26,7 @@ import { formatTimestampString } from "../deals/dealUtils";
 import type { Contact, LabeledValue, Task as TData } from "../types";
 import { computePostponeDueDate } from "./postponeTaskDate";
 import { taskStatusLabels } from "./taskConstants";
+import { TASK_TYPES_WITHOUT_MEANINGFUL_DUE_DATE } from "./tasksPredicate";
 import { TaskEdit } from "./TaskEdit";
 import { TaskEditSheet } from "./TaskEditSheet";
 import type { TaskActionDestination } from "./useTaskActionDestination";
@@ -42,6 +43,34 @@ const typeLabel = (
 ): string | null => {
   if (!task.type) return null;
   return taskTypes.find((t) => t.value === task.type)?.label ?? task.type;
+};
+
+// Contracts + Onboarding slice, human-acceptance repair: some task types
+// carry a fully-formed, task-SPECIFIC sentence as their own `text` (e.g.
+// onboarding_item: "Send contract to Jane Doe") rather than a generic
+// reminder. For those, the configured type label is actively worse than
+// showing nothing — every onboarding Task for one Enrollment shares the
+// exact same type ("Onboarding"), so it carries zero distinguishing
+// information, while `text` carries all of it (and already names the
+// person, so no separate Contact suffix is needed either). The internal
+// type string itself is unaffected — this is display-only. Unmatched
+// Sales Call Resolution slice: resolve_sales_call joins this set for the
+// same reason — its own text is "%{name} · %{offer} · %{when}"
+// (resolveSalesCallTask.ts), so a Contact with more than one unresolved
+// booking reads as genuinely distinct rows.
+const SELF_DESCRIBING_TASK_TYPES: ReadonlySet<string> = new Set([
+  "onboarding_item",
+  "resolve_sales_call",
+]);
+
+const displayLabel = (
+  task: Pick<TData, "type" | "text">,
+  taskTypes: LabeledValue[],
+): string | null => {
+  if (task.type && SELF_DESCRIBING_TASK_TYPES.has(task.type)) {
+    return task.text || typeLabel(task, taskTypes);
+  }
+  return typeLabel(task, taskTypes);
 };
 
 // The task's primary action: a real, keyboard/mobile-accessible <Link>
@@ -108,6 +137,7 @@ export const Task = ({
   const isMobile = useIsMobile();
   const { taskTypes } = useConfigurationContext();
   const notify = useNotify();
+  const navigate = useNavigate();
   const translate = useTranslate();
   const queryClient = useQueryClient();
   const getContactRepresentation = useGetRecordRepresentation("contacts");
@@ -160,6 +190,9 @@ export const Task = ({
   const { destination } = useTaskActionDestination(task);
 
   const taskTitle = (() => {
+    if (task.type && SELF_DESCRIBING_TASK_TYPES.has(task.type)) {
+      return task.text || undefined;
+    }
     const type = typeLabel(task, taskTypes);
     const name = contact ? getContactRepresentation(contact) : null;
     if (type && name) return `${type}: ${name}`;
@@ -239,6 +272,16 @@ export const Task = ({
             className="mt-1"
           />
           <div className={`flex-grow ${task.done_date ? "line-through" : ""}`}>
+            {/* Unmatched Sales Call Resolution slice: a small header above
+                the self-describing title, matching Leif's own mockup
+                ("Sales call needs matching" / "Jane Doe · Offer · date").
+                Only this one type gets it — everything else keeps the
+                single-line title unchanged. */}
+            {task.type === "resolve_sales_call" && (
+              <div className="text-xs uppercase tracking-wide text-muted-foreground">
+                {typeLabel(task, taskTypes)}
+              </div>
+            )}
             <div className="text-sm font-semibold">
               {/* Primary title, information-hierarchy pass: "What I need to
                   do, and who for" — "{Task Type}: {Person Name}" — replaces
@@ -260,7 +303,8 @@ export const Task = ({
                   name stays its own separate link to the Contact page —
                   useful in its own right, and not what "click the task"
                   should mean. */}
-              {showContact ? (
+              {showContact &&
+              !SELF_DESCRIBING_TASK_TYPES.has(task.type ?? "") ? (
                 <>
                   <TaskActionLabel
                     label={typeLabel(task, taskTypes)}
@@ -294,8 +338,12 @@ export const Task = ({
                   />
                 </>
               ) : (
+                // Self-describing types (onboarding_item) skip the separate
+                // Contact suffix even with showContact on — the text
+                // already names the person ("Send contract to Jane Doe"),
+                // so repeating "Jane Doe" right after would just be noise.
                 <TaskActionLabel
-                  label={typeLabel(task, taskTypes) ?? task.text}
+                  label={displayLabel(task, taskTypes)}
                   destination={destination}
                   onOpenTaskDetail={handleEdit}
                 />
@@ -308,18 +356,24 @@ export const Task = ({
                 </Badge>
               )}
             </div>
-            <div className="text-sm text-muted-foreground">
-              {translate("resources.tasks.fields.due_short")}
-              &nbsp;
-              {/* Date only, no time-of-day (Tasks UX cleanup) — reuses
-                  dealUtils.ts's own formatTimestampString, the same "PP"
-                  (e.g. "Feb 20, 2025") formatter already used for other
-                  timestamptz columns like Application.submitted_at.
-                  Display-only: task.due_date itself is untouched, still
-                  the full timestamp used for sorting/overdue logic/
-                  automation (tasksPredicate.ts). */}
-              {formatTimestampString(task.due_date)}
-            </div>
+            {/* Unmatched Sales Call Resolution slice: this type's due_date
+                is an internal field only (Tasks require one at the DB
+                level) — showing it here would misrepresent this exception
+                as a normal dated to-do Leif failed to do. */}
+            {!TASK_TYPES_WITHOUT_MEANINGFUL_DUE_DATE.has(task.type ?? "") && (
+              <div className="text-sm text-muted-foreground">
+                {translate("resources.tasks.fields.due_short")}
+                &nbsp;
+                {/* Date only, no time-of-day (Tasks UX cleanup) — reuses
+                    dealUtils.ts's own formatTimestampString, the same "PP"
+                    (e.g. "Feb 20, 2025") formatter already used for other
+                    timestamptz columns like Application.submitted_at.
+                    Display-only: task.due_date itself is untouched, still
+                    the full timestamp used for sorting/overdue logic/
+                    automation (tasksPredicate.ts). */}
+                {formatTimestampString(task.due_date)}
+              </div>
+            )}
           </div>
         </div>
 
@@ -335,33 +389,57 @@ export const Task = ({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
+            {/* Postponing this type's internal-only due_date would be
+                equally meaningless — same guard as the due-date line
+                above. */}
+            {!TASK_TYPES_WITHOUT_MEANINGFUL_DUE_DATE.has(task.type ?? "") && (
+              <>
+                <DropdownMenuItem
+                  className="cursor-pointer h-12 md:h-8 px-4 md:px-2 text-base md:text-sm"
+                  onClick={() => {
+                    update("tasks", {
+                      id: task.id,
+                      data: {
+                        due_date: computePostponeDueDate(new Date(), 1),
+                      },
+                      previousData: task,
+                    });
+                  }}
+                >
+                  {translate("resources.tasks.actions.postpone_tomorrow")}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="cursor-pointer h-12 md:h-8 px-4 md:px-2 text-base md:text-sm"
+                  onClick={() => {
+                    update("tasks", {
+                      id: task.id,
+                      data: {
+                        due_date: computePostponeDueDate(new Date(), 7),
+                      },
+                      previousData: task,
+                    });
+                  }}
+                >
+                  {translate("resources.tasks.actions.postpone_next_week")}
+                </DropdownMenuItem>
+              </>
+            )}
+            {/* Unmatched Sales Call Resolution slice: resolve_sales_call
+                must never open the generic Edit sheet — Description/Due
+                date/Type/Status answer nothing about "what Opportunity
+                does this belong to?". Navigates to the same dedicated
+                resolution page the row's own title already links to,
+                instead of handleEdit, only for this one destination kind —
+                every other type's "Edit" is unchanged. */}
             <DropdownMenuItem
               className="cursor-pointer h-12 md:h-8 px-4 md:px-2 text-base md:text-sm"
               onClick={() => {
-                update("tasks", {
-                  id: task.id,
-                  data: { due_date: computePostponeDueDate(new Date(), 1) },
-                  previousData: task,
-                });
+                if (destination?.kind === "resolve-sales-call") {
+                  navigate(destination.to);
+                  return;
+                }
+                handleEdit();
               }}
-            >
-              {translate("resources.tasks.actions.postpone_tomorrow")}
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className="cursor-pointer h-12 md:h-8 px-4 md:px-2 text-base md:text-sm"
-              onClick={() => {
-                update("tasks", {
-                  id: task.id,
-                  data: { due_date: computePostponeDueDate(new Date(), 7) },
-                  previousData: task,
-                });
-              }}
-            >
-              {translate("resources.tasks.actions.postpone_next_week")}
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className="cursor-pointer h-12 md:h-8 px-4 md:px-2 text-base md:text-sm"
-              onClick={handleEdit}
             >
               {translate("ra.action.edit")}
             </DropdownMenuItem>

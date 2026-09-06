@@ -258,6 +258,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/sales-calls/resolveUnmatchedSalesCall.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/sales-calls/resolveSalesCallTask.ts",
           "type": "registry:component"
         },
@@ -278,6 +282,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/sales-calls/loadSalesCallResolutionContext.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/sales-calls/followUpTask.ts",
           "type": "registry:component"
         },
@@ -295,6 +303,10 @@
         },
         {
           "path": "src/components/atomic-crm/sales-calls/acuityBookingService.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/sales-calls/ResolveSalesCallPage.tsx",
           "type": "registry:component"
         },
         {
@@ -479,6 +491,10 @@
         },
         {
           "path": "src/components/atomic-crm/providers/fakerest/dataGenerator/sales.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/providers/fakerest/dataGenerator/onboardingRequirements.ts",
           "type": "registry:component"
         },
         {
@@ -838,11 +854,31 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/enrollments/useEnrollmentOperationalData.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/enrollments/useClientsGrouped.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/enrollments/reopenOnboardingItem.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/enrollments/index.ts",
           "type": "registry:component"
         },
         {
           "path": "src/components/atomic-crm/enrollments/enrollmentConstants.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/enrollments/completeOnboardingItem.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/enrollments/activateEnrollment.ts",
           "type": "registry:component"
         },
         {
@@ -891,6 +927,10 @@
         },
         {
           "path": "src/components/atomic-crm/deals/peopleDeciding.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/deals/paymentPlanRemainingCopy.ts",
           "type": "registry:component"
         },
         {
@@ -990,6 +1030,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/dashboard/useNeedsOnboardingItems.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/dashboard/useLivingExampleCapacityData.ts",
           "type": "registry:component"
         },
@@ -1027,6 +1071,10 @@
         },
         {
           "path": "src/components/atomic-crm/dashboard/PeopleDeciding.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/dashboard/NeedsOnboarding.tsx",
           "type": "registry:component"
         },
         {

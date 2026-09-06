@@ -41,24 +41,34 @@ const resolveDefaultTaskSalesId = async (): Promise<number | undefined> => {
   return data?.[0]?.id;
 };
 
+// Unmatched Sales Call Resolution slice: salesCallId is only ever passed
+// for type "resolve_sales_call" — mirrors src/'s own resolveSalesCallTask.ts
+// exactly (deterministic dedup by sales_call_id when known, since a
+// returning Contact can have more than one unresolved booking at once).
 const ensureTask = async (params: {
   contactId: number;
   type: string;
   text: string;
   dueDate: string;
+  salesCallId?: number;
 }) => {
   const { data: existingTasks } = await supabaseAdmin
     .from("tasks")
-    .select("id, done_date, due_date")
+    .select("id, done_date, due_date, sales_call_id")
     .eq("contact_id", params.contactId)
     .eq("type", params.type);
-  const pending = (
+  const pendingTasks = (
     (existingTasks ?? []) as {
       id: number;
       done_date: string | null;
       due_date: string;
+      sales_call_id: number | null;
     }[]
-  ).find((task) => !task.done_date);
+  ).filter((task) => !task.done_date);
+  const pending =
+    (params.salesCallId != null
+      ? pendingTasks.find((task) => task.sales_call_id === params.salesCallId)
+      : undefined) ?? pendingTasks.find((task) => task.sales_call_id == null);
   if (pending) {
     if (pending.due_date !== params.dueDate) {
       await supabaseAdmin
@@ -76,9 +86,21 @@ const ensureTask = async (params: {
     text: params.text,
     due_date: params.dueDate,
     status: "pending",
+    ...(params.salesCallId != null
+      ? { sales_call_id: params.salesCallId }
+      : {}),
     ...(salesId != null ? { sales_id: salesId } : {}),
   });
 };
+
+// No date-fns in this Edge Function (Deno, kept dependency-light) —
+// Intl.DateTimeFormat gives the same "human-readable date + time" result
+// src/'s formatTimestampWithTimeString provides via date-fns.
+const formatDateTime = (iso: string): string =>
+  new Intl.DateTimeFormat("en-US", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(iso));
 
 // Completing manually here (rather than deleting) must never affect sales
 // status — same rule as every completion helper in this app. A safe no-op
@@ -198,13 +220,18 @@ export const handleScheduled = async (
   } else {
     // Never fabricate an Opportunity to make the webhook "succeed" — the
     // booking is preserved with opportunity_id null and surfaced via the
-    // same Resolve Sales Call Task the CRM UI already knows how to render
-    // and act on (sales-calls/resolveSalesCallTask.ts).
+    // same "Sales call needs matching" Task the CRM UI already knows how
+    // to render (self-describing text, Task.tsx) and resolve
+    // (/sales-calls/:id/resolve, sales-calls/resolveUnmatchedSalesCall.ts).
+    const offerLabel = mapping.cohort
+      ? `${mapping.offer.name} — ${mapping.cohort.name}`
+      : mapping.offer.name;
     await ensureTask({
       contactId: contact.id,
       type: "resolve_sales_call",
-      text: `${contactName} booked a call that couldn't be matched to one Opportunity — pick the right one`,
+      text: `${contactName} · ${offerLabel} · ${formatDateTime(appointment.datetime)}`,
       dueDate: new Date().toISOString(),
+      salesCallId: salesCall.id,
     });
   }
 

@@ -6,6 +6,7 @@ import { ComingUp } from "./ComingUp";
 import { CompletedTodayTasks } from "./CompletedTodayTasks";
 import { DashboardActivityLog } from "./DashboardActivityLog";
 import { DashboardTasks } from "./DashboardTasks";
+import { NeedsOnboarding } from "./NeedsOnboarding";
 import { PeopleDeciding } from "./PeopleDeciding";
 
 // Leif's daily command center: "If Today is clear, sales work is handled."
@@ -53,6 +54,8 @@ export const Dashboard = () => {
       <DashboardTasks />
 
       <CompletedTodayTasks />
+
+      <NeedsOnboarding />
 
       <ComingUp />
 

@@ -68,12 +68,22 @@ export const defaultTaskTypes = [
   { value: "follow_up", label: "Follow-up" },
   { value: "nurture_follow_up", label: "Nurture Follow-up" },
   { value: "check_payment", label: "Check Payment" },
-  { value: "send_contract", label: "Send Contract" },
-  { value: "complete_access", label: "Complete Access/Permissions" },
   // Acuity/Sales Call Lifecycle slice: surfaces a booking that couldn't be
   // safely matched to exactly one active Opportunity, rather than burying
-  // it — see sales-calls/resolveSalesCallTask.ts.
-  { value: "resolve_sales_call", label: "Resolve Sales Call" },
+  // it — see sales-calls/resolveSalesCallTask.ts. Unmatched Sales Call
+  // Resolution slice, human-acceptance repair: renamed from "Resolve Sales
+  // Call" to plain, human-facing wording; also routes to a dedicated
+  // resolution page now, never the generic Task editor (see
+  // taskActionDestination.ts).
+  { value: "resolve_sales_call", label: "Sales call needs matching" },
+  // Contracts + Onboarding slice: auto-created by handle_deal_won() for
+  // every REQUIRED onboarding checklist item (contract, access, curriculum,
+  // etc.) — retires send_contract/complete_access (Aug-2026 vocabulary,
+  // never wired to real logic, confirmed zero real usage) in favor of one
+  // generic type whose specific action lives in the Task's own text, with
+  // the durable distinction kept on the checklist item instead — see
+  // enrollments/enrollmentOnboardingItems.ts.
+  { value: "onboarding_item", label: "Onboarding" },
   // GYU real-infrastructure slice, human-acceptance repair pass: surfaces
   // an Opportunity left at Call Booked with no active appointment after a
   // cancellation, so it never silently strands — see

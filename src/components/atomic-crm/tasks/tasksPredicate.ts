@@ -9,6 +9,16 @@ import { getDay, isAfter } from "date-fns";
 
 export const isBeforeFriday = () => getDay(new Date()) < 5; // Friday is represented by 5
 
+// Unmatched Sales Call Resolution slice, human-acceptance repair: this
+// exception's own due_date is an internal implementation detail only
+// (Tasks require one at the DB level, set to "now" at creation) — never a
+// real dated commitment Leif made. Shown/used in two places: Task.tsx
+// (suppress "Due <date>"/Postpone) and DashboardTasks.tsx (never bucket it
+// as Overdue merely because its internal due_date rolled into the past —
+// it always shows in Today instead, for as long as it's unresolved).
+export const TASK_TYPES_WITHOUT_MEANINGFUL_DUE_DATE: ReadonlySet<string> =
+  new Set(["resolve_sales_call"]);
+
 type Task = {
   due_date: string;
   done_date?: string | null;

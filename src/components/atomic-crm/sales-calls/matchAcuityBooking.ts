@@ -67,12 +67,14 @@ export type OpportunityMatchResult =
   | { kind: "none" }
   | { kind: "ambiguous" };
 
-// "Find the appropriate active Opportunity for the booked offer/cohort" —
-// never guessed. Zero matches or more than one both come back as
-// unresolved rather than picking one; the caller preserves the booking
-// with opportunity_id = null (Decision 3) instead of silently attaching it
-// to an ambiguous Opportunity.
-export const findActiveOpportunityMatch = async (
+// The Contact's own active Opportunities compatible with a given Offer/
+// Cohort mapping — "compatible" mirrors the exact appointment-type mapping
+// rule (never attach across Offers merely because it's the same Contact).
+// Unmatched Sales Call Resolution slice: also the candidate list the
+// resolution UI's "Attach to Existing Opportunity" picker shows, so an
+// incompatible Opportunity (e.g. a GYU one for an LE booking) is
+// structurally impossible to select — it's just never in the list.
+export const findCompatibleActiveOpportunities = async (
   dataProvider: DataProvider,
   {
     contactId,
@@ -83,7 +85,7 @@ export const findActiveOpportunityMatch = async (
     offerId: Identifier;
     cohortId: Identifier | null;
   },
-): Promise<OpportunityMatchResult> => {
+): Promise<Deal[]> => {
   const { data: deals } = await dataProvider.getList<Deal>("deals", {
     filter: {
       contact_id: contactId,
@@ -93,7 +95,23 @@ export const findActiveOpportunityMatch = async (
     pagination: { page: 1, perPage: 100 },
     sort: { field: "id", order: "ASC" },
   });
-  const active = deals.filter(isActiveDeal);
+  return deals.filter(isActiveDeal);
+};
+
+// "Find the appropriate active Opportunity for the booked offer/cohort" —
+// never guessed. Zero matches or more than one both come back as
+// unresolved rather than picking one; the caller preserves the booking
+// with opportunity_id = null (Decision 3) instead of silently attaching it
+// to an ambiguous Opportunity.
+export const findActiveOpportunityMatch = async (
+  dataProvider: DataProvider,
+  args: {
+    contactId: Identifier;
+    offerId: Identifier;
+    cohortId: Identifier | null;
+  },
+): Promise<OpportunityMatchResult> => {
+  const active = await findCompatibleActiveOpportunities(dataProvider, args);
   if (active.length === 0) return { kind: "none" };
   if (active.length > 1) return { kind: "ambiguous" };
   return { kind: "matched", opportunity: active[0] };

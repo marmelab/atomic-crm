@@ -135,6 +135,8 @@ const handleScheduled = async (
     source: "acuity",
     acuityAppointmentId: appointment.acuityAppointmentId,
     acuityAppointmentTypeId: appointment.acuityAppointmentTypeId,
+    offerName: match.offer.name,
+    cohortName: match.cohort?.name,
   });
 
   return {

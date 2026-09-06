@@ -6,6 +6,7 @@ import { NotFoundNotice } from "../public-application/NotFoundNotice";
 import { PublicApplicationLayout } from "../public-application/PublicApplicationLayout";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { formatOfferPageAmount } from "./offerPageMoney";
+import { formatRemainingInstallmentsCopy } from "./paymentPlanRemainingCopy";
 import type { PublicOfferPageContext } from "./publicOfferPageContext";
 import type { PublicOfferPageDataSource } from "./publicOfferPageDataSource";
 
@@ -164,23 +165,12 @@ export const OfferPage = ({
                         : `${option.installments} × ${formatOfferPageAmount(option.installmentAmount, currency)}`}
                     </span>
                     {context.alreadyWon && option.installments > 1 && (
-                      // Never imply the whole plan is paid — only the
-                      // first installment has actually been charged at
-                      // this point (Architecture B: the remaining
-                      // iterations are scheduled, not yet collected).
                       <span className="text-sm text-muted-foreground">
-                        First payment of{" "}
-                        {formatOfferPageAmount(
+                        {formatRemainingInstallmentsCopy(
+                          option.installments,
                           option.installmentAmount,
                           currency,
-                        )}{" "}
-                        received — {option.installments - 1} more payment
-                        {option.installments - 1 === 1 ? "" : "s"} of{" "}
-                        {formatOfferPageAmount(
-                          option.installmentAmount,
-                          currency,
-                        )}{" "}
-                        remaining.
+                        )}
                       </span>
                     )}
                   </div>

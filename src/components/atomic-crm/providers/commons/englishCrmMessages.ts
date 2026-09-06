@@ -366,6 +366,35 @@ export const englishCrmMessages = {
       needs_review_empty: "Nothing waiting for review.",
       reviewed: "Reviewed Applications",
     },
+    sales_calls: {
+      resolve: {
+        title: "Sales call needs matching",
+        not_found: "This booking no longer exists.",
+        no_match_title: "No matching opportunity found",
+        no_match_explanation:
+          "%{name} booked a sales call for %{offer}, but they don't have an open opportunity for %{offer} in the CRM.",
+        match_found_title: "A matching opportunity was found",
+        ambiguous_title: "More than one opportunity could match this call",
+        choose_explanation:
+          "%{name} booked a sales call for %{offer}. Choose the opportunity this call belongs to.",
+        unknown_type_title: "Appointment type not mapped to an Offer",
+        was_dismissed:
+          "This booking was dismissed — it was never a sales situation.",
+        was_attached: "This booking is already attached to an Opportunity.",
+        attached_success: "Sales call attached ✓",
+        view_opportunity: "View the Opportunity",
+        attach_heading: "Attach to an existing Opportunity",
+        attach: "Attach",
+        attached: "Attached to the Opportunity.",
+        create: "Create %{offer} opportunity",
+        created: "Opportunity created.",
+        unknown_type:
+          "This booking's appointment type isn't mapped to an Offer yet — only Dismiss is available.",
+        dismiss: "Dismiss booking",
+        dismiss_reason_placeholder:
+          "Why? (optional) — test booking, mistake, etc.",
+      },
+    },
     enrollments: {
       name: "Client |||| Clients",
       orientation: "People who completed the sales process and enrolled.",
@@ -378,6 +407,24 @@ export const englishCrmMessages = {
         start_date: "Start",
         end_date: "End",
       },
+      empty: "No clients yet.",
+      needs_onboarding: "Needs Onboarding",
+      active_clients: "Active",
+      past_clients: "Past Clients",
+      payment_context: "Payment",
+      paid_in_full: "Paid in full.",
+      onboarding_checklist: "Onboarding",
+      onboarding_complete: "Onboarding complete",
+      optional: "Optional",
+      contract_sent: "Sent",
+      mark_sent: "Mark sent",
+      activate: "Activate client",
+      activating: "Activating…",
+      activated: "Enrollment activated.",
+      already_activated:
+        "This Enrollment is no longer awaiting onboarding — showing the current state.",
+      activation_incomplete:
+        "Some required items are still incomplete — showing the current state.",
     },
     waitlist_entries: {
       name: "Waitlist |||| Waitlists",
@@ -636,6 +683,7 @@ export const englishCrmMessages = {
       orientation: "What needs your attention, and how full is your business?",
       tasks_orientation:
         "Things you need to do or remember. Most are created automatically by the CRM.",
+      tasks_needs_attention: "Needs Attention",
       tasks_overdue: "Overdue",
       tasks_today: "Today",
       tasks_next_7_days: "Next 7 Days",
@@ -659,6 +707,8 @@ export const englishCrmMessages = {
       people_deciding_empty: "Nobody is currently deciding.",
       follow_up_on: "follow up %{date}",
       art_oracle_title: "Art Oracle",
+      needs_onboarding_row: "%{name} paid %{amount} — %{offer}",
+      needs_onboarding_progress: "onboarding %{done}/%{total} complete",
       coming_up_title: "Coming Up",
       coming_up_orientation: "Important client and program dates ahead.",
       coming_up_empty: "No major program or client dates coming up.",

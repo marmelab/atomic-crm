@@ -372,6 +372,36 @@ export const frenchCrmMessages = {
       needs_review_empty: "Rien n'attend d'examen.",
       reviewed: "Candidatures examinées",
     },
+    sales_calls: {
+      resolve: {
+        title: "Appel commercial à rattacher",
+        not_found: "Cette réservation n'existe plus.",
+        no_match_title: "Aucune opportunité correspondante trouvée",
+        no_match_explanation:
+          "%{name} a réservé un appel commercial pour %{offer}, mais n'a pas d'opportunité ouverte pour %{offer} dans le CRM.",
+        match_found_title: "Une opportunité correspondante a été trouvée",
+        ambiguous_title:
+          "Plusieurs opportunités pourraient correspondre à cet appel",
+        choose_explanation:
+          "%{name} a réservé un appel commercial pour %{offer}. Choisissez l'opportunité à laquelle cet appel appartient.",
+        unknown_type_title: "Type de rendez-vous non associé à une offre",
+        was_dismissed:
+          "Cette réservation a été écartée — ce n'était pas une situation commerciale.",
+        was_attached: "Cette réservation est déjà rattachée à une opportunité.",
+        attached_success: "Appel commercial rattaché ✓",
+        view_opportunity: "Voir l'opportunité",
+        attach_heading: "Rattacher à une opportunité existante",
+        attach: "Rattacher",
+        attached: "Rattaché à l'opportunité.",
+        create: "Créer une opportunité %{offer}",
+        created: "Opportunité créée.",
+        unknown_type:
+          "Le type de rendez-vous de cette réservation n'est pas encore associé à une offre — seul l'abandon est disponible.",
+        dismiss: "Écarter la réservation",
+        dismiss_reason_placeholder:
+          "Pourquoi ? (facultatif) — réservation test, erreur, etc.",
+      },
+    },
     enrollments: {
       name: "Client |||| Clients",
       orientation:
@@ -385,6 +415,24 @@ export const frenchCrmMessages = {
         start_date: "Début",
         end_date: "Fin",
       },
+      empty: "Aucun client pour le moment.",
+      needs_onboarding: "Intégration à faire",
+      active_clients: "Actifs",
+      past_clients: "Anciens clients",
+      payment_context: "Paiement",
+      paid_in_full: "Payé intégralement.",
+      onboarding_checklist: "Intégration",
+      onboarding_complete: "Intégration terminée",
+      optional: "Optionnel",
+      contract_sent: "Envoyé",
+      mark_sent: "Marquer comme envoyé",
+      activate: "Activer le client",
+      activating: "Activation…",
+      activated: "Inscription activée.",
+      already_activated:
+        "Cette inscription n'est plus en attente d'intégration — état actuel affiché.",
+      activation_incomplete:
+        "Certains éléments obligatoires restent incomplets — état actuel affiché.",
     },
     waitlist_entries: {
       name: "Liste d'attente |||| Listes d'attente",
@@ -648,6 +696,7 @@ export const frenchCrmMessages = {
         "Ce dont vous devez vous occuper, et la place disponible dans votre activité.",
       tasks_orientation:
         "Ce que vous devez faire ou retenir. La plupart sont créées automatiquement par le CRM.",
+      tasks_needs_attention: "Nécessite votre attention",
       tasks_overdue: "En retard",
       tasks_today: "Aujourd'hui",
       tasks_next_7_days: "7 prochains jours",
@@ -671,6 +720,8 @@ export const frenchCrmMessages = {
       people_deciding_empty: "Personne n'est actuellement en réflexion.",
       follow_up_on: "relance le %{date}",
       art_oracle_title: "Oracle artistique",
+      needs_onboarding_row: "%{name} a payé %{amount} — %{offer}",
+      needs_onboarding_progress: "intégration %{done}/%{total} complétée",
       coming_up_title: "À venir",
       coming_up_orientation:
         "Dates importantes à venir pour vos clients et programmes.",

@@ -20,6 +20,14 @@ export type BookSalesCallInput = {
   source: SalesCallSource;
   acuityAppointmentId?: string | null;
   acuityAppointmentTypeId?: string | null;
+  // Only meaningful (and only ever read) when opportunityId is null — the
+  // mapped Offer/Cohort matchAcuityBooking.ts already resolved, so the
+  // resulting resolve_sales_call Task's own text can name it (Unmatched
+  // Sales Call Resolution slice, human-acceptance repair: "Sales call
+  // needs matching" rows must show enough context to triage without
+  // opening anything).
+  offerName?: string;
+  cohortName?: string | null;
 };
 
 export type BookSalesCallResult =
@@ -128,6 +136,10 @@ export const bookSalesCall = async (
     await ensureResolveSalesCallTask(dataProvider, {
       contactId: input.contactId,
       contactName: input.contactName,
+      salesCallId: salesCall.id,
+      scheduledAt: input.scheduledAt,
+      offerName: input.offerName ?? "",
+      cohortName: input.cohortName,
       salesId,
     });
   }
@@ -140,7 +152,10 @@ export const bookSalesCall = async (
 // (or anywhere unexpected) is left exactly where it is — a repeat/duplicate
 // booking call must never regress or reinterpret a stage a human decision
 // already advanced past.
-const advanceApprovedToCallBooked = async (
+// Exported: also reused by resolveUnmatchedSalesCall.ts's own attach/create
+// paths — same rule applies whether the Opportunity was just matched by
+// Acuity or resolved by hand later.
+export const advanceApprovedToCallBooked = async (
   dataProvider: DataProvider,
   opportunityId: Identifier,
 ): Promise<void> => {

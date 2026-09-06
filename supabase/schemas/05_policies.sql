@@ -23,6 +23,8 @@ alter table public.waitlist_entries enable row level security;
 alter table public.sales_calls enable row level security;
 alter table public.sales_call_events enable row level security;
 alter table public.deal_stage_events enable row level security;
+alter table public.onboarding_requirement_templates enable row level security;
+alter table public.enrollment_onboarding_items enable row level security;
 
 -- Companies
 create policy "Enable read access for authenticated users" on public.companies for select to authenticated using (true);
@@ -106,6 +108,18 @@ create policy "Enable read access for authenticated users" on public.enrollments
 create policy "Enable insert for authenticated users only" on public.enrollments for insert to authenticated with check (true);
 create policy "Enable update for authenticated users only" on public.enrollments for update to authenticated using (true) with check (true);
 create policy "Enrollments Delete Policy" on public.enrollments for delete to authenticated using (true);
+
+-- Onboarding Requirement Templates
+create policy "Enable read access for authenticated users" on public.onboarding_requirement_templates for select to authenticated using (true);
+create policy "Enable insert for authenticated users only" on public.onboarding_requirement_templates for insert to authenticated with check (true);
+create policy "Enable update for authenticated users only" on public.onboarding_requirement_templates for update to authenticated using (true) with check (true);
+create policy "Onboarding Requirement Templates Delete Policy" on public.onboarding_requirement_templates for delete to authenticated using (true);
+
+-- Enrollment Onboarding Items
+create policy "Enable read access for authenticated users" on public.enrollment_onboarding_items for select to authenticated using (true);
+create policy "Enable insert for authenticated users only" on public.enrollment_onboarding_items for insert to authenticated with check (true);
+create policy "Enable update for authenticated users only" on public.enrollment_onboarding_items for update to authenticated using (true) with check (true);
+create policy "Enrollment Onboarding Items Delete Policy" on public.enrollment_onboarding_items for delete to authenticated using (true);
 
 -- Waitlist Entries
 create policy "Enable read access for authenticated users" on public.waitlist_entries for select to authenticated using (true);

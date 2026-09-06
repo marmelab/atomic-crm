@@ -9,6 +9,7 @@ import {
   isDueNext7Days,
   isDueToday,
   isOverdue,
+  TASK_TYPES_WITHOUT_MEANINGFUL_DUE_DATE,
 } from "../tasks/tasksPredicate";
 import type { Task as TaskType } from "../types";
 
@@ -52,14 +53,36 @@ export const DashboardTasks = () => {
     }, 1500);
   }, []);
 
-  const { overdue, today, next7Days } = useMemo(() => {
+  const { needsAttention, overdue, today, next7Days } = useMemo(() => {
     const ongoing = (tasks ?? []).filter(
       (task) => !isDone(task) || recentlyCompletedIds.has(task.id),
     );
+    // A type in TASK_TYPES_WITHOUT_MEANINGFUL_DUE_DATE (currently just
+    // resolve_sales_call) carries a due_date that's an internal DB-required
+    // field only, set to "now" at creation — never a real commitment Leif
+    // made and never a date at all in the product sense. It is not
+    // overdue, not due today, not due later — it's a system exception
+    // needing a decision, so it's excluded from all three date-bucketed
+    // views entirely and shown in its own Needs Attention section instead,
+    // for as long as it's unresolved (resolving/dismissing the underlying
+    // sales call marks the Task done via completeResolveSalesCallTask,
+    // which — like any other Task — drops it out of `ongoing` above; no
+    // separate removal logic needed here). Still just a Task record under
+    // the hood — this is a presentation split, not a new domain/table.
+    const hasNoMeaningfulDueDate = (task: TaskType) =>
+      TASK_TYPES_WITHOUT_MEANINGFUL_DUE_DATE.has(task.type ?? "");
     return {
-      overdue: ongoing.filter((task) => isOverdue(task.due_date)),
-      today: ongoing.filter((task) => isDueToday(task.due_date)),
-      next7Days: ongoing.filter((task) => isDueNext7Days(task.due_date)),
+      needsAttention: ongoing.filter(hasNoMeaningfulDueDate),
+      overdue: ongoing.filter(
+        (task) => !hasNoMeaningfulDueDate(task) && isOverdue(task.due_date),
+      ),
+      today: ongoing.filter(
+        (task) => !hasNoMeaningfulDueDate(task) && isDueToday(task.due_date),
+      ),
+      next7Days: ongoing.filter(
+        (task) =>
+          !hasNoMeaningfulDueDate(task) && isDueNext7Days(task.due_date),
+      ),
     };
   }, [tasks, recentlyCompletedIds]);
 
@@ -75,6 +98,21 @@ export const DashboardTasks = () => {
           _: "Things you need to do or remember. Most are created automatically by the CRM.",
         })}
       </p>
+      {/* A system exception (e.g. an Acuity booking that couldn't be
+          matched to an Opportunity) — no due date, so it doesn't belong in
+          any of the three date-bucketed views below. Only rendered while
+          something actually needs a decision; once resolved/dismissed the
+          Task is done and this section disappears on its own. */}
+      {needsAttention.length > 0 && (
+        <TaskBucket
+          title={translate("crm.dashboard.tasks_needs_attention", {
+            _: "Needs Attention",
+          })}
+          tasks={needsAttention}
+          onTaskCompleted={handleTaskCompleted}
+          emphasize
+        />
+      )}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
         <TaskBucket
           title={translate("crm.dashboard.tasks_overdue", { _: "Overdue" })}

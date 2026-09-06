@@ -7,11 +7,13 @@ import { supabaseAdmin } from "../_shared/supabaseAdmin.ts";
 
 export type OfferRow = {
   id: number;
+  name: string;
   type: "individual" | "group";
   acuity_appointment_type_id: string | null;
 };
 export type CohortRow = {
   id: number;
+  name: string;
   offer_id: number;
   acuity_appointment_type_id: string | null;
 };
@@ -47,7 +49,7 @@ export const resolveOfferCohort = async (
 ): Promise<{ offer: OfferRow; cohort: CohortRow | null } | null> => {
   const { data: offers } = await supabaseAdmin
     .from("offers")
-    .select("id, type, acuity_appointment_type_id")
+    .select("id, name, type, acuity_appointment_type_id")
     .eq("acuity_appointment_type_id", appointmentTypeId)
     .limit(1);
   if (offers && offers.length > 0) {
@@ -56,7 +58,7 @@ export const resolveOfferCohort = async (
 
   const { data: cohorts } = await supabaseAdmin
     .from("cohorts")
-    .select("id, offer_id, acuity_appointment_type_id")
+    .select("id, name, offer_id, acuity_appointment_type_id")
     .eq("acuity_appointment_type_id", appointmentTypeId)
     .limit(1);
   if (!cohorts || cohorts.length === 0) return null;
@@ -64,7 +66,7 @@ export const resolveOfferCohort = async (
 
   const { data: offer } = await supabaseAdmin
     .from("offers")
-    .select("id, type, acuity_appointment_type_id")
+    .select("id, name, type, acuity_appointment_type_id")
     .eq("id", cohort.offer_id)
     .maybeSingle();
   if (!offer) return null;

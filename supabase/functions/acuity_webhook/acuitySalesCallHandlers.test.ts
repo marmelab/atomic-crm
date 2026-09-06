@@ -112,6 +112,7 @@ const seedWith = (overrides: Partial<Record<string, Row[]>> = {}) =>
     offers: [
       {
         id: 1,
+        name: "The Living Example",
         type: "individual",
         acuity_appointment_type_id: APPOINTMENT_TYPE_ID,
       },
