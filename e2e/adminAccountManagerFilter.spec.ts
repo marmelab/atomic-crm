@@ -92,7 +92,9 @@ test.describe("admin filtering by account manager", () => {
     if (isMobile) {
       await page.getByRole("button", { name: "Add filter" }).click();
     }
-    await expect(page.getByRole("button", { name: "Me" })).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Me", exact: true }),
+    ).toBeVisible();
     await expect(page.getByRole("button", { name: "John Doe" })).toBeHidden();
   });
 });
