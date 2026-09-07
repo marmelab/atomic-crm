@@ -5,7 +5,6 @@ import {
   useContext,
   useEffect,
   useMemo,
-  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -63,26 +62,21 @@ export const ContactImportProvider = ({
   });
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const importerRef = useRef(importer);
-  importerRef.current = importer;
-
   useEffect(() => {
     if (importer.state === "complete") {
-      const finished = importerRef.current;
-      if (finished.state !== "complete") return;
       refresh();
       notify("resources.contacts.import.complete", {
         type: "success",
         messageArgs: {
-          importCount: finished.importCount,
-          errorCount: finished.errorCount,
+          importCount: importer.importCount,
+          errorCount: importer.errorCount,
         },
       });
     }
     if (importer.state === "error") {
       notify("resources.contacts.import.error", { type: "error" });
     }
-  }, [importer.state, notify, refresh]);
+  }, [importer, notify, refresh]);
 
   const isImporting =
     importer.state === "parsing" || importer.state === "running";
