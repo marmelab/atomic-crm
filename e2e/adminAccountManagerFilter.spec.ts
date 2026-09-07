@@ -56,8 +56,7 @@ test.describe("admin filtering by account manager", () => {
     if (isMobile) {
       await page.getByRole("button", { name: "Add filter" }).click();
     }
-    await page.getByRole("combobox", { name: "Account manager" }).click();
-    await page.getByRole("option", { name: "Marie Curie" }).click();
+    await page.getByRole("button", { name: "Marie Curie" }).click();
     if (isMobile) {
       await page.getByRole("button", { name: "Confirm" }).click();
     }
@@ -68,7 +67,7 @@ test.describe("admin filtering by account manager", () => {
     if (isMobile) {
       await page.getByRole("button", { name: "Add filter" }).click();
     }
-    await page.getByRole("button", { name: "Clear value" }).click();
+    await page.getByRole("button", { name: "Marie Curie" }).click();
     if (isMobile) {
       await page.getByRole("button", { name: "Confirm" }).click();
     }
@@ -77,7 +76,7 @@ test.describe("admin filtering by account manager", () => {
     await expect(page.getByText("Grace Hopper")).toBeVisible();
   });
 
-  test("a non-admin user gets no account manager picker", async ({
+  test("a non-admin user gets no account manager list", async ({
     page,
     isMobile,
     menu,
@@ -93,8 +92,7 @@ test.describe("admin filtering by account manager", () => {
     if (isMobile) {
       await page.getByRole("button", { name: "Add filter" }).click();
     }
-    await expect(
-      page.getByRole("combobox", { name: "Account manager" }),
-    ).toBeHidden();
+    await expect(page.getByRole("button", { name: "Me" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "John Doe" })).toBeHidden();
   });
 });

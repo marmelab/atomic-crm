@@ -16,15 +16,12 @@ import { ResponsiveFilters } from "../misc/ResponsiveFilters";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ActiveFilterButton } from "../misc/ActiveFilterButton";
 import { AccountManagerFilter } from "../sales/AccountManagerInput";
-import { useCanFilterByAccountManager } from "../sales/useCanFilterByAccountManager";
 
 export const ContactListFilter = () => {
   const { noteStatuses } = useConfigurationContext();
   const isMobile = useIsMobile();
   const { identity } = useGetIdentity();
   const translate = useTranslate();
-  const { canFilter: canFilterByAccountManager } =
-    useCanFilterByAccountManager();
   const { data } = useGetList("tags", {
     pagination: { page: 1, perPage: 10 },
     sort: { field: "name", order: "ASC" },
@@ -149,12 +146,15 @@ export const ContactListFilter = () => {
         label="resources.contacts.fields.sales_id"
       >
         <ToggleFilterButton
-          className="w-full justify-between h-10 md:h-8"
+          className="w-auto md:w-full max-w-full justify-between h-10 md:h-8"
           label="crm.common.me"
           value={{ sales_id: identity?.id }}
           size={isMobile ? "lg" : undefined}
         />
-        {canFilterByAccountManager && <AccountManagerFilter />}
+        <AccountManagerFilter
+          className="w-auto md:w-full max-w-full justify-between h-10 md:h-8"
+          size={isMobile ? "lg" : undefined}
+        />
       </FilterCategory>
     </ResponsiveFilters>
   );

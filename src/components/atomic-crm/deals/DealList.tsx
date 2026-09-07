@@ -1,6 +1,11 @@
 import type { ReactNode } from "react";
 import type { InputProps } from "ra-core";
-import { useGetIdentity, useListContext, useTranslate } from "ra-core";
+import {
+  useCanAccess,
+  useGetIdentity,
+  useListContext,
+  useTranslate,
+} from "ra-core";
 import { matchPath, useLocation } from "react-router";
 import { AutocompleteInput } from "@/components/admin/autocomplete-input";
 import { CreateButton } from "@/components/admin/create-button";
@@ -14,7 +19,6 @@ import { SelectInput } from "@/components/admin/select-input";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { TopToolbar } from "../layout/TopToolbar";
 import { AccountManagerInput } from "../sales/AccountManagerInput";
-import { useCanFilterByAccountManager } from "../sales/useCanFilterByAccountManager";
 import { DealArchivedList } from "./DealArchivedList";
 import { DealCreate } from "./DealCreate";
 import { DealEdit } from "./DealEdit";
@@ -27,7 +31,10 @@ const DealList = () => {
   const { identity } = useGetIdentity();
   const { dealCategories } = useConfigurationContext();
   const translate = useTranslate();
-  const { canFilter, isPending } = useCanFilterByAccountManager();
+  const { canAccess: canAccessSalesList, isPending } = useCanAccess({
+    resource: "sales",
+    action: "list",
+  });
 
   if (!identity) return null;
 
@@ -52,7 +59,7 @@ const DealList = () => {
     ...(isPending
       ? []
       : [
-          canFilter ? (
+          canAccessSalesList ? (
             <AccountManagerInput source="sales_id" alwaysOn />
           ) : (
             <OnlyMineInput source="sales_id" alwaysOn />

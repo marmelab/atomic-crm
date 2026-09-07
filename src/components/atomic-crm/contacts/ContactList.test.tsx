@@ -143,8 +143,7 @@ describe("ContactList", () => {
       await expect.element(screen.getByText("Ada Lovelace")).toBeVisible();
       await expect.element(screen.getByText("Grace Hopper")).toBeVisible();
 
-      await screen.getByRole("combobox", { name: "Account manager" }).click();
-      await screen.getByRole("option", { name: "Marie Curie" }).click();
+      await screen.getByRole("button", { name: "Marie Curie" }).click();
 
       await expect.element(screen.getByText("Grace Hopper")).toBeVisible();
       await expect
@@ -152,12 +151,39 @@ describe("ContactList", () => {
         .not.toBeInTheDocument();
     });
 
-    it("offers no account manager picker to a user who is not an admin", async () => {
+    it("brings every contact back when the admin untoggles the account manager", async () => {
+      const screen = await render(<AdminAccountManagerFilter />);
+
+      await screen.getByRole("button", { name: "Marie Curie" }).click();
+      await expect
+        .element(screen.getByText("Ada Lovelace"))
+        .not.toBeInTheDocument();
+
+      await screen.getByRole("button", { name: "Marie Curie" }).click();
+
+      await expect.element(screen.getByText("Ada Lovelace")).toBeVisible();
+      await expect.element(screen.getByText("Grace Hopper")).toBeVisible();
+    });
+
+    it("keeps the current user out of the account manager list, offering only Me", async () => {
+      const screen = await render(<AdminAccountManagerFilter />);
+
+      await expect
+        .element(screen.getByRole("button", { name: "Me" }))
+        .toBeVisible();
+      await expect
+        .element(screen.getByRole("button", { name: "Jane Doe" }))
+        .not.toBeInTheDocument();
+    });
+
+    it("offers no account manager list to a user who is not an admin", async () => {
       const screen = await render(<NonAdminAccountManagerFilter />);
 
-      await expect.element(screen.getByText("Me")).toBeVisible();
       await expect
-        .element(screen.getByRole("combobox", { name: "Account manager" }))
+        .element(screen.getByRole("button", { name: "Me" }))
+        .toBeVisible();
+      await expect
+        .element(screen.getByRole("button", { name: "Marie Curie" }))
         .not.toBeInTheDocument();
     });
   });
@@ -173,8 +199,7 @@ describe("ContactList", () => {
       await expect.element(screen.getByText("Ada Lovelace")).toBeVisible();
 
       await screen.getByRole("button", { name: "Add filter" }).click();
-      await screen.getByRole("combobox", { name: "Account manager" }).click();
-      await screen.getByRole("option", { name: "Marie Curie" }).click();
+      await screen.getByRole("button", { name: "Marie Curie" }).click();
       await screen.getByRole("button", { name: "Confirm" }).click();
 
       await expect.element(screen.getByText("Grace Hopper")).toBeVisible();

@@ -162,10 +162,6 @@
           "type": "registry:component"
         },
         {
-          "path": "src/components/atomic-crm/sales/useCanFilterByAccountManager.ts",
-          "type": "registry:component"
-        },
-        {
           "path": "src/components/atomic-crm/sales/index.ts",
           "type": "registry:component"
         },
