@@ -164,6 +164,30 @@ grant all on table public.sales_call_events to anon;
 grant all on table public.sales_call_events to authenticated;
 grant all on table public.sales_call_events to service_role;
 
+grant all on table public.client_sessions to anon;
+grant all on table public.client_sessions to authenticated;
+grant all on table public.client_sessions to service_role;
+
+grant all on table public.client_session_events to anon;
+grant all on table public.client_session_events to authenticated;
+grant all on table public.client_session_events to service_role;
+
+grant all on table public.expected_session_windows to anon;
+grant all on table public.expected_session_windows to authenticated;
+grant all on table public.expected_session_windows to service_role;
+
+grant all on table public.enrollment_expected_sessions to anon;
+grant all on table public.enrollment_expected_sessions to authenticated;
+grant all on table public.enrollment_expected_sessions to service_role;
+
+grant all on table public.client_session_cadence_issues to anon;
+grant all on table public.client_session_cadence_issues to authenticated;
+grant all on table public.client_session_cadence_issues to service_role;
+
+grant all on table public.client_session_cadence_issue_events to anon;
+grant all on table public.client_session_cadence_issue_events to authenticated;
+grant all on table public.client_session_cadence_issue_events to service_role;
+
 grant all on table public.deal_stage_events to anon;
 grant all on table public.deal_stage_events to authenticated;
 grant all on table public.deal_stage_events to service_role;
@@ -261,6 +285,30 @@ grant all on sequence public.sales_calls_id_seq to service_role;
 grant all on sequence public.sales_call_events_id_seq to anon;
 grant all on sequence public.sales_call_events_id_seq to authenticated;
 grant all on sequence public.sales_call_events_id_seq to service_role;
+
+grant all on sequence public.client_sessions_id_seq to anon;
+grant all on sequence public.client_sessions_id_seq to authenticated;
+grant all on sequence public.client_sessions_id_seq to service_role;
+
+grant all on sequence public.client_session_events_id_seq to anon;
+grant all on sequence public.client_session_events_id_seq to authenticated;
+grant all on sequence public.client_session_events_id_seq to service_role;
+
+grant all on sequence public.expected_session_windows_id_seq to anon;
+grant all on sequence public.expected_session_windows_id_seq to authenticated;
+grant all on sequence public.expected_session_windows_id_seq to service_role;
+
+grant all on sequence public.enrollment_expected_sessions_id_seq to anon;
+grant all on sequence public.enrollment_expected_sessions_id_seq to authenticated;
+grant all on sequence public.enrollment_expected_sessions_id_seq to service_role;
+
+grant all on sequence public.client_session_cadence_issues_id_seq to anon;
+grant all on sequence public.client_session_cadence_issues_id_seq to authenticated;
+grant all on sequence public.client_session_cadence_issues_id_seq to service_role;
+
+grant all on sequence public.client_session_cadence_issue_events_id_seq to anon;
+grant all on sequence public.client_session_cadence_issue_events_id_seq to authenticated;
+grant all on sequence public.client_session_cadence_issue_events_id_seq to service_role;
 
 grant all on sequence public.deal_stage_events_id_seq to anon;
 grant all on sequence public.deal_stage_events_id_seq to authenticated;

@@ -149,6 +149,13 @@ export type Offer = {
   // Offer (e.g. The Living Example) — a group Offer maps per-Cohort
   // instead (see Cohort.acuity_appointment_type_id).
   acuity_appointment_type_id?: string | null;
+  // Client + Session Operations slice: a SEPARATE mapping identifying this
+  // Offer's PAID CLIENT SESSION appointment type (e.g. The Living
+  // Example's real "Zoom 1:1", 90522599) — never the same value as
+  // acuity_appointment_type_id above, and resolved by a completely
+  // separate function (sessions/clientSessionAcuityMapping.ts) so a paid
+  // session can never enter sales_call matching or vice versa.
+  client_session_acuity_appointment_type_id?: string | null;
   created_at: string;
   updated_at: string;
 } & Pick<RaRecord, "id">;
@@ -407,6 +414,168 @@ export type SalesCallEvent = {
   created_at: string;
 } & Pick<RaRecord, "id">;
 
+export type ClientSessionStatus = "booked" | "cancelled";
+export type ClientSessionSource = "acuity" | "manual";
+
+// Client + Session Operations slice: one row per real paid-client
+// appointment (e.g. The Living Example's recurring 1:1 sessions) — the
+// session ledger foundation. A deliberately separate concept from
+// SalesCall (a different business event — delivering already-bought
+// service, not deciding whether to buy), never sharing matching/lifecycle
+// logic with it.
+//
+// Cadence correction (human acceptance found the original "Mark
+// Completed" model wrong for how Leif actually runs the offer): a booked
+// session is assumed attended BY DEFAULT — Acuity can't prove attendance
+// either way, so a manual completion click added friction without adding
+// certainty. 'completed' status/completed_at are retired; no_show_at is
+// the only exception a human ever records (see markClientSessionNoShow.ts
+// / reverseClientSessionNoShow.ts).
+export type ClientSession = {
+  contact_id: Identifier;
+  // Nullable: zero or 2+ legitimately-matching active Enrollments must
+  // never be guessed at — see sessions/matchClientSessionEnrollment.ts.
+  // The appointment is preserved as a real fact either way.
+  enrollment_id?: Identifier | null;
+  // Always resolved from the Acuity appointment-type mapping at booking
+  // time — never derived through a possibly-null enrollment_id.
+  offer_id: Identifier;
+  status: ClientSessionStatus;
+  scheduled_at: string;
+  reschedule_count: number;
+  last_rescheduled_at?: string | null;
+  cancelled_at?: string | null;
+  // Explicit, reversible exception: a booked session that did NOT happen.
+  // Distinct from cancelled_at (the appointment was called off ahead of
+  // time) — a no-show is a booking that stood but wasn't kept.
+  no_show_at?: string | null;
+  source: ClientSessionSource;
+  acuity_appointment_id?: string | null;
+  acuity_appointment_type_id?: string | null;
+  created_at: string;
+  updated_at: string;
+} & Pick<RaRecord, "id">;
+
+export type ClientSessionEventKind =
+  | "booked"
+  | "rescheduled"
+  | "cancelled"
+  | "no_show"
+  | "no_show_reversed";
+
+// Append-only lifecycle history, same rationale as SalesCallEvent —
+// multiple reschedules/a no-show followed by a correction must never
+// collapse into a single summary field.
+export type ClientSessionEvent = {
+  client_session_id: Identifier;
+  kind: ClientSessionEventKind;
+  occurred_at: string;
+  // Only set for kind = "rescheduled".
+  previous_scheduled_at?: string | null;
+  new_scheduled_at?: string | null;
+  created_at: string;
+} & Pick<RaRecord, "id">;
+
+// Client + Session Operations cadence correction: one row per real Google
+// Calendar event ingested from Leif's "Year Planning" calendar whose
+// title marks it as an open-for-1:1s window (see
+// sync_year_planning_calendar's own matching comment for the real
+// observed title variance — "1:1s", "1:1 week", "1:1", "1:1s add"). The
+// CRM never writes back to the calendar — this is read-only ingestion,
+// the authoritative source for "which weeks was Leif actually open" in
+// place of an assumed 3-arbitrary-weeks-per-month.
+export type ExpectedSessionWindow = {
+  offer_id: Identifier;
+  external_calendar_id: string;
+  external_event_id: string;
+  raw_title: string;
+  // Date-only (Google's own all-day-event semantics) — window_end is
+  // EXCLUSIVE, never reinterpreted as inclusive.
+  window_start: string;
+  window_end: string;
+  // Soft-delete: this event disappeared from a later sync pass.
+  deleted_at?: string | null;
+  synced_at: string;
+  created_at: string;
+  updated_at: string;
+} & Pick<RaRecord, "id">;
+
+export type ClientSessionCadenceClassification =
+  | "known_skip"
+  | "rescheduled"
+  | "missed_ghosted";
+
+// Service Period model correction: the durable, per-Enrollment
+// ASSIGNMENT of a shared ExpectedSessionWindow into that Enrollment's own
+// sequential 12-slot cadence (Service Period = ceil(ordinal / 3), never
+// stored — pure derived arithmetic). Assigned append-only by
+// sync_year_planning_calendar's own assignment pass, in the
+// chronological order qualifying windows are discovered — never
+// reassigned/renumbered once created. Snapshots window_start/window_end/
+// raw_title at assignment time (same "historical integrity from a
+// snapshot" convention as Deal.offer_name_snapshot) so an already-
+// assigned slot's own dates and Service Period membership are frozen
+// against a LATER edit to the source calendar event — see this slice's
+// own report for the historical-stability reasoning. source_window_id is
+// kept for traceability only, never re-read for display or fulfillment-
+// matching once assigned.
+export type EnrollmentExpectedSession = {
+  enrollment_id: Identifier;
+  source_window_id: Identifier;
+  ordinal: number;
+  window_start: string;
+  window_end: string;
+  raw_title: string;
+  created_at: string;
+} & Pick<RaRecord, "id">;
+
+// Client + Session Operations cadence correction: the resolvable
+// exception row — mirrors SalesCall's own "the record IS the alert"
+// shape. One row per (active Enrollment, assigned session slot) pair —
+// created either by the calendar sync's own detection pass (a closed
+// slot with no fulfilling session) or synchronously the moment a
+// fulfilling session is marked No-show. classification/resolved_at both
+// null means still unresolved and surfaced via its own linked Task on
+// the Dashboard's existing Needs Attention section (see
+// Task.cadence_issue_id).
+//
+// State-machine correction: this is the CURRENT state, always mutable —
+// resolved_at set with classification null means "resolved because
+// fulfillment was restored" (an auto-resolve), distinct from a real
+// human classification; a human classification can be changed or
+// reopened/cleared. See ClientSessionCadenceIssueEvent for the durable
+// history of every transition.
+export type ClientSessionCadenceIssue = {
+  enrollment_id: Identifier;
+  enrollment_expected_session_id: Identifier;
+  classification?: ClientSessionCadenceClassification | null;
+  note?: string | null;
+  resolved_at?: string | null;
+  created_at: string;
+  updated_at: string;
+} & Pick<RaRecord, "id">;
+
+export type ClientSessionCadenceIssueEventKind =
+  | "created"
+  | "resolved"
+  | "reclassified"
+  | "reopened";
+
+// Append-only history for ClientSessionCadenceIssue above — same
+// rationale as ClientSessionEvent/SalesCallEvent: a classification
+// changed (or reopened) more than once must never collapse into a
+// single summary field.
+export type ClientSessionCadenceIssueEvent = {
+  cadence_issue_id: Identifier;
+  kind: ClientSessionCadenceIssueEventKind;
+  // The classification AS OF this event (kind = "resolved" or
+  // "reclassified") — null for "created"/"reopened".
+  classification?: ClientSessionCadenceClassification | null;
+  note?: string | null;
+  occurred_at: string;
+  created_at: string;
+} & Pick<RaRecord, "id">;
+
 export type OpportunityOutcome =
   | "nurture"
   | "needs_higher_care"
@@ -570,6 +739,10 @@ export type Task = {
   // unresolved booking at once, so contact_id alone can't disambiguate
   // which one this Task is about.
   sales_call_id?: Identifier | null;
+  // Client + Session Operations cadence correction: only ever set for
+  // resolve_client_session_cadence Tasks — an active Enrollment can have
+  // more than one unresolved cadence week at once.
+  cadence_issue_id?: Identifier | null;
 } & Pick<RaRecord, "id">;
 
 export type ActivityCompanyCreated = {

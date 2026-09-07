@@ -6,6 +6,7 @@ import {
   useRefresh,
   useTranslate,
 } from "ra-core";
+import type { Identifier } from "ra-core";
 import { Link } from "react-router";
 
 import { EditButton } from "@/components/admin/edit-button";
@@ -16,11 +17,27 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent } from "@/components/ui/card";
 
 import { Avatar } from "../contacts/Avatar";
-import { formatISODateString } from "../deals/dealUtils";
+import {
+  formatISODateString,
+  formatMonthDayString,
+  formatTimestampWithTimeString,
+} from "../deals/dealUtils";
 import { formatOfferPageAmount } from "../deals/offerPageMoney";
 import { formatRemainingInstallmentsCopy } from "../deals/paymentPlanRemainingCopy";
 import { useConfigurationContext } from "../root/ConfigurationContext";
-import type { Enrollment, EnrollmentOnboardingItem } from "../types";
+import { CadenceResolutionModal } from "../sessions/CadenceResolutionModal";
+import { formatWindowWeekLabel } from "../sessions/cadenceWeekLabel";
+import { findNoShowSessionInSlot } from "../sessions/findNoShowSessionInSlot";
+import { markClientSessionNoShow } from "../sessions/markClientSessionNoShow";
+import { reverseClientSessionNoShow } from "../sessions/reverseClientSessionNoShow";
+import type { ExpectedWeekSummary } from "../sessions/computeClientSessionCadenceSummary";
+import { useClientSessionCadence } from "../sessions/useClientSessionCadence";
+import type {
+  ClientSession,
+  Enrollment,
+  EnrollmentOnboardingItem,
+  Offer,
+} from "../types";
 import { activateEnrollment } from "./activateEnrollment";
 import { completeOnboardingItem } from "./completeOnboardingItem";
 import { enrollmentStatusLabels } from "./enrollmentConstants";
@@ -106,6 +123,18 @@ const EnrollmentOperationalHome = () => {
         items={items}
         tasks={tasks}
       />
+
+      {/* Client + Session Operations slice A: only for an ACTIVE Enrollment
+          whose Offer actually has paid-client-session tracking configured
+          (currently only The Living Example) — an onboarding/offboarding/
+          completed Enrollment, or an Offer with no session mapping at all
+          (e.g. Growing Yourself Up — group-session attendance is out of
+          scope for this slice), simply doesn't show this section rather
+          than rendering an empty/meaningless one. */}
+      {enrollment.status === "active" &&
+        offer.client_session_acuity_appointment_type_id != null && (
+          <SessionsCard enrollment={enrollment} offer={offer} />
+        )}
     </div>
   );
 };
@@ -384,6 +413,420 @@ const OnboardingItemRow = ({
           onClick={onMarkSent}
         >
           {translate("resources.enrollments.mark_sent", { _: "Mark sent" })}
+        </Button>
+      )}
+    </div>
+  );
+};
+
+// Client + Session Operations, ClientShow UX correction: answers "what is
+// happening with this client right now?" — a compact summary, an
+// Attention section that appears ONLY when something needs Leif's
+// judgment, the current period's weeks in plain language, and the full
+// multi-month history collapsed behind a disclosure. Replaces the
+// earlier, too-ledger-like version (human acceptance: an LE client can
+// have ~12 sessions across four months — Leif should never have to scan
+// all of them during normal operation). Cadence correction: a booked
+// session is assumed attended BY DEFAULT — there is no "Mark Completed"
+// step. The only manual action is the reversible negative exception,
+// No-show — see markClientSessionNoShow.ts / reverseClientSessionNoShow.ts.
+const SessionsCard = ({
+  enrollment,
+  offer,
+}: {
+  enrollment: Enrollment;
+  offer: Offer;
+}) => {
+  const translate = useTranslate();
+  const dataProvider = useDataProvider();
+  const notify = useNotify();
+  const refresh = useRefresh();
+  const [pendingSessionId, setPendingSessionId] = useState<
+    ClientSession["id"] | null
+  >(null);
+  // Resolution UX correction: the Resolve modal opens as LOCAL state,
+  // never a navigation — Leif stays on this exact page/scroll position
+  // throughout. null means closed.
+  const [openCadenceIssueId, setOpenCadenceIssueId] =
+    useState<Identifier | null>(null);
+
+  const cadence = useClientSessionCadence(enrollment.id, true);
+
+  // Same re-entrancy-guard-in-handler shape as the onboarding checklist's
+  // own toggleItem (human-acceptance repair, round 4) — never passes
+  // `disabled` to a control, so it never earns the browser's prohibited
+  // cursor during its own ~1s mutation; a click on the SAME session while
+  // its write is in flight is just a safe no-op.
+  const handleNoShow = async (session: ClientSession) => {
+    if (pendingSessionId === session.id) return;
+    setPendingSessionId(session.id);
+    try {
+      const result = await markClientSessionNoShow(dataProvider, session.id);
+      if (result.status === "not-yet-occurred") {
+        notify("resources.enrollments.sessions.not_yet_occurred", {
+          type: "warning",
+          _: "This session hasn't happened yet.",
+        });
+      } else if (result.status === "cancelled-session") {
+        notify("resources.enrollments.sessions.cancelled_session", {
+          type: "warning",
+          _: "This session was cancelled — showing the current state.",
+        });
+      }
+    } catch {
+      notify("ra.notification.http_error", { type: "error" });
+    } finally {
+      setPendingSessionId(null);
+      refresh();
+    }
+  };
+
+  const handleReverseNoShow = async (session: ClientSession) => {
+    if (pendingSessionId === session.id) return;
+    setPendingSessionId(session.id);
+    try {
+      await reverseClientSessionNoShow(dataProvider, session.id);
+    } catch {
+      notify("ra.notification.http_error", { type: "error" });
+    } finally {
+      setPendingSessionId(null);
+      refresh();
+    }
+  };
+
+  if (cadence.isPending) return null;
+
+  return (
+    <div className="flex flex-col gap-3">
+      <div>
+        <h3 className="text-sm font-medium text-muted-foreground">
+          {translate("resources.enrollments.sessions.title", {
+            _: "Sessions",
+          })}
+        </h3>
+        <p className="text-xs text-muted-foreground">
+          {translate("resources.enrollments.sessions.orientation", {
+            _: "A booked session counts by default — no need to mark anything, unless something didn't happen as planned.",
+          })}
+        </p>
+      </div>
+
+      <Card>
+        <CardContent className="flex flex-col gap-1">
+          {cadence.currentServicePeriod != null ? (
+            <span className="text-lg font-semibold">
+              {translate(
+                "resources.enrollments.sessions.sessions_this_period",
+                {
+                  _: "%{fulfilled} of %{expected} sessions this period",
+                  fulfilled: cadence.fulfilledCount,
+                  expected: cadence.expectedCount,
+                },
+              )}
+            </span>
+          ) : (
+            <span className="text-sm text-muted-foreground">
+              {translate("resources.enrollments.sessions.no_start_date", {
+                _: "No expected sessions assigned yet.",
+              })}
+            </span>
+          )}
+          <span className="text-sm text-muted-foreground">
+            {cadence.nextSession
+              ? translate("resources.enrollments.sessions.next_at", {
+                  _: "Next: %{when}",
+                  when: formatTimestampWithTimeString(
+                    cadence.nextSession.scheduled_at,
+                  ),
+                })
+              : translate("resources.enrollments.sessions.no_session_booked", {
+                  _: "No session booked",
+                })}
+          </span>
+        </CardContent>
+      </Card>
+
+      {cadence.attentionItems.length > 0 && (
+        <Card className="border-destructive/40">
+          <CardContent className="flex flex-col gap-1">
+            <span className="text-xs font-medium text-destructive tracking-wide">
+              {translate("resources.enrollments.sessions.needs_attention", {
+                _: "Needs attention",
+              })}
+            </span>
+            <div className="flex flex-col divide-y">
+              {cadence.attentionItems.map((item) => (
+                <AttentionRow
+                  key={item.slot.id}
+                  item={item}
+                  sessions={cadence.sessions}
+                  onResolve={() => setOpenCadenceIssueId(item.issue!.id)}
+                />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {cadence.expectedWeeks.length > 0 && (
+        <Card>
+          <CardContent className="flex flex-col gap-1">
+            <span className="text-xs text-muted-foreground tracking-wide">
+              {translate("resources.enrollments.sessions.current_period", {
+                _: "Current Service Period",
+              })}
+            </span>
+            <div className="flex flex-col divide-y">
+              {cadence.expectedWeeks.map((week) => (
+                <PeriodRow
+                  key={week.slot.id}
+                  week={week}
+                  onResolve={() => setOpenCadenceIssueId(week.issue!.id)}
+                />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      <details className="group rounded-lg border">
+        <summary className="cursor-pointer list-none px-4 py-2.5 text-xs text-muted-foreground tracking-wide flex items-center justify-between">
+          {translate("resources.enrollments.sessions.history", {
+            _: "History",
+          })}
+          <span className="text-muted-foreground group-open:rotate-180 transition-transform">
+            ▾
+          </span>
+        </summary>
+        <div className="flex flex-col divide-y px-4 pb-2.5">
+          {cadence.sessions.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-2.5">
+              {translate("resources.enrollments.sessions.no_sessions_yet", {
+                _: "No %{offer} sessions booked yet.",
+                offer: offer.name,
+              })}
+            </p>
+          ) : (
+            cadence.sessions.map((session) => (
+              <ClientSessionRow
+                key={session.id}
+                session={session}
+                onNoShow={() => handleNoShow(session)}
+                onReverseNoShow={() => handleReverseNoShow(session)}
+              />
+            ))
+          )}
+        </div>
+      </details>
+
+      <CadenceResolutionModal
+        cadenceIssueId={openCadenceIssueId}
+        onOpenChange={(open) => {
+          if (!open) setOpenCadenceIssueId(null);
+        }}
+        onChange={refresh}
+      />
+    </div>
+  );
+};
+
+// Human-facing per-window language (UX correction) — deliberately never
+// the internal status vocabulary ("Fulfilled"/"Pending"/"Unresolved"):
+// Leif thinks in sessions and plain outcomes, not calendar-window
+// database states.
+const periodRowLabel = (
+  week: ExpectedWeekSummary,
+  translate: ReturnType<typeof useTranslate>,
+): string => {
+  switch (week.status) {
+    case "fulfilled":
+      return translate("resources.enrollments.sessions.session_on", {
+        _: "Session %{date}",
+        date: formatMonthDayString(
+          week.fulfillingSession!.scheduled_at.slice(0, 10),
+        ),
+      });
+    case "pending":
+      return translate("resources.enrollments.sessions.upcoming", {
+        _: "Upcoming",
+      });
+    case "unresolved":
+      return translate("resources.enrollments.sessions.no_session_booked", {
+        _: "No session booked",
+      });
+    case "known_skip":
+      return translate(
+        "resources.enrollments.sessions.cadence_status.known_skip",
+        {
+          _: "Known skip",
+        },
+      );
+    case "rescheduled":
+      return translate(
+        "resources.enrollments.sessions.cadence_status.rescheduled",
+        { _: "Rescheduled" },
+      );
+    case "missed_ghosted":
+      return translate(
+        "resources.enrollments.sessions.cadence_status.missed_ghosted",
+        { _: "Missed / ghosted" },
+      );
+  }
+};
+
+const CLASSIFIED_STATUSES = new Set([
+  "known_skip",
+  "rescheduled",
+  "missed_ghosted",
+]);
+
+const PeriodRow = ({
+  week,
+  onResolve,
+}: {
+  week: ExpectedWeekSummary;
+  onResolve: () => void;
+}) => {
+  const translate = useTranslate();
+  // A week already classified has no Attention row anymore to reopen it
+  // from — this is its own path back into the same modal, so a
+  // classification made by mistake is always correctable, not just
+  // during the brief window before it's resolved.
+  const canEdit = CLASSIFIED_STATUSES.has(week.status) && week.issue != null;
+
+  return (
+    <div className="flex items-center gap-3 py-2 first:pt-0 last:pb-0 text-sm">
+      <span className="text-muted-foreground w-28 shrink-0">
+        {formatWindowWeekLabel(week.slot)}
+      </span>
+      <span
+        className={
+          week.status === "pending" ? "text-muted-foreground" : undefined
+        }
+      >
+        {periodRowLabel(week, translate)}
+      </span>
+      {canEdit && (
+        <button
+          type="button"
+          onClick={onResolve}
+          className="text-xs text-muted-foreground underline hover:no-underline ml-auto shrink-0"
+        >
+          {translate("resources.enrollments.sessions.resolve", {
+            _: "Resolve",
+          })}
+        </button>
+      )}
+    </div>
+  );
+};
+
+const AttentionRow = ({
+  item,
+  sessions,
+  onResolve,
+}: {
+  item: ExpectedWeekSummary;
+  sessions: ClientSession[];
+  onResolve: () => void;
+}) => {
+  const translate = useTranslate();
+  const noShowSession = findNoShowSessionInSlot(sessions, item.slot);
+
+  return (
+    <div className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0">
+      <div className="flex flex-col min-w-0 flex-1 text-sm">
+        <span>
+          {formatWindowWeekLabel(item.slot)} ·{" "}
+          {noShowSession
+            ? translate(
+                "resources.enrollments.sessions.session_marked_no_show",
+                {
+                  _: "%{date} session marked no-show",
+                  date: formatMonthDayString(
+                    noShowSession.scheduled_at.slice(0, 10),
+                  ),
+                },
+              )
+            : translate("resources.enrollments.sessions.no_session_booked", {
+                _: "No session booked",
+              })}
+        </span>
+      </div>
+      {item.issue && (
+        <button
+          type="button"
+          onClick={onResolve}
+          className="text-sm underline hover:no-underline shrink-0"
+        >
+          {translate("resources.enrollments.sessions.resolve", {
+            _: "Resolve",
+          })}
+        </button>
+      )}
+    </div>
+  );
+};
+
+const clientSessionStatusLabels: Record<ClientSession["status"], string> = {
+  booked: "Booked",
+  cancelled: "Cancelled",
+};
+
+const ClientSessionRow = ({
+  session,
+  onNoShow,
+  onReverseNoShow,
+}: {
+  session: ClientSession;
+  onNoShow: () => void;
+  onReverseNoShow: () => void;
+}) => {
+  const translate = useTranslate();
+  const isPast = new Date(session.scheduled_at) <= new Date();
+  const canMarkNoShow =
+    session.status === "booked" && isPast && !session.no_show_at;
+  const canReverseNoShow = !!session.no_show_at;
+
+  return (
+    <div className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0">
+      <div className="flex flex-col min-w-0 flex-1">
+        <span className="text-sm">
+          {formatTimestampWithTimeString(session.scheduled_at)}
+        </span>
+        <span className="text-xs text-muted-foreground">
+          {session.no_show_at
+            ? translate("resources.enrollments.sessions.no_show", {
+                _: "No-show",
+              })
+            : translate(
+                `resources.enrollments.sessions.status.${session.status}`,
+                { _: clientSessionStatusLabels[session.status] },
+              )}
+          {session.reschedule_count > 0 &&
+            ` · ${translate("resources.enrollments.sessions.rescheduled", {
+              _: "Rescheduled",
+            })}`}
+        </span>
+      </div>
+      {/* No `disabled` here on purpose — same rationale as the onboarding
+          checklist's own checkbox (human-acceptance repair, round 4):
+          re-entrancy during the ~1s mutation is already guarded in the
+          handler above (pendingSessionId check), so this never needs to
+          earn index.css's `button:disabled { cursor: not-allowed }` for a
+          perfectly normal click. */}
+      {canMarkNoShow && (
+        <Button size="sm" variant="outline" onClick={onNoShow}>
+          {translate("resources.enrollments.sessions.mark_no_show", {
+            _: "No-show",
+          })}
+        </Button>
+      )}
+      {canReverseNoShow && (
+        <Button size="sm" variant="ghost" onClick={onReverseNoShow}>
+          {translate("resources.enrollments.sessions.undo_no_show", {
+            _: "Undo No-show",
+          })}
         </Button>
       )}
     </div>

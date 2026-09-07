@@ -34,6 +34,7 @@ import { GroupProgramPage } from "../programs/GroupProgramPage";
 import { IndividualProgramPage } from "../programs/IndividualProgramPage";
 import { ProgramsPage } from "../programs/ProgramsPage";
 import { ResolveSalesCallPage } from "../sales-calls/ResolveSalesCallPage";
+import { ResolveCadenceIssuePage } from "../sessions/ResolveCadenceIssuePage";
 import { LivingExampleApplicationPage } from "../public-application/LivingExampleApplicationPage";
 import { GrowingYourselfUpApplicationPage } from "../public-application/GrowingYourselfUpApplicationPage";
 import { createDataProviderPublicApplicationDataSource } from "../public-application/publicApplicationDataSource";
@@ -363,6 +364,10 @@ const DesktopAdmin = (
           path={ResolveSalesCallPage.path}
           element={<ResolveSalesCallPage />}
         />
+        <Route
+          path={ResolveCadenceIssuePage.path}
+          element={<ResolveCadenceIssuePage />}
+        />
       </CustomRoutes>
       <Resource name="deals" {...deals} />
       <Resource name="applications" {...applications} />
@@ -474,6 +479,10 @@ const MobileAdmin = (
           <Route
             path={ResolveSalesCallPage.path}
             element={<ResolveSalesCallPage />}
+          />
+          <Route
+            path={ResolveCadenceIssuePage.path}
+            element={<ResolveCadenceIssuePage />}
           />
         </CustomRoutes>
         {/* Opportunities/Programs/Clients are primary mobile nav destinations

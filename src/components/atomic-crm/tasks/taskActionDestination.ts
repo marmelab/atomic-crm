@@ -22,6 +22,7 @@ export type TaskActionKind =
   | "opportunity-context"
   | "enrollment-context"
   | "resolve-sales-call"
+  | "resolve-client-session-cadence"
   | "task-detail";
 
 // review_application: the actual action (Approve / Needs Higher Care /
@@ -79,6 +80,17 @@ const RESOLVE_SALES_CALL_TYPES: ReadonlySet<string> = new Set([
   "resolve_sales_call",
 ]);
 
+// resolve_client_session_cadence (Client + Session Operations cadence
+// correction): same "no generic Edit sheet" reasoning as
+// resolve_sales_call above — the actual question ("known skip,
+// rescheduled, or missed/ghosted?") isn't answerable from Description/Due
+// date/Type/Status either. Resolves DETERMINISTICALLY via
+// Task.cadence_issue_id (always set at creation — no legacy fallback
+// needed, unlike sales_call_id's) to its own dedicated resolution page.
+const RESOLVE_CLIENT_SESSION_CADENCE_TYPES: ReadonlySet<string> = new Set([
+  "resolve_client_session_cadence",
+]);
+
 // "other" and any custom/unrecognized type: no type-specific destination
 // exists to resolve. Falls back to "task-detail" (open the Task's own edit
 // view — the existing TaskEdit/TaskEditSheet already wired to Task.tsx's
@@ -94,6 +106,9 @@ export const classifyTaskActionKind = (
   }
   if (taskType && RESOLVE_SALES_CALL_TYPES.has(taskType)) {
     return "resolve-sales-call";
+  }
+  if (taskType && RESOLVE_CLIENT_SESSION_CADENCE_TYPES.has(taskType)) {
+    return "resolve-client-session-cadence";
   }
   if (taskType && OPPORTUNITY_CONTEXT_TYPES.has(taskType)) {
     return "opportunity-context";

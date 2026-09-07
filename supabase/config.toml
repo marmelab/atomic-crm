@@ -191,3 +191,11 @@ verify_jwt = false
 # Supabase JWT automatically — same as offer_page/public_application.
 [functions.stripe_webhook]
 verify_jwt = false
+# Client + Session Operations cadence correction: invoked by pg_cron/
+# pg_net (a scheduled Postgres job, not a CRM session) and, for manual
+# testing, directly by hand — neither carries a real Supabase JWT. Its
+# own x-cron-secret header check (see index.ts) is the real
+# authentication here, same reasoning as acuity_webhook/stripe_webhook
+# above.
+[functions.sync_year_planning_calendar]
+verify_jwt = false

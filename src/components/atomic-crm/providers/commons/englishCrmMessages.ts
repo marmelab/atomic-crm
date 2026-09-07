@@ -425,6 +425,49 @@ export const englishCrmMessages = {
         "This Enrollment is no longer awaiting onboarding — showing the current state.",
       activation_incomplete:
         "Some required items are still incomplete — showing the current state.",
+      sessions: {
+        title: "Sessions",
+        orientation:
+          "A booked session counts by default — no need to mark anything, unless something didn't happen as planned.",
+        sessions_this_period:
+          "%{fulfilled} of %{expected} sessions this period",
+        next_at: "Next: %{when}",
+        no_start_date: "No expected sessions assigned yet.",
+        no_session_booked: "No session booked",
+        needs_attention: "Needs attention",
+        session_marked_no_show: "%{date} session marked no-show",
+        current_period: "Current Service Period",
+        session_on: "Session %{date}",
+        upcoming: "Upcoming",
+        resolve: "Resolve",
+        history: "History",
+        no_sessions_yet: "No %{offer} sessions booked yet.",
+        mark_no_show: "No-show",
+        undo_no_show: "Undo No-show",
+        no_show: "No-show",
+        rescheduled: "Rescheduled",
+        not_yet_occurred: "This session hasn't happened yet.",
+        cancelled_session:
+          "This session was cancelled — showing the current state.",
+        status: {
+          booked: "Booked",
+          cancelled: "Cancelled",
+        },
+        cadence_status: {
+          known_skip: "Known skip",
+          rescheduled: "Rescheduled",
+          missed_ghosted: "Missed / ghosted",
+        },
+      },
+      cadence: {
+        modal_title: "What happened this week?",
+        not_found: "This item no longer exists.",
+        no_session_booked: "No session booked",
+        session_marked_no_show: "%{date} session marked no-show",
+        note_placeholder: "Note (optional)",
+        currently: "Currently: %{classification}",
+        clear_decision: "Clear decision",
+      },
     },
     waitlist_entries: {
       name: "Waitlist |||| Waitlists",

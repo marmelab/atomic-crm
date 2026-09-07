@@ -1,5 +1,9 @@
 import type {
   Application,
+  ClientSession,
+  ClientSessionCadenceIssue,
+  ClientSessionCadenceIssueEvent,
+  ClientSessionEvent,
   Cohort,
   Company,
   Contact,
@@ -8,7 +12,9 @@ import type {
   DealNote,
   DealStageEvent,
   Enrollment,
+  EnrollmentExpectedSession,
   EnrollmentOnboardingItem,
+  ExpectedSessionWindow,
   Offer,
   OfferPaymentOption,
   OnboardingRequirementTemplate,
@@ -38,6 +44,12 @@ export interface Db {
   waitlist_entries: WaitlistEntry[];
   sales_calls: SalesCall[];
   sales_call_events: SalesCallEvent[];
+  client_sessions: ClientSession[];
+  client_session_events: ClientSessionEvent[];
+  expected_session_windows: ExpectedSessionWindow[];
+  enrollment_expected_sessions: EnrollmentExpectedSession[];
+  client_session_cadence_issues: ClientSessionCadenceIssue[];
+  client_session_cadence_issue_events: ClientSessionCadenceIssueEvent[];
   sales: Sale[];
   tags: Tag[];
   tasks: Task[];

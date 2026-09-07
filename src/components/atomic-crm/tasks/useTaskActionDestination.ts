@@ -8,6 +8,7 @@ export type TaskActionDestination =
   | { kind: "opportunity-context"; to: string }
   | { kind: "enrollment-context"; to: string }
   | { kind: "resolve-sales-call"; to: string }
+  | { kind: "resolve-client-session-cadence"; to: string }
   // No real, resolvable destination for this Task — either its type has no
   // dedicated action screen ("other", an unrecognized custom type) or the
   // record it would have pointed to no longer exists (deleted Contact/
@@ -75,13 +76,15 @@ export const useTaskActionDestination = (
       { enabled: needsSalesCallLookup, retry: false },
     );
 
-  // enrollment-context (a real FK, resolved synchronously below with no
-  // query needed) and resolve-sales-call never need this Deals lookup —
-  // excluded from `needsDeals` the same way they were structurally
-  // unreachable before this hook when both were early returns.
+  // enrollment-context and resolve-client-session-cadence (both real FKs,
+  // resolved synchronously below with no query needed) and
+  // resolve-sales-call never need this Deals lookup — excluded from
+  // `needsDeals` the same way they were structurally unreachable before
+  // this hook when both were early returns.
   const needsDeals =
     actionKind !== "task-detail" &&
     actionKind !== "enrollment-context" &&
+    actionKind !== "resolve-client-session-cadence" &&
     !isResolveSalesCall &&
     task.contact_id != null;
 
@@ -112,6 +115,22 @@ export const useTaskActionDestination = (
       },
       { enabled: wantsApplications, retry: false },
     );
+
+  // resolve-client-session-cadence resolves DETERMINISTICALLY off
+  // Task.cadence_issue_id — same reasoning as enrollment-context below,
+  // never the contact_id heuristic every other kind still uses.
+  if (actionKind === "resolve-client-session-cadence") {
+    if (task.cadence_issue_id == null) {
+      return { destination: { kind: "task-detail" }, isPending: false };
+    }
+    return {
+      destination: {
+        kind: "resolve-client-session-cadence",
+        to: `/client-session-cadence/${task.cadence_issue_id}/resolve`,
+      },
+      isPending: false,
+    };
+  }
 
   // enrollment-context resolves DETERMINISTICALLY off Task.enrollment_id —
   // never the contact_id heuristic every other kind below still uses.

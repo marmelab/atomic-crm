@@ -89,6 +89,16 @@ export const defaultTaskTypes = [
   // cancellation, so it never silently strands — see
   // sales-calls/salesCallCancelledTask.ts.
   { value: "sales_call_cancelled", label: "Sales Call Cancelled" },
+  // Client + Session Operations cadence correction: surfaces an active
+  // Enrollment's expected 1:1 week (from Leif's real Year Planning
+  // calendar) that closed with no fulfilling session — see
+  // sessions/resolveClientSessionCadenceIssue.ts. Same "dedicated
+  // resolution page, never the generic Task editor" pattern as
+  // resolve_sales_call above.
+  {
+    value: "resolve_client_session_cadence",
+    label: "Cadence week needs a decision",
+  },
   { value: "other", label: "Other" },
 ];
 

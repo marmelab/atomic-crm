@@ -57,10 +57,14 @@ const typeLabel = (
 // Sales Call Resolution slice: resolve_sales_call joins this set for the
 // same reason — its own text is "%{name} · %{offer} · %{when}"
 // (resolveSalesCallTask.ts), so a Contact with more than one unresolved
-// booking reads as genuinely distinct rows.
+// booking reads as genuinely distinct rows. Client + Session Operations
+// cadence correction: resolve_client_session_cadence joins it too — its
+// own text names the specific week, so an Enrollment with more than one
+// unresolved week also reads as genuinely distinct rows.
 const SELF_DESCRIBING_TASK_TYPES: ReadonlySet<string> = new Set([
   "onboarding_item",
   "resolve_sales_call",
+  "resolve_client_session_cadence",
 ]);
 
 const displayLabel = (
@@ -277,7 +281,8 @@ export const Task = ({
                 ("Sales call needs matching" / "Jane Doe · Offer · date").
                 Only this one type gets it — everything else keeps the
                 single-line title unchanged. */}
-            {task.type === "resolve_sales_call" && (
+            {(task.type === "resolve_sales_call" ||
+              task.type === "resolve_client_session_cadence") && (
               <div className="text-xs uppercase tracking-wide text-muted-foreground">
                 {typeLabel(task, taskTypes)}
               </div>
@@ -429,12 +434,19 @@ export const Task = ({
                 date/Type/Status answer nothing about "what Opportunity
                 does this belong to?". Navigates to the same dedicated
                 resolution page the row's own title already links to,
-                instead of handleEdit, only for this one destination kind —
-                every other type's "Edit" is unchanged. */}
+                instead of handleEdit, only for these destination kinds —
+                every other type's "Edit" is unchanged. Client + Session
+                Operations cadence correction: resolve-client-session-
+                cadence joins it for the same reason (Description/Due
+                date/Type/Status answer nothing about "known skip,
+                rescheduled, or missed/ghosted?" either). */}
             <DropdownMenuItem
               className="cursor-pointer h-12 md:h-8 px-4 md:px-2 text-base md:text-sm"
               onClick={() => {
-                if (destination?.kind === "resolve-sales-call") {
+                if (
+                  destination?.kind === "resolve-sales-call" ||
+                  destination?.kind === "resolve-client-session-cadence"
+                ) {
                   navigate(destination.to);
                   return;
                 }

@@ -10,6 +10,12 @@ import {
   handleScheduled,
   jsonResponse,
 } from "./acuitySalesCallHandlers.ts";
+import {
+  handleClientSessionRescheduled,
+  handleClientSessionScheduled,
+  tryHandleClientSessionCanceled,
+} from "./acuityClientSessionHandlers.ts";
+import { resolveOfferForClientSession } from "./acuityClientSessionMatching.ts";
 
 // Live Acuity Connection slice — the production webhook receiver.
 // Business rules here MIRROR (do not share code with — Deno/Edge Functions
@@ -137,6 +143,16 @@ Deno.serve(async (req: Request) =>
 
     try {
       if (action === "canceled") {
+        // Client + Session Operations slice A: Acuity's own "canceled"
+        // webhook body carries no appointment type — only the id — so
+        // routing here is by "does a client_sessions row exist for this
+        // id", not by type. Tried FIRST, but only ever finds a match for
+        // an id this handler itself created; handleCanceled (sales-call)
+        // is completely untouched and runs exactly as before when it
+        // doesn't.
+        const sessionResult =
+          await tryHandleClientSessionCanceled(appointmentId);
+        if (sessionResult) return sessionResult;
         return await handleCanceled(appointmentId);
       }
 
@@ -149,6 +165,30 @@ Deno.serve(async (req: Request) =>
           503,
           "The appointment could not be fetched from Acuity.",
         );
+      }
+
+      // Client + Session Operations slice A: a PAID CLIENT SESSION
+      // appointment type (e.g. The Living Example's real "Zoom 1:1",
+      // 90522599) is routed entirely to its own handlers, structurally
+      // never reaching sales_calls/resolve_sales_call Task/Opportunity
+      // sales-stage logic — see acuityClientSessionMatching.ts's own
+      // header comment. Checked before the sales-call branches below,
+      // which remain completely unchanged for every other appointment
+      // type.
+      const clientSessionOffer = await resolveOfferForClientSession(
+        String(appointment.appointmentTypeID),
+      );
+      if (clientSessionOffer) {
+        if (action === "scheduled") {
+          return await handleClientSessionScheduled(appointment, appointmentId);
+        }
+        if (action === "rescheduled") {
+          return await handleClientSessionRescheduled(
+            appointment,
+            appointmentId,
+          );
+        }
+        return createErrorResponse(400, `Unknown action: ${action}`);
       }
 
       if (action === "scheduled") {

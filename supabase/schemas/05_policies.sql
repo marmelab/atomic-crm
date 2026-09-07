@@ -25,6 +25,12 @@ alter table public.sales_call_events enable row level security;
 alter table public.deal_stage_events enable row level security;
 alter table public.onboarding_requirement_templates enable row level security;
 alter table public.enrollment_onboarding_items enable row level security;
+alter table public.client_sessions enable row level security;
+alter table public.client_session_events enable row level security;
+alter table public.expected_session_windows enable row level security;
+alter table public.enrollment_expected_sessions enable row level security;
+alter table public.client_session_cadence_issues enable row level security;
+alter table public.client_session_cadence_issue_events enable row level security;
 
 -- Companies
 create policy "Enable read access for authenticated users" on public.companies for select to authenticated using (true);
@@ -138,6 +144,42 @@ create policy "Enable read access for authenticated users" on public.sales_call_
 create policy "Enable insert for authenticated users only" on public.sales_call_events for insert to authenticated with check (true);
 create policy "Enable update for authenticated users only" on public.sales_call_events for update to authenticated using (true) with check (true);
 create policy "Sales Call Events Delete Policy" on public.sales_call_events for delete to authenticated using (true);
+
+-- Client Sessions
+create policy "Enable read access for authenticated users" on public.client_sessions for select to authenticated using (true);
+create policy "Enable insert for authenticated users only" on public.client_sessions for insert to authenticated with check (true);
+create policy "Enable update for authenticated users only" on public.client_sessions for update to authenticated using (true) with check (true);
+create policy "Client Sessions Delete Policy" on public.client_sessions for delete to authenticated using (true);
+
+-- Client Session Events
+create policy "Enable read access for authenticated users" on public.client_session_events for select to authenticated using (true);
+create policy "Enable insert for authenticated users only" on public.client_session_events for insert to authenticated with check (true);
+create policy "Enable update for authenticated users only" on public.client_session_events for update to authenticated using (true) with check (true);
+create policy "Client Session Events Delete Policy" on public.client_session_events for delete to authenticated using (true);
+
+-- Expected Session Windows
+create policy "Enable read access for authenticated users" on public.expected_session_windows for select to authenticated using (true);
+create policy "Enable insert for authenticated users only" on public.expected_session_windows for insert to authenticated with check (true);
+create policy "Enable update for authenticated users only" on public.expected_session_windows for update to authenticated using (true) with check (true);
+create policy "Expected Session Windows Delete Policy" on public.expected_session_windows for delete to authenticated using (true);
+
+-- Enrollment Expected Sessions
+create policy "Enable read access for authenticated users" on public.enrollment_expected_sessions for select to authenticated using (true);
+create policy "Enable insert for authenticated users only" on public.enrollment_expected_sessions for insert to authenticated with check (true);
+create policy "Enable update for authenticated users only" on public.enrollment_expected_sessions for update to authenticated using (true) with check (true);
+create policy "Enrollment Expected Sessions Delete Policy" on public.enrollment_expected_sessions for delete to authenticated using (true);
+
+-- Client Session Cadence Issues
+create policy "Enable read access for authenticated users" on public.client_session_cadence_issues for select to authenticated using (true);
+create policy "Enable insert for authenticated users only" on public.client_session_cadence_issues for insert to authenticated with check (true);
+create policy "Enable update for authenticated users only" on public.client_session_cadence_issues for update to authenticated using (true) with check (true);
+create policy "Client Session Cadence Issues Delete Policy" on public.client_session_cadence_issues for delete to authenticated using (true);
+
+-- Client Session Cadence Issue Events
+create policy "Enable read access for authenticated users" on public.client_session_cadence_issue_events for select to authenticated using (true);
+create policy "Enable insert for authenticated users only" on public.client_session_cadence_issue_events for insert to authenticated with check (true);
+create policy "Enable update for authenticated users only" on public.client_session_cadence_issue_events for update to authenticated using (true) with check (true);
+create policy "Client Session Cadence Issue Events Delete Policy" on public.client_session_cadence_issue_events for delete to authenticated using (true);
 
 -- Deal Stage Events
 create policy "Enable read access for authenticated users" on public.deal_stage_events for select to authenticated using (true);

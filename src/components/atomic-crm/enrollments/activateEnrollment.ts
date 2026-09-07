@@ -54,7 +54,23 @@ export const activateEnrollment = async (
 
   await dataProvider.update("enrollments", {
     id: enrollment.id,
-    data: { status: "active" },
+    data: {
+      status: "active",
+      // Client + Session Operations slice A: the authoritative "trustworthy
+      // service start date" the Service Period model is built on (see
+      // sync_year_planning_calendar/assignEnrollmentExpectedSessions.ts) —
+      // "when did this client's own 12-session cadence begin." Already populated
+      // for a cohort-based Enrollment (handle_deal_won() snapshots the
+      // Cohort's program_start_at); an individually-paced Enrollment (e.g.
+      // a 1:1 Living Example engagement) has no Cohort to snapshot from,
+      // so this is where it becomes known — the real moment onboarding
+      // finished and active service begins. Never overwrites an
+      // already-set date (idempotent, and never rewrites a genuine
+      // Cohort-derived date).
+      ...(enrollment.start_date == null
+        ? { start_date: new Date().toISOString().split("T")[0] }
+        : {}),
+    },
     previousData: enrollment,
   });
 

@@ -433,6 +433,48 @@ export const frenchCrmMessages = {
         "Cette inscription n'est plus en attente d'intégration — état actuel affiché.",
       activation_incomplete:
         "Certains éléments obligatoires restent incomplets — état actuel affiché.",
+      sessions: {
+        title: "Séances",
+        orientation:
+          "Une séance réservée compte par défaut — rien à cocher, sauf si quelque chose ne s'est pas passé comme prévu.",
+        sessions_this_period:
+          "%{fulfilled} séances sur %{expected} cette période",
+        next_at: "Prochaine : %{when}",
+        no_start_date: "Aucune séance attendue assignée pour l'instant.",
+        no_session_booked: "Aucune séance réservée",
+        needs_attention: "Nécessite votre attention",
+        session_marked_no_show: "Séance du %{date} marquée absente",
+        current_period: "Période de service actuelle",
+        session_on: "Séance du %{date}",
+        upcoming: "À venir",
+        resolve: "Résoudre",
+        history: "Historique",
+        no_sessions_yet: "Aucune séance %{offer} réservée pour l'instant.",
+        mark_no_show: "Absence",
+        undo_no_show: "Annuler l'absence",
+        no_show: "Absence",
+        rescheduled: "Reportée",
+        not_yet_occurred: "Cette séance n'a pas encore eu lieu.",
+        cancelled_session: "Cette séance a été annulée — état actuel affiché.",
+        status: {
+          booked: "Réservée",
+          cancelled: "Annulée",
+        },
+        cadence_status: {
+          known_skip: "Absence connue",
+          rescheduled: "Reportée",
+          missed_ghosted: "Manquée / sans nouvelles",
+        },
+      },
+      cadence: {
+        modal_title: "Que s'est-il passé cette semaine ?",
+        not_found: "Cet élément n'existe plus.",
+        no_session_booked: "Aucune séance réservée",
+        session_marked_no_show: "Séance du %{date} marquée absence",
+        note_placeholder: "Note (facultatif)",
+        currently: "Actuellement : %{classification}",
+        clear_decision: "Effacer la décision",
+      },
     },
     waitlist_entries: {
       name: "Liste d'attente |||| Listes d'attente",

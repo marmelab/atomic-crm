@@ -17,7 +17,7 @@ export const isBeforeFriday = () => getDay(new Date()) < 5; // Friday is represe
 // as Overdue merely because its internal due_date rolled into the past —
 // it always shows in Today instead, for as long as it's unresolved).
 export const TASK_TYPES_WITHOUT_MEANINGFUL_DUE_DATE: ReadonlySet<string> =
-  new Set(["resolve_sales_call"]);
+  new Set(["resolve_sales_call", "resolve_client_session_cadence"]);
 
 type Task = {
   due_date: string;

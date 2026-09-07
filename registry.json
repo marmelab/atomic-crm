@@ -238,6 +238,90 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/sessions/useClientSessionCadence.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/sessions/reverseClientSessionNoShow.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/sessions/resolveClientSessionCadenceIssue.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/sessions/resolveCadenceIssueTask.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/sessions/resolveCadenceIssueFulfillment.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/sessions/rescheduleClientSession.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/sessions/processClientSessionAcuityEvent.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/sessions/matchClientSessionEnrollment.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/sessions/matchClientSessionAppointment.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/sessions/markClientSessionNoShow.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/sessions/loadCadenceIssueResolutionContext.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/sessions/findNoShowSessionInSlot.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/sessions/findEnrollmentExpectedSessionForSession.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/sessions/ensureCadenceIssueOpen.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/sessions/computeClientSessionCadenceSummary.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/sessions/clientSessionAcuityMapping.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/sessions/cancelClientSession.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/sessions/cadenceWeekLabel.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/sessions/bookClientSession.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/sessions/ResolveCadenceIssuePage.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/sessions/CadenceResolutionModal.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/sales-calls/syncDealSalesCallAt.ts",
           "type": "registry:component"
         },
