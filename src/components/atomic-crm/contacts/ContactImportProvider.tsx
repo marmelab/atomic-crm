@@ -220,10 +220,15 @@ const ContactImportProgressToast = ({
     importer.state === "running" ? importer.remainingTime : null;
 
   useEffect(() => {
-    if (!isImporting) {
+    if (!isImporting) return;
+
+    return () => {
       toast.dismiss(TOAST_ID);
-      return;
-    }
+    };
+  }, [isImporting]);
+
+  useEffect(() => {
+    if (!isImporting) return;
 
     toast.custom(
       () => (
@@ -277,13 +282,6 @@ const ContactImportProgressToast = ({
     translate,
     onStop,
   ]);
-
-  useEffect(
-    () => () => {
-      toast.dismiss(TOAST_ID);
-    },
-    [],
-  );
 
   return null;
 };
