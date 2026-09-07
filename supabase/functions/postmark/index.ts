@@ -63,11 +63,10 @@ Deno.serve(async (req) => {
 
   const salesEmails =
     allSales.data
-      ?.flatMap((s: { email: string; secondary_emails: unknown }) => [
+      ?.flatMap((s: { email: string; secondary_emails: string[] }) => [
         s.email,
-        ...(Array.isArray(s.secondary_emails) ? s.secondary_emails : []),
+        ...s.secondary_emails,
       ])
-      .filter((email: unknown): email is string => typeof email === "string")
       .map((email: string) => email.toLowerCase()) ?? [];
 
   const firstToEmail = (ToFull[0]?.Email || "").toLowerCase();
