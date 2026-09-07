@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { render } from "vitest-browser-react";
+import { page } from "vitest/browser";
 import {
   useNotify,
   type CreateParams,
@@ -10,7 +11,6 @@ import { toast } from "sonner";
 
 import { StoryWrapper } from "@/test/StoryWrapper";
 import { ContactImportButton } from "./ContactImportButton";
-import { useContactImportContext } from "./ContactImportContext";
 
 const ROW_COUNT = 80;
 
@@ -21,19 +21,6 @@ const csv = [
 
 let createDelay = 200;
 let createdCount = 0;
-
-const StartImportTrigger = () => {
-  const { startImport } = useContactImportContext();
-  return (
-    <button
-      onClick={() =>
-        startImport(new File([csv], "contacts.csv", { type: "text/csv" }))
-      }
-    >
-      start import
-    </button>
-  );
-};
 
 const NotifyTrigger = () => {
   const notify = useNotify();
@@ -49,14 +36,7 @@ const UnmountableImportControls = () => {
   return (
     <>
       <button onClick={() => setIsMounted(false)}>unmount contact list</button>
-      {isMounted ? (
-        <>
-          <ContactImportButton />
-          <StartImportTrigger />
-        </>
-      ) : (
-        <p>contact list unmounted</p>
-      )}
+      {isMounted ? <ContactImportButton /> : <p>contact list unmounted</p>}
     </>
   );
 };
@@ -77,12 +57,39 @@ const ImportHarness = ({ children }: { children?: ReactNode }) => (
     {children ?? (
       <>
         <ContactImportButton />
-        <StartImportTrigger />
         <NotifyTrigger />
       </>
     )}
   </StoryWrapper>
 );
+
+type Screen = Awaited<ReturnType<typeof render>>;
+
+const openImportDialog = (screen: Screen) =>
+  screen.getByRole("button", { name: /import csv/i }).click();
+
+const selectCsvFile = () => {
+  const input = document.querySelector<HTMLInputElement>('input[type="file"]');
+  if (!input) throw new Error("The import dialog has no file input");
+  return page
+    .elementLocator(input)
+    .upload(new File([csv], "contacts.csv", { type: "text/csv" }));
+};
+
+const submitImportDialog = (screen: Screen) =>
+  screen
+    .getByRole("toolbar")
+    .getByRole("button", { name: /import csv/i })
+    .click();
+
+const startImport = async (screen: Screen) => {
+  await openImportDialog(screen);
+  await selectCsvFile();
+  await submitImportDialog(screen);
+  await expect
+    .element(screen.getByText(/Importing contacts/))
+    .toBeInTheDocument();
+};
 
 const finishRemainingBatchesFast = () => {
   createDelay = 0;
@@ -115,11 +122,8 @@ describe("contact import", () => {
   it("reports progress in a snackbar and notifies when the import ends", async () => {
     const screen = await render(<ImportHarness />);
 
-    await screen.getByRole("button", { name: "start import" }).click();
+    await startImport(screen);
 
-    await expect
-      .element(screen.getByText(/Importing contacts/))
-      .toBeInTheDocument();
     await expect
       .element(screen.getByText(new RegExp(`/ ${ROW_COUNT} contacts`)))
       .toBeInTheDocument();
@@ -138,15 +142,50 @@ describe("contact import", () => {
       .not.toBeInTheDocument();
   });
 
+  it("closes the dialog when the import starts", async () => {
+    const screen = await render(<ImportHarness />);
+
+    await startImport(screen);
+
+    await expect.element(screen.getByRole("dialog")).not.toBeInTheDocument();
+
+    finishRemainingBatchesFast();
+
+    await expect
+      .element(
+        screen.getByText(
+          `Contacts import complete. Imported ${ROW_COUNT} contacts, with 0 errors`,
+        ),
+      )
+      .toBeInTheDocument();
+    expect(createdCount).toBe(ROW_COUNT);
+  });
+
+  it("prevents starting a second import while one is running", async () => {
+    const screen = await render(<ImportHarness />);
+
+    await startImport(screen);
+
+    await expect
+      .element(screen.getByRole("button", { name: /import csv/i }))
+      .toBeDisabled();
+
+    finishRemainingBatchesFast();
+
+    await expect
+      .element(screen.getByText(/Contacts import complete/))
+      .toBeInTheDocument();
+    await expect
+      .element(screen.getByRole("button", { name: /import csv/i }))
+      .toBeEnabled();
+  });
+
   it("asks the browser to confirm leaving the page only while the import runs", async () => {
     const screen = await render(<ImportHarness />);
 
     expect(dispatchBeforeUnload().defaultPrevented).toBe(false);
 
-    await screen.getByRole("button", { name: "start import" }).click();
-    await expect
-      .element(screen.getByText(/Importing contacts/))
-      .toBeInTheDocument();
+    await startImport(screen);
 
     expect(dispatchBeforeUnload().defaultPrevented).toBe(true);
 
@@ -162,10 +201,7 @@ describe("contact import", () => {
   it("keeps the progress snackbar in its own stack when another notification pops up", async () => {
     const screen = await render(<ImportHarness />);
 
-    await screen.getByRole("button", { name: "start import" }).click();
-    await expect
-      .element(screen.getByText(/Importing contacts/))
-      .toBeInTheDocument();
+    await startImport(screen);
 
     await screen.getByRole("button", { name: "notify" }).click();
     await expect.element(screen.getByText("Contact updated")).toBeVisible();
@@ -188,43 +224,6 @@ describe("contact import", () => {
       .toBeInTheDocument();
   });
 
-  it("keeps importing after the dialog is closed", async () => {
-    const screen = await render(<ImportHarness />);
-
-    await screen.getByRole("button", { name: "start import" }).click();
-    await expect
-      .element(screen.getByText(/Importing contacts/))
-      .toBeInTheDocument();
-
-    await screen.getByRole("button", { name: /import csv/i }).click();
-    await expect
-      .element(screen.getByText(/The import is running/))
-      .toBeVisible();
-    await expect
-      .element(screen.getByText(/You can close this dialog/))
-      .toBeVisible();
-
-    await screen
-      .getByRole("toolbar")
-      .getByRole("button", { name: /^close$/i })
-      .click();
-
-    await expect
-      .element(screen.getByText(/Importing contacts/))
-      .toBeInTheDocument();
-
-    finishRemainingBatchesFast();
-
-    await expect
-      .element(
-        screen.getByText(
-          `Contacts import complete. Imported ${ROW_COUNT} contacts, with 0 errors`,
-        ),
-      )
-      .toBeInTheDocument();
-    expect(createdCount).toBe(ROW_COUNT);
-  });
-
   it("keeps importing after the subtree holding the import button unmounts", async () => {
     const screen = await render(
       <ImportHarness>
@@ -232,10 +231,7 @@ describe("contact import", () => {
       </ImportHarness>,
     );
 
-    await screen.getByRole("button", { name: "start import" }).click();
-    await expect
-      .element(screen.getByText(/Importing contacts/))
-      .toBeInTheDocument();
+    await startImport(screen);
 
     await screen.getByRole("button", { name: "unmount contact list" }).click();
     await expect
@@ -264,7 +260,7 @@ describe("contact import", () => {
   it("disables the dialog submit button until a file is selected", async () => {
     const screen = await render(<ImportHarness />);
 
-    await screen.getByRole("button", { name: /import csv/i }).click();
+    await openImportDialog(screen);
 
     await expect.element(screen.getByText(/Download CSV sample/)).toBeVisible();
     await expect
@@ -279,10 +275,7 @@ describe("contact import", () => {
   it("stops the import from the progress snackbar", async () => {
     const screen = await render(<ImportHarness />);
 
-    await screen.getByRole("button", { name: "start import" }).click();
-    await expect
-      .element(screen.getByText(/Importing contacts/))
-      .toBeInTheDocument();
+    await startImport(screen);
 
     await screen.getByRole("button", { name: /stop import/i }).click();
 

@@ -642,10 +642,6 @@
           "type": "registry:component"
         },
         {
-          "path": "src/components/atomic-crm/contacts/withContactImport.tsx",
-          "type": "registry:component"
-        },
-        {
           "path": "src/components/atomic-crm/contacts/useContactImport.tsx",
           "type": "registry:component"
         },
@@ -703,18 +699,6 @@
         },
         {
           "path": "src/components/atomic-crm/contacts/ContactImportProvider.tsx",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/contacts/ContactImportProgressToast.tsx",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/contacts/ContactImportDialog.tsx",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/contacts/ContactImportContext.tsx",
           "type": "registry:component"
         },
         {

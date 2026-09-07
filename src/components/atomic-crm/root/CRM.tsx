@@ -17,7 +17,6 @@ import { OAuthConsentPage } from "@/components/supabase/oauth-consent-page";
 
 import companies from "../companies";
 import contacts from "../contacts";
-import { withContactImport } from "../contacts/withContactImport";
 import { Dashboard } from "../dashboard/Dashboard";
 import { MobileDashboard } from "../dashboard/MobileDashboard";
 import deals from "../deals";
@@ -237,13 +236,12 @@ const DesktopAdmin = (
     layout?: LayoutComponent;
   },
 ) => {
-  const layout = useMemo(
-    () => withContactImport(props.layout ?? Layout),
-    [props.layout],
-  );
-
   return (
-    <Admin dashboard={props.dashboard ?? Dashboard} {...props} layout={layout}>
+    <Admin
+      layout={props.layout ?? Layout}
+      dashboard={props.dashboard ?? Dashboard}
+      {...props}
+    >
       <CustomRoutes noLayout>
         <Route path={SignupPage.path} element={<SignupPage />} />
         <Route
@@ -296,10 +294,6 @@ const MobileAdmin = (
   const asyncStoragePersister = createAsyncStoragePersister({
     storage: localStorage,
   });
-  const layout = useMemo(
-    () => withContactImport(props.layout ?? MobileLayout),
-    [props.layout],
-  );
 
   return (
     <PersistQueryClientProvider
@@ -308,9 +302,9 @@ const MobileAdmin = (
     >
       <Admin
         queryClient={queryClient}
+        layout={props.layout ?? MobileLayout}
         dashboard={props.dashboard ?? MobileDashboard}
         {...props}
-        layout={layout}
       >
         <CustomRoutes noLayout>
           <Route path={SignupPage.path} element={<SignupPage />} />
