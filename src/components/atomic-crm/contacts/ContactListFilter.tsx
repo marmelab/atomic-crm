@@ -15,6 +15,7 @@ import { useConfigurationContext } from "../root/ConfigurationContext";
 import { ResponsiveFilters } from "../misc/ResponsiveFilters";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ActiveFilterButton } from "../misc/ActiveFilterButton";
+import { AccountManagerFilter } from "../sales/AccountManagerInput";
 
 export const ContactListFilter = () => {
   const { noteStatuses } = useConfigurationContext();
@@ -145,9 +146,13 @@ export const ContactListFilter = () => {
         label="resources.contacts.fields.sales_id"
       >
         <ToggleFilterButton
-          className="w-full justify-between h-10 md:h-8"
+          className="w-auto md:w-full max-w-full justify-between h-10 md:h-8"
           label="crm.common.me"
           value={{ sales_id: identity?.id }}
+          size={isMobile ? "lg" : undefined}
+        />
+        <AccountManagerFilter
+          className="w-auto md:w-full max-w-full justify-between h-10 md:h-8"
           size={isMobile ? "lg" : undefined}
         />
       </FilterCategory>
