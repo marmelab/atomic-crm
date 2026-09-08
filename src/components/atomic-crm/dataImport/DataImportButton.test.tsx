@@ -336,6 +336,41 @@ describe("DataImportButton", () => {
     });
   });
 
+  it("keeps the leading zero of the phone columns of a contact CSV", async () => {
+    const dataProvider = createDataProvider({
+      db: createCrmDb(),
+      latency: 0,
+      silent: true,
+    });
+    const screen = await render(
+      <StoryWrapper dataProvider={dataProvider}>
+        <DataImportButton resource="contacts" />
+      </StoryWrapper>,
+    );
+
+    await screen.getByRole("button", { name: "Import CSV" }).click();
+    await screen
+      .getByLabelText("CSV File")
+      .upload(
+        csvFile("contacts.csv", [
+          "first_name,last_name,phone_work,phone_home,phone_other",
+          "Jane,Doe,0155123456,0033123456,0987654321",
+        ]),
+      );
+    await screen.getByRole("button", { name: "Start import" }).click();
+
+    await expect.element(screen.getByText(/Import complete/)).toBeVisible();
+
+    const { data: contacts } = await listAll(dataProvider, "contacts");
+    // Stored as numbers, these would lose their leading zero and stop matching
+    // the `{ number: string }` the column declares
+    expect(contacts[0].phone_jsonb).toEqual([
+      { number: "0155123456", type: "Work" },
+      { number: "0033123456", type: "Home" },
+      { number: "0987654321", type: "Other" },
+    ]);
+  });
+
   it("reports as errors only the rows the backend refused", async () => {
     const dataProvider = createDataProvider({
       db: createCrmDb(),

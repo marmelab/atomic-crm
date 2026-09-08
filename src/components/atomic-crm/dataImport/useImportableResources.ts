@@ -29,6 +29,7 @@ export function useImportableResources(): ImportableResource[] {
     {
       name: "contacts",
       sampleCsv: contactsSampleCsv,
+      textColumns: ["phone_work", "phone_home", "phone_other"],
       // The contact importer predates the shared ImportRow type and declares
       // its own all-string schema; it reads the same parsed cells.
       processBatch: (batch) => processContacts(batch as ContactImportSchema[]),
