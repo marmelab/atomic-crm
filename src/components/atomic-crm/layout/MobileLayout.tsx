@@ -4,13 +4,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Suspense, type ReactNode } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 
+import { ContactImportProvider } from "../contacts/ContactImportProvider";
 import { useConfigurationLoader } from "../root/useConfigurationLoader";
 import { MobileNavigation } from "./MobileNavigation";
 
 export const MobileLayout = ({ children }: { children: ReactNode }) => {
   useConfigurationLoader();
   return (
-    <>
+    <ContactImportProvider>
       <ErrorBoundary FallbackComponent={Error}>
         <Suspense fallback={<Skeleton className="h-12 w-12 rounded-full" />}>
           {children}
@@ -18,6 +19,6 @@ export const MobileLayout = ({ children }: { children: ReactNode }) => {
       </ErrorBoundary>
       <MobileNavigation />
       <Notification mobileOffset={{ bottom: "72px" }} />
-    </>
+    </ContactImportProvider>
   );
 };

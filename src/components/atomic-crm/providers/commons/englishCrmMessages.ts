@@ -115,8 +115,8 @@ export const englishCrmMessages = {
         error:
           "Failed to import this file, please make sure your provided a valid CSV file.",
         imported: "Imported",
+        in_progress: "Importing contacts…",
         remaining_time: "Estimated remaining time:",
-        running: "The import is running, please do not close this tab.",
         sample_download: "Download CSV sample",
         sample_hint: "Here is a sample CSV file you can use as a template",
         stop: "Stop import",
