@@ -1,11 +1,14 @@
 import { render } from "vitest-browser-react";
+import { page } from "vitest/browser";
 
 import {
+  AdminAccountManagerFilter,
   DesktopEmpty,
   DesktopSuccess,
   DesktopLoading,
   DesktopError,
   BulkTagButton,
+  NonAdminAccountManagerFilter,
 } from "./ContactList.stories";
 
 afterEach(() => {
@@ -140,6 +143,83 @@ describe("ContactList", () => {
     await expect
       .element(screen.getByLabelText("Resource"))
       .not.toBeInTheDocument();
+  });
+
+  describe("account manager filter", () => {
+    beforeAll(() => {
+      page.viewport(1600, 900);
+    });
+
+    it("restricts the list to the contacts of the account manager an admin picks", async () => {
+      const screen = await render(<AdminAccountManagerFilter />);
+
+      await expect.element(screen.getByText("Ada Lovelace")).toBeVisible();
+      await expect.element(screen.getByText("Grace Hopper")).toBeVisible();
+
+      await screen.getByRole("button", { name: "Marie Curie" }).click();
+
+      await expect.element(screen.getByText("Grace Hopper")).toBeVisible();
+      await expect
+        .element(screen.getByText("Ada Lovelace"))
+        .not.toBeInTheDocument();
+    });
+
+    it("brings every contact back when the admin untoggles the account manager", async () => {
+      const screen = await render(<AdminAccountManagerFilter />);
+
+      await screen.getByRole("button", { name: "Marie Curie" }).click();
+      await expect
+        .element(screen.getByText("Ada Lovelace"))
+        .not.toBeInTheDocument();
+
+      await screen.getByRole("button", { name: "Marie Curie" }).click();
+
+      await expect.element(screen.getByText("Ada Lovelace")).toBeVisible();
+      await expect.element(screen.getByText("Grace Hopper")).toBeVisible();
+    });
+
+    it("keeps the current user out of the account manager list, offering only Me", async () => {
+      const screen = await render(<AdminAccountManagerFilter />);
+
+      await expect
+        .element(screen.getByRole("button", { name: "Me" }))
+        .toBeVisible();
+      await expect
+        .element(screen.getByRole("button", { name: "Jane Doe" }))
+        .not.toBeInTheDocument();
+    });
+
+    it("offers no account manager list to a user who is not an admin", async () => {
+      const screen = await render(<NonAdminAccountManagerFilter />);
+
+      await expect
+        .element(screen.getByRole("button", { name: "Me" }))
+        .toBeVisible();
+      await expect
+        .element(screen.getByRole("button", { name: "Marie Curie" }))
+        .not.toBeInTheDocument();
+    });
+  });
+
+  describe("account manager filter on mobile", () => {
+    beforeAll(() => {
+      page.viewport(375, 667);
+    });
+
+    it("picks an account manager from inside the filter sheet", async () => {
+      const screen = await render(<AdminAccountManagerFilter />);
+
+      await expect.element(screen.getByText("Ada Lovelace")).toBeVisible();
+
+      await screen.getByRole("button", { name: "Add filter" }).click();
+      await screen.getByRole("button", { name: "Marie Curie" }).click();
+      await screen.getByRole("button", { name: "Confirm" }).click();
+
+      await expect.element(screen.getByText("Grace Hopper")).toBeVisible();
+      await expect
+        .element(screen.getByText("Ada Lovelace"))
+        .not.toBeInTheDocument();
+    });
   });
 });
 

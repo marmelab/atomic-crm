@@ -63,9 +63,6 @@ export const frenchCrmMessages = {
         create_item: "Créer %{item}",
         create_label: "Commencez à taper pour créer une nouvelle entreprise",
       },
-      filters: {
-        only_mine: "Seulement les entreprises que je gère",
-      },
     },
     contacts: {
       name: "Contact |||| Contacts",
@@ -201,6 +198,9 @@ export const frenchCrmMessages = {
       },
       field_categories: {
         misc: "Divers",
+      },
+      filters: {
+        only_mine: "Seulement les affaires que je gère",
       },
       archived: {
         action: "Archiver",
@@ -386,6 +386,7 @@ export const frenchCrmMessages = {
       welcome_title: "Bienvenue sur Atomic CRM",
     },
     common: {
+      account_manager: "Responsable de compte",
       activity: "Activité",
       added: "ajoutée",
       details: "Détails",

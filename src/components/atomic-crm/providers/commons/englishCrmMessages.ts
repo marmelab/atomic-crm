@@ -60,9 +60,6 @@ export const englishCrmMessages = {
         create_item: "Create %{item}",
         create_label: "Start typing to create a new company",
       },
-      filters: {
-        only_mine: "Only companies I manage",
-      },
     },
     contacts: {
       name: "Contact |||| Contacts",
@@ -197,6 +194,9 @@ export const englishCrmMessages = {
       },
       field_categories: {
         misc: "Misc",
+      },
+      filters: {
+        only_mine: "Only deals I manage",
       },
       archived: {
         action: "Archive",
@@ -381,6 +381,7 @@ export const englishCrmMessages = {
       welcome_title: "Welcome to Atomic CRM",
     },
     common: {
+      account_manager: "Account manager",
       activity: "Activity",
       added: "added",
       details: "Details",
