@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 import { Avatar } from "../contacts/Avatar";
 import {
@@ -34,12 +35,17 @@ import type { ExpectedWeekSummary } from "../sessions/computeClientSessionCadenc
 import { useClientSessionCadence } from "../sessions/useClientSessionCadence";
 import type {
   ClientSession,
+  Contact,
   Enrollment,
   EnrollmentOnboardingItem,
   Offer,
 } from "../types";
+import { AddTask } from "../tasks/AddTask";
+import { TasksListByDueDate } from "../tasks/TasksListByDueDate";
 import { activateEnrollment } from "./activateEnrollment";
 import { completeOnboardingItem } from "./completeOnboardingItem";
+import { computeOnboardingProgress } from "./computeOnboardingProgress";
+import type { OnboardingProgress } from "./computeOnboardingProgress";
 import { enrollmentStatusLabels } from "./enrollmentConstants";
 import { reopenOnboardingItem } from "./reopenOnboardingItem";
 import { useEnrollmentOperationalData } from "./useEnrollmentOperationalData";
@@ -72,6 +78,23 @@ const EnrollmentOperationalHome = () => {
   const contactName = contact
     ? `${contact.first_name ?? ""} ${contact.last_name ?? ""}`.trim()
     : deal.name;
+
+  const onboardingProgress = computeOnboardingProgress(items);
+  // ClientShow onboarding-hierarchy repair: collapse the checklist below
+  // Sessions ONLY once the Enrollment has actually moved past the
+  // onboarding phase (status !== "onboarding") — not the instant the
+  // checklist alone reaches 4/4. The split-second "all required items
+  // done, still status=onboarding" moment is exactly when the
+  // pre-existing Activate button appears (readyToActivate, below) —
+  // this repair's own instruction says those actions stay "operationally
+  // important... during onboarding", so the checklist stays expanded
+  // near the top through the whole onboarding phase, the activation
+  // click included. Completion itself still comes ONLY from the
+  // checklist's own data (never inferred from status) — status only
+  // decides WHEN a genuinely-complete checklist is safe to tuck away.
+  const onboardingCollapsed =
+    onboardingProgress.allRequiredComplete &&
+    enrollment.status !== "onboarding";
 
   return (
     <div className="flex flex-col gap-6">
@@ -108,21 +131,48 @@ const EnrollmentOperationalHome = () => {
             </span>
           )}
         </div>
-        <Badge
-          className="ml-auto"
-          variant={enrollment.status === "completed" ? "secondary" : "outline"}
-        >
-          {enrollmentStatusLabels[enrollment.status]}
-        </Badge>
+        {/* Manual Task UX repair: lets Leif jot a follow-up ("Check in
+            about GYU attendance", "Ask about scheduling") right from this
+            Client's own page — no navigating to their Contact page first.
+            ClientShow's own record context is the Enrollment, not the
+            Contact (verified above), so the resolved `contact` is passed
+            explicitly rather than letting AddTask read the wrong id off
+            context. Guarded on `contact` existing, same as the Avatar
+            above — a Deal without a linked Contact has no valid
+            contact_id for a Task to point at. */}
+        <div className="ml-auto flex items-center gap-1">
+          {contact && <AddTask display="icon" contact={contact} />}
+          <Badge
+            variant={
+              enrollment.status === "completed" ? "secondary" : "outline"
+            }
+          >
+            {enrollmentStatusLabels[enrollment.status]}
+          </Badge>
+        </div>
       </div>
 
       <PaymentContextCard deal={deal} currency={currency} />
 
-      <OnboardingChecklistCard
-        enrollment={enrollment}
-        items={items}
-        tasks={tasks}
-      />
+      {/* ClientShow onboarding-hierarchy repair: while onboarding still
+          needs Leif's attention, the checklist stays expanded up here —
+          see onboardingCollapsed's own comment above. */}
+      {!onboardingCollapsed && (
+        <OnboardingChecklistCard
+          enrollment={enrollment}
+          tasks={tasks}
+          progress={onboardingProgress}
+          collapsed={false}
+        />
+      )}
+
+      {/* Manual Task UX repair, round 2 (§1): the Client page is the
+          operational home once someone has a current Enrollment — Leif
+          shouldn't have to bounce to ContactShow to see this person's
+          Tasks. Guarded on `contact` existing, same reasoning as the
+          header's own AddTask above (a Deal without a linked Contact has
+          no contact_id for a Task query either). */}
+      {contact && <TasksCard contact={contact} />}
 
       {/* Client + Session Operations slice A: only for an ACTIVE Enrollment
           whose Offer actually has paid-client-session tracking configured
@@ -135,6 +185,21 @@ const EnrollmentOperationalHome = () => {
         offer.client_session_acuity_appointment_type_id != null && (
           <SessionsCard enrollment={enrollment} offer={offer} />
         )}
+
+      {/* ClientShow onboarding-hierarchy repair: once onboarding is done
+          and behind the client, Payment/Tasks/Sessions matter far more
+          day-to-day — the completed checklist moves down here, collapsed
+          by default (existing <details> disclosure convention, same as
+          Sessions' own History below). Never deleted or hidden
+          permanently — the historical record stays one click away. */}
+      {onboardingCollapsed && (
+        <OnboardingChecklistCard
+          enrollment={enrollment}
+          tasks={tasks}
+          progress={onboardingProgress}
+          collapsed={true}
+        />
+      )}
     </div>
   );
 };
@@ -185,12 +250,21 @@ const PaymentContextCard = ({
 
 const OnboardingChecklistCard = ({
   enrollment,
-  items,
   tasks,
+  progress,
+  collapsed,
 }: {
   enrollment: Enrollment;
-  items: EnrollmentOnboardingItem[];
   tasks: ReturnType<typeof useEnrollmentOperationalData>["tasks"];
+  progress: OnboardingProgress;
+  // ClientShow onboarding-hierarchy repair: decided once by the parent
+  // (which position — near-top vs. after Sessions — it's rendering this
+  // component at), never re-derived here from progress alone. Re-
+  // deriving "complete -> collapsed" locally would collapse the
+  // checklist the instant the LAST required item is checked even while
+  // Enrollment.status is still "onboarding" — exactly the moment the
+  // Activate button below needs to stay visible.
+  collapsed: boolean;
 }) => {
   const translate = useTranslate();
   const dataProvider = useDataProvider();
@@ -201,15 +275,9 @@ const OnboardingChecklistCard = ({
   >(null);
   const [activating, setActivating] = useState(false);
 
-  const requiredItems = items.filter((item) => item.is_required);
-  const optionalItems = items.filter((item) => !item.is_required);
-  const requiredDoneCount = requiredItems.filter(
-    (item) => item.status === "done",
-  ).length;
+  const { requiredItems, optionalItems, requiredDoneCount } = progress;
   const readyToActivate =
-    enrollment.status === "onboarding" &&
-    requiredItems.length > 0 &&
-    requiredDoneCount === requiredItems.length;
+    enrollment.status === "onboarding" && progress.allRequiredComplete;
 
   const toggleItem = async (item: EnrollmentOnboardingItem) => {
     // Human-acceptance repair, round 4: the checkbox itself is NEVER passed
@@ -290,6 +358,47 @@ const OnboardingChecklistCard = ({
     }
   };
 
+  const checklist = (
+    <Card>
+      <CardContent className="flex flex-col divide-y">
+        {[...requiredItems, ...optionalItems].map((item) => (
+          <OnboardingItemRow
+            key={item.id}
+            item={item}
+            tasks={tasks}
+            disabled={pendingItemId === item.id}
+            onToggle={() => toggleItem(item)}
+            onMarkSent={() => markContractSent(item)}
+          />
+        ))}
+      </CardContent>
+    </Card>
+  );
+
+  // ClientShow onboarding-hierarchy repair: once onboarding is done and
+  // behind the client, the checklist is historical record, not an
+  // operational surface — collapsed by default behind the SAME <details>
+  // disclosure convention SessionsCard's own History already uses,
+  // rather than inventing a new interaction. Never deleted: expanding it
+  // still shows every item exactly as before.
+  if (collapsed) {
+    return (
+      <details className="group rounded-lg border">
+        <summary className="cursor-pointer list-none px-4 py-2.5 text-xs text-muted-foreground tracking-wide flex items-center justify-between">
+          {translate("resources.enrollments.onboarding_collapsed_summary", {
+            _: "Onboarding · Complete %{done}/%{total}",
+            done: requiredDoneCount,
+            total: requiredItems.length,
+          })}
+          <span className="text-muted-foreground group-open:rotate-180 transition-transform">
+            ▾
+          </span>
+        </summary>
+        <div className="px-4 pb-2.5 pt-1">{checklist}</div>
+      </details>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-3">
       {/* Human-acceptance repair: a disabled, unexplained Activate button
@@ -325,20 +434,7 @@ const OnboardingChecklistCard = ({
           </Button>
         )}
       </div>
-      <Card>
-        <CardContent className="flex flex-col divide-y">
-          {[...requiredItems, ...optionalItems].map((item) => (
-            <OnboardingItemRow
-              key={item.id}
-              item={item}
-              tasks={tasks}
-              disabled={pendingItemId === item.id}
-              onToggle={() => toggleItem(item)}
-              onMarkSent={() => markContractSent(item)}
-            />
-          ))}
-        </CardContent>
-      </Card>
+      {checklist}
     </div>
   );
 };
@@ -415,6 +511,49 @@ const OnboardingItemRow = ({
           {translate("resources.enrollments.mark_sent", { _: "Mark sent" })}
         </Button>
       )}
+    </div>
+  );
+};
+
+// Manual Task UX repair, round 2 (§1): the Client page's own Tasks
+// section — the SAME TasksListByDueDate/AddTask machinery
+// ContactShow's own tab already uses (ContactTasksList.tsx), filtered by
+// this Contact directly (never enrollment_id — a Contact's operational
+// Tasks span more than one Enrollment's own onboarding checklist, e.g. a
+// manual "Check in about GYU attendance" Task or a payment follow-up).
+// Deliberately does NOT render a second AddTask chip here — the header
+// above already has one (contact explicitly passed there too, for the
+// same reason). TasksListByDueDate itself already keeps this calm with
+// many historical Tasks: only pending (and briefly recently-completed)
+// Tasks ever render here — completed history simply isn't shown, the
+// same established behavior ContactShow's own Tasks tab already relies
+// on, not a new pattern invented for this page.
+const TasksCard = ({ contact }: { contact: Contact }) => {
+  const translate = useTranslate();
+  return (
+    <div className="flex flex-col gap-3">
+      <h3 className="text-sm font-medium text-muted-foreground">
+        {translate("resources.tasks.name", { smart_count: 2 })}
+      </h3>
+      <Card>
+        <CardContent>
+          <TasksListByDueDate
+            filterByContact={contact.id}
+            emptyPlaceholder={
+              <p className="text-sm text-muted-foreground text-center py-2">
+                {translate("resources.tasks.empty")}
+              </p>
+            }
+            pendingPlaceholder={
+              <div className="flex flex-col gap-4">
+                {Array.from({ length: 2 }).map((_, index) => (
+                  <Skeleton className="w-full h-10" key={index} />
+                ))}
+              </div>
+            }
+          />
+        </CardContent>
+      </Card>
     </div>
   );
 };

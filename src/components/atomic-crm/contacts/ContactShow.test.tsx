@@ -121,6 +121,52 @@ describe("ContactShow", () => {
       .not.toBeInTheDocument();
   });
 
+  // Manual Task UX repair: proves the fix through the REAL mobile page,
+  // not just ContactTasksList in isolation — the Tasks tab's "Add task"
+  // used to disappear the moment this Contact had a first task.
+  it("F/G: mobile ContactShow's Tasks tab exposes Add Task even with an existing Task", async () => {
+    mockIsMobile.mockReturnValue(true);
+    // nb_tasks is a denormalized counter the dataProvider maintains
+    // incrementally on tasks create/update/delete (see
+    // providers/fakerest/dataProvider.ts) — seeding a task directly into
+    // the fixture db, as below, does NOT recompute it, so it's set
+    // explicitly here to match what a real Contact with one task has.
+    const contact = buildContact({
+      id: 1,
+      first_name: "Maya",
+      last_name: "Chen",
+      nb_tasks: 1,
+    });
+
+    const screen = await render(
+      <StoryWrapper
+        data={{
+          contacts: [contact],
+          tasks: [
+            {
+              id: 1,
+              contact_id: 1,
+              type: "other",
+              text: "Ask about scheduling",
+              due_date: "2026-01-05T09:00:00.000Z",
+              status: "pending",
+              sales_id: 0,
+            },
+          ],
+        }}
+      >
+        <ResourceContextProvider value="contacts">
+          <ContactShow id={contact.id} />
+        </ResourceContextProvider>
+      </StoryWrapper>,
+    );
+
+    await screen.getByRole("tab", { name: "1 task" }).click();
+    await expect
+      .element(screen.getByRole("button", { name: "Add task" }))
+      .toBeVisible();
+  });
+
   it("shows a Do Not Engage badge for a DNE Contact (mobile)", async () => {
     mockIsMobile.mockReturnValue(true);
     const contact = buildContact({

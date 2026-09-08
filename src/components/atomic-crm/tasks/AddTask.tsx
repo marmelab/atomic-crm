@@ -27,21 +27,31 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
+import type { Contact } from "../types";
 import { TaskFormContent } from "./TaskFormContent";
 
 export const AddTask = ({
   selectContact,
   display = "chip",
+  contact: contactProp,
 }: {
   selectContact?: boolean;
   display?: "chip" | "icon";
+  // Manual Task UX repair: lets a caller whose own record context is NOT
+  // the Contact (e.g. ClientShow, whose useRecordContext() is the
+  // Enrollment) pass the already-resolved Contact explicitly, instead of
+  // this component silently reading the wrong id off context. Every
+  // existing caller (ContactAside, Dashboard) omits this and keeps
+  // relying on context exactly as before.
+  contact?: Contact | null;
 }) => {
   const { identity } = useGetIdentity();
   const dataProvider = useDataProvider();
   const [update] = useUpdate();
   const notify = useNotify();
   const translate = useTranslate();
-  const contact = useRecordContext();
+  const recordContact = useRecordContext<Contact>();
+  const contact = contactProp ?? recordContact;
   const [open, setOpen] = useState(false);
   const handleOpen = () => {
     setOpen(true);
@@ -77,6 +87,7 @@ export const AddTask = ({
                 variant="ghost"
                 className="p-2 cursor-pointer"
                 onClick={handleOpen}
+                aria-label={translate("resources.tasks.action.create")}
               >
                 <Plus className="w-4 h-4" />
               </Button>

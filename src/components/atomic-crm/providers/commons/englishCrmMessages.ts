@@ -415,6 +415,7 @@ export const englishCrmMessages = {
       paid_in_full: "Paid in full.",
       onboarding_checklist: "Onboarding",
       onboarding_complete: "Onboarding complete",
+      onboarding_collapsed_summary: "Onboarding · Complete %{done}/%{total}",
       optional: "Optional",
       contract_sent: "Sent",
       mark_sent: "Mark sent",

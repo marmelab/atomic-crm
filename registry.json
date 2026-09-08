@@ -106,6 +106,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/tasks/useContactLinkDestination.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/tasks/tasksPredicate.ts",
           "type": "registry:component"
         },
@@ -955,6 +959,10 @@
         },
         {
           "path": "src/components/atomic-crm/enrollments/enrollmentConstants.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/enrollments/computeOnboardingProgress.ts",
           "type": "registry:component"
         },
         {

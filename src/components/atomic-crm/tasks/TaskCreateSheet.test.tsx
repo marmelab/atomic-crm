@@ -63,9 +63,11 @@ describe("TaskCreateSheet", () => {
     // type) — this test selects "Sales Call" specifically.
     await typeOptions.getByText("Sales Call", { exact: true }).click();
 
+    // Manual Task UX repair, round 2 (§4): due_date is now a date-only
+    // control (DateInput), not datetime-local.
     const dueDateInput = screen.getByLabelText(/due date/i);
     await dueDateInput.clear();
-    await dueDateInput.fill("2026-03-06T12:30");
+    await dueDateInput.fill("2026-03-06");
 
     await screen.getByRole("button", { name: /^save$/i }).click();
 

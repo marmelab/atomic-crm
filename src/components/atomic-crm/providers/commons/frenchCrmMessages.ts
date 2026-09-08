@@ -423,6 +423,7 @@ export const frenchCrmMessages = {
       paid_in_full: "Payé intégralement.",
       onboarding_checklist: "Intégration",
       onboarding_complete: "Intégration terminée",
+      onboarding_collapsed_summary: "Intégration · Terminée %{done}/%{total}",
       optional: "Optionnel",
       contract_sent: "Envoyé",
       mark_sent: "Marquer comme envoyé",

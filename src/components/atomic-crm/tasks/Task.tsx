@@ -8,7 +8,9 @@ import {
   useTranslate,
   useUpdate,
 } from "ra-core";
+import type { Identifier } from "ra-core";
 import { useEffect, useState } from "react";
+import type { ReactNode } from "react";
 import { Link, useNavigate } from "react-router";
 import { ReferenceField } from "@/components/admin/reference-field";
 import { Badge } from "@/components/ui/badge";
@@ -29,6 +31,7 @@ import { taskStatusLabels } from "./taskConstants";
 import { TASK_TYPES_WITHOUT_MEANINGFUL_DUE_DATE } from "./tasksPredicate";
 import { TaskEdit } from "./TaskEdit";
 import { TaskEditSheet } from "./TaskEditSheet";
+import { useContactLinkDestination } from "./useContactLinkDestination";
 import type { TaskActionDestination } from "./useTaskActionDestination";
 import { useTaskActionDestination } from "./useTaskActionDestination";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -75,6 +78,89 @@ const displayLabel = (
     return task.text || typeLabel(task, taskTypes);
   }
   return typeLabel(task, taskTypes);
+};
+
+// Manual Task UX repair, round 2: human acceptance found a manually-
+// created `other` Task rendering as bare "Other: <name>" — the actual
+// instruction Leif typed ("Check in about GYU attendance") was invisible
+// without opening the Task. Distinct from SELF_DESCRIBING_TASK_TYPES
+// above: those are SYSTEM-generated, and their own auto-written text
+// already names the person ("Send contract to Jane Doe"), so the Contact
+// suffix is fully suppressed there. A manual `other` Task's text is
+// Leif's own words and usually does NOT name anyone, so the Contact
+// still needs its own visible line here — just as a separate line below
+// the instruction, never concatenated into a "Type: Name" title (there
+// is no meaningful type label for "other" to concatenate in the first
+// place). Every other configured type (sales_call, follow_up, ...)
+// keeps its existing "Type: Name" rendering unchanged — those type
+// labels carry real operational meaning "other" never did.
+const TEXT_PRIMARY_TASK_TYPES: ReadonlySet<string> = new Set(["other"]);
+
+// Shared by both places a Task row needs to link to the person it's
+// about (see useContactLinkDestination.ts's own header comment for why
+// this is a hook, not a plain href) — kept as ONE component so the two
+// render sites below can never drift.
+const ContactLink = ({
+  contactId,
+  label,
+}: {
+  contactId: Identifier;
+  label: ReactNode;
+}) => {
+  const { to } = useContactLinkDestination(contactId);
+  return (
+    <Link
+      to={to}
+      className="hover:underline"
+      onClick={(event) => event.stopPropagation()}
+    >
+      {label}
+    </Link>
+  );
+};
+
+const TaskContactLink = ({
+  task,
+  className,
+}: {
+  task: TData;
+  className?: string;
+}) => {
+  const translate = useTranslate();
+  const getContactRepresentation = useGetRecordRepresentation("contacts");
+  return (
+    <ReferenceField<TData, Contact>
+      source="contact_id"
+      reference="contacts"
+      record={task}
+      className={className}
+      // ReferenceField defaults to its OWN auto-link (edit/show) when
+      // `link` is omitted, not to no-link — left as-is, that nested
+      // <a> inside ContactLink's own <a> below. Explicitly disabled:
+      // ContactLink is the only anchor here, routed by
+      // useContactLinkDestination.ts (§2 above), never ReferenceField's
+      // own hardcoded "show" route.
+      link={false}
+      // Graceful fallback for a Contact reference that can't be shown
+      // (UX cleanup pass, §1) — never crashes, never renders blank or
+      // "undefined". Two distinct cases, both bypassing `render`
+      // entirely (source/reference-field.tsx): a null contact_id
+      // short-circuits to `empty` before ReferenceFieldBase even
+      // mounts; a contact_id that fails to resolve (a dangling
+      // reference) surfaces as `error`, checked BEFORE `empty` inside
+      // ReferenceFieldView — so both props are needed, not just one.
+      empty="resources.tasks.unknown_contact"
+      error={translate("resources.tasks.unknown_contact", {
+        _: "Unknown contact",
+      })}
+      render={({ referenceRecord }) => (
+        <ContactLink
+          contactId={task.contact_id}
+          label={getContactRepresentation(referenceRecord)}
+        />
+      )}
+    />
+  );
 };
 
 // The task's primary action: a real, keyboard/mobile-accessible <Link>
@@ -194,7 +280,11 @@ export const Task = ({
   const { destination } = useTaskActionDestination(task);
 
   const taskTitle = (() => {
-    if (task.type && SELF_DESCRIBING_TASK_TYPES.has(task.type)) {
+    if (
+      task.type &&
+      (SELF_DESCRIBING_TASK_TYPES.has(task.type) ||
+        TEXT_PRIMARY_TASK_TYPES.has(task.type))
+    ) {
       return task.text || undefined;
     }
     const type = typeLabel(task, taskTypes);
@@ -305,11 +395,21 @@ export const Task = ({
                   link across the whole title (task-as-action-launcher
                   repair pass): the type label is the task's own primary
                   action (Application/Deal, resolved above); the Contact
-                  name stays its own separate link to the Contact page —
-                  useful in its own right, and not what "click the task"
-                  should mean. */}
-              {showContact &&
-              !SELF_DESCRIBING_TASK_TYPES.has(task.type ?? "") ? (
+                  name stays its own separate link — useful in its own
+                  right, and not what "click the task" should mean.
+                  Manual Task UX repair, round 2: TEXT_PRIMARY_TASK_TYPES
+                  ("other") is checked FIRST — that free text IS the whole
+                  point (§3 above), regardless of showContact; its own
+                  Contact context (when relevant) gets a dedicated line
+                  below instead of being folded into this title. */}
+              {task.type && TEXT_PRIMARY_TASK_TYPES.has(task.type) ? (
+                <TaskActionLabel
+                  label={task.text || typeLabel(task, taskTypes)}
+                  destination={destination}
+                  onOpenTaskDetail={handleEdit}
+                />
+              ) : showContact &&
+                !SELF_DESCRIBING_TASK_TYPES.has(task.type ?? "") ? (
                 <>
                   <TaskActionLabel
                     label={typeLabel(task, taskTypes)}
@@ -317,30 +417,7 @@ export const Task = ({
                     destination={destination}
                     onOpenTaskDetail={handleEdit}
                   />
-                  <ReferenceField<TData, Contact>
-                    source="contact_id"
-                    reference="contacts"
-                    record={task}
-                    link="show"
-                    className="inline"
-                    // Graceful fallback for a Contact reference that can't
-                    // be shown (UX cleanup pass, §1) — never crashes,
-                    // never renders blank or "undefined". Two distinct
-                    // cases, both bypassing `render` entirely
-                    // (source/reference-field.tsx): a null contact_id
-                    // short-circuits to `empty` before ReferenceFieldBase
-                    // even mounts; a contact_id that fails to resolve (a
-                    // dangling reference) surfaces as `error`, checked
-                    // BEFORE `empty` inside ReferenceFieldView — so both
-                    // props are needed, not just one.
-                    empty="resources.tasks.unknown_contact"
-                    error={translate("resources.tasks.unknown_contact", {
-                      _: "Unknown contact",
-                    })}
-                    render={({ referenceRecord }) =>
-                      getContactRepresentation(referenceRecord)
-                    }
-                  />
+                  <TaskContactLink task={task} className="inline" />
                 </>
               ) : (
                 // Self-describing types (onboarding_item) skip the separate
@@ -361,6 +438,18 @@ export const Task = ({
                 </Badge>
               )}
             </div>
+            {/* Manual Task UX repair, round 2 (§3/L): a manual `other`
+                Task's free text usually doesn't name anyone, unlike
+                SELF_DESCRIBING_TASK_TYPES' own auto-written text — so the
+                Contact stays visible here as its own line, only where a
+                Contact isn't already the obvious page context. */}
+            {showContact &&
+              task.type &&
+              TEXT_PRIMARY_TASK_TYPES.has(task.type) && (
+                <div className="text-sm text-muted-foreground">
+                  <TaskContactLink task={task} />
+                </div>
+              )}
             {/* Unmatched Sales Call Resolution slice: this type's due_date
                 is an internal field only (Tasks require one at the DB
                 level) — showing it here would misrepresent this exception

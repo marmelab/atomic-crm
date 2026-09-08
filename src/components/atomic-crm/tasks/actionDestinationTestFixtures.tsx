@@ -126,5 +126,11 @@ export const buildTestCrm = (overrides: Partial<Db> = {}) => {
       />
     </MemoryRouter>
   );
-  return { element };
+  // dataProvider is returned alongside element (backward compatible —
+  // every existing caller destructures only { element }) so a Dashboard-
+  // routing regression test (Task.contactRouting.test.tsx) can read back
+  // Task/Enrollment/Contact/Deal state after an interaction, the same
+  // "prove nothing mutated" shape ClientShow.tasks.test.tsx's own tests
+  // already use.
+  return { element, dataProvider };
 };

@@ -1,46 +1,42 @@
-import { useState } from "react";
 import { useRecordContext, useTranslate } from "ra-core";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
 
+import { AddTask } from "../tasks/AddTask";
 import { TasksListByDueDate } from "../tasks/TasksListByDueDate";
-import { TaskCreateSheet } from "../tasks/TaskCreateSheet";
 import type { Contact } from "../types";
 
+// Mobile Manual Task UX repair: this used to only offer "Add task" inside
+// TasksListByDueDate's own emptyPlaceholder — the one time this contact
+// had zero tasks. The moment a first task existed, the button vanished
+// with no replacement anywhere on mobile ContactShow. Rendered here as an
+// always-visible sibling instead (same AddTask component desktop's
+// ContactAside already uses, reading contact_id off this same Contact
+// record context — genuinely the Contact here, unlike ClientShow), so it
+// stays available regardless of how many tasks exist or their status.
 export const ContactTasksList = () => {
   const record = useRecordContext<Contact>();
   const translate = useTranslate();
-  const [taskCreateOpen, setTaskCreateOpen] = useState(false);
 
   if (!record) return null;
 
   return (
-    <TasksListByDueDate
-      filterByContact={record.id}
-      emptyPlaceholder={
-        <>
-          <TaskCreateSheet
-            open={taskCreateOpen}
-            onOpenChange={setTaskCreateOpen}
-            contact_id={record.id}
-          />
-          <div className="flex flex-col items-center justify-center py-8 text-center">
-            <p className="text-muted-foreground mb-4">
-              {translate("resources.tasks.empty")}
-            </p>
-            <Button variant="outline" onClick={() => setTaskCreateOpen(true)}>
-              {translate("resources.tasks.action.add")}
-            </Button>
+    <div className="flex flex-col gap-2">
+      <AddTask />
+      <TasksListByDueDate
+        filterByContact={record.id}
+        emptyPlaceholder={
+          <p className="text-sm text-muted-foreground text-center py-4">
+            {translate("resources.tasks.empty")}
+          </p>
+        }
+        pendingPlaceholder={
+          <div className="flex flex-col gap-4">
+            {Array.from({ length: 3 }).map((_, index) => (
+              <Skeleton className="w-full h-10" key={index} />
+            ))}
           </div>
-        </>
-      }
-      pendingPlaceholder={
-        <div className="flex flex-col gap-4">
-          {Array.from({ length: 3 }).map((_, index) => (
-            <Skeleton className="w-full h-10" key={index} />
-          ))}
-        </div>
-      }
-    />
+        }
+      />
+    </div>
   );
 };

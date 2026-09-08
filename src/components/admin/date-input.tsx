@@ -67,6 +67,14 @@ export const DateInput = (props: DateInputProps) => {
     inputClassName,
     defaultValue,
     format = defaultFormat,
+    // Not destructured before this fix: `parse` (an InputProps/useInput
+    // option, not a DOM attribute) fell through into `...rest`, which is
+    // ALSO spread onto the native <input> below — React then warned/
+    // errored ("Invalid value for prop `parse` on <input> tag") the
+    // first time a caller actually passed one. DateTimeInput already
+    // gets this right (its own `parse` is destructured the same way);
+    // DateInput just never needed one until now.
+    parse,
     label,
     source,
     helperText,
@@ -92,6 +100,7 @@ export const DateInput = (props: DateInputProps) => {
     disabled,
     readOnly,
     format,
+    parse,
     ...rest,
   });
   const localInputRef = React.useRef<HTMLInputElement>(null);

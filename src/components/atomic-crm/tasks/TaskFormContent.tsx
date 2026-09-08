@@ -3,9 +3,10 @@ import { ReferenceInput } from "@/components/admin/reference-input";
 import { SelectInput } from "@/components/admin/select-input";
 import { TextInput } from "@/components/admin/text-input";
 import { required } from "ra-core";
-import { DateTimeInput } from "@/components/admin";
+import { DateInput } from "@/components/admin";
 
 import { contactOptionText } from "../misc/ContactOption";
+import { dateOnlyToTimestamp } from "../misc/dateOnlyToTimestamp";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { taskStatuses } from "./taskConstants";
 
@@ -38,8 +39,18 @@ export const TaskFormContent = ({
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <DateTimeInput
+        {/* Manual Task UX repair, round 2 (§4): date only, no time-of-day
+            — Leif doesn't need clock-time precision for an ordinary
+            Task, and the row display has already been date-only for a
+            while (see Task.tsx's own due-date line). dateOnlyToTimestamp
+            is the SAME shared "bare date -> safe timestamp" helper
+            postponeTaskDate.ts/followUpTask.ts already use — anchors to
+            local noon so due_date stays a real timestamp and
+            Denver-local day bucketing (tasksPredicate.ts) stays
+            correct, never reinventing that trick a third time. */}
+        <DateInput
           source="due_date"
+          parse={dateOnlyToTimestamp}
           helperText={false}
           validate={required()}
         />
