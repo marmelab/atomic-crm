@@ -12,19 +12,10 @@ const TRIGGER_DISTANCE = 64;
 /** The control never travels further than this, however hard the user pulls. */
 const MAX_DISTANCE = 96;
 
-/** True when the element scrolls on its own and has somewhere to scroll to. */
-const isScroller = (node: Element) => {
-  const { overflowY } = getComputedStyle(node);
-  return (
-    (overflowY === "auto" || overflowY === "scroll") &&
-    node.scrollHeight > node.clientHeight
-  );
-};
-
 /**
  * True when a pull starting on `target` belongs to something else than the page: an
- * ancestor scrolls on its own or is already scrolled down, or the touch is inside an
- * overlay. Overlays are matched on their two portal roots — Radix's popper wrapper
+ * ancestor is already scrolled down, or the touch is inside an overlay. Overlays are
+ * matched on their two portal roots — Radix's popper wrapper
  * (select, dropdown menu, popover, command) and the dialog role (dialog and, since
  * vaul renders one too, sheet) — rather than on the role of the panel itself, which
  * varies (dialog, listbox, menu, …) and is portalled out of its own sheet anyway.
@@ -35,7 +26,7 @@ const isScrollGesture = (target: EventTarget | null) => {
     return true;
   }
   while (node) {
-    if (node.scrollTop > 0 || isScroller(node)) {
+    if (node.scrollTop > 0) {
       return true;
     }
     node = node.parentElement;
