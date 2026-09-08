@@ -20,7 +20,9 @@ test("user onboarding", async ({ page, isMobile, menu, dismissToast }) => {
   await expect(page.getByText("Add your first note")).toBeVisible();
   await expect(page.getByRole("button", { name: "Import data" })).toBeVisible();
 
-  await page.getByText("Add contact").click();
+  await page
+    .getByRole(isMobile ? "button" : "link", { name: "Add contact" })
+    .click();
   await page.waitForLoadState("networkidle");
   await page.getByLabel("She/Her").click();
   await page.getByLabel("First name").fill("Jane");
@@ -71,7 +73,9 @@ test("user onboarding", async ({ page, isMobile, menu, dismissToast }) => {
 
   await expect(page.getByText("2/3 done")).toBeVisible();
 
-  await page.getByRole("button", { name: "Add note" }).click();
+  await page
+    .getByRole(isMobile ? "button" : "link", { name: "Add note" })
+    .click();
 
   await page.waitForLoadState("networkidle");
 
