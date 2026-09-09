@@ -44,14 +44,14 @@ export const AddTask = ({
   const translate = useTranslate();
   const contact = useRecordContext();
   const [open, setOpen] = useState(false);
-  const [failedTask, setFailedTask] = useState<Partial<Task>>();
   const handleOpen = () => {
     setOpen(true);
   };
   const getContactRepresentation = useGetRecordRepresentation("contacts");
 
   const handleSuccess = async (data: Task) => {
-    setFailedTask(undefined);
+    // The task is created: close and notify before the best-effort follow-up
+    // calls, so a failure there cannot leave the dialog open without feedback.
     setOpen(false);
     notify("resources.tasks.added");
 
@@ -67,16 +67,6 @@ export const AddTask = ({
     } catch (error) {
       console.error("Could not update the contact last_seen date", error);
     }
-  };
-
-  const handleSettled = (
-    _data: unknown,
-    error: unknown,
-    variables: { data?: Partial<Task> },
-  ) => {
-    if (!error) return;
-    setFailedTask(variables.data);
-    setOpen(true);
   };
 
   if (!identity) return null;
@@ -117,26 +107,15 @@ export const AddTask = ({
 
       <CreateBase
         resource="tasks"
-        record={
-          failedTask ?? {
-            type: "none",
-            contact_id: contact?.id,
-            due_date: new Date().toISOString(),
-            sales_id: identity.id,
-          }
-        }
-        mutationOptions={{ onSuccess: handleSuccess, onSettled: handleSettled }}
+        record={{
+          type: "none",
+          contact_id: contact?.id,
+          due_date: new Date().toISOString(),
+          sales_id: identity.id,
+        }}
+        mutationOptions={{ onSuccess: handleSuccess }}
       >
-        <Dialog
-          open={open}
-          onOpenChange={(nextOpen) => {
-            setOpen(nextOpen);
-            if (!nextOpen) {
-              // Dismissing the dialog discards the failed task on purpose.
-              setFailedTask(undefined);
-            }
-          }}
-        >
+        <Dialog open={open} onOpenChange={() => setOpen(false)}>
           <DialogContent className="lg:max-w-xl overflow-y-auto max-h-9/10 top-1/20 translate-y-0">
             <Form className="flex flex-col gap-4">
               <DialogHeader>

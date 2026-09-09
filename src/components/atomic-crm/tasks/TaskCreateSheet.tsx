@@ -42,24 +42,31 @@ export const TaskCreateSheet = ({
   if (!identity) return null;
 
   const handleSuccess = async (data: any) => {
-    const referenceRecordId = data[foreignKeyMapping["contacts"]];
-    if (!referenceRecordId) return;
-    const { data: contact } = await dataProvider.getOne("contacts", {
-      id: referenceRecordId,
-    });
-    if (!contact) return;
-    await update("contacts", {
-      id: referenceRecordId as unknown as Identifier,
-      data: { last_seen: new Date().toISOString() },
-      previousData: contact,
-    });
-    queryClient.invalidateQueries({
-      queryKey: ["contacts", "getOne"],
-    });
-
+    // The task is created: notify and close before the best-effort follow-up
+    // calls, so a failure there cannot leave the sheet open, which would invite
+    // a second Save, hence a duplicate task.
     notify("resources.tasks.added");
     // No redirect, only close the sheet
     onOpenChange(false);
+
+    const referenceRecordId = data[foreignKeyMapping["contacts"]];
+    if (!referenceRecordId) return;
+
+    try {
+      const { data: contact } = await dataProvider.getOne("contacts", {
+        id: referenceRecordId,
+      });
+      await update("contacts", {
+        id: referenceRecordId as unknown as Identifier,
+        data: { last_seen: new Date().toISOString() },
+        previousData: contact,
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["contacts", "getOne"],
+      });
+    } catch (error) {
+      console.error("Could not update the contact last_seen date", error);
+    }
   };
 
   return (
