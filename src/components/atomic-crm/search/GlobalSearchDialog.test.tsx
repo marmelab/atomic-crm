@@ -27,14 +27,25 @@ const data = {
   ],
 } as any;
 
-const renderDialog = () =>
+const renderDialog = (open = true) =>
   render(
     <StoryWrapper data={data}>
-      <GlobalSearchDialog open onOpenChange={() => {}} />
+      <GlobalSearchDialog open={open} onOpenChange={() => {}} />
     </StoryWrapper>,
   );
 
 describe("GlobalSearchDialog", () => {
+  it("puts nothing in the document while closed", async () => {
+    const screen = await renderDialog(false);
+
+    // The dialog's accessible description mentions every searchable resource,
+    // so leaking it into a closed dialog breaks text queries app-wide.
+    await expect.element(screen.getByText(PLACEHOLDER)).not.toBeInTheDocument();
+    await expect
+      .element(screen.getByPlaceholder(PLACEHOLDER))
+      .not.toBeInTheDocument();
+  });
+
   it("asks for a longer query before searching", async () => {
     const screen = await renderDialog();
 
