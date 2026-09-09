@@ -106,6 +106,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/tasks/useRecentlyCompletedTasks.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/tasks/useContactLinkDestination.ts",
           "type": "registry:component"
         },
@@ -590,6 +594,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/providers/fakerest/dataGenerator/offboardingRequirements.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/providers/fakerest/dataGenerator/leifProofSliceFixtures.ts",
           "type": "registry:component"
         },
@@ -950,7 +958,15 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/enrollments/startOffboarding.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/enrollments/reopenOnboardingItem.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/enrollments/reopenOffboardingItem.ts",
           "type": "registry:component"
         },
         {
@@ -966,7 +982,19 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/enrollments/computeOffboardingProgress.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/enrollments/completeOnboardingItem.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/enrollments/completeOffboardingItem.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/enrollments/completeClient.ts",
           "type": "registry:component"
         },
         {

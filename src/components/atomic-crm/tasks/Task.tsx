@@ -1,10 +1,12 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { MoreVertical } from "lucide-react";
 import {
-  useDeleteWithUndoController,
+  useDataProvider,
+  useDeleteController,
   useGetOne,
   useGetRecordRepresentation,
   useNotify,
+  useRefresh,
   useTranslate,
   useUpdate,
 } from "ra-core";
@@ -25,6 +27,10 @@ import {
 
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { formatTimestampString } from "../deals/dealUtils";
+import { completeOffboardingItem } from "../enrollments/completeOffboardingItem";
+import { completeOnboardingItem } from "../enrollments/completeOnboardingItem";
+import { reopenOffboardingItem } from "../enrollments/reopenOffboardingItem";
+import { reopenOnboardingItem } from "../enrollments/reopenOnboardingItem";
 import type { Contact, LabeledValue, Task as TData } from "../types";
 import { computePostponeDueDate } from "./postponeTaskDate";
 import { taskStatusLabels } from "./taskConstants";
@@ -63,9 +69,13 @@ const typeLabel = (
 // booking reads as genuinely distinct rows. Client + Session Operations
 // cadence correction: resolve_client_session_cadence joins it too — its
 // own text names the specific week, so an Enrollment with more than one
-// unresolved week also reads as genuinely distinct rows.
+// unresolved week also reads as genuinely distinct rows. Client
+// Offboarding slice: offboarding_item joins the set for the exact same
+// reason as onboarding_item — its own text ("Move Jane Doe's session
+// notes to Past Clients") already names the person.
 const SELF_DESCRIBING_TASK_TYPES: ReadonlySet<string> = new Set([
   "onboarding_item",
+  "offboarding_item",
   "resolve_sales_call",
   "resolve_client_session_cadence",
 ]);
@@ -230,6 +240,8 @@ export const Task = ({
   const navigate = useNavigate();
   const translate = useTranslate();
   const queryClient = useQueryClient();
+  const dataProvider = useDataProvider();
+  const refresh = useRefresh();
   const getContactRepresentation = useGetRecordRepresentation("contacts");
   // Already fetched by the ReferenceField below in the common case — this
   // read is deduped against that same cache entry, not a second request.
@@ -253,17 +265,36 @@ export const Task = ({
   // undoable, only for the checkbox — completing/reopening from postpone
   // or other raw edits stays on the plain `update` above unchanged.
   const [updateDone] = useUpdate();
-  const { handleDelete } = useDeleteWithUndoController({
+  // Task delete resurrection fix (human-acceptance repair): this used to
+  // go through useDeleteWithUndoController, which hardcodes 'undoable' —
+  // an optimistic, CLIENT-SIDE-ONLY removal that only actually calls
+  // dataProvider.delete() after an unwatched timer elapses. Navigating
+  // away, reloading, or any query refetch inside that window shows the
+  // Task again — not a resurrection, the delete had simply never
+  // happened yet — which is exactly what human acceptance found.
+  // 'pessimistic' mode awaits the real delete before the UI ever reports
+  // success, so a completed deletion is always genuinely persisted.
+  const { handleDelete } = useDeleteController({
     record: task,
     redirect: false,
+    mutationMode: "pessimistic",
     mutationOptions: {
       onSuccess() {
-        notify("resources.tasks.deleted", {
-          undoable: true,
-        });
+        notify("resources.tasks.deleted");
       },
     },
   });
+  // A lifecycle Task (linked to an onboarding/offboarding checklist item)
+  // has no supported delete path: the checklist item is the durable
+  // source of fulfillment truth, and nothing currently retracts or
+  // re-derives it when its Task is removed — deleting the Task would
+  // just silently orphan a still-pending requirement with no reminder
+  // left for Leif. Rather than offer a Delete that can't do anything
+  // useful (or worse, quietly leaves the requirement stranded), the
+  // action is withheld entirely for these; Complete/Postpone/Edit stay
+  // available as normal.
+  const isLifecycleTask =
+    task.onboarding_item_id != null || task.offboarding_item_id != null;
 
   const handleEdit = () => {
     setOpenEdit(true);
@@ -293,8 +324,64 @@ export const Task = ({
     return type ?? name ?? undefined;
   })();
 
-  const handleCheck = () => () => {
+  // Lifecycle-Task completion durability fix (human-acceptance repair):
+  // a lifecycle Task's checkbox used to go through the SAME undoable
+  // `updateDone` path as a manual Task — patching only the `tasks` row
+  // optimistically and trusting the DB's own sync_onboarding_item_from_
+  // task()/sync_offboarding_item_from_task() trigger to eventually sync
+  // the linked checklist item once react-admin's undo queue got around
+  // to firing the real, deferred write. Two lifecycle Tasks checked in
+  // quick succession raced: each capture its own stale query-cache
+  // snapshot at click time, and when the queue later settled, the
+  // resulting invalidation/rollback could revert a genuinely-completed
+  // row back to unchecked — confirmed by direct Postgres reads during
+  // this investigation (the checklist item and Task DID eventually
+  // persist correctly once Leif re-checked them, ruling out permanent
+  // data corruption, but the multi-mutation race made the FIRST
+  // completion attempt visually unreliable). Root cause is inherent to
+  // routing checklist-linked completion through a second, independently-
+  // mutated, undo-queued copy of what the checklist item already owns —
+  // exactly the "dual competing sources of truth" the governing model
+  // rules out. Fixed by calling the SAME authoritative, synchronous
+  // (pessimistic — no undo queue, no snapshot race) checklist-item
+  // completion functions the checklist's own checkbox already uses
+  // (completeOnboardingItem.ts/completeOffboardingItem.ts and their
+  // reopen counterparts) — these write the item first, then the Task,
+  // both awaited, no optimistic-only state for anything else to race
+  // against. A manual Task (no checklist linkage) is entirely unaffected
+  // — it keeps the exact undoable behavior it already had, which human
+  // acceptance confirmed works correctly.
+  const handleCheck = () => async () => {
     const completing = !task.done_date;
+
+    if (isLifecycleTask) {
+      if (task.onboarding_item_id != null) {
+        if (completing) {
+          await completeOnboardingItem(dataProvider, task.onboarding_item_id);
+        } else {
+          await reopenOnboardingItem(dataProvider, task.onboarding_item_id);
+        }
+      } else if (task.offboarding_item_id != null) {
+        if (completing) {
+          await completeOffboardingItem(dataProvider, task.offboarding_item_id);
+        } else {
+          await reopenOffboardingItem(dataProvider, task.offboarding_item_id);
+        }
+      }
+      if (completing) {
+        onCompleted?.(task);
+        notify("resources.tasks.completed", {
+          type: "info",
+          messageArgs: {
+            _: "Task completed — %{title}",
+            title: taskTitle ?? "",
+          },
+        });
+      }
+      refresh();
+      return;
+    }
+
     updateDone(
       "tasks",
       {
@@ -544,12 +631,17 @@ export const Task = ({
             >
               {translate("ra.action.edit")}
             </DropdownMenuItem>
-            <DropdownMenuItem
-              className="cursor-pointer h-12 md:h-8 px-4 md:px-2 text-base md:text-sm"
-              onClick={handleDelete}
-            >
-              {translate("ra.action.delete")}
-            </DropdownMenuItem>
+            {/* Withheld for lifecycle Tasks — see isLifecycleTask's own
+                comment above for why Delete has no supported meaning
+                there; Edit/Postpone above remain available. */}
+            {!isLifecycleTask && (
+              <DropdownMenuItem
+                className="cursor-pointer h-12 md:h-8 px-4 md:px-2 text-base md:text-sm"
+                onClick={handleDelete}
+              >
+                {translate("ra.action.delete")}
+              </DropdownMenuItem>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

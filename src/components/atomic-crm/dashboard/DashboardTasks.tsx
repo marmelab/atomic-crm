@@ -1,6 +1,5 @@
-import { useCallback, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useGetIdentity, useGetList, useTranslate } from "ra-core";
-import type { Identifier } from "ra-core";
 import { Card, CardContent } from "@/components/ui/card";
 
 import { Task } from "../tasks/Task";
@@ -11,6 +10,7 @@ import {
   isOverdue,
   TASK_TYPES_WITHOUT_MEANINGFUL_DUE_DATE,
 } from "../tasks/tasksPredicate";
+import { useRecentlyCompletedTasks } from "../tasks/useRecentlyCompletedTasks";
 import type { Task as TaskType } from "../types";
 
 // The Dashboard's primary section: three short, scannable buckets instead
@@ -36,26 +36,15 @@ export const DashboardTasks = () => {
   // instant its optimistic done_date lands — reusing tasksPredicate.ts's
   // own "recently done" idea (isRecentlyDone, already relied on by the
   // Contact page's task list) would keep it around for 5 minutes, far
-  // longer than the brief acknowledgement this needs, so this tracks its
-  // own short-lived id set instead.
-  const [recentlyCompletedIds, setRecentlyCompletedIds] = useState<
-    Set<Identifier>
-  >(new Set());
-  const handleTaskCompleted = useCallback((task: TaskType) => {
-    setRecentlyCompletedIds((prev) => new Set(prev).add(task.id));
-    setTimeout(() => {
-      setRecentlyCompletedIds((prev) => {
-        if (!prev.has(task.id)) return prev;
-        const next = new Set(prev);
-        next.delete(task.id);
-        return next;
-      });
-    }, 1500);
-  }, []);
+  // longer than the brief acknowledgement this needs. Shared with
+  // ClientShow's/ContactShow's own Task lists (TasksListByDueDate) —
+  // see useRecentlyCompletedTasks's own header comment.
+  const { isRecentlyCompleted, markCompleted: handleTaskCompleted } =
+    useRecentlyCompletedTasks();
 
   const { needsAttention, overdue, today, next7Days } = useMemo(() => {
     const ongoing = (tasks ?? []).filter(
-      (task) => !isDone(task) || recentlyCompletedIds.has(task.id),
+      (task) => !isDone(task) || isRecentlyCompleted(task.id),
     );
     // A type in TASK_TYPES_WITHOUT_MEANINGFUL_DUE_DATE (currently just
     // resolve_sales_call) carries a due_date that's an internal DB-required
@@ -84,7 +73,7 @@ export const DashboardTasks = () => {
           !hasNoMeaningfulDueDate(task) && isDueNext7Days(task.due_date),
       ),
     };
-  }, [tasks, recentlyCompletedIds]);
+  }, [tasks, isRecentlyCompleted]);
 
   if (isPending) return null;
 

@@ -13,10 +13,13 @@ import type {
   DealStageEvent,
   Enrollment,
   EnrollmentExpectedSession,
+  EnrollmentOffboardingItem,
   EnrollmentOnboardingItem,
+  EnrollmentStatusEvent,
   ExpectedSessionWindow,
   Offer,
   OfferPaymentOption,
+  OffboardingRequirementTemplate,
   OnboardingRequirementTemplate,
   Sale,
   SalesCall,
@@ -41,6 +44,9 @@ export interface Db {
   enrollments: Enrollment[];
   onboarding_requirement_templates: OnboardingRequirementTemplate[];
   enrollment_onboarding_items: EnrollmentOnboardingItem[];
+  offboarding_requirement_templates: OffboardingRequirementTemplate[];
+  enrollment_offboarding_items: EnrollmentOffboardingItem[];
+  enrollment_status_events: EnrollmentStatusEvent[];
   waitlist_entries: WaitlistEntry[];
   sales_calls: SalesCall[];
   sales_call_events: SalesCallEvent[];

@@ -434,6 +434,18 @@ export const frenchCrmMessages = {
         "Cette inscription n'est plus en attente d'intégration — état actuel affiché.",
       activation_incomplete:
         "Certains éléments obligatoires restent incomplets — état actuel affiché.",
+      start_offboarding: "Démarrer la clôture",
+      not_active: "Ce client n'est plus actif — état actuel affiché.",
+      offboarding_started: "Clôture démarrée.",
+      offboarding_checklist: "Clôture",
+      offboarding_collapsed_summary: "Clôture · Terminée %{done}/%{total}",
+      complete_client: "Terminer le client",
+      completing: "Finalisation…",
+      completed: "Clôture terminée",
+      already_completed:
+        "Ce client n'est plus en attente de clôture — état actuel affiché.",
+      completion_incomplete:
+        "Certains éléments obligatoires restent incomplets — état actuel affiché.",
       sessions: {
         title: "Séances",
         orientation:
@@ -627,6 +639,8 @@ export const frenchCrmMessages = {
       added: "Tâche ajoutée",
       deleted: "Tâche supprimée avec succès",
       completed_undoable: "Tâche terminée — %{title}",
+      completed: "Tâche terminée — %{title}",
+      completed_history: "Tâches terminées (%{count})",
       dialog: {
         create: "Créer une tâche",
         create_for: "Créer une tâche pour %{name}",

@@ -95,6 +95,24 @@ create or replace trigger on_task_onboarding_sync
     when (old.done_date is distinct from new.done_date)
     execute function public.sync_onboarding_item_from_task();
 
+-- Client Offboarding slice: the offboarding mirror of on_task_onboarding_sync
+-- above — same guard, same reasoning, scoped to offboarding_item_id.
+create or replace trigger on_task_offboarding_sync
+    after update on public.tasks
+    for each row
+    when (old.done_date is distinct from new.done_date)
+    execute function public.sync_offboarding_item_from_task();
+
+-- Client Offboarding slice, §1: DB-level guard against skipping a
+-- fulfillment-lifecycle stage entirely (e.g. onboarding -> completed,
+-- onboarding -> offboarding, active -> completed) — see the function's
+-- own comment for the full reasoning. Runs before the two narrower
+-- requirement-completeness guards below; all three check disjoint
+-- transition shapes, so their relative order never matters.
+create or replace trigger enforce_enrollment_lifecycle_sequence_trigger
+    before update on public.enrollments
+    for each row execute function public.enforce_enrollment_lifecycle_sequence();
+
 -- Contracts + Onboarding slice: DB-level guard against activating an
 -- Enrollment with incomplete required onboarding — closes the gap left by
 -- ClientEdit.tsx's plain status field (and any other direct write) that
@@ -102,6 +120,29 @@ create or replace trigger on_task_onboarding_sync
 create or replace trigger enforce_enrollment_activation_requirements_trigger
     before update on public.enrollments
     for each row execute function public.enforce_enrollment_activation_requirements();
+
+-- Client Offboarding slice: seed the offboarding checklist + Tasks the
+-- moment an Enrollment genuinely transitions active -> offboarding,
+-- regardless of write path (Start offboarding button, ClientEdit.tsx's
+-- plain status field, or any other direct write) — mirrors on_deal_won's
+-- own "AFTER so the row already exists" reasoning.
+create or replace trigger on_enrollment_offboarding_started
+    after update on public.enrollments
+    for each row execute function public.handle_enrollment_offboarding_started();
+
+-- Client Offboarding slice: DB-level guard against completing an
+-- Enrollment with incomplete required offboarding — same gap-closing
+-- reasoning as enforce_enrollment_activation_requirements_trigger above.
+create or replace trigger enforce_enrollment_completion_requirements_trigger
+    before update on public.enrollments
+    for each row execute function public.enforce_enrollment_completion_requirements();
+
+-- Client Offboarding slice: append-only Enrollment lifecycle history —
+-- every genuine status change, any write path, mirrors on_deal_stage_event
+-- above.
+create or replace trigger on_enrollment_status_event
+    after insert or update on public.enrollments
+    for each row execute function public.record_enrollment_status_event();
 
 -- Auto-fetch company logo from website favicon on save
 create or replace trigger company_saved

@@ -426,6 +426,19 @@ export const englishCrmMessages = {
         "This Enrollment is no longer awaiting onboarding — showing the current state.",
       activation_incomplete:
         "Some required items are still incomplete — showing the current state.",
+      start_offboarding: "Start offboarding",
+      not_active:
+        "This client is no longer active — showing the current state.",
+      offboarding_started: "Offboarding started.",
+      offboarding_checklist: "Offboarding",
+      offboarding_collapsed_summary: "Offboarding · Complete %{done}/%{total}",
+      complete_client: "Complete client",
+      completing: "Completing…",
+      completed: "Offboarding complete",
+      already_completed:
+        "This client is no longer awaiting offboarding — showing the current state.",
+      completion_incomplete:
+        "Some required items are still incomplete — showing the current state.",
       sessions: {
         title: "Sessions",
         orientation:
@@ -617,6 +630,12 @@ export const englishCrmMessages = {
       added: "Task added",
       deleted: "Task deleted successfully",
       completed_undoable: "Task completed — %{title}",
+      // Lifecycle-Task completion durability fix: this checklist-backed
+      // path has no real "undo" (unchecking goes through the SAME
+      // authoritative reopen function, not a client-side rollback), so
+      // its own toast never claims to be undoable.
+      completed: "Task completed — %{title}",
+      completed_history: "Completed tasks (%{count})",
       dialog: {
         create: "Create task",
         create_for: "Create task for %{name}",

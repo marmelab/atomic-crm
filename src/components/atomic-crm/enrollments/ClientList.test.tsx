@@ -135,4 +135,83 @@ describe("ClientList", () => {
       .element(screen.getByText("Past Person"))
       .not.toBeInTheDocument();
   });
+
+  // Client Offboarding slice (§10): an Enrollment mid-offboarding is still
+  // CURRENT operational work — Leif is actively winding the relationship
+  // down, checklist items still need doing. Burying it in the collapsed
+  // Past Clients section (as a naive "status !== active -> past" grouping
+  // would) would hide exactly the client who most needs attention right
+  // now. Distinct ids from the test above (this file's own convention),
+  // never reused across tests in this file.
+  it("keeps an offboarding client visible in Active, never buried in the collapsed Past Clients section", async () => {
+    await page.viewport(1280, 900);
+
+    const offboardingEnrollment: Enrollment = {
+      id: 11,
+      opportunity_id: 11,
+      status: "offboarding",
+      start_date: "2026-01-01",
+      end_date: null,
+      created_at: "2026-01-01T00:00:00.000Z",
+      updated_at: "2026-01-01T00:00:00.000Z",
+    };
+    const completedEnrollment: Enrollment = {
+      id: 12,
+      opportunity_id: 12,
+      status: "completed",
+      start_date: "2026-01-01",
+      end_date: null,
+      created_at: "2026-01-01T00:00:00.000Z",
+      updated_at: "2026-01-01T00:00:00.000Z",
+    };
+
+    const dataProvider = createDataProvider({
+      db: createCrmDb({
+        contacts: [
+          buildContact({
+            id: 11,
+            first_name: "Offboarding",
+            last_name: "Person",
+          }),
+          buildContact({ id: 12, first_name: "Past", last_name: "Person" }),
+        ],
+        offers: [gyuOffer],
+        deals: [buildDeal(11, 11), buildDeal(12, 12)],
+        enrollments: [offboardingEnrollment, completedEnrollment],
+        enrollment_onboarding_items: [],
+        enrollment_offboarding_items: [],
+      }),
+      silent: true,
+    });
+
+    const screen = await render(
+      <MemoryRouter initialEntries={["/enrollments"]}>
+        <CRM
+          dataProvider={dataProvider}
+          authProvider={createTestAuthProvider()}
+          i18nProvider={testI18nProvider}
+          store={memoryStore()}
+          disableTelemetry
+          layout={({ children }) => (
+            <>
+              {children}
+              <Notification />
+            </>
+          )}
+        />
+      </MemoryRouter>,
+    );
+
+    await expect
+      .element(screen.getByRole("heading", { name: "Active", exact: true }))
+      .toBeInTheDocument();
+    await expect
+      .element(screen.getByText("Offboarding Person"))
+      .toBeInTheDocument();
+    // The genuinely completed client stays collapsed in Past Clients —
+    // proving this isn't "everything now shows", only offboarding moved.
+    await expect
+      .element(screen.getByText("Past Person"))
+      .not.toBeInTheDocument();
+  });
 });

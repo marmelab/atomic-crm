@@ -64,8 +64,12 @@ const OPPORTUNITY_CONTEXT_TYPES: ReadonlySet<string> = new Set([
 // handle_deal_won() at creation) rather than the contact_id heuristic
 // every OPPORTUNITY_CONTEXT_TYPES/APPLICATION_REVIEW_TYPES type still
 // uses below — see useTaskActionDestination.ts.
+// Client Offboarding slice: offboarding_item joins onboarding_item here
+// for the same reason — resolves DETERMINISTICALLY via Task.enrollment_id
+// too, no separate resolution logic needed.
 const ENROLLMENT_CONTEXT_TYPES: ReadonlySet<string> = new Set([
   "onboarding_item",
+  "offboarding_item",
 ]);
 
 // resolve_sales_call (Unmatched Sales Call Resolution slice): used to fall

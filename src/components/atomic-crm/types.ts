@@ -295,6 +295,60 @@ export type EnrollmentOnboardingItem = {
   updated_at: string;
 } & Pick<RaRecord, "id">;
 
+// Client Offboarding slice: the offboarding mirror of
+// OnboardingRequirementTemplate above — same posture (no admin UI,
+// managed via migration), same snapshot-at-transition philosophy. Read
+// only by handle_enrollment_offboarding_started() / its FakeRest mirror,
+// which snapshots label/task_text_template/is_required onto each
+// Enrollment's own enrollment_offboarding_items rows the moment
+// offboarding genuinely begins.
+export type OffboardingRequirementTemplate = {
+  offer_id: Identifier;
+  key: string;
+  label: string;
+  task_text_template: string;
+  is_required: boolean;
+  sort_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+} & Pick<RaRecord, "id">;
+
+// Simpler than EnrollmentOnboardingItemStatus's own pending/sent/done —
+// no offboarding requirement in this slice has a meaningful intermediate
+// state.
+export type EnrollmentOffboardingItemStatus = "pending" | "done";
+
+// One row per (Enrollment x applicable offboarding requirement) — Client
+// Offboarding slice. label/task_text_template/is_required are
+// snapshotted at creation time from offboarding_requirement_templates
+// (never a live reference), so a later template edit never rewrites an
+// Enrollment whose offboarding has already started.
+export type EnrollmentOffboardingItem = {
+  enrollment_id: Identifier;
+  requirement_key: string;
+  label: string;
+  task_text_template: string;
+  is_required: boolean;
+  sort_order: number;
+  status: EnrollmentOffboardingItemStatus;
+  completed_at?: string | null;
+  external_ref?: string | null;
+  created_at: string;
+  updated_at: string;
+} & Pick<RaRecord, "id">;
+
+// Client Offboarding slice: the smallest append-only audit trail for
+// Enrollment lifecycle transitions — answers "when did offboarding
+// begin"/"when did this Enrollment become completed" without a
+// generalized event-sourcing system. Mirrors DealStageEvent's own shape.
+export type EnrollmentStatusEvent = {
+  enrollment_id: Identifier;
+  status: EnrollmentStatus;
+  entered_at: string;
+  created_at: string;
+} & Pick<RaRecord, "id">;
+
 export type WaitlistEntryStatus =
   | "waiting"
   | "invited"
@@ -734,6 +788,10 @@ export type Task = {
   // set_task_enrollment_id_consistency()).
   enrollment_id?: Identifier | null;
   onboarding_item_id?: Identifier | null;
+  // Client Offboarding slice: the offboarding mirror of
+  // onboarding_item_id above — same "points AT its context" pattern,
+  // never set together with onboarding_item_id on the same Task.
+  offboarding_item_id?: Identifier | null;
   // Unmatched Sales Call Resolution slice: only ever set for
   // resolve_sales_call Tasks — a returning Contact can have more than one
   // unresolved booking at once, so contact_id alone can't disambiguate

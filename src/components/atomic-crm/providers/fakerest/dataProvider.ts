@@ -16,9 +16,11 @@ import type {
   Deal,
   DealNote,
   Enrollment,
+  EnrollmentOffboardingItem,
   EnrollmentOnboardingItem,
   Offer,
   OfferPaymentOption,
+  OffboardingRequirementTemplate,
   OnboardingRequirementTemplate,
   Sale,
   SalesCall,
@@ -320,31 +322,55 @@ async function ensureEnrollmentForWonDeal(
 // at that item's own enrollment_id (auto-filled when omitted, rejected
 // when it mismatches) so Task -> Enrollment navigation stays deterministic
 // rather than trusting every future write to get both fields right by
-// hand.
+// hand. Client Offboarding slice: extended with the identical check for
+// offboarding_item_id.
 async function applyTaskEnrollmentConsistency(
   data: Partial<Task>,
   dataProvider: DataProvider,
 ): Promise<Partial<Task>> {
-  if (data.onboarding_item_id == null) return data;
+  let next = data;
 
-  const item = await dataProvider
-    .getOne<EnrollmentOnboardingItem>("enrollment_onboarding_items", {
-      id: data.onboarding_item_id,
-    })
-    .then(({ data }) => data)
-    .catch(() => null);
-  if (!item) {
-    throw new Error(`Invalid onboarding_item_id ${data.onboarding_item_id}`);
+  if (next.onboarding_item_id != null) {
+    const item = await dataProvider
+      .getOne<EnrollmentOnboardingItem>("enrollment_onboarding_items", {
+        id: next.onboarding_item_id,
+      })
+      .then(({ data }) => data)
+      .catch(() => null);
+    if (!item) {
+      throw new Error(`Invalid onboarding_item_id ${next.onboarding_item_id}`);
+    }
+    if (next.enrollment_id == null) {
+      next = { ...next, enrollment_id: item.enrollment_id };
+    } else if (String(next.enrollment_id) !== String(item.enrollment_id)) {
+      throw new Error(
+        `enrollment_id ${next.enrollment_id} does not match onboarding_item_id ${next.onboarding_item_id}'s own enrollment_id ${item.enrollment_id}`,
+      );
+    }
   }
-  if (data.enrollment_id == null) {
-    return { ...data, enrollment_id: item.enrollment_id };
+
+  if (next.offboarding_item_id != null) {
+    const item = await dataProvider
+      .getOne<EnrollmentOffboardingItem>("enrollment_offboarding_items", {
+        id: next.offboarding_item_id,
+      })
+      .then(({ data }) => data)
+      .catch(() => null);
+    if (!item) {
+      throw new Error(
+        `Invalid offboarding_item_id ${next.offboarding_item_id}`,
+      );
+    }
+    if (next.enrollment_id == null) {
+      next = { ...next, enrollment_id: item.enrollment_id };
+    } else if (String(next.enrollment_id) !== String(item.enrollment_id)) {
+      throw new Error(
+        `enrollment_id ${next.enrollment_id} does not match offboarding_item_id ${next.offboarding_item_id}'s own enrollment_id ${item.enrollment_id}`,
+      );
+    }
   }
-  if (String(data.enrollment_id) !== String(item.enrollment_id)) {
-    throw new Error(
-      `enrollment_id ${data.enrollment_id} does not match onboarding_item_id ${data.onboarding_item_id}'s own enrollment_id ${item.enrollment_id}`,
-    );
-  }
-  return data;
+
+  return next;
 }
 
 // Contracts + Onboarding slice: mirrors handle_deal_won()'s own checklist
@@ -415,6 +441,81 @@ async function seedOnboardingChecklistForEnrollment(
   }
 }
 
+// Client Offboarding slice: mirrors
+// handle_enrollment_offboarding_started()'s own checklist + Task seeding
+// exactly — snapshots the currently-active offboarding requirement
+// templates for this Enrollment's Offer, one Task per REQUIRED item
+// only. Called exactly once, from the "enrollments" resource's own
+// afterUpdate hook below, the moment status genuinely transitions
+// active -> offboarding — same idempotency gate as
+// seedOnboardingChecklistForEnrollment (that hook only fires on the exact
+// transition, so a re-save while already offboarding never re-seeds).
+// Zero configured templates for this Offer is a valid, explicit state
+// (§5) — returns early, seeding nothing, rather than manufacturing a
+// fake requirement.
+async function seedOffboardingChecklistForEnrollment(
+  dataProvider: DataProvider,
+  deal: Deal,
+  enrollment: Enrollment,
+): Promise<void> {
+  const { data: templates } =
+    await dataProvider.getList<OffboardingRequirementTemplate>(
+      "offboarding_requirement_templates",
+      {
+        filter: { offer_id: deal.offer_id, is_active: true },
+        pagination: { page: 1, perPage: 50 },
+        sort: { field: "sort_order", order: "ASC" },
+      },
+    );
+  if (templates.length === 0) return;
+
+  let contactName = deal.name;
+  if (deal.contact_id != null) {
+    const contact = await dataProvider
+      .getOne<Contact>("contacts", { id: deal.contact_id })
+      .then(({ data }) => data)
+      .catch(() => null);
+    const name =
+      `${contact?.first_name ?? ""} ${contact?.last_name ?? ""}`.trim();
+    if (name) contactName = name;
+  }
+
+  for (const template of templates) {
+    const { data: item } = await dataProvider.create<EnrollmentOffboardingItem>(
+      "enrollment_offboarding_items",
+      {
+        data: {
+          enrollment_id: enrollment.id,
+          requirement_key: template.key,
+          label: template.label,
+          task_text_template: template.task_text_template,
+          is_required: template.is_required,
+          sort_order: template.sort_order,
+          status: "pending",
+          completed_at: null,
+          external_ref: null,
+        },
+      },
+    );
+
+    if (template.is_required) {
+      const dueDate = new Date();
+      dueDate.setDate(dueDate.getDate() + 3);
+      await dataProvider.create("tasks", {
+        data: {
+          contact_id: deal.contact_id,
+          type: "offboarding_item",
+          text: template.task_text_template.replace("{name}", contactName),
+          due_date: dueDate.toISOString(),
+          status: "pending",
+          enrollment_id: enrollment.id,
+          offboarding_item_id: item.id,
+        },
+      });
+    }
+  }
+}
+
 export interface CreateFakeRestDataProviderOptions {
   db?: Db;
   latency?: number;
@@ -450,6 +551,13 @@ export const createDataProvider = ({
 }: CreateFakeRestDataProviderOptions = {}): CrmDataProvider => {
   const baseDataProvider = fakeRestDataProvider(db, !silent, latency);
   let taskUpdateType = TASK_DONE_NOT_CHANGED;
+  // Client Offboarding slice: afterUpdate's own UpdateResult carries no
+  // previousData (unlike beforeUpdate's UpdateParams) — same
+  // closure-variable shape as taskUpdateType above, set in beforeUpdate,
+  // read in afterUpdate, safe because FakeRest calls are sequential/
+  // awaited per request (never concurrent within one dataProvider
+  // instance).
+  let enrollmentPreviousStatus: Enrollment["status"] | undefined;
   const getIdentity = async () =>
     authProvider?.getIdentity?.() ?? defaultAuthProvider.getIdentity?.();
 
@@ -873,6 +981,39 @@ export const createDataProvider = ({
                 });
               }
             }
+
+            // Client Offboarding slice: mirrors
+            // sync_offboarding_item_from_task() exactly — same reasoning
+            // as the onboarding_item_id block above, scoped to
+            // offboarding_item_id.
+            if (result.data.offboarding_item_id != null) {
+              const { data: item } = await dataProvider.getOne(
+                "enrollment_offboarding_items",
+                { id: result.data.offboarding_item_id },
+              );
+              if (
+                taskUpdateType === TASK_MARKED_AS_DONE &&
+                item.status !== "done"
+              ) {
+                await dataProvider.update("enrollment_offboarding_items", {
+                  id: item.id,
+                  data: {
+                    status: "done",
+                    completed_at: item.completed_at ?? result.data.done_date,
+                  },
+                  previousData: item,
+                });
+              } else if (
+                taskUpdateType === TASK_MARKED_AS_UNDONE &&
+                item.status === "done"
+              ) {
+                await dataProvider.update("enrollment_offboarding_items", {
+                  id: item.id,
+                  data: { status: "pending", completed_at: null },
+                  previousData: item,
+                });
+              }
+            }
           }
           return result;
         },
@@ -895,6 +1036,37 @@ export const createDataProvider = ({
       {
         resource: "enrollments",
         beforeUpdate: async (params, dataProvider) => {
+          // afterUpdate's own result carries no previousData — capture it
+          // here (see enrollmentPreviousStatus's own declaration comment).
+          enrollmentPreviousStatus = params.previousData.status;
+
+          // Client Offboarding slice, §1: mirrors
+          // enforce_enrollment_lifecycle_sequence() exactly — a guarded
+          // domain function (activateEnrollment.ts/startOffboarding.ts/
+          // completeClient.ts) can never produce a skip since each only
+          // accepts one specific FROM status, but a direct ClientEdit.tsx
+          // write could otherwise jump straight from onboarding to
+          // offboarding/completed, or active to completed. Backward
+          // corrections stay ungated, same precedent as the two
+          // narrower guards below.
+          if (
+            params.data.status != null &&
+            params.data.status !== params.previousData.status
+          ) {
+            const rank: Record<string, number> = {
+              onboarding: 0,
+              active: 1,
+              offboarding: 2,
+              completed: 3,
+            };
+            const oldRank = rank[params.previousData.status];
+            const newRank = rank[params.data.status];
+            if (newRank > oldRank + 1) {
+              throw new Error(
+                `Cannot transition enrollment ${params.id} directly from ${params.previousData.status} to ${params.data.status} — the fulfillment lifecycle (onboarding -> active -> offboarding -> completed) cannot skip a stage`,
+              );
+            }
+          }
           // Contracts + Onboarding slice: mirrors
           // enforce_enrollment_activation_requirements() exactly — the
           // DB-level guard against activating an Enrollment with
@@ -923,7 +1095,84 @@ export const createDataProvider = ({
               );
             }
           }
+          // Client Offboarding slice: mirrors
+          // enforce_enrollment_completion_requirements() exactly — same
+          // gap-closing reasoning as the activation guard above. Only
+          // guards the offboarding -> completed direction; a manual
+          // correction back to offboarding stays ungated.
+          if (
+            params.data.status === "completed" &&
+            params.previousData.status === "offboarding"
+          ) {
+            const { data: items } = await dataProvider.getList(
+              "enrollment_offboarding_items",
+              {
+                filter: { enrollment_id: params.id },
+                pagination: { page: 1, perPage: 100 },
+                sort: { field: "id", order: "ASC" },
+              },
+            );
+            const incomplete = items.some(
+              (item) => item.is_required && item.status !== "done",
+            );
+            if (incomplete) {
+              throw new Error(
+                `Cannot complete enrollment ${params.id}: required offboarding items incomplete`,
+              );
+            }
+          }
           return params;
+        },
+        afterCreate: async (result, dataProvider) => {
+          // Client Offboarding slice: mirrors
+          // record_enrollment_status_event()'s own INSERT branch — the
+          // smallest append-only audit trail for Enrollment lifecycle
+          // transitions, recorded on every creation regardless of which
+          // code path created it (ensureEnrollmentForWonDeal, or any
+          // future path).
+          await dataProvider.create("enrollment_status_events", {
+            data: {
+              enrollment_id: result.data.id,
+              status: result.data.status,
+              entered_at: new Date().toISOString(),
+            },
+          });
+          return result;
+        },
+        afterUpdate: async (result, dataProvider) => {
+          const { data: enrollment } = result;
+          // Client Offboarding slice: mirrors
+          // handle_enrollment_offboarding_started() exactly — fires only
+          // on the genuine active -> offboarding transition, so a
+          // duplicate "Start offboarding" write (already offboarding) is
+          // a safe no-op, same idempotency gate as the real trigger.
+          if (
+            enrollment.status === "offboarding" &&
+            enrollmentPreviousStatus === "active"
+          ) {
+            const { data: deal } = await dataProvider.getOne<Deal>("deals", {
+              id: enrollment.opportunity_id,
+            });
+            await seedOffboardingChecklistForEnrollment(
+              dataProvider,
+              deal,
+              enrollment,
+            );
+          }
+          // Client Offboarding slice: mirrors
+          // record_enrollment_status_event()'s own UPDATE branch — only a
+          // genuine status change is recorded, never an unrelated field
+          // edit (e.g. adjusting start_date/end_date).
+          if (enrollmentPreviousStatus !== enrollment.status) {
+            await dataProvider.create("enrollment_status_events", {
+              data: {
+                enrollment_id: enrollment.id,
+                status: enrollment.status,
+                entered_at: new Date().toISOString(),
+              },
+            });
+          }
+          return result;
         },
       } satisfies ResourceCallbacks<Enrollment>,
       {

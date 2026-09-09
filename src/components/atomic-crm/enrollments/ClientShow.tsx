@@ -37,17 +37,24 @@ import type {
   ClientSession,
   Contact,
   Enrollment,
+  EnrollmentOffboardingItem,
   EnrollmentOnboardingItem,
   Offer,
 } from "../types";
 import { AddTask } from "../tasks/AddTask";
 import { TasksListByDueDate } from "../tasks/TasksListByDueDate";
 import { activateEnrollment } from "./activateEnrollment";
+import { completeClient } from "./completeClient";
+import { completeOffboardingItem } from "./completeOffboardingItem";
 import { completeOnboardingItem } from "./completeOnboardingItem";
+import { computeOffboardingProgress } from "./computeOffboardingProgress";
+import type { OffboardingProgress } from "./computeOffboardingProgress";
 import { computeOnboardingProgress } from "./computeOnboardingProgress";
 import type { OnboardingProgress } from "./computeOnboardingProgress";
 import { enrollmentStatusLabels } from "./enrollmentConstants";
+import { reopenOffboardingItem } from "./reopenOffboardingItem";
 import { reopenOnboardingItem } from "./reopenOnboardingItem";
+import { startOffboarding } from "./startOffboarding";
 import { useEnrollmentOperationalData } from "./useEnrollmentOperationalData";
 
 // Contracts + Onboarding slice: the Enrollment/Client page rebuilt as the
@@ -70,8 +77,16 @@ export const ClientShow = () => (
 const EnrollmentOperationalHome = () => {
   const enrollment = useRecordContext<Enrollment>();
   const { currency } = useConfigurationContext();
-  const { isPending, deal, contact, offer, cohort, items, tasks } =
-    useEnrollmentOperationalData(enrollment);
+  const {
+    isPending,
+    deal,
+    contact,
+    offer,
+    cohort,
+    items,
+    offboardingItems,
+    tasks,
+  } = useEnrollmentOperationalData(enrollment);
 
   if (isPending || !enrollment || !deal || !offer) return null;
 
@@ -95,6 +110,39 @@ const EnrollmentOperationalHome = () => {
   const onboardingCollapsed =
     onboardingProgress.allRequiredComplete &&
     enrollment.status !== "onboarding";
+
+  // Client Offboarding slice: the offboarding checklist only ever has
+  // rows once offboarding has genuinely started (nothing is snapshotted
+  // before then) — expanded and prominent while status is "offboarding"
+  // itself (§6: "prominent enough to understand that the client is
+  // winding down"), collapsed alongside onboarding once truly
+  // "completed" (§9), same lifecycle-aware pattern as onboarding above.
+  const offboardingProgress = computeOffboardingProgress(offboardingItems);
+  const showOffboarding = offboardingItems.length > 0;
+  // Human-acceptance repair, offboarding hierarchy: while status is
+  // literally "offboarding", it's the primary lifecycle action Leif is
+  // performing on this client right now — it renders expanded, right
+  // after Payment, the same "operationally important, near the top"
+  // treatment onboarding gets during ITS own active phase (see
+  // onboardingCollapsed's own comment). Once truly "completed", it moves
+  // to the secondary/historical position below Sessions instead — never
+  // both at once (showOffboardingProminent and showOffboardingSecondary
+  // are mutually exclusive), so the checklist is never rendered twice.
+  const showOffboardingProminent =
+    enrollment.status === "offboarding" && showOffboarding;
+  const showOffboardingSecondary = showOffboarding && !showOffboardingProminent;
+
+  // Client + Session Operations slice A, extended by the Client
+  // Offboarding slice (§6/§9): Sessions/History stays visible through
+  // offboarding (historical session context is exactly what §6 asks for)
+  // and completed (§9's own "Sessions / History" line) — only "onboarding"
+  // never shows it, since no cadence exists yet at that stage. Still
+  // gated on the Offer actually having paid-client-session tracking
+  // configured (currently only The Living Example) — GYU never shows
+  // this section regardless of lifecycle stage.
+  const showSessions =
+    enrollment.status !== "onboarding" &&
+    offer.client_session_acuity_appointment_type_id != null;
 
   return (
     <div className="flex flex-col gap-6">
@@ -142,6 +190,14 @@ const EnrollmentOperationalHome = () => {
             contact_id for a Task to point at. */}
         <div className="ml-auto flex items-center gap-1">
           {contact && <AddTask display="icon" contact={contact} />}
+          {/* Client Offboarding slice (§5): a consequential lifecycle
+              change, so it's a clear, explicit human action — never
+              inferred from dates or session counts. Only ever shown for
+              an ACTIVE Enrollment; StartOffboardingButton itself re-checks
+              this server-side too (see startOffboarding.ts). */}
+          {enrollment.status === "active" && (
+            <StartOffboardingButton enrollmentId={enrollment.id} />
+          )}
           <Badge
             variant={
               enrollment.status === "completed" ? "secondary" : "outline"
@@ -153,6 +209,19 @@ const EnrollmentOperationalHome = () => {
       </div>
 
       <PaymentContextCard deal={deal} currency={currency} />
+
+      {/* Human-acceptance repair, offboarding hierarchy: while status is
+          "offboarding" itself, this IS the primary lifecycle action —
+          expanded, right after Payment, before Tasks/Sessions — see
+          showOffboardingProminent's own comment above. */}
+      {showOffboardingProminent && (
+        <OffboardingChecklistCard
+          enrollment={enrollment}
+          tasks={tasks}
+          progress={offboardingProgress}
+          collapsed={false}
+        />
+      )}
 
       {/* ClientShow onboarding-hierarchy repair: while onboarding still
           needs Leif's attention, the checklist stays expanded up here —
@@ -174,29 +243,39 @@ const EnrollmentOperationalHome = () => {
           no contact_id for a Task query either). */}
       {contact && <TasksCard contact={contact} />}
 
-      {/* Client + Session Operations slice A: only for an ACTIVE Enrollment
-          whose Offer actually has paid-client-session tracking configured
-          (currently only The Living Example) — an onboarding/offboarding/
-          completed Enrollment, or an Offer with no session mapping at all
-          (e.g. Growing Yourself Up — group-session attendance is out of
-          scope for this slice), simply doesn't show this section rather
-          than rendering an empty/meaningless one. */}
-      {enrollment.status === "active" &&
-        offer.client_session_acuity_appointment_type_id != null && (
-          <SessionsCard enrollment={enrollment} offer={offer} />
-        )}
+      {/* Client + Session Operations slice A, extended by the Client
+          Offboarding slice: see showSessions's own comment above for why
+          offboarding/completed now show this section too — only
+          onboarding and a non-session-tracked Offer (e.g. GYU) don't. */}
+      {showSessions && <SessionsCard enrollment={enrollment} offer={offer} />}
 
       {/* ClientShow onboarding-hierarchy repair: once onboarding is done
-          and behind the client, Payment/Tasks/Sessions matter far more
-          day-to-day — the completed checklist moves down here, collapsed
-          by default (existing <details> disclosure convention, same as
-          Sessions' own History below). Never deleted or hidden
-          permanently — the historical record stays one click away. */}
+          and behind the client, the completed checklist moves down here,
+          collapsed by default — see onboardingCollapsed's own comment
+          above. */}
       {onboardingCollapsed && (
         <OnboardingChecklistCard
           enrollment={enrollment}
           tasks={tasks}
           progress={onboardingProgress}
+          collapsed={true}
+        />
+      )}
+
+      {/* Human-acceptance repair, offboarding hierarchy: the secondary/
+          historical position — always collapsed here (the ONLY expanded
+          rendering is the prominent block above, for status
+          "offboarding" itself). Reached by status "completed" (matching
+          §9's "Onboarding ... / Offboarding ..." order) or the rare
+          backward-corrected "active with existing offboarding items"
+          edge case — same collapsed-history treatment either way. Never
+          rendered alongside the prominent block — see
+          showOffboardingSecondary's own comment. */}
+      {showOffboardingSecondary && (
+        <OffboardingChecklistCard
+          enrollment={enrollment}
+          tasks={tasks}
+          progress={offboardingProgress}
           collapsed={true}
         />
       )}
@@ -511,6 +590,243 @@ const OnboardingItemRow = ({
           {translate("resources.enrollments.mark_sent", { _: "Mark sent" })}
         </Button>
       )}
+    </div>
+  );
+};
+
+// Client Offboarding slice (§5): the explicit human "Start offboarding"
+// action. Mirrors the Activate button's own re-entrancy-guard shape
+// (Human-acceptance repair, round 4) — never passed `disabled` during
+// its own mutation window, since startOffboarding.ts already re-fetches
+// fresh state and safely no-ops on a duplicate click.
+const StartOffboardingButton = ({
+  enrollmentId,
+}: {
+  enrollmentId: Enrollment["id"];
+}) => {
+  const translate = useTranslate();
+  const dataProvider = useDataProvider();
+  const notify = useNotify();
+  const refresh = useRefresh();
+  const [pending, setPending] = useState(false);
+
+  const handleClick = async () => {
+    if (pending) return;
+    setPending(true);
+    try {
+      const result = await startOffboarding(dataProvider, enrollmentId);
+      if (!result.applied) {
+        notify("resources.enrollments.not_active", {
+          type: "warning",
+          _: "This client is no longer active — showing the current state.",
+        });
+      } else {
+        notify("resources.enrollments.offboarding_started", {
+          type: "info",
+          _: "Offboarding started.",
+        });
+      }
+    } catch {
+      notify("ra.notification.http_error", { type: "error" });
+    } finally {
+      setPending(false);
+      refresh();
+    }
+  };
+
+  return (
+    <Button size="sm" variant="outline" onClick={handleClick}>
+      {translate("resources.enrollments.start_offboarding", {
+        _: "Start offboarding",
+      })}
+    </Button>
+  );
+};
+
+// Client Offboarding slice: the offboarding mirror of
+// OnboardingChecklistCard — same collapsed/expanded <details> pattern
+// (decided by the parent, never re-derived here — see
+// OnboardingChecklistCard's own `collapsed` comment for why), same
+// checklist-row shape. Simpler than onboarding's own header: no
+// "readyToActivate" transient distinction (Complete client only ever
+// shows while status is literally "offboarding", which is also the only
+// status this ever renders expanded for — there's no equivalent
+// "already moved past this stage but not yet clicked" moment the way
+// onboarding's Activate button has, since nothing else needs to happen
+// between requirements-complete and clicking Complete client).
+const OffboardingChecklistCard = ({
+  enrollment,
+  tasks,
+  progress,
+  collapsed,
+}: {
+  enrollment: Enrollment;
+  tasks: ReturnType<typeof useEnrollmentOperationalData>["tasks"];
+  progress: OffboardingProgress;
+  collapsed: boolean;
+}) => {
+  const translate = useTranslate();
+  const dataProvider = useDataProvider();
+  const notify = useNotify();
+  const refresh = useRefresh();
+  const [pendingItemId, setPendingItemId] = useState<
+    EnrollmentOffboardingItem["id"] | null
+  >(null);
+  const [completing, setCompleting] = useState(false);
+
+  const { requiredItems, optionalItems, requiredDoneCount } = progress;
+  const readyToComplete =
+    enrollment.status === "offboarding" && progress.allRequiredComplete;
+
+  const toggleItem = async (item: EnrollmentOffboardingItem) => {
+    if (pendingItemId === item.id) return;
+    setPendingItemId(item.id);
+    try {
+      if (item.status === "done") {
+        await reopenOffboardingItem(dataProvider, item.id);
+      } else {
+        await completeOffboardingItem(dataProvider, item.id);
+      }
+    } catch {
+      notify("ra.notification.http_error", { type: "error" });
+    } finally {
+      setPendingItemId(null);
+      refresh();
+    }
+  };
+
+  const handleComplete = async () => {
+    setCompleting(true);
+    try {
+      const result = await completeClient(dataProvider, enrollment.id);
+      if (!result.applied) {
+        notify(
+          result.reason === "not-offboarding"
+            ? "resources.enrollments.already_completed"
+            : "resources.enrollments.completion_incomplete",
+          {
+            type: "warning",
+            _:
+              result.reason === "not-offboarding"
+                ? "This client is no longer awaiting offboarding — showing the current state."
+                : "Some required items are still incomplete — showing the current state.",
+          },
+        );
+      } else {
+        notify("resources.enrollments.completed", {
+          type: "info",
+          _: "Offboarding complete",
+        });
+      }
+    } catch {
+      notify("ra.notification.http_error", { type: "error" });
+    } finally {
+      setCompleting(false);
+      refresh();
+    }
+  };
+
+  const checklist = (
+    <Card>
+      <CardContent className="flex flex-col divide-y">
+        {[...requiredItems, ...optionalItems].map((item) => (
+          <OffboardingItemRow
+            key={item.id}
+            item={item}
+            tasks={tasks}
+            onToggle={() => toggleItem(item)}
+          />
+        ))}
+      </CardContent>
+    </Card>
+  );
+
+  if (collapsed) {
+    return (
+      <details className="group rounded-lg border">
+        <summary className="cursor-pointer list-none px-4 py-2.5 text-xs text-muted-foreground tracking-wide flex items-center justify-between">
+          {translate("resources.enrollments.offboarding_collapsed_summary", {
+            _: "Offboarding · Complete %{done}/%{total}",
+            done: requiredDoneCount,
+            total: requiredItems.length,
+          })}
+          <span className="text-muted-foreground group-open:rotate-180 transition-transform">
+            ▾
+          </span>
+        </summary>
+        <div className="px-4 pb-2.5 pt-1">{checklist}</div>
+      </details>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-medium text-muted-foreground">
+          {translate("resources.enrollments.offboarding_checklist", {
+            _: "Offboarding",
+          })}
+          {requiredItems.length > 0 &&
+            ` ${requiredDoneCount}/${requiredItems.length}`}
+        </h3>
+        {readyToComplete && (
+          <Button size="sm" disabled={completing} onClick={handleComplete}>
+            {completing
+              ? translate("resources.enrollments.completing", {
+                  _: "Completing…",
+                })
+              : translate("resources.enrollments.complete_client", {
+                  _: "Complete client",
+                })}
+          </Button>
+        )}
+      </div>
+      {checklist}
+    </div>
+  );
+};
+
+// No `disabled` prop here on purpose — unlike OnboardingItemRow, no row
+// in this checklist has a second control (like "Mark sent") that would
+// ever need it; the checkbox itself is already never disabled, same
+// re-entrancy-guarded-in-handler rationale.
+const OffboardingItemRow = ({
+  item,
+  tasks,
+  onToggle,
+}: {
+  item: EnrollmentOffboardingItem;
+  tasks: ReturnType<typeof useEnrollmentOperationalData>["tasks"];
+  onToggle: () => void;
+}) => {
+  const translate = useTranslate();
+  const isDone = item.status === "done";
+  const linkedTask = tasks.find(
+    (task) => task.offboarding_item_id === item.id && !task.done_date,
+  );
+
+  return (
+    <div className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0">
+      {/* No `disabled` here on purpose — same rationale as
+          OnboardingItemRow's own checkbox above. */}
+      <Checkbox checked={isDone} onCheckedChange={onToggle} />
+      <div className="flex flex-col min-w-0 flex-1">
+        <span
+          className={`text-sm ${isDone ? "line-through text-muted-foreground" : ""}`}
+        >
+          {item.label}
+        </span>
+        {!item.is_required && (
+          <span className="text-xs text-muted-foreground">
+            {translate("resources.enrollments.optional", { _: "Optional" })}
+          </span>
+        )}
+        {!isDone && linkedTask && (
+          <span className="text-xs text-muted-foreground">
+            {linkedTask.text}
+          </span>
+        )}
+      </div>
     </div>
   );
 };

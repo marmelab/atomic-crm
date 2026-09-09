@@ -11,6 +11,7 @@ import {
   addLeifProofSliceFixtures,
   addReviewApplicationTaskFixtures,
 } from "./leifProofSliceFixtures";
+import { generateOffboardingRequirementTemplates } from "./offboardingRequirements";
 import { generateOffers } from "./offers";
 import { generateOnboardingRequirementTemplates } from "./onboardingRequirements";
 import { generateSales } from "./sales";
@@ -36,6 +37,10 @@ export default (): Db => {
   db.onboarding_requirement_templates =
     generateOnboardingRequirementTemplates();
   db.enrollment_onboarding_items = [];
+  db.offboarding_requirement_templates =
+    generateOffboardingRequirementTemplates();
+  db.enrollment_offboarding_items = [];
+  db.enrollment_status_events = [];
   db.waitlist_entries = [];
   db.sales_calls = [];
   db.sales_call_events = [];

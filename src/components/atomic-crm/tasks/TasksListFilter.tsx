@@ -6,12 +6,14 @@ import {
 } from "ra-core";
 
 import { TasksIterator } from "./TasksIterator";
+import type { Task as TaskType } from "../types";
 
 type TaskListProps = {
   tasks: any[];
   title: string;
   showContact?: boolean;
   isMobile: boolean;
+  onCompleted?: (task: TaskType) => void;
 };
 
 export const TaskListFilter = ({
@@ -19,6 +21,7 @@ export const TaskListFilter = ({
   title,
   showContact,
   isMobile,
+  onCompleted,
 }: TaskListProps) => {
   const translate = useTranslate();
   const listContext = useList({
@@ -38,7 +41,7 @@ export const TaskListFilter = ({
       </p>
       <ResourceContextProvider value="tasks">
         <ListContextProvider value={listContext}>
-          <TasksIterator showContact={showContact} />
+          <TasksIterator showContact={showContact} onCompleted={onCompleted} />
         </ListContextProvider>
       </ResourceContextProvider>
       {total > listContext.perPage && (

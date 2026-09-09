@@ -84,6 +84,12 @@ export const defaultTaskTypes = [
   // the durable distinction kept on the checklist item instead — see
   // enrollments/enrollmentOnboardingItems.ts.
   { value: "onboarding_item", label: "Onboarding" },
+  // Client Offboarding slice: the offboarding mirror of onboarding_item
+  // above — auto-created by handle_enrollment_offboarding_started() for
+  // every REQUIRED offboarding checklist item (archive session notes,
+  // remove Slack/Calendar access), same "generic type, specific action
+  // lives in the Task's own text" reasoning.
+  { value: "offboarding_item", label: "Offboarding" },
   // GYU real-infrastructure slice, human-acceptance repair pass: surfaces
   // an Opportunity left at Call Booked with no active appointment after a
   // cancellation, so it never silently strands — see

@@ -399,6 +399,9 @@ $$;
 -- item's own Enrollment (never onboarding_item_id set with a mismatched or
 -- missing enrollment_id) — cheap to enforce here rather than trusting every
 -- future insert/update call site to get both columns right by hand.
+-- Client Offboarding slice: extended with the identical check for
+-- offboarding_item_id — same integrity requirement, same reasoning, one
+-- shared function rather than a near-duplicate second trigger function.
 CREATE OR REPLACE FUNCTION "public"."set_task_enrollment_id_consistency"() RETURNS "trigger"
     LANGUAGE "plpgsql"
     SET "search_path" TO 'public'
@@ -417,6 +420,19 @@ begin
     elsif new.enrollment_id <> v_item_enrollment_id then
       raise exception 'enrollment_id % does not match onboarding_item_id %''s own enrollment_id %',
         new.enrollment_id, new.onboarding_item_id, v_item_enrollment_id;
+    end if;
+  end if;
+  if new.offboarding_item_id is not null then
+    select enrollment_id into v_item_enrollment_id
+      from enrollment_offboarding_items where id = new.offboarding_item_id;
+    if v_item_enrollment_id is null then
+      raise exception 'Invalid offboarding_item_id %', new.offboarding_item_id;
+    end if;
+    if new.enrollment_id is null then
+      new.enrollment_id := v_item_enrollment_id;
+    elsif new.enrollment_id <> v_item_enrollment_id then
+      raise exception 'enrollment_id % does not match offboarding_item_id %''s own enrollment_id %',
+        new.enrollment_id, new.offboarding_item_id, v_item_enrollment_id;
     end if;
   end if;
   return new;
@@ -460,6 +476,47 @@ begin
 end;
 $$;
 
+-- Client Offboarding slice, §1: the fulfillment lifecycle is a strict
+-- sequence (onboarding -> active -> offboarding -> completed) — nothing
+-- may skip a stage, whether written through a guarded domain function
+-- (activateEnrollment.ts/startOffboarding.ts/completeClient.ts already
+-- each only accept one specific FROM status, so they can never produce a
+-- skip) or directly through ClientEdit.tsx's plain status field (the
+-- same "direct write path" gap enforce_enrollment_activation_requirements
+-- below already closes for its own narrower transition). Rank-based
+-- rather than an enumerated list of forbidden pairs, so it stays correct
+-- automatically if a stage is ever inserted into the sequence. Backward
+-- corrections (completed -> active, offboarding -> onboarding, etc.) are
+-- deliberately NOT rejected here — same "a manual correction stays
+-- ungated" precedent as the activation guard below; only a FORWARD skip
+-- (new rank more than one ahead of old rank) is nonsensical.
+CREATE OR REPLACE FUNCTION "public"."enforce_enrollment_lifecycle_sequence"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    SET "search_path" TO 'public'
+    AS $$
+declare
+  v_old_rank int;
+  v_new_rank int;
+begin
+  v_old_rank := case old.status
+    when 'onboarding' then 0
+    when 'active' then 1
+    when 'offboarding' then 2
+    when 'completed' then 3
+  end;
+  v_new_rank := case new.status
+    when 'onboarding' then 0
+    when 'active' then 1
+    when 'offboarding' then 2
+    when 'completed' then 3
+  end;
+  if v_new_rank > v_old_rank + 1 then
+    raise exception 'Cannot transition enrollment % directly from % to % — the fulfillment lifecycle (onboarding -> active -> offboarding -> completed) cannot skip a stage', new.id, old.status, new.status;
+  end if;
+  return new;
+end;
+$$;
+
 -- Contracts + Onboarding slice: the DB-level half of the Onboarding ->
 -- Active guard (architecture review, §6). activateEnrollment.ts is the
 -- normal write path and already checks this before writing, but
@@ -480,6 +537,143 @@ begin
     ) then
       raise exception 'Cannot activate enrollment %: required onboarding items incomplete', new.id;
     end if;
+  end if;
+  return new;
+end;
+$$;
+
+-- Client Offboarding slice: mirrors handle_deal_won()'s own checklist +
+-- Task seeding exactly, but fires on the Enrollment's own active ->
+-- offboarding transition rather than a Deal event (offboarding is a
+-- fulfillment-lifecycle concern, never a sales-stage one — Won stays
+-- terminal sales state). AFTER trigger, so it only fires once the
+-- transition is genuinely committed; guarded to the exact transition
+-- (old.status = 'active' and new.status = 'offboarding'), so it can never
+-- re-fire for an unrelated field edit or a later manual correction, and a
+-- duplicate "Start offboarding" write (already offboarding) is a safe
+-- no-op the same way handle_deal_won()'s ON CONFLICT DO NOTHING is —
+-- Postgres's own row-level locking during the UPDATE means a genuine
+-- concurrent double-click race still only ever sees one row transition
+-- through old.status = 'active' exactly once.
+CREATE OR REPLACE FUNCTION "public"."handle_enrollment_offboarding_started"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    SET "search_path" TO 'public'
+    AS $$
+declare
+  v_offer_id bigint;
+  v_contact_id bigint;
+  v_contact_name text;
+  v_item record;
+begin
+  if new.status = 'offboarding' and old.status = 'active' then
+    select d.offer_id, d.contact_id into v_offer_id, v_contact_id
+      from deals d where d.id = new.opportunity_id;
+
+    select trim(both ' ' from coalesce(first_name, '') || ' ' || coalesce(last_name, ''))
+      into v_contact_name
+      from contacts where id = v_contact_id;
+    if v_contact_name is null or v_contact_name = '' then
+      select name into v_contact_name from deals where id = new.opportunity_id;
+    end if;
+
+    -- Zero configured requirements for this Offer is a valid, explicit
+    -- state (Client Offboarding slice, §5) — the loop below simply
+    -- inserts nothing and no Task is created, rather than manufacturing
+    -- a fake requirement.
+    for v_item in
+      insert into enrollment_offboarding_items
+        (enrollment_id, requirement_key, label, task_text_template, is_required, sort_order)
+      select new.id, t.key, t.label, t.task_text_template, t.is_required, t.sort_order
+      from offboarding_requirement_templates t
+      where t.offer_id = v_offer_id and t.is_active
+      returning id, is_required, task_text_template
+    loop
+      if v_item.is_required then
+        insert into tasks (contact_id, type, text, due_date, status, enrollment_id, offboarding_item_id)
+        values (
+          v_contact_id,
+          'offboarding_item',
+          replace(v_item.task_text_template, '{name}', v_contact_name),
+          now() + interval '3 days',
+          'pending',
+          new.id,
+          v_item.id
+        );
+      end if;
+    end loop;
+  end if;
+  return new;
+end;
+$$;
+
+-- Client Offboarding slice: the offboarding mirror of
+-- sync_onboarding_item_from_task() — identical Task -> checklist-item
+-- sync semantics (a cancelled Task never completes its item; the
+-- checklist item stays the durable source of truth), scoped to
+-- offboarding_item_id instead.
+CREATE OR REPLACE FUNCTION "public"."sync_offboarding_item_from_task"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    SET "search_path" TO 'public'
+    AS $$
+begin
+  if new.offboarding_item_id is null then
+    return new;
+  end if;
+
+  if new.done_date is not null and old.done_date is null then
+    update enrollment_offboarding_items
+      set status = 'done', completed_at = coalesce(completed_at, new.done_date), updated_at = now()
+      where id = new.offboarding_item_id and status <> 'done';
+  elsif new.done_date is null and old.done_date is not null then
+    update enrollment_offboarding_items
+      set status = 'pending', completed_at = null, updated_at = now()
+      where id = new.offboarding_item_id and status = 'done';
+  end if;
+
+  return new;
+end;
+$$;
+
+-- Client Offboarding slice: the DB-level half of the Offboarding ->
+-- Completed guard, mirroring enforce_enrollment_activation_requirements()
+-- exactly — completeClient.ts is the normal write path and already
+-- checks this, but ClientEdit.tsx's plain status field (and any other
+-- direct write) goes through this same table. Only guards the
+-- offboarding -> completed direction; a manual correction back to
+-- offboarding (or any other direction) stays ungated.
+CREATE OR REPLACE FUNCTION "public"."enforce_enrollment_completion_requirements"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    SET "search_path" TO 'public'
+    AS $$
+begin
+  if new.status = 'completed' and old.status = 'offboarding' then
+    if exists (
+      select 1 from enrollment_offboarding_items
+      where enrollment_id = new.id and is_required and status <> 'done'
+    ) then
+      raise exception 'Cannot complete enrollment %: required offboarding items incomplete', new.id;
+    end if;
+  end if;
+  return new;
+end;
+$$;
+
+-- Client Offboarding slice: the smallest append-only audit trail for
+-- Enrollment lifecycle transitions — mirrors record_deal_stage_event()'s
+-- own guard shape (INSERT or a genuine status change), minus the
+-- BEFORE-trigger companion deal_stage_events needs for its own
+-- denormalized stage_entered_at column (enrollments has no equivalent to
+-- keep in sync, so `now()` directly in this one AFTER trigger is
+-- sufficient — NEW.id is already populated by the time an AFTER INSERT
+-- trigger fires, unlike deals' own BEFORE-trigger constraint).
+CREATE OR REPLACE FUNCTION "public"."record_enrollment_status_event"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    SET "search_path" TO 'public'
+    AS $$
+begin
+  if tg_op = 'INSERT' or new.status is distinct from old.status then
+    insert into enrollment_status_events (enrollment_id, status, entered_at)
+    values (new.id, new.status, now());
   end if;
   return new;
 end;

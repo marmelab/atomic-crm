@@ -86,8 +86,18 @@ export const useClientsGrouped = (): {
           ? cohortById.get(String(deal.cohort_id))
           : undefined,
     };
+    // Client Offboarding slice, §10: an offboarding Enrollment is still
+    // CURRENT operational work — Leif is actively winding it down, not
+    // done with it — so it belongs in Active (each row's own Badge
+    // already shows "Offboarding" distinctly, via ClientList.tsx's
+    // existing per-row status badge), never silently buried under Past
+    // before Complete client actually happens. Only "completed" is Past.
     if (enrollment.status === "onboarding") needsOnboarding.push(row);
-    else if (enrollment.status === "active") active.push(row);
+    else if (
+      enrollment.status === "active" ||
+      enrollment.status === "offboarding"
+    )
+      active.push(row);
     else past.push(row);
   }
 
