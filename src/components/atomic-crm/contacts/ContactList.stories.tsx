@@ -3,7 +3,7 @@ import { ResourceContextProvider } from "ra-core";
 
 import { ContactList } from "./ContactList";
 
-import { StoryWrapper, buildContact } from "@/test/StoryWrapper";
+import { StoryWrapper, buildContact, buildSale } from "@/test/StoryWrapper";
 
 const meta = {
   title: "Atomic CRM/Contacts/Contact List",
@@ -101,6 +101,55 @@ const dataForBulkAddTag = {
 
 export const BulkTagButton = () => (
   <StoryWrapper data={dataForBulkAddTag}>
+    <ResourceContextProvider value="contacts">
+      <ContactList />
+    </ResourceContextProvider>
+  </StoryWrapper>
+);
+
+const dataForAccountManagerFilter = {
+  contacts: [
+    buildContact({
+      first_name: "Ada",
+      id: 1,
+      last_name: "Lovelace",
+      sales_id: 0,
+    }),
+    buildContact({
+      first_name: "Grace",
+      id: 2,
+      last_name: "Hopper",
+      sales_id: 1,
+    }),
+  ],
+  sales: [
+    buildSale({ administrator: true, first_name: "Jane", id: 0 }),
+    buildSale({
+      administrator: false,
+      email: "mariecurie@atomic.dev",
+      first_name: "Marie",
+      id: 1,
+      last_name: "Curie",
+      user_id: "1",
+    }),
+  ],
+};
+
+export const AdminAccountManagerFilter = () => (
+  <StoryWrapper data={dataForAccountManagerFilter}>
+    <ResourceContextProvider value="contacts">
+      <ContactList />
+    </ResourceContextProvider>
+  </StoryWrapper>
+);
+
+export const NonAdminAccountManagerFilter = () => (
+  <StoryWrapper
+    authProvider={{
+      canAccess: async ({ resource }) => resource !== "sales",
+    }}
+    data={dataForAccountManagerFilter}
+  >
     <ResourceContextProvider value="contacts">
       <ContactList />
     </ResourceContextProvider>
