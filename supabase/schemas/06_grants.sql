@@ -123,6 +123,10 @@ grant all on table public.init_state to anon;
 grant all on table public.init_state to authenticated;
 grant all on table public.init_state to service_role;
 
+grant all on table public.search_index to anon;
+grant all on table public.search_index to authenticated;
+grant all on table public.search_index to service_role;
+
 -- Sequence grants
 grant all on sequence public.companies_id_seq to anon;
 grant all on sequence public.companies_id_seq to authenticated;

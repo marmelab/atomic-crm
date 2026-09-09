@@ -226,3 +226,24 @@ export interface ContactGender {
   label: string;
   icon: ComponentType<{ className?: string }>;
 }
+
+export type SearchResourceName =
+  | "companies"
+  | "contacts"
+  | "deals"
+  | "tasks"
+  | "contact_notes"
+  | "deal_notes";
+
+export type SearchResult = {
+  id: Identifier;
+  resource: SearchResourceName;
+  record_id: Identifier;
+  title: string | null;
+  subtitle: string | null;
+  content: string | null;
+  company_id: Identifier | null;
+  contact_id: Identifier | null;
+  deal_id: Identifier | null;
+  date: string | null;
+};

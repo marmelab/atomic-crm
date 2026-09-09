@@ -353,6 +353,25 @@ const lifeCycleCallbacks: ResourceCallbacks[] = [
       return applyFullTextSearch(["name", "category", "description"])(params);
     },
   },
+  {
+    resource: "search_index",
+    beforeGetList: async (params) => {
+      if (!params.filter?.q) {
+        return params;
+      }
+      const { q, ...filter } = params.filter;
+      // A single `ilike` column: ra-data-postgrest splits the term on spaces
+      // and ANDs one `ilike` per word, so "Thomas TF1" matches rows whose
+      // aggregated content contains both words.
+      return {
+        ...params,
+        filter: {
+          ...filter,
+          "content@ilike": q,
+        },
+      };
+    },
+  },
 ];
 
 export const getDataProvider = () => {

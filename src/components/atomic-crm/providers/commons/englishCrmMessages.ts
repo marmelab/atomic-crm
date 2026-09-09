@@ -441,6 +441,21 @@ export const englishCrmMessages = {
     header: {
       import_data: "Import data",
     },
+    search: {
+      title: "Search",
+      placeholder: "Search contacts, companies, deals, tasks and notes...",
+      hint: "Type at least %{min} characters to search",
+      empty: "No result found",
+      untitled_result: "(no title)",
+      groups: {
+        contacts: "Contacts",
+        companies: "Companies",
+        deals: "Deals",
+        tasks: "Tasks",
+        contact_notes: "Contact notes",
+        deal_notes: "Deal notes",
+      },
+    },
     image_editor: {
       change: "Change",
       drop_hint: "Drop a file to upload, or click to select it.",

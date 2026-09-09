@@ -448,6 +448,22 @@ export const frenchCrmMessages = {
     header: {
       import_data: "Importer des données",
     },
+    search: {
+      title: "Rechercher",
+      placeholder:
+        "Rechercher un contact, une entreprise, une affaire, une tâche, une note...",
+      hint: "Saisissez au moins %{min} caractères pour lancer la recherche",
+      empty: "Aucun résultat",
+      untitled_result: "(sans titre)",
+      groups: {
+        contacts: "Contacts",
+        companies: "Entreprises",
+        deals: "Affaires",
+        tasks: "Tâches",
+        contact_notes: "Notes de contact",
+        deal_notes: "Notes d'affaire",
+      },
+    },
     image_editor: {
       change: "Changer",
       drop_hint:

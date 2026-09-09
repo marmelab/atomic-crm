@@ -8,6 +8,7 @@ import { Welcome } from "./Welcome";
 import MobileHeader from "../layout/MobileHeader";
 import { MobileContent } from "../layout/MobileContent";
 import { useConfigurationContext } from "../root/ConfigurationContext";
+import { GlobalSearchButton } from "../search";
 
 const Wrapper = ({ children }: { children: React.ReactNode }) => {
   const { darkModeLogo, lightModeLogo, title } = useConfigurationContext();
@@ -27,6 +28,7 @@ const Wrapper = ({ children }: { children: React.ReactNode }) => {
           />
           <h1 className="text-xl font-semibold">{title}</h1>
         </div>
+        <GlobalSearchButton variant="icon" />
       </MobileHeader>
       <MobileContent>{children}</MobileContent>
     </>
