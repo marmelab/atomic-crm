@@ -99,10 +99,46 @@ describe("TaskCreateSheet", () => {
     });
     expect(tasks.data).toHaveLength(2);
 
+    await expect
+      .poll(async () => {
+        const { data } = await dataProvider!.getOne("contacts", { id: 2 });
+        return data.last_seen;
+      })
+      .not.toBe(originalLastSeen);
+
     const updatedContact = await dataProvider!.getOne("contacts", {
       id: 2,
     });
-    expect(updatedContact.data.last_seen).not.toBe(originalLastSeen);
     expect(updatedContact.data.nb_tasks).toBe(1);
+  });
+
+  it("closes the sheet and confirms the creation when the contact refresh fails", async () => {
+    // Arrange: the task create succeeds, the follow-up contact refresh does not.
+    const screen = await render(
+      <Mobile
+        dataProvider={{
+          getOne: (resource: string) =>
+            Promise.reject(new Error(`getOne("${resource}") is unavailable`)),
+        }}
+      />,
+    );
+
+    // Act
+    await screen
+      .getByLabelText(/description/i)
+      .fill("Follow up about onboarding");
+
+    const [contactInput] = screen.getByRole("combobox").all();
+    await contactInput.click();
+    await screen.getByText("Grace Hopper").click();
+
+    await screen.getByRole("button", { name: /^save$/i }).click();
+
+    // Assert: the task exists, so the sheet must go away with a confirmation.
+    // Leaving it open would invite a second Save, hence a duplicate task.
+    await expect.element(screen.getByText("Task added")).toBeInTheDocument();
+    await expect
+      .element(screen.getByText("Create Task"))
+      .not.toBeInTheDocument();
   });
 });

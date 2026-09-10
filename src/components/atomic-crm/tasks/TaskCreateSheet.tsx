@@ -8,10 +8,9 @@ import {
   useTranslate,
   useUpdate,
 } from "ra-core";
+import type { Task } from "../types";
 import { CreateSheet } from "../misc/CreateSheet";
-import { foreignKeyMapping } from "../notes/foreignKeyMapping";
 import { TaskFormContent } from "./TaskFormContent";
-import { useQueryClient } from "@tanstack/react-query";
 
 export interface TaskCreateSheetProps {
   open: boolean;
@@ -36,30 +35,34 @@ export const TaskCreateSheet = ({
   );
   const [update] = useUpdate();
   const dataProvider = useDataProvider();
-  const queryClient = useQueryClient();
   const notify = useNotify();
 
   if (!identity) return null;
 
-  const handleSuccess = async (data: any) => {
-    const referenceRecordId = data[foreignKeyMapping["contacts"]];
-    if (!referenceRecordId) return;
-    const { data: contact } = await dataProvider.getOne("contacts", {
-      id: referenceRecordId,
-    });
-    if (!contact) return;
-    await update("contacts", {
-      id: referenceRecordId as unknown as Identifier,
-      data: { last_seen: new Date().toISOString() },
-      previousData: contact,
-    });
-    queryClient.invalidateQueries({
-      queryKey: ["contacts", "getOne"],
-    });
-
+  const handleSuccess = async (data: Task) => {
     notify("resources.tasks.added");
     // No redirect, only close the sheet
     onOpenChange(false);
+
+    if (!data.contact_id) return;
+
+    try {
+      const { data: contact } = await dataProvider.getOne("contacts", {
+        id: data.contact_id,
+      });
+      if (!contact) return;
+      await update(
+        "contacts",
+        {
+          id: data.contact_id,
+          data: { last_seen: new Date().toISOString() },
+          previousData: contact,
+        },
+        { returnPromise: true },
+      );
+    } catch (error) {
+      console.error("Could not update the contact last_seen date", error);
+    }
   };
 
   return (

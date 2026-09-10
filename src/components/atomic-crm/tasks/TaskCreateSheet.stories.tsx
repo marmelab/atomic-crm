@@ -29,13 +29,15 @@ const defaultData = {
 export const Mobile = ({
   children,
   data = defaultData,
+  dataProvider,
 }: {
   children?: ReactNode;
   data?: any;
+  dataProvider?: Parameters<typeof StoryWrapper>[0]["dataProvider"];
 }) => {
   const [open, setOpen] = useState(true);
   return (
-    <StoryWrapper data={data}>
+    <StoryWrapper data={data} dataProvider={dataProvider}>
       <TaskCreateSheet open={open} onOpenChange={setOpen} />
       {children}
     </StoryWrapper>

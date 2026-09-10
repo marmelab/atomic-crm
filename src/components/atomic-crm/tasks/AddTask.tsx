@@ -27,6 +27,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
+import type { Task } from "../types";
 import { TaskFormContent } from "./TaskFormContent";
 
 export const AddTask = ({
@@ -48,20 +49,27 @@ export const AddTask = ({
   };
   const getContactRepresentation = useGetRecordRepresentation("contacts");
 
-  const handleSuccess = async (data: any) => {
+  const handleSuccess = async (data: Task) => {
     setOpen(false);
-    const contact = await dataProvider.getOne("contacts", {
-      id: data.contact_id,
-    });
-    if (!contact.data) return;
-
-    await update("contacts", {
-      id: contact.data.id,
-      data: { last_seen: new Date().toISOString() },
-      previousData: contact.data,
-    });
-
     notify("resources.tasks.added");
+
+    try {
+      const { data: contact } = await dataProvider.getOne("contacts", {
+        id: data.contact_id,
+      });
+      if (!contact) return;
+      await update(
+        "contacts",
+        {
+          id: contact.id,
+          data: { last_seen: new Date().toISOString() },
+          previousData: contact,
+        },
+        { returnPromise: true },
+      );
+    } catch (error) {
+      console.error("Could not update the contact last_seen date", error);
+    }
   };
 
   if (!identity) return null;
