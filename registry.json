@@ -622,6 +622,46 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/dataImport/useImportableResources.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/dataImport/useDealImport.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/dataImport/useCompanyResolver.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/dataImport/useCompanyImport.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/dataImport/types.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/dataImport/parseCell.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/dataImport/fetchRecordsWithCache.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/dataImport/createEachRow.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/dataImport/DataImportDialog.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/dataImport/DataImportButton.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/dashboard/Welcome.tsx",
           "type": "registry:component"
         },
@@ -715,10 +755,6 @@
         },
         {
           "path": "src/components/atomic-crm/contacts/ContactInputs.tsx",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/contacts/ContactImportButton.tsx",
           "type": "registry:component"
         },
         {
