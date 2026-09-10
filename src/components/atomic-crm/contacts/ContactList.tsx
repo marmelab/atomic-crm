@@ -19,7 +19,7 @@ import { Card } from "@/components/ui/card";
 import type { Company, Contact, Sale, Tag } from "../types";
 import { BulkTagButton } from "./BulkTagButton";
 import { ContactEmpty } from "./ContactEmpty";
-import { ContactImportButton } from "./ContactImportButton";
+import { DataImportButton } from "../dataImport/DataImportButton";
 import {
   ContactListContent,
   ContactListContentMobile,
@@ -87,7 +87,7 @@ const ContactBulkActionButtons = () => (
 const ContactListActions = () => (
   <TopToolbar>
     <SortButton fields={["first_name", "last_name", "last_seen"]} />
-    <ContactImportButton />
+    <DataImportButton resource="contacts" />
     <ExportButton exporter={exporter} />
     <CreateButton />
   </TopToolbar>

@@ -85,6 +85,7 @@ export default defineConfig({
           label: "Users Documentation",
           items: [
             "users/user-management",
+            "users/preferences",
             "users/settings",
             "users/global-search",
             "users/import-data",
