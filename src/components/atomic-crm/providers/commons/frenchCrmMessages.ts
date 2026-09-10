@@ -458,6 +458,24 @@ export const frenchCrmMessages = {
     header: {
       import_data: "Importer depuis JSON",
     },
+    search: {
+      title: "Rechercher",
+      placeholder:
+        "Rechercher un contact, une entreprise, une affaire, une tâche, une note...",
+      hint: "Saisissez au moins %{min} caractères pour lancer la recherche",
+      empty: "Aucun résultat",
+      error:
+        "La recherche est indisponible pour le moment. Veuillez réessayer.",
+      untitled_result: "(sans titre)",
+      groups: {
+        contacts: "Contacts",
+        companies: "Entreprises",
+        deals: "Affaires",
+        tasks: "Tâches",
+        contact_notes: "Notes de contact",
+        deal_notes: "Notes d'affaire",
+      },
+    },
     image_editor: {
       change: "Changer",
       drop_hint:

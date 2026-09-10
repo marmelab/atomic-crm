@@ -158,6 +158,30 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/search/useGlobalSearch.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/search/searchResources.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/search/index.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/search/getSearchResultUrl.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/search/GlobalSearchDialog.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/search/GlobalSearchButton.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/sales/useGetSalesName.ts",
           "type": "registry:component"
         },
@@ -303,6 +327,10 @@
         },
         {
           "path": "src/components/atomic-crm/providers/fakerest/dataGenerator/companies.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/providers/commons/search.ts",
           "type": "registry:component"
         },
         {

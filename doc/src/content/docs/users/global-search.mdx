@@ -1,0 +1,43 @@
+---
+title: Global Search
+---
+
+Global search looks across every record type at once, so you can find a note by
+a phrase you remember without knowing which contact it belongs to.
+
+## Opening the search
+
+On desktop, click the magnifier in the top bar, or press **Ctrl+K**
+(**Cmd+K** on macOS) from anywhere in the app. The shortcut is ignored while you
+are typing in a field, so it never interrupts a note you are writing.
+
+On mobile, tap the magnifier in the header. It is available on every screen.
+
+## What is searched
+
+| Record                   | Searched fields                                                          |
+| ------------------------ | ------------------------------------------------------------------------ |
+| Companies                | name, sector, description, website, phone, zip code, city, state         |
+| Contacts                 | first and last name, job title, background, company name, emails, phones |
+| Deals                    | name, category, description, company name                                |
+| Tasks                    | text, type, contact name                                                 |
+| Notes (contact and deal) | note text, attachment file names, parent contact or deal name            |
+
+Archived deals and completed tasks are left out, along with notes attached to an
+archived deal.
+
+## Searching with several words
+
+Every word must appear somewhere in the same record. Searching
+`sourdough Anderson` returns the notes about sourdough written on Thomas
+Anderson, and not the ones written on anybody else — the parent contact's name
+counts as part of the note.
+
+## Good to know
+
+- Search starts at **2 characters**.
+- Results are capped at **50**, most recent first, with no pagination. Add a
+  word to narrow them down rather than scrolling.
+- Deals and deal notes do not appear on mobile, which has no deal screen to open.
+- The page-specific searches (the search box on the Contacts page, and so on)
+  are unchanged and still filter their own list.

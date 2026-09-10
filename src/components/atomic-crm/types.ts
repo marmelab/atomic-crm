@@ -151,6 +151,7 @@ export type Task = {
   due_date: string;
   done_date?: string | null;
   sales_id?: Identifier;
+  created_at?: string;
 } & Pick<RaRecord, "id">;
 
 export type ActivityCompanyCreated = {
@@ -226,3 +227,22 @@ export interface ContactGender {
   label: string;
   icon: ComponentType<{ className?: string }>;
 }
+
+export type SearchResourceName =
+  | "companies"
+  | "contacts"
+  | "deals"
+  | "tasks"
+  | "contact_notes"
+  | "deal_notes";
+
+export type SearchResult = {
+  id: Identifier;
+  resource: SearchResourceName;
+  record_id: Identifier;
+  title: string | null;
+  subtitle: string | null;
+  contact_id: Identifier | null;
+  deal_id: Identifier | null;
+  date: string | null;
+};
