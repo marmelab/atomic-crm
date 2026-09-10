@@ -103,8 +103,10 @@ export const ArrayInput = (props: ArrayInputProps) => {
   );
 };
 
-export interface ArrayInputProps
-  extends Omit<InputProps, "disabled" | "readOnly"> {
+export interface ArrayInputProps extends Omit<
+  InputProps,
+  "disabled" | "readOnly"
+> {
   className?: string;
   children: React.ReactNode;
   isFetching?: boolean;
