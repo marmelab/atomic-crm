@@ -16,6 +16,7 @@ import type {
   DealNote,
   Sale,
   SalesFormData,
+  SearchResourceName,
   SignUpData,
   Task,
 } from "../../types";
@@ -140,6 +141,11 @@ const preserveAttachmentMimeType = <
   })),
 });
 
+const parseResourceFilter = (
+  value: unknown,
+): SearchResourceName[] | undefined =>
+  Array.isArray(value) ? (value as SearchResourceName[]) : undefined;
+
 export const createDataProvider = ({
   db = generateData(),
   latency = 300,
@@ -173,7 +179,11 @@ export const createDataProvider = ({
     async getList(resource: string, params: any) {
       if (resource === "search_index") {
         const { filter = {}, pagination } = params;
-        const all = await getSearchResults(baseDataProvider, filter.q ?? "");
+        const all = await getSearchResults(
+          withSupabaseFilterAdapter(baseDataProvider),
+          filter.q ?? "",
+          parseResourceFilter(filter.resource_eq_any),
+        );
         const { page, perPage } = pagination;
         const start = (page - 1) * perPage;
         return { data: all.slice(start, start + perPage), total: all.length };

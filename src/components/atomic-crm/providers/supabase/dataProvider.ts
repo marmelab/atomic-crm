@@ -361,8 +361,10 @@ const lifeCycleCallbacks: ResourceCallbacks[] = [
       }
       const { q, ...filter } = params.filter;
       // A single `ilike` column: ra-data-postgrest splits the term on spaces
-      // and ANDs one `ilike` per word, so "Thomas TF1" matches rows whose
-      // aggregated content contains both words.
+      // and emits one `ilike` per word. qs.stringify uses the indices format,
+      // so the query string carries `content[0]=ilike.*a*&content[1]=ilike.*b*`;
+      // PostgREST strips the `[n]` subscripts and ANDs the repeated column, so
+      // "Thomas TF1" matches only rows whose content contains both words.
       return {
         ...params,
         filter: {

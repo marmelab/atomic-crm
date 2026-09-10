@@ -446,6 +446,7 @@ export const englishCrmMessages = {
       placeholder: "Search contacts, companies, deals, tasks and notes...",
       hint: "Type at least %{min} characters to search",
       empty: "No result found",
+      error: "Search is unavailable right now. Please try again.",
       untitled_result: "(no title)",
       groups: {
         contacts: "Contacts",

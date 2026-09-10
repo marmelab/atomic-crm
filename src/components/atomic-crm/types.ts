@@ -151,6 +151,7 @@ export type Task = {
   due_date: string;
   done_date?: string | null;
   sales_id?: Identifier;
+  created_at?: string;
 } & Pick<RaRecord, "id">;
 
 export type ActivityCompanyCreated = {
@@ -241,8 +242,6 @@ export type SearchResult = {
   record_id: Identifier;
   title: string | null;
   subtitle: string | null;
-  content: string | null;
-  company_id: Identifier | null;
   contact_id: Identifier | null;
   deal_id: Identifier | null;
   date: string | null;

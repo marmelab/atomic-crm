@@ -14,7 +14,11 @@ import { useIsMobile } from "@/hooks/use-mobile";
 
 import type { SearchResult } from "../types";
 import { getSearchResultUrl } from "./getSearchResultUrl";
-import { SEARCH_RESOURCES } from "./searchResources";
+import {
+  DESKTOP_SEARCH_RESOURCES,
+  MOBILE_SEARCH_RESOURCES,
+  SEARCH_RESOURCES,
+} from "./searchResources";
 import { MIN_SEARCH_LENGTH, useGlobalSearch } from "./useGlobalSearch";
 
 type LinkedResult = { result: SearchResult; url: string };
@@ -30,10 +34,13 @@ export const GlobalSearchDialog = ({
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [query, setQuery] = useState("");
-  const { results, isPending, debouncedQuery } = useGlobalSearch(query);
+  const { results, isPending, error, debouncedQuery } = useGlobalSearch(
+    query,
+    isMobile ? MOBILE_SEARCH_RESOURCES : DESKTOP_SEARCH_RESOURCES,
+  );
 
-  // Results whose resource has no page on this layout are dropped rather than
-  // rendered as dead entries.
+  // Resources are already scoped to this layout server-side; this only drops
+  // the rare row whose parent record is missing.
   const linkedResults = useMemo(
     () =>
       results.reduce<LinkedResult[]>((acc, result) => {
@@ -74,6 +81,13 @@ export const GlobalSearchDialog = ({
         {isTooShort ? (
           <div className="py-6 text-center text-sm text-muted-foreground">
             {translate("crm.search.hint", { min: MIN_SEARCH_LENGTH })}
+          </div>
+        ) : error ? (
+          <div
+            role="alert"
+            className="py-6 text-center text-sm text-destructive"
+          >
+            {translate("crm.search.error")}
           </div>
         ) : isPending ? (
           <div className="py-6 text-center text-sm text-muted-foreground">

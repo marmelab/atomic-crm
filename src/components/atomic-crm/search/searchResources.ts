@@ -30,3 +30,11 @@ export const SEARCH_RESOURCES: SearchResourceDescriptor[] = [
     labelKey: "crm.search.groups.deal_notes",
   },
 ];
+
+export const DESKTOP_SEARCH_RESOURCES: SearchResourceName[] =
+  SEARCH_RESOURCES.map(({ name }) => name);
+
+export const MOBILE_SEARCH_RESOURCES: SearchResourceName[] =
+  DESKTOP_SEARCH_RESOURCES.filter(
+    (name) => name !== "deals" && name !== "deal_notes",
+  );

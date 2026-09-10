@@ -6,6 +6,18 @@ import { Button } from "@/components/ui/button";
 
 import { GlobalSearchDialog } from "./GlobalSearchDialog";
 
+const isEditableTarget = (target: EventTarget | null): boolean => {
+  if (!(target instanceof HTMLElement)) {
+    return false;
+  }
+  return (
+    target.isContentEditable ||
+    target.tagName === "INPUT" ||
+    target.tagName === "TEXTAREA" ||
+    target.tagName === "SELECT"
+  );
+};
+
 /**
  * Opens the global search dialog. `variant="icon"` renders the compact
  * icon-only trigger used on mobile; the default renders a labelled trigger for
@@ -21,10 +33,14 @@ export const GlobalSearchButton = ({
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "k" && (event.metaKey || event.ctrlKey)) {
-        event.preventDefault();
-        setOpen((previousOpen) => !previousOpen);
+      if (event.key !== "k" || !(event.metaKey || event.ctrlKey)) {
+        return;
       }
+      if (isEditableTarget(event.target)) {
+        return;
+      }
+      event.preventDefault();
+      setOpen(true);
     };
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);

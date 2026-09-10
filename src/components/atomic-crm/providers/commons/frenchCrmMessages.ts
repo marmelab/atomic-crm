@@ -454,6 +454,8 @@ export const frenchCrmMessages = {
         "Rechercher un contact, une entreprise, une affaire, une tâche, une note...",
       hint: "Saisissez au moins %{min} caractères pour lancer la recherche",
       empty: "Aucun résultat",
+      error:
+        "La recherche est indisponible pour le moment. Veuillez réessayer.",
       untitled_result: "(sans titre)",
       groups: {
         contacts: "Contacts",
