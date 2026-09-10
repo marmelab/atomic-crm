@@ -12,7 +12,10 @@ import {
 import { extractMailContactData } from "./extractMailContactData.ts";
 import { getExpectedAuthorization } from "./getExpectedAuthorization.ts";
 import { getNoteContent } from "./getNoteContent.ts";
-import { extractAndUploadAttachments } from "./extractAndUploadAttachments.ts";
+import {
+  extractAndUploadAttachments,
+  removeUploadedAttachments,
+} from "./extractAndUploadAttachments.ts";
 import { supabaseAdmin } from "../_shared/supabaseAdmin.ts";
 
 const webhookUser = Deno.env.get("POSTMARK_WEBHOOK_USER");
@@ -178,6 +181,9 @@ Deno.serve(async (req) => {
     // contact failed there is no note to duplicate, so a retry is safe.
     // https://postmarkapp.com/developer/webhooks/inbound-webhook#errors-and-retries
     const status = failedContacts.length === contacts.length ? 500 : 403;
+    if (status === 500) {
+      await removeUploadedAttachments(attachments);
+    }
     return new Response(
       `Could not add the note for: ${failedContacts.join(", ")}`,
       { status },
