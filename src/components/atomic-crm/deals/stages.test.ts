@@ -12,6 +12,7 @@ const dealStages = [
 ];
 
 const buildDeal = (overrides: Partial<Deal> & Pick<Deal, "id">): Deal => ({
+  pricing_mode: "standard",
   name: "Test — The Living Example",
   contact_id: 1,
   offer_id: 1,

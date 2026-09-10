@@ -84,6 +84,13 @@ create table public.offers (
     type text not null,
     duration text not null,
     current_price numeric(10, 2) not null,
+    -- Scholarship Pricing + Capacity slice: the locked, admin-editable
+    -- scholarship total for this Offer (mirrors current_price exactly —
+    -- live/authoritative, never itself historically authoritative for an
+    -- already-sold Opportunity). Null means this Offer has no scholarship
+    -- pricing configured; deals.pricing_mode can only be set to
+    -- 'scholarship' when this is set (see handle_deal_saved()).
+    scholarship_price numeric(10, 2),
     -- Only meaningful for individual offers (e.g. The Living Example caps
     -- concurrent active clients). Group offers manage capacity per-Cohort
     -- instead, so this stays null for them.
@@ -134,8 +141,14 @@ create table public.offer_payment_options (
     -- Some options (e.g. "Financial Need") are authorized case-by-case, not
     -- surfaced to every prospect by default.
     is_public boolean not null default true,
+    -- Scholarship Pricing + Capacity slice: scopes this option to the Deal
+    -- pricing mode it prices for — a standard-priced option must never
+    -- become selectable for a scholarship Deal, and vice versa (see
+    -- handle_deal_saved()'s cross-validation and resolveAuthorizedCheckoutTerms.ts).
+    pricing_mode text not null default 'standard',
     created_at timestamp with time zone not null default now(),
-    updated_at timestamp with time zone not null default now()
+    updated_at timestamp with time zone not null default now(),
+    constraint offer_payment_options_pricing_mode_check check (pricing_mode in ('standard', 'scholarship'))
 );
 
 -- Contracts + Onboarding slice: the offer-specific onboarding requirement
@@ -260,6 +273,15 @@ create table public.deals (
     entry_path text,
     description text,
     amount bigint,
+    -- Scholarship Pricing + Capacity slice: an explicit pricing mode Leif
+    -- grants via Deal edit (never at creation — see handle_deal_saved()),
+    -- never client-derivable. Frozen immutable the instant this Deal
+    -- reaches Won, exactly like every other commercial snapshot field
+    -- below. Scholarship is a PRICING MODE of the existing Offer — never
+    -- a second Offer, pipeline, or coupon. Granting/releasing atomically
+    -- claims/frees this Offer's single scholarship_slots row (see that
+    -- table's own comment) — never a UI-only capacity check.
+    pricing_mode text not null default 'standard',
     -- Commercial snapshot, captured at save time by handle_deal_saved() so a
     -- later change to the Offer/payment option never rewrites historical
     -- sales context on an existing Opportunity.
@@ -323,7 +345,8 @@ create table public.deals (
     -- 'application_form' is the native public intake route (Native
     -- Application Intake slice, §9) — distinct from 'sales_page' (an
     -- outbound sales-page visit) and 'instagram_conversation' (a DM).
-    constraint deals_entry_path_check check (entry_path in ('instagram_conversation', 'sales_page', 'application_form', 'other'))
+    constraint deals_entry_path_check check (entry_path in ('instagram_conversation', 'sales_page', 'application_form', 'other')),
+    constraint deals_pricing_mode_check check (pricing_mode in ('standard', 'scholarship'))
 );
 
 -- Append-only history of every genuine stage transition an Opportunity has
@@ -379,6 +402,67 @@ create table public.enrollments (
     created_at timestamp with time zone not null default now(),
     updated_at timestamp with time zone not null default now(),
     constraint enrollments_status_check check (status in ('onboarding', 'active', 'offboarding', 'completed'))
+);
+
+-- Scholarship Pricing + Capacity slice: the single authoritative
+-- representation of scholarship-slot ownership for an Offer. One row per
+-- Offer (created lazily on first grant) — `offer_id primary key` makes "at
+-- most one scholarship slot holder per Offer" a structural fact, not
+-- merely an enforced-at-write-time rule. `holder_deal_id` set means an
+-- outstanding scholarship offer (Deal granted, not yet Won); set
+-- `holder_enrollment_id` instead means a current scholarship Enrollment
+-- (onboarding/active/offboarding); both null means free; both set is
+-- impossible (see the check constraint below). Deliberately a table
+-- separate from `offers` itself — co-locating this fast-changing
+-- operational field on the same row as slow-changing Offer configuration
+-- would make every grant/release contend for the same row lock as an
+-- unrelated price edit. Never written directly by the app — only by
+-- handle_deal_saved() (grant/release) and handle_deal_won() (Deal ->
+-- Enrollment transition) and handle_enrollment_scholarship_slot_transition()
+-- (Enrollment completion release / backward-correction reclaim). See
+-- scholarship_slot_events below for the append-only audit trail of every
+-- transition this table itself never keeps.
+create table public.scholarship_slots (
+    id bigint generated by default as identity primary key,
+    -- The structural "at most one slot per Offer" guarantee — a plain
+    -- unique constraint (not the primary key itself, so this resource
+    -- still has an ordinary `id`, like every other react-admin resource in
+    -- this app) is exactly as strict as a primary key would be here.
+    offer_id bigint not null,
+    holder_deal_id bigint,
+    holder_enrollment_id bigint,
+    reserved_at timestamp with time zone,
+    created_at timestamp with time zone not null default now(),
+    updated_at timestamp with time zone not null default now(),
+    constraint scholarship_slots_offer_id_key unique (offer_id),
+    constraint scholarship_slots_single_holder_check check (not (holder_deal_id is not null and holder_enrollment_id is not null)),
+    constraint scholarship_slots_holder_deal_unique unique (holder_deal_id),
+    constraint scholarship_slots_holder_enrollment_unique unique (holder_enrollment_id)
+);
+
+-- Scholarship Pricing + Capacity slice: append-only audit history of every
+-- scholarship_slots transition (mirrors deal_stage_events/
+-- enrollment_status_events's own "current-state table + companion event
+-- log" convention). scholarship_slots itself remains the sole
+-- authoritative CURRENT state; this table is never read to determine
+-- capacity, only to answer "who held this Offer's scholarship slot, and
+-- when" for Leif's own visibility/analytics. Not event-sourced: nothing
+-- is ever reconstructed from these rows.
+create table public.scholarship_slot_events (
+    id bigint generated by default as identity primary key,
+    offer_id bigint not null,
+    deal_id bigint,
+    enrollment_id bigint,
+    event_type text not null,
+    occurred_at timestamp with time zone not null default now(),
+    created_at timestamp with time zone not null default now(),
+    constraint scholarship_slot_events_event_type_check check (event_type in (
+        'scholarship_granted',
+        'scholarship_released',
+        'deal_converted_to_enrollment',
+        'enrollment_completed_slot_released',
+        'slot_reclaimed_after_backward_lifecycle_correction'
+    ))
 );
 
 -- Contracts + Onboarding slice: one row per (Enrollment x applicable
@@ -1002,6 +1086,28 @@ alter table public.applications
 alter table public.enrollments
     add constraint enrollments_opportunity_id_fkey foreign key (opportunity_id) references public.deals(id) on update cascade on delete cascade;
 
+alter table public.scholarship_slots
+    add constraint scholarship_slots_offer_id_fkey foreign key (offer_id) references public.offers(id) on update cascade on delete cascade;
+
+alter table public.scholarship_slots
+    add constraint scholarship_slots_holder_deal_id_fkey foreign key (holder_deal_id) references public.deals(id) on update cascade on delete set null;
+
+alter table public.scholarship_slots
+    add constraint scholarship_slots_holder_enrollment_id_fkey foreign key (holder_enrollment_id) references public.enrollments(id) on update cascade on delete set null;
+
+alter table public.scholarship_slot_events
+    add constraint scholarship_slot_events_offer_id_fkey foreign key (offer_id) references public.offers(id) on update cascade on delete cascade;
+
+-- Deal/Enrollment references not cascaded on delete — the audit trail
+-- stays historically meaningful even if the Deal/Enrollment it refers to
+-- is later removed (same "the record of the action outlives its subject"
+-- instinct as waitlist_entries_converted_opportunity_id_fkey above).
+alter table public.scholarship_slot_events
+    add constraint scholarship_slot_events_deal_id_fkey foreign key (deal_id) references public.deals(id) on update cascade on delete set null;
+
+alter table public.scholarship_slot_events
+    add constraint scholarship_slot_events_enrollment_id_fkey foreign key (enrollment_id) references public.enrollments(id) on update cascade on delete set null;
+
 alter table public.waitlist_entries
     add constraint waitlist_entries_contact_id_fkey foreign key (contact_id) references public.contacts(id) on update cascade on delete cascade;
 
@@ -1152,6 +1258,11 @@ create index sales_calls_opportunity_id_idx on public.sales_calls using btree (o
 create index sales_calls_contact_id_idx on public.sales_calls using btree (contact_id);
 create index sales_call_events_sales_call_id_idx on public.sales_call_events using btree (sales_call_id);
 create index deal_stage_events_opportunity_id_idx on public.deal_stage_events using btree (opportunity_id);
+
+-- Scholarship Pricing + Capacity slice.
+create index scholarship_slot_events_offer_id_idx on public.scholarship_slot_events using btree (offer_id);
+create index scholarship_slot_events_deal_id_idx on public.scholarship_slot_events using btree (deal_id);
+create index scholarship_slot_events_enrollment_id_idx on public.scholarship_slot_events using btree (enrollment_id);
 
 -- Client + Session Operations slice.
 create index client_sessions_contact_id_idx on public.client_sessions using btree (contact_id);

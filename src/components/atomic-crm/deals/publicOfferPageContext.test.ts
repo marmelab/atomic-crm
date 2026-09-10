@@ -34,6 +34,7 @@ const buildCohort = (): Cohort => ({
 const buildPaymentOption = (
   overrides: Partial<OfferPaymentOption> = {},
 ): OfferPaymentOption => ({
+  pricing_mode: "standard",
   id: 1,
   offer_id: OFFER_ID,
   name: "Pay in Full",
@@ -47,6 +48,7 @@ const buildPaymentOption = (
 });
 
 const buildDeal = (overrides: Partial<Deal> = {}): Deal => ({
+  pricing_mode: "standard",
   id: DEAL_ID,
   name: "Ada Lovelace — Growing Yourself Up",
   contact_id: CONTACT_ID,

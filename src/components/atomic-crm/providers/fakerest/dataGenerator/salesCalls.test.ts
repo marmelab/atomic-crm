@@ -14,6 +14,7 @@ const buildDb = (deals: Deal[]): Db =>
 const buildDeal = (
   overrides: Partial<Deal> & Pick<Deal, "id" | "stage">,
 ): Deal => ({
+  pricing_mode: "standard",
   name: "Test Person — The Living Example",
   contact_id: 1,
   offer_id: 1,

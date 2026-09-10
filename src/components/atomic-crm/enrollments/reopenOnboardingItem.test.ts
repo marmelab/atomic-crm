@@ -16,6 +16,7 @@ const TASK_ID = 1;
 const DEAL_ID = 1;
 
 const buildDeal = (): Deal => ({
+  pricing_mode: "standard",
   id: DEAL_ID,
   name: "Ada Lovelace",
   contact_id: 1,

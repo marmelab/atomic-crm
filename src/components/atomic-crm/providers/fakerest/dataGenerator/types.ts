@@ -24,6 +24,8 @@ import type {
   Sale,
   SalesCall,
   SalesCallEvent,
+  ScholarshipSlot,
+  ScholarshipSlotEvent,
   Tag,
   Task,
   WaitlistEntry,
@@ -47,6 +49,8 @@ export interface Db {
   offboarding_requirement_templates: OffboardingRequirementTemplate[];
   enrollment_offboarding_items: EnrollmentOffboardingItem[];
   enrollment_status_events: EnrollmentStatusEvent[];
+  scholarship_slots: ScholarshipSlot[];
+  scholarship_slot_events: ScholarshipSlotEvent[];
   waitlist_entries: WaitlistEntry[];
   sales_calls: SalesCall[];
   sales_call_events: SalesCallEvent[];

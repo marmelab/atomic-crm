@@ -144,6 +144,16 @@ create or replace trigger on_enrollment_status_event
     after insert or update on public.enrollments
     for each row execute function public.record_enrollment_status_event();
 
+-- Scholarship Pricing + Capacity slice: releases a scholarship slot the
+-- instant its Enrollment completes, and reclaims it (or rejects the
+-- correction) on a backward correction off of completed. AFTER so it can
+-- raise to abort the whole update on a genuine reclaim conflict, same
+-- "trigger failure aborts the transaction" mechanism used throughout this
+-- schema.
+create or replace trigger on_enrollment_scholarship_slot_transition
+    after update on public.enrollments
+    for each row execute function public.handle_enrollment_scholarship_slot_transition();
+
 -- Auto-fetch company logo from website favicon on save
 create or replace trigger company_saved
     before insert or update on public.companies

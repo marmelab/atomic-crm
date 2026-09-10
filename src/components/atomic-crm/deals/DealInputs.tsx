@@ -45,6 +45,11 @@ const DealInfoInputs = () => {
     control,
     name: "selected_payment_option_id",
   });
+  // Scholarship Pricing + Capacity slice: pricing_mode is never edited here
+  // (granting/releasing scholarship is a dedicated action — see
+  // ScholarshipPricingControl.tsx's own header) — only ever read, to scope
+  // which payment options this form may select among.
+  const pricingMode = useWatch({ control, name: "pricing_mode" }) ?? "standard";
   const { data: offers } = useGetList<Offer>("offers", {
     pagination: { page: 1, perPage: 100 },
   });
@@ -132,7 +137,7 @@ const DealInfoInputs = () => {
         <ReferenceInput
           source="selected_payment_option_id"
           reference="offer_payment_options"
-          filter={{ offer_id: offerId }}
+          filter={{ offer_id: offerId, pricing_mode: pricingMode }}
         >
           <AutocompleteInput
             label="resources.deals.fields.selected_payment_option_id"

@@ -31,6 +31,17 @@ import type {
 } from "../../types";
 import type { ConfigurationContextValue } from "../../root/ConfigurationContext";
 import { validateOfferCohort } from "../../deals/offerCohortValidation";
+import {
+  assertNoOfferChangeWhileScholarship,
+  assertPaymentOptionMatchesPricingMode,
+  assertPricingModeImmutableOnceWon,
+  assertScholarshipGrantedOnlyViaEdit,
+  claimScholarshipSlotForDeal,
+  reclaimScholarshipSlotForEnrollment,
+  releaseScholarshipSlotForDeal,
+  releaseScholarshipSlotForEnrollment,
+  transitionScholarshipSlotToEnrollment,
+} from "../../deals/scholarshipSlotValidation";
 import { getActivityLog } from "../commons/activity";
 import { getCompanyAvatar } from "../commons/getCompanyAvatar";
 import { getContactAvatar } from "../commons/getContactAvatar";
@@ -166,25 +177,79 @@ async function applyDealOfferCohortSnapshot(
   }
   validateOfferCohort(offer, cohort ?? null);
 
+  // Scholarship Pricing + Capacity slice: mirrors handle_deal_saved()'s own
+  // guard/grant/release sequence exactly — see that function's comments
+  // (supabase/schemas/02_functions.sql) for the full rationale.
+  const isCreate = previousData === undefined;
+  const nextPricingMode =
+    data.pricing_mode ?? previousData?.pricing_mode ?? "standard";
+  assertScholarshipGrantedOnlyViaEdit(isCreate, data.pricing_mode);
+  if (!isCreate) {
+    assertPricingModeImmutableOnceWon(
+      previousData,
+      data.pricing_mode,
+      previousData!.id,
+    );
+    assertNoOfferChangeWhileScholarship(
+      previousData,
+      data.offer_id,
+      previousData!.id,
+    );
+  }
+
+  const pricingModeChanged =
+    !isCreate &&
+    data.pricing_mode != null &&
+    data.pricing_mode !== previousData!.pricing_mode;
+  if (pricingModeChanged) {
+    if (data.pricing_mode === "scholarship") {
+      if (offer.scholarship_price == null) {
+        throw new Error(
+          `Offer ${offer.id} has no scholarship price configured`,
+        );
+      }
+      await claimScholarshipSlotForDeal(dataProvider, {
+        offerId: offer.id,
+        dealId: previousData!.id,
+      });
+    } else if (previousData!.pricing_mode === "scholarship") {
+      await releaseScholarshipSlotForDeal(dataProvider, {
+        offerId: previousData!.offer_id,
+        dealId: previousData!.id,
+      });
+    }
+  }
+
   const snapshot: Partial<Deal> = { ...data };
   const offerChanged =
     !previousData || String(previousData.offer_id) !== String(offer.id);
-  if (offerChanged) {
+  if (offerChanged || pricingModeChanged) {
     snapshot.offer_name_snapshot = offer.name;
-    snapshot.offer_price_snapshot = offer.current_price;
+    snapshot.offer_price_snapshot =
+      nextPricingMode === "scholarship"
+        ? offer.scholarship_price
+        : offer.current_price;
   }
 
   const paymentOptionChanged =
     data.selected_payment_option_id != null &&
     (!previousData ||
       String(previousData.selected_payment_option_id ?? "") !==
-        String(data.selected_payment_option_id));
+        String(data.selected_payment_option_id) ||
+      pricingModeChanged);
   if (paymentOptionChanged) {
     const { data: paymentOption } =
       await dataProvider.getOne<OfferPaymentOption>("offer_payment_options", {
         id: data.selected_payment_option_id!,
       });
     if (paymentOption) {
+      assertPaymentOptionMatchesPricingMode(
+        paymentOption,
+        offer.id,
+        nextPricingMode ?? "standard",
+        previousData?.id,
+        data.selected_payment_option_id!,
+      );
       snapshot.selected_payment_total = paymentOption.total;
       snapshot.selected_installment_count = paymentOption.installments;
       snapshot.selected_installment_amount = paymentOption.installment_amount;
@@ -315,6 +380,19 @@ async function ensureEnrollmentForWonDeal(
   );
 
   await seedOnboardingChecklistForEnrollment(dataProvider, deal, enrollment);
+
+  // Scholarship Pricing + Capacity slice: atomically (in FakeRest's
+  // sequential sense) hand the slot this Deal held over to its newly-
+  // created Enrollment — mirrors handle_deal_won()'s own transition,
+  // inside the same "genuine Won transition" gate this whole function is
+  // already scoped to.
+  if (deal.pricing_mode === "scholarship") {
+    await transitionScholarshipSlotToEnrollment(dataProvider, {
+      offerId: deal.offer_id,
+      dealId: deal.id,
+      enrollmentId: enrollment.id,
+    });
+  }
 }
 
 // Contracts + Onboarding slice: mirrors set_task_enrollment_id_consistency()
@@ -1121,6 +1199,36 @@ export const createDataProvider = ({
               );
             }
           }
+
+          // Scholarship Pricing + Capacity slice: mirrors
+          // handle_enrollment_scholarship_slot_transition() exactly. Run in
+          // beforeUpdate (not afterUpdate) — unlike a real Postgres AFTER
+          // trigger, FakeRest has no transaction to abort once the
+          // underlying write has already landed, so the reclaim-or-reject
+          // decision must happen here, before that write, to genuinely
+          // block a conflicting backward correction the same way the real
+          // trigger does.
+          if (
+            params.data.status != null &&
+            params.data.status !== params.previousData.status
+          ) {
+            if (params.data.status === "completed") {
+              await releaseScholarshipSlotForEnrollment(dataProvider, {
+                enrollmentId: params.id,
+              });
+            } else if (params.previousData.status === "completed") {
+              const { data: deal } = await dataProvider.getOne<Deal>("deals", {
+                id: params.previousData.opportunity_id,
+              });
+              if (deal.pricing_mode === "scholarship") {
+                await reclaimScholarshipSlotForEnrollment(dataProvider, {
+                  offerId: deal.offer_id,
+                  enrollmentId: params.id,
+                });
+              }
+            }
+          }
+
           return params;
         },
         afterCreate: async (result, dataProvider) => {
@@ -1219,6 +1327,9 @@ export const createDataProvider = ({
           return {
             ...params,
             data: {
+              // Mirrors the DB column default — every other pricing_mode
+              // branch above already assumes this is always populated.
+              pricing_mode: "standard",
               ...data,
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString(),

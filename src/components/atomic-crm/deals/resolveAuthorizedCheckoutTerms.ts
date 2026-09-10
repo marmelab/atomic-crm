@@ -119,6 +119,14 @@ export const resolveAuthorizedCheckoutTerms = async (
 // publicly-offered option of the Deal's Offer otherwise. Returns the live
 // offer_payment_options row (never the Deal's own snapshot, which may not
 // exist yet before a payment has ever succeeded).
+//
+// Scholarship Pricing + Capacity slice: every path below is also scoped by
+// deal.pricing_mode — a standard-priced option (including a non-public
+// Financial Need plan) can never become selectable for a scholarship Deal,
+// and a scholarship option can never become selectable for a standard
+// Deal, even if a stale/mismatched selected_payment_option_id somehow
+// reached this Deal (the DB's own handle_deal_saved() cross-validation is
+// the authoritative backstop for that — see this function's own header).
 const resolveAuthorizedOption = async (
   dataProvider: DataProvider,
   deal: Deal,
@@ -128,18 +136,26 @@ const resolveAuthorizedOption = async (
     if (String(deal.selected_payment_option_id) !== String(requestedOptionId)) {
       return null;
     }
-    return dataProvider
+    const option = await dataProvider
       .getOne<OfferPaymentOption>("offer_payment_options", {
         id: deal.selected_payment_option_id,
       })
       .then(({ data }) => data)
       .catch(() => null);
+    return option &&
+      (option.pricing_mode ?? "standard") === (deal.pricing_mode ?? "standard")
+      ? option
+      : null;
   }
 
   const { data: options } = await dataProvider.getList<OfferPaymentOption>(
     "offer_payment_options",
     {
-      filter: { offer_id: deal.offer_id, is_public: true },
+      filter: {
+        offer_id: deal.offer_id,
+        is_public: true,
+        pricing_mode: deal.pricing_mode ?? "standard",
+      },
       pagination: { page: 1, perPage: 20 },
       sort: { field: "id", order: "ASC" },
     },

@@ -1,6 +1,7 @@
 import { CRM } from "@/components/atomic-crm/root/CRM";
 import { supabasePublicApplicationDataSource } from "@/components/atomic-crm/providers/supabase/publicApplicationDataSource";
 import { supabasePublicOfferPageDataSource } from "@/components/atomic-crm/providers/supabase/publicOfferPageDataSource";
+import { supabaseScholarshipCheckoutInvalidator } from "@/components/atomic-crm/providers/supabase/scholarshipCheckoutInvalidator";
 
 /**
  * Application entry point
@@ -43,6 +44,7 @@ const App = () => (
   <CRM
     publicApplicationDataSource={supabasePublicApplicationDataSource}
     publicOfferPageDataSource={supabasePublicOfferPageDataSource}
+    scholarshipCheckoutInvalidator={supabaseScholarshipCheckoutInvalidator}
   />
 );
 

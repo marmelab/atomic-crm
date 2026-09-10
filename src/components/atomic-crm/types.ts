@@ -141,6 +141,12 @@ export type Offer = {
   type: OfferType;
   duration: string;
   current_price: number;
+  // Scholarship Pricing + Capacity slice: the locked, admin-editable
+  // scholarship total for this Offer (mirrors current_price — live,
+  // never itself historically authoritative for an already-sold
+  // Opportunity). Null means this Offer has no scholarship pricing
+  // configured.
+  scholarship_price?: number | null;
   // Only meaningful for individual offers; group offers manage capacity
   // per-Cohort instead.
   max_active_clients?: number | null;
@@ -163,6 +169,12 @@ export type Offer = {
 // A queryable, structured payment plan for an Offer. "Financial Need"-style
 // options are authorized case-by-case (is_public: false), not offered to
 // every prospect by default.
+// Scholarship Pricing + Capacity slice: which Deal pricing mode this option
+// prices for — a standard-priced option must never become selectable for a
+// scholarship Deal, and vice versa (enforced at both the query layer and
+// the DB layer — see handle_deal_saved()'s cross-validation).
+export type PricingMode = "standard" | "scholarship";
+
 export type OfferPaymentOption = {
   offer_id: Identifier;
   name: string;
@@ -170,6 +182,12 @@ export type OfferPaymentOption = {
   installments: number;
   installment_amount: number;
   is_public: boolean;
+  // Optional in TS (not just "may be omitted" — it has a real, universal
+  // safe default of "standard" applied by both the Postgres column
+  // default and its FakeRest mirror), unlike every other Deal field that
+  // must be explicit. Read via `pricing_mode ?? "standard"` wherever the
+  // distinction matters.
+  pricing_mode?: PricingMode;
   created_at: string;
   updated_at: string;
 } & Pick<RaRecord, "id">;
@@ -346,6 +364,45 @@ export type EnrollmentStatusEvent = {
   enrollment_id: Identifier;
   status: EnrollmentStatus;
   entered_at: string;
+  created_at: string;
+} & Pick<RaRecord, "id">;
+
+// Scholarship Pricing + Capacity slice: the single authoritative
+// representation of scholarship-slot ownership for an Offer — one row per
+// Offer (created lazily on first grant). `holder_deal_id` set means an
+// outstanding scholarship offer (Deal granted, not yet Won); `holder_
+// enrollment_id` set instead means a current scholarship Enrollment
+// (onboarding/active/offboarding); both null means free; both set is
+// impossible. Never written directly by the UI — only by the Postgres
+// triggers (handle_deal_saved()/handle_deal_won()/handle_enrollment_
+// scholarship_slot_transition()) and their FakeRest mirror
+// (scholarshipSlotValidation.ts).
+export type ScholarshipSlot = {
+  offer_id: Identifier;
+  holder_deal_id?: Identifier | null;
+  holder_enrollment_id?: Identifier | null;
+  reserved_at?: string | null;
+  created_at: string;
+  updated_at: string;
+} & Pick<RaRecord, "id">;
+
+export type ScholarshipSlotEventType =
+  | "scholarship_granted"
+  | "scholarship_released"
+  | "deal_converted_to_enrollment"
+  | "enrollment_completed_slot_released"
+  | "slot_reclaimed_after_backward_lifecycle_correction";
+
+// Append-only audit history of every scholarship_slots transition —
+// mirrors DealStageEvent/EnrollmentStatusEvent's own "current-state table +
+// companion event log" convention. Never read to determine capacity, only
+// to answer "who held this Offer's scholarship slot, and when."
+export type ScholarshipSlotEvent = {
+  offer_id: Identifier;
+  deal_id?: Identifier | null;
+  enrollment_id?: Identifier | null;
+  event_type: ScholarshipSlotEventType;
+  occurred_at: string;
   created_at: string;
 } & Pick<RaRecord, "id">;
 
@@ -678,6 +735,18 @@ export type Deal = {
   // Only set for a group Offer, and only to a Cohort belonging to that same
   // Offer (enforced server-side, see handle_deal_saved()).
   cohort_id?: Identifier | null;
+  // Scholarship Pricing + Capacity slice: an explicit pricing mode Leif
+  // grants via Deal edit (never at creation, never client-derivable).
+  // Frozen immutable the instant this Deal reaches Won. Granting/releasing
+  // atomically claims/frees this Offer's single scholarship_slots row —
+  // never a UI-only capacity check (see grantScholarshipPricing.ts /
+  // releaseScholarshipReservation.ts).
+  // Optional in TS (not just "may be omitted" — it has a real, universal
+  // safe default of "standard" applied by both the Postgres column
+  // default and its FakeRest mirror), unlike every other Deal field that
+  // must be explicit. Read via `pricing_mode ?? "standard"` wherever the
+  // distinction matters.
+  pricing_mode?: PricingMode;
   stage: string;
   outcome?: OpportunityOutcome | null;
   owner_decision?: OpportunityOwnerDecision | null;

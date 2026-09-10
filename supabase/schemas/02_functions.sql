@@ -232,6 +232,9 @@ declare
   v_offer offers%ROWTYPE;
   v_cohort_offer_id bigint;
   v_contact contacts%ROWTYPE;
+  v_option_offer_id bigint;
+  v_option_pricing_mode text;
+  v_rows int;
 begin
   select * into v_offer from offers where id = new.offer_id;
   if v_offer.id is null then
@@ -251,20 +254,110 @@ begin
     end if;
   end if;
 
+  -- Scholarship Pricing + Capacity slice: pricing_mode is frozen the
+  -- instant a Deal reaches Won, exactly like every other commercial
+  -- snapshot field below — never editable again afterward.
+  if tg_op = 'UPDATE' and old.stage = 'won' and new.pricing_mode is distinct from old.pricing_mode then
+    raise exception 'Cannot change pricing_mode on deal % once it has reached Won', new.id;
+  end if;
+
+  -- Scholarship can only ever be granted via an explicit Deal edit (Leif
+  -- toggling an EXISTING Opportunity), never at creation — this also
+  -- sidesteps needing new.id (not yet populated in a BEFORE INSERT
+  -- trigger for a generated-identity primary key) for the slot claim below.
+  if tg_op = 'INSERT' and new.pricing_mode = 'scholarship' then
+    raise exception 'A new Opportunity cannot be created directly as scholarship — grant scholarship pricing via Deal edit after creation';
+  end if;
+
+  -- A scholarship Deal's held slot is scoped to its CURRENT offer_id — never
+  -- silently re-scope a held reservation to a different Offer. Release the
+  -- scholarship first, then move offer_id, then re-grant if still desired.
+  if tg_op = 'UPDATE'
+     and old.pricing_mode = 'scholarship'
+     and new.offer_id is distinct from old.offer_id
+  then
+    raise exception 'Cannot change offer_id on deal % while it holds a scholarship reservation — release scholarship pricing first', new.id;
+  end if;
+
+  if tg_op = 'UPDATE' and new.pricing_mode is distinct from old.pricing_mode then
+    if new.pricing_mode = 'scholarship' then
+      if v_offer.scholarship_price is null then
+        raise exception 'Offer % has no scholarship price configured', new.offer_id;
+      end if;
+
+      -- Atomic grant: claims this Offer's single scholarship_slots row for
+      -- this Deal. The INSERT ... ON CONFLICT DO UPDATE ... WHERE guard is
+      -- Postgres's native compare-and-swap — the row lock taken while
+      -- evaluating the conflicting row serializes two concurrent grant
+      -- attempts for the same Offer automatically; whichever commits first
+      -- wins outright, the other's WHERE fails to match (0 rows), detected
+      -- below via GET DIAGNOSTICS and turned into a clean rejection of the
+      -- whole write. No app-level check-then-act gap.
+      insert into scholarship_slots (offer_id, holder_deal_id, reserved_at)
+      values (new.offer_id, new.id, now())
+      on conflict (offer_id) do update
+        set holder_deal_id = excluded.holder_deal_id,
+            reserved_at = excluded.reserved_at
+        where scholarship_slots.holder_deal_id is null
+          and scholarship_slots.holder_enrollment_id is null;
+      get diagnostics v_rows = row_count;
+      if v_rows = 0 then
+        raise exception 'Scholarship slot for offer % is already held', new.offer_id;
+      end if;
+
+      insert into scholarship_slot_events (offer_id, deal_id, event_type, occurred_at)
+      values (new.offer_id, new.id, 'scholarship_granted', now());
+    elsif old.pricing_mode = 'scholarship' then
+      -- Release: only valid pre-Won (the immutability guard above already
+      -- rejected this branch once Won), so this exact Deal is guaranteed to
+      -- still be the slot's holder_deal_id if it ever held one.
+      update scholarship_slots
+        set holder_deal_id = null, reserved_at = null, updated_at = now()
+        where offer_id = old.offer_id and holder_deal_id = new.id;
+
+      insert into scholarship_slot_events (offer_id, deal_id, event_type, occurred_at)
+      values (old.offer_id, new.id, 'scholarship_released', now());
+    end if;
+  end if;
+
   -- Snapshot commercial info at save time so a later Offer/payment-option
-  -- change never rewrites historical sales context on an existing Opportunity.
-  if tg_op = 'INSERT' or new.offer_id is distinct from old.offer_id then
+  -- change never rewrites historical sales context on an existing
+  -- Opportunity. Sources from scholarship_price instead of current_price
+  -- when pricing_mode is 'scholarship' — offer_name_snapshot itself never
+  -- encodes pricing mode (pricing_mode carries that identity instead).
+  if tg_op = 'INSERT'
+     or new.offer_id is distinct from old.offer_id
+     or new.pricing_mode is distinct from old.pricing_mode
+  then
     new.offer_name_snapshot := v_offer.name;
-    new.offer_price_snapshot := v_offer.current_price;
+    new.offer_price_snapshot := case
+      when new.pricing_mode = 'scholarship' then v_offer.scholarship_price
+      else v_offer.current_price
+    end;
   end if;
 
   if new.selected_payment_option_id is not null
-     and (tg_op = 'INSERT' or new.selected_payment_option_id is distinct from old.selected_payment_option_id)
+     and (tg_op = 'INSERT'
+          or new.selected_payment_option_id is distinct from old.selected_payment_option_id
+          or new.pricing_mode is distinct from old.pricing_mode)
   then
-    select total, installments, installment_amount
-      into new.selected_payment_total, new.selected_installment_count, new.selected_installment_amount
+    select offer_id, pricing_mode, total, installments, installment_amount
+      into v_option_offer_id, v_option_pricing_mode,
+           new.selected_payment_total, new.selected_installment_count, new.selected_installment_amount
       from offer_payment_options
       where id = new.selected_payment_option_id;
+
+    if v_option_offer_id is null then
+      raise exception 'Invalid selected_payment_option_id %', new.selected_payment_option_id;
+    end if;
+    -- Scholarship Pricing + Capacity slice: a payment option must always
+    -- match this Deal's own offer/pricing mode — never accidentally
+    -- selectable across offers or across standard/scholarship (the UI
+    -- already scopes the choices it offers; this is the authoritative
+    -- backstop).
+    if v_option_offer_id <> new.offer_id or v_option_pricing_mode <> new.pricing_mode then
+      raise exception 'Payment option % does not match deal %''s offer/pricing_mode', new.selected_payment_option_id, new.id;
+    end if;
   end if;
 
   -- The Opportunity's name is always derived from its Contact, never
@@ -388,6 +481,85 @@ begin
           );
         end if;
       end loop;
+
+      -- Scholarship Pricing + Capacity slice: atomically transition the
+      -- slot this Deal holds (grant time) into Enrollment-held occupancy —
+      -- a single UPDATE flipping both holder columns together, inside the
+      -- same transaction as the enrollments INSERT above, so no other
+      -- session can ever observe this Offer's slot as free between "Deal
+      -- loses it" and "Enrollment gains it".
+      if new.pricing_mode = 'scholarship' then
+        update scholarship_slots
+          set holder_deal_id = null, holder_enrollment_id = v_enrollment_id, updated_at = now()
+          where offer_id = new.offer_id and holder_deal_id = new.id;
+        if not found then
+          raise exception 'Deal % reached Won as scholarship but held no scholarship slot for offer % — data inconsistency', new.id, new.offer_id;
+        end if;
+
+        insert into scholarship_slot_events (offer_id, deal_id, enrollment_id, event_type, occurred_at)
+        values (new.offer_id, new.id, v_enrollment_id, 'deal_converted_to_enrollment', now());
+      end if;
+    end if;
+  end if;
+  return new;
+end;
+$$;
+
+-- Scholarship Pricing + Capacity slice: the other half of the atomic
+-- grant/convert/release lifecycle (see handle_deal_saved()/handle_deal_won()
+-- for the Deal-side grant/release/convert steps) — releases the slot the
+-- instant an Enrollment genuinely completes (a completed Enrollment never
+-- occupies capacity, exactly like every other Enrollment-capacity
+-- convention in this schema), and handles the one remaining transition:
+-- a backward lifecycle correction OFF of completed (enforce_enrollment_
+-- lifecycle_sequence() already allows backward corrections generally) must
+-- attempt to RECLAIM the slot rather than silently leaving the Enrollment
+-- "current" again with no capacity accounting. If another Deal/Enrollment
+-- has since claimed that Offer's slot, the correction is rejected outright
+-- (raising here aborts the whole enrollments UPDATE, same as any other
+-- guard trigger in this schema) — never silently displacing another
+-- holder. Only ever touches offers this Enrollment's own Deal was actually
+-- granted scholarship pricing for; a standard Enrollment's lifecycle
+-- changes never reach the scholarship_slots table at all.
+CREATE OR REPLACE FUNCTION "public"."handle_enrollment_scholarship_slot_transition"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    SET "search_path" TO 'public'
+    AS $$
+declare
+  v_offer_id bigint;
+  v_rows int;
+begin
+  if new.status is distinct from old.status then
+    if new.status = 'completed' then
+      update scholarship_slots
+        set holder_enrollment_id = null, updated_at = now()
+        where holder_enrollment_id = new.id;
+      if found then
+        select offer_id into v_offer_id from deals where id = new.opportunity_id;
+        insert into scholarship_slot_events (offer_id, enrollment_id, event_type, occurred_at)
+        values (v_offer_id, new.id, 'enrollment_completed_slot_released', now());
+      end if;
+    elsif old.status = 'completed' then
+      select offer_id into v_offer_id
+        from deals
+        where id = new.opportunity_id and pricing_mode = 'scholarship';
+
+      if v_offer_id is not null then
+        insert into scholarship_slots (offer_id, holder_enrollment_id, reserved_at)
+        values (v_offer_id, new.id, now())
+        on conflict (offer_id) do update
+          set holder_enrollment_id = excluded.holder_enrollment_id,
+              reserved_at = excluded.reserved_at
+          where scholarship_slots.holder_deal_id is null
+            and scholarship_slots.holder_enrollment_id is null;
+        get diagnostics v_rows = row_count;
+        if v_rows = 0 then
+          raise exception 'Cannot reopen enrollment %: scholarship slot for offer % is already held by another Deal/Enrollment', new.id, v_offer_id;
+        end if;
+
+        insert into scholarship_slot_events (offer_id, enrollment_id, event_type, occurred_at)
+        values (v_offer_id, new.id, 'slot_reclaimed_after_backward_lifecycle_correction', now());
+      end if;
     end if;
   end if;
   return new;

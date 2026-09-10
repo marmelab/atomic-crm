@@ -76,6 +76,7 @@ const buildDeal = (overrides: Partial<Deal> = {}): Deal => ({
 const buildPaymentOption = (
   overrides: Partial<OfferPaymentOption> = {},
 ): OfferPaymentOption => ({
+  pricing_mode: "standard",
   id: 5,
   offer_id: OFFER_ID,
   name: "Monthly",

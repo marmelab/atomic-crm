@@ -28,6 +28,8 @@ alter table public.enrollment_onboarding_items enable row level security;
 alter table public.offboarding_requirement_templates enable row level security;
 alter table public.enrollment_offboarding_items enable row level security;
 alter table public.enrollment_status_events enable row level security;
+alter table public.scholarship_slots enable row level security;
+alter table public.scholarship_slot_events enable row level security;
 alter table public.client_sessions enable row level security;
 alter table public.client_session_events enable row level security;
 alter table public.expected_session_windows enable row level security;
@@ -150,6 +152,22 @@ create policy "Enable read access for authenticated users" on public.enrollment_
 create policy "Enable insert for authenticated users only" on public.enrollment_status_events for insert to authenticated with check (true);
 create policy "Enable update for authenticated users only" on public.enrollment_status_events for update to authenticated using (true) with check (true);
 create policy "Enrollment Status Events Delete Policy" on public.enrollment_status_events for delete to authenticated using (true);
+
+-- Scholarship Slots (never written directly by the app — only by
+-- handle_deal_saved()/handle_deal_won()/handle_enrollment_scholarship_
+-- slot_transition() — but authenticated needs read access for the
+-- Dashboard's outstanding-reservation indicator, and the same full-CRUD
+-- shape as every other trigger-managed table in this schema).
+create policy "Enable read access for authenticated users" on public.scholarship_slots for select to authenticated using (true);
+create policy "Enable insert for authenticated users only" on public.scholarship_slots for insert to authenticated with check (true);
+create policy "Enable update for authenticated users only" on public.scholarship_slots for update to authenticated using (true) with check (true);
+create policy "Scholarship Slots Delete Policy" on public.scholarship_slots for delete to authenticated using (true);
+
+-- Scholarship Slot Events
+create policy "Enable read access for authenticated users" on public.scholarship_slot_events for select to authenticated using (true);
+create policy "Enable insert for authenticated users only" on public.scholarship_slot_events for insert to authenticated with check (true);
+create policy "Enable update for authenticated users only" on public.scholarship_slot_events for update to authenticated using (true) with check (true);
+create policy "Scholarship Slot Events Delete Policy" on public.scholarship_slot_events for delete to authenticated using (true);
 
 -- Waitlist Entries
 create policy "Enable read access for authenticated users" on public.waitlist_entries for select to authenticated using (true);

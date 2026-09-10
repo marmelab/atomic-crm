@@ -47,6 +47,7 @@ const buildCohort = (): Cohort => ({
 });
 
 const buildDeal = (overrides: Partial<Deal> = {}): Deal => ({
+  pricing_mode: "standard",
   id: DEAL_ID,
   name: "Ada Lovelace",
   contact_id: CONTACT_ID,

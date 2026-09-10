@@ -141,6 +141,11 @@ export const OfferPage = ({
           <span className="text-2xl font-semibold">
             {formatOfferPageAmount(context.frozenPrice, currency)}
           </span>
+          {context.isScholarship && (
+            <span className="text-sm font-medium text-primary">
+              Scholarship pricing
+            </span>
+          )}
         </div>
         {context.paymentOptions.length > 0 && (
           <div className="flex flex-col gap-2">

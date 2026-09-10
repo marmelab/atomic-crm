@@ -40,6 +40,7 @@ type DealRow = {
   contact_id: number;
   offer_id: number;
   stage: string;
+  pricing_mode: string;
   offer_name_snapshot: string | null;
   offer_price_snapshot: number | null;
   selected_payment_option_id: number | null;
@@ -61,6 +62,7 @@ type OfferPaymentOptionRow = {
   installments: number;
   installment_amount: number;
   is_public: boolean;
+  pricing_mode: string;
 };
 
 const jsonResponse = (body: unknown, status = 200) =>
@@ -73,7 +75,7 @@ const findDealByToken = async (token: string): Promise<DealRow | null> => {
   const { data } = await supabaseAdmin
     .from("deals")
     .select(
-      "id, contact_id, offer_id, stage, offer_name_snapshot, offer_price_snapshot, selected_payment_option_id",
+      "id, contact_id, offer_id, stage, pricing_mode, offer_name_snapshot, offer_price_snapshot, selected_payment_option_id",
     )
     .eq("offer_page_token", token)
     .maybeSingle();
@@ -82,7 +84,10 @@ const findDealByToken = async (token: string): Promise<DealRow | null> => {
 
 // Mirrors resolveAuthorizedCheckoutTerms.ts's own resolveAuthorizedOption
 // exactly: exactly the one option Leif already authorized on the Deal, or
-// every publicly-offered option of the Deal's Offer otherwise.
+// every publicly-offered option of the Deal's Offer otherwise. Scholarship
+// Pricing + Capacity slice: every path is also scoped by deal.pricing_mode
+// — a standard-priced option (including a non-public Financial Need plan)
+// can never become selectable for a scholarship Deal, and vice versa.
 const resolveAuthorizedOption = async (
   deal: DealRow,
   requestedOptionId: number,
@@ -92,20 +97,22 @@ const resolveAuthorizedOption = async (
     const { data } = await supabaseAdmin
       .from("offer_payment_options")
       .select(
-        "id, offer_id, name, total, installments, installment_amount, is_public",
+        "id, offer_id, name, total, installments, installment_amount, is_public, pricing_mode",
       )
       .eq("id", deal.selected_payment_option_id)
       .maybeSingle();
-    return (data as OfferPaymentOptionRow | null) ?? null;
+    const option = (data as OfferPaymentOptionRow | null) ?? null;
+    return option && option.pricing_mode === deal.pricing_mode ? option : null;
   }
 
   const { data: options } = await supabaseAdmin
     .from("offer_payment_options")
     .select(
-      "id, offer_id, name, total, installments, installment_amount, is_public",
+      "id, offer_id, name, total, installments, installment_amount, is_public, pricing_mode",
     )
     .eq("offer_id", deal.offer_id)
-    .eq("is_public", true);
+    .eq("is_public", true)
+    .eq("pricing_mode", deal.pricing_mode);
   return (
     ((options ?? []) as OfferPaymentOptionRow[]).find(
       (option) => option.id === requestedOptionId,
@@ -193,6 +200,14 @@ const handleCreate = async (body: Record<string, unknown>) => {
     metadata: {
       deal_id: String(deal.id),
       payment_option_id: String(option.id),
+      // Scholarship Pricing + Capacity slice: the reactive half of the
+      // stale-Checkout-Session invariant ("old commercial terms must not
+      // remain payable after Leif changes pricing mode") — stripe_webhook
+      // compares this against the Deal's CURRENT pricing_mode at the
+      // moment a payment actually succeeds, and refuses to mark Won on a
+      // mismatch, regardless of whether the best-effort proactive
+      // invalidation (stripe_invalidate_checkout) ever ran or succeeded.
+      pricing_mode: deal.pricing_mode,
     },
     line_items: [
       {
@@ -212,6 +227,7 @@ const handleCreate = async (body: Record<string, unknown>) => {
               deal_id: String(deal.id),
               payment_option_id: String(option.id),
               total_installments: String(option.installments),
+              pricing_mode: deal.pricing_mode,
             },
           },
         }
@@ -220,6 +236,7 @@ const handleCreate = async (body: Record<string, unknown>) => {
             metadata: {
               deal_id: String(deal.id),
               payment_option_id: String(option.id),
+              pricing_mode: deal.pricing_mode,
             },
           },
         }),

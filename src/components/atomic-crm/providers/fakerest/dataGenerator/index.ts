@@ -41,6 +41,8 @@ export default (): Db => {
     generateOffboardingRequirementTemplates();
   db.enrollment_offboarding_items = [];
   db.enrollment_status_events = [];
+  db.scholarship_slots = [];
+  db.scholarship_slot_events = [];
   db.waitlist_entries = [];
   db.sales_calls = [];
   db.sales_call_events = [];

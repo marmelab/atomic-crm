@@ -40,6 +40,7 @@ const gyuOffer: Offer = {
 };
 
 const buildDeal = (overrides: Partial<Deal>): Deal => ({
+  pricing_mode: "standard",
   id: 1,
   name: "Test",
   contact_id: 1,

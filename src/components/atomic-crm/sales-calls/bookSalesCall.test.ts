@@ -22,6 +22,7 @@ const buildOffer = (): Offer => ({
 });
 
 const buildDeal = (overrides: Partial<Deal> = {}): Deal => ({
+  pricing_mode: "standard",
   id: DEAL_ID,
   name: "Ada Lovelace — The Living Example",
   contact_id: CONTACT_ID,

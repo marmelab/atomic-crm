@@ -498,6 +498,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/providers/supabase/scholarshipCheckoutInvalidator.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/providers/supabase/publicOfferPageDataSource.ts",
           "type": "registry:component"
         },
@@ -1022,7 +1026,19 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/deals/scholarshipSlotValidation.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/deals/scholarshipCheckoutInvalidator.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/deals/resolveAuthorizedCheckoutTerms.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/deals/releaseScholarshipReservation.ts",
           "type": "registry:component"
         },
         {
@@ -1074,6 +1090,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/deals/grantScholarshipPricing.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/deals/ensureDealStageEvent.ts",
           "type": "registry:component"
         },
@@ -1090,6 +1110,14 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/deals/ScholarshipPricingControl.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/deals/ScholarshipCheckoutInvalidatorContext.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/deals/PersonOption.tsx",
           "type": "registry:component"
         },
@@ -1099,6 +1127,10 @@
         },
         {
           "path": "src/components/atomic-crm/deals/OpportunitiesIterator.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/deals/OpenOfferPageAction.tsx",
           "type": "registry:component"
         },
         {
@@ -1150,6 +1182,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/dashboard/useOutstandingScholarshipReservations.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/dashboard/useNeedsOnboardingItems.ts",
           "type": "registry:component"
         },
@@ -1191,6 +1227,10 @@
         },
         {
           "path": "src/components/atomic-crm/dashboard/PeopleDeciding.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/dashboard/OutstandingScholarshipReservations.tsx",
           "type": "registry:component"
         },
         {

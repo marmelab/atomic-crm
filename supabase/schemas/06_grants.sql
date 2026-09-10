@@ -164,6 +164,14 @@ grant all on table public.enrollment_status_events to anon;
 grant all on table public.enrollment_status_events to authenticated;
 grant all on table public.enrollment_status_events to service_role;
 
+grant all on table public.scholarship_slots to anon;
+grant all on table public.scholarship_slots to authenticated;
+grant all on table public.scholarship_slots to service_role;
+
+grant all on table public.scholarship_slot_events to anon;
+grant all on table public.scholarship_slot_events to authenticated;
+grant all on table public.scholarship_slot_events to service_role;
+
 grant all on table public.waitlist_entries to anon;
 grant all on table public.waitlist_entries to authenticated;
 grant all on table public.waitlist_entries to service_role;
@@ -297,6 +305,14 @@ grant all on sequence public.enrollment_offboarding_items_id_seq to service_role
 grant all on sequence public.enrollment_status_events_id_seq to anon;
 grant all on sequence public.enrollment_status_events_id_seq to authenticated;
 grant all on sequence public.enrollment_status_events_id_seq to service_role;
+
+grant all on sequence public.scholarship_slot_events_id_seq to anon;
+grant all on sequence public.scholarship_slot_events_id_seq to authenticated;
+grant all on sequence public.scholarship_slot_events_id_seq to service_role;
+
+grant all on sequence public.scholarship_slots_id_seq to anon;
+grant all on sequence public.scholarship_slots_id_seq to authenticated;
+grant all on sequence public.scholarship_slots_id_seq to service_role;
 
 grant all on sequence public.waitlist_entries_id_seq to anon;
 grant all on sequence public.waitlist_entries_id_seq to authenticated;

@@ -32,6 +32,7 @@ type DealRow = {
   offer_id: number;
   cohort_id: number | null;
   stage: string;
+  pricing_mode: string;
   offer_name_snapshot: string | null;
   offer_price_snapshot: number | null;
   selected_payment_option_id: number | null;
@@ -67,7 +68,7 @@ const findDealByToken = async (token: string): Promise<DealRow | null> => {
   const { data } = await supabaseAdmin
     .from("deals")
     .select(
-      "id, contact_id, offer_id, cohort_id, stage, offer_name_snapshot, offer_price_snapshot, selected_payment_option_id, selected_payment_total, selected_installment_count, selected_installment_amount, offer_page_opened_at",
+      "id, contact_id, offer_id, cohort_id, stage, pricing_mode, offer_name_snapshot, offer_price_snapshot, selected_payment_option_id, selected_payment_total, selected_installment_count, selected_installment_amount, offer_page_opened_at",
     )
     .eq("offer_page_token", token)
     .maybeSingle();
@@ -114,6 +115,7 @@ const resolvePaymentOptions = async (
     .select("id, name, total, installments, installment_amount")
     .eq("offer_id", deal.offer_id)
     .eq("is_public", true)
+    .eq("pricing_mode", deal.pricing_mode)
     .order("id", { ascending: true });
   return ((options ?? []) as OfferPaymentOptionRow[]).map((option) => ({
     id: option.id,
@@ -160,6 +162,7 @@ const handleContext = async (body: Record<string, unknown>) => {
     offerName: deal.offer_name_snapshot ?? "",
     cohortName,
     frozenPrice: deal.offer_price_snapshot,
+    isScholarship: deal.pricing_mode === "scholarship",
     paymentOptions,
     alreadyWon: deal.stage === "won",
   });

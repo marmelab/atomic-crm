@@ -28,6 +28,12 @@ export type PublicOfferPageContext =
       offerName: string;
       cohortName: string | null;
       frozenPrice: number;
+      // Scholarship Pricing + Capacity slice: lets the Offer Page clearly
+      // identify scholarship pricing to the prospect — offerName itself
+      // never encodes pricing mode (see offers.scholarship_price's own
+      // schema comment: pricing_mode carries that identity, not the Offer
+      // name).
+      isScholarship: boolean;
       // Exactly one entry when Leif has already authorized a specific
       // option for this Deal (selected_payment_option_id set); every
       // publicly-offered option of this Deal's Offer otherwise — see
@@ -75,6 +81,7 @@ export const getOfferPageContext = async (
     offerName: deal.offer_name_snapshot ?? "",
     cohortName: cohort?.name ?? null,
     frozenPrice: deal.offer_price_snapshot,
+    isScholarship: deal.pricing_mode === "scholarship",
     paymentOptions,
     alreadyWon: deal.stage === "won",
   };
@@ -108,7 +115,11 @@ const resolvePaymentOptions = async (
   const { data: options } = await dataProvider.getList<OfferPaymentOption>(
     "offer_payment_options",
     {
-      filter: { offer_id: deal.offer_id, is_public: true },
+      filter: {
+        offer_id: deal.offer_id,
+        is_public: true,
+        pricing_mode: deal.pricing_mode ?? "standard",
+      },
       pagination: { page: 1, perPage: 20 },
       sort: { field: "id", order: "ASC" },
     },

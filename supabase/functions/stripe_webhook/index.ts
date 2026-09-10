@@ -53,6 +53,7 @@ type DealRow = {
   id: number;
   stage: string;
   outcome: string | null;
+  pricing_mode: string;
   selected_payment_option_id: number | null;
   stripe_subscription_id: string | null;
   stripe_subscription_schedule_id: string | null;
@@ -68,7 +69,7 @@ const fetchDeal = async (dealId: number): Promise<DealRow | null> => {
   const { data } = await supabaseAdmin
     .from("deals")
     .select(
-      "id, stage, outcome, selected_payment_option_id, stripe_subscription_id, stripe_subscription_schedule_id",
+      "id, stage, outcome, pricing_mode, selected_payment_option_id, stripe_subscription_id, stripe_subscription_schedule_id",
     )
     .eq("id", dealId)
     .maybeSingle();
@@ -212,6 +213,31 @@ const handleCheckoutSessionCompleted = async (
   }
   const deal = await fetchDeal(dealId);
   if (!deal) return jsonResponse({ status: "deal-not-found" });
+
+  // Scholarship Pricing + Capacity slice: the BULLETPROOF half of the
+  // stale-Checkout-Session invariant ("old commercial terms must not
+  // remain payable after Leif changes pricing mode") — this re-validation
+  // does not depend on the best-effort proactive invalidation
+  // (stripe_invalidate_checkout) ever having run or succeeded. The Session
+  // was priced against whatever pricing_mode was authoritative at
+  // Checkout-creation time (stripe_checkout/index.ts stamps it into
+  // metadata); if Leif has since changed this Deal's pricing_mode, this
+  // Session's terms are stale and must NEVER silently become Won at the
+  // old amount. Logged loudly (not silently dropped) — this is a genuine,
+  // rare anomaly needing Leif's manual reconciliation (refund via the
+  // Stripe dashboard + fix the Deal by hand), the same restraint this
+  // codebase already applies to an outcome-conflict.
+  const sessionPricingMode = session.metadata?.pricing_mode ?? null;
+  if (sessionPricingMode != null && sessionPricingMode !== deal.pricing_mode) {
+    console.error(
+      `stripe_webhook: stale pricing_mode for deal ${deal.id} — session was priced as "${sessionPricingMode}", Deal is now "${deal.pricing_mode}". Refusing to mark Won; needs manual reconciliation.`,
+    );
+    return jsonResponse({
+      status: "stale-pricing-mode-conflict",
+      sessionPricingMode,
+      dealPricingMode: deal.pricing_mode,
+    });
+  }
 
   const paymentOptionId = session.metadata?.payment_option_id
     ? Number(session.metadata.payment_option_id)

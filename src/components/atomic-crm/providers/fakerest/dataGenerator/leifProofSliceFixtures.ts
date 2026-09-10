@@ -96,6 +96,7 @@ export const addLeifProofSliceFixtures = (db: Db) => {
     overrides: Partial<Deal> &
       Pick<Deal, "name" | "contact_id" | "offer_id" | "stage">,
   ): Deal => ({
+    pricing_mode: "standard",
     id: nextDealId(),
     description: "",
     amount: 4000,

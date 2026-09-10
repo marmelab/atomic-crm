@@ -24,6 +24,8 @@ import { useConfigurationContext } from "../root/ConfigurationContext";
 import { DealSalesCallSection } from "../sales-calls/DealSalesCallSection";
 import type { Deal } from "../types";
 import { DealApplicationAndEnrollment } from "./DealApplicationAndEnrollment";
+import { OpenOfferPageAction } from "./OpenOfferPageAction";
+import { ScholarshipPricingControl } from "./ScholarshipPricingControl";
 import { findDealLabel } from "./dealUtils";
 import {
   opportunityEntryPaths,
@@ -96,13 +98,18 @@ const DealShowContent = () => {
               <span className="text-xs text-muted-foreground tracking-wide">
                 {translate("resources.deals.fields.offer_id")}
               </span>
-              <span className="text-sm">
+              <span className="text-sm flex items-center gap-2">
                 {record.offer_name_snapshot ?? (
                   <ReferenceField
                     source="offer_id"
                     reference="offers"
                     link={false}
                   />
+                )}
+                {record.pricing_mode === "scholarship" && (
+                  <span className="text-xs font-medium text-primary rounded-full border px-2 py-0.5">
+                    Scholarship
+                  </span>
                 )}
               </span>
             </div>
@@ -169,6 +176,9 @@ const DealShowContent = () => {
           <DealSalesCallSection />
 
           <div className="flex flex-wrap gap-8 m-4">
+            <ScholarshipPricingControl />
+            <OpenOfferPageAction />
+
             {record.source && (
               <div className="flex flex-col mr-10">
                 <span className="text-xs text-muted-foreground tracking-wide">

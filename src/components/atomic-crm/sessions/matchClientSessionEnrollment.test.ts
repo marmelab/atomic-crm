@@ -18,6 +18,7 @@ const leOffer: Offer = {
 };
 
 const buildDeal = (overrides: Partial<Deal> = {}): Deal => ({
+  pricing_mode: "standard",
   id: 10,
   name: "Ada Lovelace",
   contact_id: 1,

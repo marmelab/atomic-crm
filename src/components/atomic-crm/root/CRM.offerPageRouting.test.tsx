@@ -51,6 +51,7 @@ const paymentOption: OfferPaymentOption = {
   installments: 1,
   installment_amount: 1400,
   is_public: true,
+  pricing_mode: "standard",
   created_at: "2025-01-01T00:00:00.000Z",
   updated_at: "2025-01-01T00:00:00.000Z",
 };
@@ -63,11 +64,13 @@ const installmentPaymentOption: OfferPaymentOption = {
   installments: 2,
   installment_amount: 700,
   is_public: true,
+  pricing_mode: "standard",
   created_at: "2025-01-01T00:00:00.000Z",
   updated_at: "2025-01-01T00:00:00.000Z",
 };
 
 const buildDeal = (overrides: Partial<Deal> = {}): Deal => ({
+  pricing_mode: "standard",
   id: 1,
   name: "Ada Lovelace — Growing Yourself Up",
   contact_id: 1,

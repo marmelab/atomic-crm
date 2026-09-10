@@ -42,6 +42,9 @@ import type { PublicApplicationDataSource } from "../public-application/publicAp
 import { OfferPage } from "../deals/OfferPage";
 import { createDataProviderPublicOfferPageDataSource } from "../deals/publicOfferPageDataSource";
 import type { PublicOfferPageDataSource } from "../deals/publicOfferPageDataSource";
+import { ScholarshipCheckoutInvalidatorProvider } from "../deals/ScholarshipCheckoutInvalidatorContext";
+import { noopScholarshipCheckoutInvalidator } from "../deals/scholarshipCheckoutInvalidator";
+import type { ScholarshipCheckoutInvalidator } from "../deals/scholarshipCheckoutInvalidator";
 import {
   getAuthProvider as defaultAuthProviderBuilder,
   getDataProvider as defaultDataProviderBuilder,
@@ -101,6 +104,13 @@ export type CRMProps = {
   // publicApplicationDataSource above, for the public personalized Offer
   // Page (/offer/:token) — see deals/publicOfferPageDataSource.ts.
   publicOfferPageDataSource?: PublicOfferPageDataSource;
+  // Scholarship Pricing + Capacity slice: best-effort Stripe stale-
+  // Checkout-Session invalidation, called after a Deal's pricing_mode
+  // changes. Real implementation only exists for the Supabase-backed
+  // production app (needs a server-side Stripe call) — defaults to a
+  // no-op (FakeRest/demo has no real Stripe integration to invalidate
+  // anything against). See deals/scholarshipCheckoutInvalidator.ts.
+  scholarshipCheckoutInvalidator?: ScholarshipCheckoutInvalidator;
 } & Partial<ConfigurationContextValue>;
 
 /**
@@ -163,6 +173,7 @@ export const CRM = ({
   disableTelemetry,
   publicApplicationDataSource,
   publicOfferPageDataSource,
+  scholarshipCheckoutInvalidator = noopScholarshipCheckoutInvalidator,
   ...rest
 }: CRMProps) => {
   const resolvedPublicApplicationDataSource = useMemo(
@@ -263,18 +274,22 @@ export const CRM = ({
   const ResponsiveAdmin = isMobile ? MobileAdmin : DesktopAdmin;
 
   return (
-    <ResponsiveAdmin
-      dataProvider={dataProvider}
-      authProvider={wrappedAuthProvider}
-      i18nProvider={i18nProvider}
-      store={store}
-      loginPage={StartPage}
-      requireAuth
-      disableTelemetry
-      publicApplicationDataSource={resolvedPublicApplicationDataSource}
-      publicOfferPageDataSource={resolvedPublicOfferPageDataSource}
-      {...rest}
-    />
+    <ScholarshipCheckoutInvalidatorProvider
+      value={scholarshipCheckoutInvalidator}
+    >
+      <ResponsiveAdmin
+        dataProvider={dataProvider}
+        authProvider={wrappedAuthProvider}
+        i18nProvider={i18nProvider}
+        store={store}
+        loginPage={StartPage}
+        requireAuth
+        disableTelemetry
+        publicApplicationDataSource={resolvedPublicApplicationDataSource}
+        publicOfferPageDataSource={resolvedPublicOfferPageDataSource}
+        {...rest}
+      />
+    </ScholarshipCheckoutInvalidatorProvider>
   );
 };
 

@@ -61,6 +61,7 @@ const buildSalesCall = (overrides: Partial<SalesCall> = {}): SalesCall => ({
 });
 
 const buildDeal = (overrides: Partial<Deal> = {}): Deal => ({
+  pricing_mode: "standard",
   id: 10,
   name: "Ada Lovelace — The Living Example",
   contact_id: CONTACT_ID,

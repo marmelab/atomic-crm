@@ -30,6 +30,7 @@ const buildOffer = (): Offer => ({
 });
 
 const buildDeal = (overrides: Partial<Deal> = {}): Deal => ({
+  pricing_mode: "standard",
   id: DEAL_ID,
   name: "GYU Test Monkey — Growing Yourself Up",
   contact_id: CONTACT_ID,
