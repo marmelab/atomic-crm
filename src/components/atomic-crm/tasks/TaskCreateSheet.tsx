@@ -8,10 +8,9 @@ import {
   useTranslate,
   useUpdate,
 } from "ra-core";
+import type { Task } from "../types";
 import { CreateSheet } from "../misc/CreateSheet";
-import { foreignKeyMapping } from "../notes/foreignKeyMapping";
 import { TaskFormContent } from "./TaskFormContent";
-import { useQueryClient } from "@tanstack/react-query";
 
 export interface TaskCreateSheetProps {
   open: boolean;
@@ -36,34 +35,31 @@ export const TaskCreateSheet = ({
   );
   const [update] = useUpdate();
   const dataProvider = useDataProvider();
-  const queryClient = useQueryClient();
   const notify = useNotify();
 
   if (!identity) return null;
 
-  const handleSuccess = async (data: any) => {
-    // The task is created: notify and close before the best-effort follow-up
-    // calls, so a failure there cannot leave the sheet open, which would invite
-    // a second Save, hence a duplicate task.
+  const handleSuccess = async (data: Task) => {
     notify("resources.tasks.added");
     // No redirect, only close the sheet
     onOpenChange(false);
 
-    const referenceRecordId = data[foreignKeyMapping["contacts"]];
-    if (!referenceRecordId) return;
+    if (!data.contact_id) return;
 
     try {
       const { data: contact } = await dataProvider.getOne("contacts", {
-        id: referenceRecordId,
+        id: data.contact_id,
       });
-      await update("contacts", {
-        id: referenceRecordId as unknown as Identifier,
-        data: { last_seen: new Date().toISOString() },
-        previousData: contact,
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["contacts", "getOne"],
-      });
+      if (!contact) return;
+      await update(
+        "contacts",
+        {
+          id: data.contact_id,
+          data: { last_seen: new Date().toISOString() },
+          previousData: contact,
+        },
+        { returnPromise: true },
+      );
     } catch (error) {
       console.error("Could not update the contact last_seen date", error);
     }

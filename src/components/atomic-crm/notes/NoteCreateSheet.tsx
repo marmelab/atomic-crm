@@ -44,24 +44,34 @@ export const NoteCreateSheet = ({
   if (!identity) return null;
 
   const handleSuccess = async (data: any) => {
-    const referenceRecordId = data[foreignKeyMapping["contacts"]];
-    if (!referenceRecordId) return;
-    const { data: contact } = await dataProvider.getOne("contacts", {
-      id: referenceRecordId,
-    });
-    if (!contact) return;
-    update("contacts", {
-      id: referenceRecordId as unknown as Identifier,
-      data: { last_seen: new Date().toISOString(), status: data.status },
-      previousData: contact,
-    });
     notify("resources.notes.added", {
       messageArgs: {
         _: "Note added",
       },
     });
-    redirect("show", "contacts", referenceRecordId);
     onOpenChange(false);
+
+    const referenceRecordId = data[foreignKeyMapping["contacts"]];
+    if (!referenceRecordId) return;
+    redirect("show", "contacts", referenceRecordId);
+
+    try {
+      const { data: contact } = await dataProvider.getOne("contacts", {
+        id: referenceRecordId,
+      });
+      if (!contact) return;
+      await update(
+        "contacts",
+        {
+          id: referenceRecordId as unknown as Identifier,
+          data: { last_seen: new Date().toISOString(), status: data.status },
+          previousData: contact,
+        },
+        { returnPromise: true },
+      );
+    } catch (error) {
+      console.error("Could not update the contact last_seen date", error);
+    }
   };
 
   return (

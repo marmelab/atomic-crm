@@ -50,8 +50,6 @@ export const AddTask = ({
   const getContactRepresentation = useGetRecordRepresentation("contacts");
 
   const handleSuccess = async (data: Task) => {
-    // The task is created: close and notify before the best-effort follow-up
-    // calls, so a failure there cannot leave the dialog open without feedback.
     setOpen(false);
     notify("resources.tasks.added");
 
@@ -59,11 +57,16 @@ export const AddTask = ({
       const { data: contact } = await dataProvider.getOne("contacts", {
         id: data.contact_id,
       });
-      await update("contacts", {
-        id: contact.id,
-        data: { last_seen: new Date().toISOString() },
-        previousData: contact,
-      });
+      if (!contact) return;
+      await update(
+        "contacts",
+        {
+          id: contact.id,
+          data: { last_seen: new Date().toISOString() },
+          previousData: contact,
+        },
+        { returnPromise: true },
+      );
     } catch (error) {
       console.error("Could not update the contact last_seen date", error);
     }

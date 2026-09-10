@@ -99,10 +99,16 @@ describe("TaskCreateSheet", () => {
     });
     expect(tasks.data).toHaveLength(2);
 
+    await expect
+      .poll(async () => {
+        const { data } = await dataProvider!.getOne("contacts", { id: 2 });
+        return data.last_seen;
+      })
+      .not.toBe(originalLastSeen);
+
     const updatedContact = await dataProvider!.getOne("contacts", {
       id: 2,
     });
-    expect(updatedContact.data.last_seen).not.toBe(originalLastSeen);
     expect(updatedContact.data.nb_tasks).toBe(1);
   });
 
