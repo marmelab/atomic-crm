@@ -1,6 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { Check, CircleX, Copy, Pencil, Save } from "lucide-react";
 import {
+  email,
   Form,
   useDataProvider,
   useGetIdentity,
@@ -13,7 +14,9 @@ import {
 } from "ra-core";
 import { useState } from "react";
 import { useFormState } from "react-hook-form";
+import { ArrayInput } from "@/components/admin/array-input";
 import { RecordField } from "@/components/admin/record-field";
+import { SimpleFormIterator } from "@/components/admin/simple-form-iterator";
 import { TextInput } from "@/components/admin/text-input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -33,6 +36,7 @@ import {
 
 import ImageEditorField from "../misc/ImageEditorField";
 import type { CrmDataProvider } from "../providers/types";
+import { getSalesErrorNotification } from "../sales/salesErrorNotification";
 import type { Sale, SalesFormData } from "../types";
 
 export const ProfilePage = () => {
@@ -67,12 +71,13 @@ export const ProfilePage = () => {
         },
       });
     },
-    onError: (_) => {
-      notify("crm.profile.update_error", {
+    onError: (error) => {
+      refetchIdentity();
+      refetchUser();
+      const { message, args } = getSalesErrorNotification(error);
+      notify(message, {
         type: "error",
-        messageArgs: {
-          _: "An error occurred. Please try again",
-        },
+        messageArgs: { ...args, _: "An error occurred. Please try again" },
       });
     },
   });
@@ -193,6 +198,7 @@ const ProfileForm = ({
               <TextRender source="last_name" isEditMode={isEditMode} />
             </div>
             <TextRender source="email" isEditMode={isEditMode} />
+            <SecondaryEmailsRender isEditMode={isEditMode} />
             <LanguageSelector />
           </div>
 
@@ -325,6 +331,41 @@ const TextRender = ({
     <div className={className}>
       <RecordField source={source} label={label} />
     </div>
+  );
+};
+
+const SecondaryEmailsRender = ({ isEditMode }: { isEditMode: boolean }) => {
+  const translate = useTranslate();
+  const label = "resources.sales.fields.secondary_emails";
+
+  if (isEditMode) {
+    return (
+      <ArrayInput source="secondary_emails" label={label} helperText={false}>
+        <SimpleFormIterator
+          resource="sales"
+          disableReordering
+          fullWidth
+          getItemLabel={false}
+        >
+          <TextInput
+            source=""
+            label={false}
+            helperText={false}
+            validate={email()}
+            placeholder={translate("resources.sales.fields.email")}
+          />
+        </SimpleFormIterator>
+      </ArrayInput>
+    );
+  }
+
+  return (
+    <RecordField
+      source="secondary_emails"
+      label={label}
+      render={(record: Sale) => record.secondary_emails?.join(", ")}
+      empty={translate("crm.profile.no_secondary_emails")}
+    />
   );
 };
 
