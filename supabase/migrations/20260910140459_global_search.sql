@@ -1,5 +1,3 @@
-drop view if exists "public"."search_index";
-
 alter table "public"."tasks" add column "created_at" timestamp with time zone not null default now();
 
 update "public"."tasks" set "created_at" = coalesce("done_date", "due_date", "created_at");
