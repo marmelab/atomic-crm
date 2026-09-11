@@ -102,6 +102,20 @@ describe("render-status", () => {
     expect(md).toContain("`TASK-002`");
     // The recent-activity block echoes the progress log.
     expect(md).toContain("TASK-001 merged");
+    // No e2e verdict on disk yet: say so rather than imply the suite is green.
+    expect(md).toContain("## End-of-feature e2e");
+    expect(md).toContain("_not run this round_");
+  });
+
+  test("surfaces a red end-of-feature e2e on the board", () => {
+    const { base, outDir, run } = setup();
+    writeFileSync(
+      join(base, "e2e-result.json"),
+      JSON.stringify({ kind: "e2e-result", status: "failed" }),
+    );
+    run();
+    const md = readFileSync(join(outDir, "STATUS.md"), "utf8");
+    expect(md).toContain("❌ **failed**");
   });
 
   test("renders TICKETS.md with full per-ticket detail", () => {

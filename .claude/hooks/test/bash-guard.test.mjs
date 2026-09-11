@@ -17,7 +17,7 @@ afterAll(() => {
 });
 
 const runHook = (agent, command) => {
-  const env = { ...process.env, CRM_TMP_ROOT: tmpRoot };
+  const env = { ...process.env, HARNESS_TMP_ROOT: tmpRoot };
   delete env.CLAUDE_AGENT_NAME;
   const input = JSON.stringify({
     tool_name: "Bash",
@@ -33,7 +33,7 @@ const runHook = (agent, command) => {
 const runHookWithConfig = (agent, command, config) => {
   const repo = mkdtempSync(join(tmpdir(), "bash-guard-repo-"));
   writeFileSync(join(repo, "harness.config.json"), JSON.stringify(config));
-  const env = { ...process.env, CRM_TMP_ROOT: tmpRoot, APP_DIR: repo };
+  const env = { ...process.env, HARNESS_TMP_ROOT: tmpRoot, APP_DIR: repo };
   delete env.CLAUDE_AGENT_NAME;
   delete env.CLAUDE_PROJECT_DIR;
   const input = JSON.stringify({
@@ -51,27 +51,55 @@ const isBlocked = (r) => r.stdout.includes('"decision":"block"');
 
 describe("bash-guard hook", () => {
   describe("browser rules — any caller", () => {
-    test("headed playwright test from main session → blocked", () => {
-      const r = runHook("", "npx playwright test");
+    test("playwright test --headed from main session → blocked", () => {
+      const r = runHook("", "npx playwright test --headed");
       expect(r.status).toBe(0);
       expect(isBlocked(r)).toBe(true);
-      expect(r.stdout).toContain("--headless");
+      expect(r.stdout).toContain("--headed");
     });
 
-    test("headed playwright screenshot from merger → blocked", () => {
+    test("playwright test --ui / --debug → blocked", () => {
+      expect(isBlocked(runHook("", "npx playwright test --ui"))).toBe(true);
+      expect(isBlocked(runHook("", "npx playwright test --debug"))).toBe(true);
+    });
+
+    test("playwright open / codegen from merger → blocked", () => {
+      expect(
+        isBlocked(
+          runHook("merger", "npx playwright open http://localhost:5173"),
+        ),
+      ).toBe(true);
+      expect(isBlocked(runHook("merger", "npx playwright codegen"))).toBe(true);
+    });
+
+    test("headless playwright subcommand from main session → allowed", () => {
+      const r = runHook("", "npx playwright show-report");
+      expect(r.status).toBe(0);
+      expect(isBlocked(r)).toBe(false);
+    });
+
+    // `npx playwright test` IS refused, but by the e2e rule below (no agent launches
+    // the suite), never for a missing --headless flag the CLI cannot even accept.
+    test("plain playwright test is refused for e2e, not for headlessness", () => {
+      const r = runHook("", "npx playwright test");
+      expect(isBlocked(r)).toBe(true);
+      expect(r.stdout).toContain("e2e-on-feature-review");
+      expect(r.stdout).not.toContain("--headed");
+    });
+
+    test("playwright screenshot from merger → allowed (headless default)", () => {
       const r = runHook(
         "merger",
         "npx playwright screenshot http://localhost:5173 out.png",
       );
-      expect(isBlocked(r)).toBe(true);
+      expect(isBlocked(r)).toBe(false);
     });
 
-    test("playwright with --headless from main session → allowed", () => {
+    test("playwright MCP cli with --headless → allowed", () => {
       const r = runHook(
         "",
-        "npx playwright screenshot --headless http://localhost:5173 out.png",
+        "node node_modules/@playwright/mcp/cli.js --headless --isolated",
       );
-      expect(r.status).toBe(0);
       expect(isBlocked(r)).toBe(false);
     });
 
@@ -92,7 +120,7 @@ describe("bash-guard hook", () => {
       ["developer", "npx tsc --noEmit"],
       ["developer", "npx vitest run"],
       ["developer", "npm run prettier:apply"],
-      ["quality-reviewer", "npx playwright test --headless"],
+      ["quality-reviewer", "npx playwright test"],
       ["quality-reviewer", "make lint"],
       ["developer", "npm run build"],
     ];
@@ -106,6 +134,48 @@ describe("bash-guard hook", () => {
     test("non-gated agent running validation command → allowed", () => {
       const r = runHook("merger", "npm run typecheck");
       expect(isBlocked(r)).toBe(false);
+    });
+
+    // e2e is the one category scoped to EVERY caller: launching the suite is the
+    // e2e-on-feature-review hook's job, so no agent may do it by hand.
+    describe("e2e is blocked for every caller", () => {
+      const e2eCases = [
+        ["orchestrator", "npx playwright test"],
+        [
+          "orchestrator",
+          "E2E_SMOKE_SRC=/tmp/wt/_session bash .claude/scripts/e2e-smoke.sh",
+        ],
+        ["merger", "make test-e2e"],
+        ["", "make test-e2e-ci"],
+      ];
+
+      test.each(e2eCases)("%s running '%s' → blocked", (agent, command) => {
+        const r = runHook(agent, command);
+        expect(r.status).toBe(0);
+        expect(isBlocked(r)).toBe(true);
+      });
+
+      test("dropping e2e from the config unblocks it again", () => {
+        const noE2e = {
+          validation: {
+            steps: [
+              {
+                id: "typecheck",
+                kind: "typecheck",
+                command: "npm run typecheck",
+              },
+            ],
+            extraForbidden: [],
+          },
+          roles: { developer: { model: "sonnet" } },
+        };
+        const r = runHookWithConfig(
+          "orchestrator",
+          "npx playwright test",
+          noE2e,
+        );
+        expect(isBlocked(r)).toBe(false);
+      });
     });
 
     test("main session running validation command → allowed", () => {

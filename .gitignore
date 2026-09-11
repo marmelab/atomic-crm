@@ -42,7 +42,7 @@ public/r/
 !supabase/functions/.env
 .claude/settings.local.json
 
-# Harness scratch (promotion lock; worktrees + test-results also cleaned at SessionEnd)
+# Harness scratch (promotion lock, kept on purpose; worktrees cleaned at SessionEnd)
 .promote.lock
 # Rendered per-session harness board (render-status hook; cleaned at SessionEnd)
 /.harness/

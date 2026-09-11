@@ -69,15 +69,22 @@ const setup = () => {
 };
 
 describe("cleanup-session", () => {
-  test("removes the session worktrees, base dir and test-results", () => {
-    const { base, testResults, run, worktreeList } = setup();
+  test("removes the session worktrees and base dir", () => {
+    const { base, run, worktreeList } = setup();
     const r = run();
     expect(r.status).toBe(0);
     expect(existsSync(base)).toBe(false);
-    expect(existsSync(testResults)).toBe(false);
     // Only the main worktree remains registered.
     expect(worktreeList()).not.toContain("_session");
     expect(worktreeList()).not.toContain("/simple");
+  });
+
+  // The suite runs in the _session worktree, so the repo copy can only be a human's
+  // `make test-e2e` output or a concurrent session's. Neither is this session's to drop.
+  test("leaves the repo's Playwright test-results in place", () => {
+    const { testResults, run } = setup();
+    run();
+    expect(existsSync(testResults)).toBe(true);
   });
 
   test("leaves the shared .promote.lock in place (concurrent-promotion mutex)", () => {

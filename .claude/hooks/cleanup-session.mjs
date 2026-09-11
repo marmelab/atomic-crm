@@ -1,8 +1,13 @@
 #!/usr/bin/env node
 // SessionEnd: tear down THIS session's harness scratch state when the Claude
 // session ends: remove every git worktree under <WORKTREE_BASE> (_session,
-// simple, any leftover TASK-XXX), prune the admin refs, drop the base dir, and
-// remove the Playwright test-results left in the repo.
+// simple, any leftover TASK-XXX), prune the admin refs and drop the base dir.
+//
+// `$REPO/test-results` is deliberately NOT removed. The e2e suite runs in the
+// `_session` worktree (e2e-on-feature-review.mjs -> e2e-smoke.sh), so its Playwright
+// output lives at `<_session>/test-results` and goes away with the worktree below.
+// The copy in the repo can therefore only come from a HUMAN `make test-e2e`, or from a
+// concurrent session, and neither is ours to delete. It is gitignored either way.
 //
 // Branches are left intact: they are cheap, do not clutter the editor's Source
 // Control view (only worktrees do), and deleting them could drop work stopped at
@@ -74,7 +79,6 @@ try {
     ctx.repo,
     (p) => p === ctx.worktreeBase || p.startsWith(ctx.worktreeBase + "/"),
   );
-  rmSync(join(REPO, "test-results"), { recursive: true, force: true });
   // This session's rendered board only (render-status.mjs). Per-session subdir,
   // so a concurrent session's board under .harness/<other-short> is left intact.
   rmSync(join(REPO, ".harness", ctx.sessionShort), {

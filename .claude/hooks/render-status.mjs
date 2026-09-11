@@ -89,6 +89,23 @@ function liveWorktrees() {
 const approved = (id) =>
   existsSync(join(reviewsDir(ctx), `${id}-quality-reviewer`));
 
+// The e2e verdict lives only in e2e-result.json (e2e-on-feature-review.mjs writes it),
+// so without this the board showed every ticket green while the integrated suite was red.
+const E2E_ICON = { passed: "✅", skipped: "⏭", failed: "❌" };
+function e2eLine() {
+  try {
+    const p = join(
+      process.env.CHAT_SESSION_DIR || ctx.sessionDir,
+      "e2e-result.json",
+    );
+    if (!existsSync(p)) return "_not run this round_";
+    const r = JSON.parse(readFileSync(p, "utf8"));
+    return `${E2E_ICON[r.status] ?? "?"} **${r.status}**${r.finishedAt ? ` · ${r.finishedAt}` : ""}`;
+  } catch {
+    return "_unreadable_";
+  }
+}
+
 function recentActivity(max = 25) {
   const lines = readFileSync(progressLog, "utf8")
     .split("\n")
@@ -187,6 +204,9 @@ function build() {
     worktrees.length
       ? worktrees.map((w) => `- \`${w}\``).join("\n")
       : "_none (nothing in flight)_",
+    "",
+    "## End-of-feature e2e",
+    e2eLine(),
     "",
     "## Changes",
     diff
