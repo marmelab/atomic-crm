@@ -132,6 +132,14 @@ grant all on table public.configuration to authenticated;
 grant all on table public.configuration to service_role;
 -- Narrowed for anon: same rationale as contacts above.
 revoke select, insert, update, delete on table public.configuration from anon;
+-- Narrowed for authenticated/service_role: configuration is a structural
+-- singleton meant to be updated in place, never deleted -- its own creating
+-- migration (20260211194545_app_configuration.sql) only ever granted
+-- select/insert/update to these roles, and there is no DELETE RLS policy
+-- for anyone. See 20260911140000_configuration_delete_grant_drift.sql for
+-- the full investigation.
+revoke delete on table public.configuration from authenticated;
+revoke delete on table public.configuration from service_role;
 
 grant all on table public.favicons_excluded_domains to anon;
 grant all on table public.favicons_excluded_domains to authenticated;
