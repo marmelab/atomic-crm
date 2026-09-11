@@ -97,6 +97,44 @@ await page.getByRole("button", { name: "Save" }).click();
 await dismissToast("Element created");
 ```
 
+## Linking to a record: the app uses HASH routing
+
+`href` values are `#/contacts/12/show`, never `/contacts/12/show`. A locator written against
+the path shape matches ZERO elements, which reads like a rendering bug rather than a wrong
+selector, and cost two fix rounds on one run:
+
+```ts
+// ✗ matches nothing
+page.locator('a[href^="/contacts/"][href$="/show"]');
+// ✓
+page.locator('a[href^="#/contacts/"][href$="/show"]');
+```
+
+## Scope row locators to the list, not to the page
+
+A bare link locator also matches the toolbar's own create link, so `.first()` on it silently
+asserts against the wrong element. Scope to the list container:
+
+```ts
+const rows = page.locator(".rounded-md.border").getByRole("link");
+```
+
+## Wait for the mutation before reloading
+
+Edits are optimistic: the UI shows the new value and the PATCH goes out afterwards. A
+`page.reload()` (or a navigation) fired straight after the save races it, and the assertion
+after the reload reads the OLD value — intermittently, which is worse than always. Sequence
+on the request, or on `dismissToast`, which already waits it out:
+
+```ts
+await Promise.all([
+  page.waitForResponse(
+    (r) => r.url().includes("/rest/v1/contacts") && r.request().method() === "PATCH",
+  ),
+  page.getByRole("button", { name: "Save" }).click(),
+]);
+```
+
 ## Fixtures available
 
 From `e2e/fixtures.ts` (`import { test, expect } from "./fixtures"`):
@@ -130,3 +168,6 @@ await page.getByRole("button", { name: "Sign in" }).click();
 - [ ] Toast texts come from `NOTIFICATION` or `englishCrmMessages.ts`, not from a guess.
 - [ ] Setup data is seeded through the fixtures, not entered through the UI.
 - [ ] The viewport is never widened to make an assertion pass.
+- [ ] Record links are matched on `#/<resource>/...`, not `/<resource>/...`.
+- [ ] Row locators are scoped to the list container, not to the whole page.
+- [ ] Nothing reloads or navigates before the save's PATCH has been awaited.
