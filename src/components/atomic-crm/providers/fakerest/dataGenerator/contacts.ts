@@ -24,7 +24,14 @@ const maxContacts = {
 const getRandomContactDetailsType = () =>
   random.arrayElement(["Work", "Home", "Other"]) as "Work" | "Home" | "Other";
 
-export const generateContacts = (db: Db, size = 500): Required<Contact>[] => {
+// Returns bare contacts-table rows, never the computed relationship
+// fields (offer_ids/is_current_client/is_past_client/has_applied/
+// is_on_waitlist/has_nurture_deal) -- those are attached later, only
+// when read through the "contacts" resource (see
+// contactRelationshipFields.ts), exactly matching Contact's own
+// documented contract. Db["contacts"] is declared as plain Contact[],
+// not Required<Contact>[] -- this return type must match that.
+export const generateContacts = (db: Db, size = 500): Contact[] => {
   const nbAvailblePictures = 223;
   let numberOfContacts = 0;
 

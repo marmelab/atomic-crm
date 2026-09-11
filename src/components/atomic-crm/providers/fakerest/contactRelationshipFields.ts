@@ -1,4 +1,4 @@
-import type { DataProvider, Identifier } from "ra-core";
+import type { DataProvider, Identifier, RaRecord } from "ra-core";
 
 import type { Application, Deal, Enrollment, WaitlistEntry } from "../../types";
 import { ACTIVE_WAITLIST_STATUSES } from "../../waitlist/waitlistConstants";
@@ -88,7 +88,7 @@ const fieldsChanged = (
 // otherwise break every "contacts" read in those tests for a feature
 // they aren't exercising. Treat a genuinely absent collection as "no rows
 // for this relationship" rather than a fatal error.
-const getListOrEmpty = async <T>(
+const getListOrEmpty = async <T extends RaRecord>(
   baseDataProvider: DataProvider,
   resource: string,
 ): Promise<T[]> => {
@@ -109,7 +109,10 @@ export const syncContactRelationshipFields = async (
 ): Promise<void> => {
   const [contacts, deals, enrollments, applications, waitlistEntries] =
     await Promise.all([
-      getListOrEmpty<{ id: Identifier }>(baseDataProvider, "contacts"),
+      getListOrEmpty<{ id: Identifier } & Partial<ContactRelationshipFields>>(
+        baseDataProvider,
+        "contacts",
+      ),
       getListOrEmpty<Deal>(baseDataProvider, "deals"),
       getListOrEmpty<Enrollment>(baseDataProvider, "enrollments"),
       getListOrEmpty<Application>(baseDataProvider, "applications"),
