@@ -77,6 +77,9 @@ grant all on function public.set_sales_id_default() to service_role;
 grant all on table public.companies to anon;
 grant all on table public.companies to authenticated;
 grant all on table public.companies to service_role;
+-- Narrowed for anon: same rationale as contacts below -- see
+-- 20260911120000_remaining_anon_grant_drift.sql.
+revoke select, insert, update, delete on table public.companies from anon;
 
 grant all on table public.contacts to anon;
 grant all on table public.contacts to authenticated;
@@ -91,6 +94,8 @@ revoke select, insert, update, delete on table public.contacts from anon;
 grant all on table public.contact_notes to anon;
 grant all on table public.contact_notes to authenticated;
 grant all on table public.contact_notes to service_role;
+-- Narrowed for anon: same rationale as contacts above.
+revoke select, insert, update, delete on table public.contact_notes from anon;
 
 grant all on table public.deals to anon;
 grant all on table public.deals to authenticated;
@@ -101,14 +106,20 @@ revoke select, insert, update, delete on table public.deals from anon;
 grant all on table public.deal_notes to anon;
 grant all on table public.deal_notes to authenticated;
 grant all on table public.deal_notes to service_role;
+-- Narrowed for anon: same rationale as contacts above.
+revoke select, insert, update, delete on table public.deal_notes from anon;
 
 grant all on table public.sales to anon;
 grant all on table public.sales to authenticated;
 grant all on table public.sales to service_role;
+-- Narrowed for anon: same rationale as contacts above.
+revoke select, insert, update, delete on table public.sales from anon;
 
 grant all on table public.tags to anon;
 grant all on table public.tags to authenticated;
 grant all on table public.tags to service_role;
+-- Narrowed for anon: same rationale as contacts above.
+revoke select, insert, update, delete on table public.tags from anon;
 
 grant all on table public.tasks to anon;
 grant all on table public.tasks to authenticated;
@@ -119,10 +130,14 @@ revoke select, insert, update, delete on table public.tasks from anon;
 grant all on table public.configuration to anon;
 grant all on table public.configuration to authenticated;
 grant all on table public.configuration to service_role;
+-- Narrowed for anon: same rationale as contacts above.
+revoke select, insert, update, delete on table public.configuration from anon;
 
 grant all on table public.favicons_excluded_domains to anon;
 grant all on table public.favicons_excluded_domains to authenticated;
 grant all on table public.favicons_excluded_domains to service_role;
+-- Narrowed for anon: same rationale as contacts above.
+revoke select, insert, update, delete on table public.favicons_excluded_domains from anon;
 
 grant all on table public.offers to anon;
 grant all on table public.offers to authenticated;
