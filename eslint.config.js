@@ -73,5 +73,23 @@ export default tseslint.config(
       "@typescript-eslint/consistent-type-imports": "off",
     },
   },
+  {
+    files: ["e2e/**/*.ts"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: [
+            {
+              name: "papaparse",
+              importNames: ["*"],
+              message:
+                'Use a default import in e2e specs: import Papa from "papaparse".',
+            },
+          ],
+        },
+      ],
+    },
+  },
   storybook.configs["flat/recommended"],
 );
