@@ -73,4 +73,53 @@ describe("DealShow", () => {
       .element(screen.getByText(/expected closing date/i))
       .not.toBeInTheDocument();
   });
+
+  // Production defect repair: deals.amount has no NOT NULL constraint —
+  // a Deal created outside the normal create/edit form's own amount-sync
+  // effect (e.g. inserted directly, or any future path that doesn't go
+  // through that form) can genuinely have no amount yet. A raw
+  // record.amount.toLocaleString() call with no null guard crashed the
+  // whole lightbox with an uncaught TypeError the instant such a Deal was
+  // opened — found via a real Committed Opportunity with no amount set.
+  it("renders without crashing when amount is null, showing no amount rather than throwing", async () => {
+    const contact = buildContact({ id: 1 });
+    const deal: Deal = {
+      id: 1,
+      name: "Ada Lovelace",
+      contact_id: 1,
+      offer_id: 1,
+      offer_name_snapshot: "The Living Example",
+      stage: "interested",
+      amount: null as unknown as number,
+      created_at: "2026-01-01T00:00:00.000Z",
+      updated_at: "2026-01-01T00:00:00.000Z",
+      sales_id: 0,
+      index: 0,
+      stage_entered_at: "2026-01-01T00:00:00.000Z",
+    };
+    const dataProvider = createDataProvider({
+      db: createCrmDb({
+        contacts: [contact],
+        offers: [livingExample],
+        deals: [deal],
+        ...emptyRelatedCollections,
+      }),
+      silent: true,
+    });
+
+    const screen = await render(
+      <StoryWrapper
+        initialEntries={["/deals/1/show"]}
+        dataProvider={dataProvider}
+      >
+        <></>
+      </StoryWrapper>,
+    );
+
+    // The lightbox itself must render (no uncaught exception/error
+    // boundary) — the amount field is simply absent, not a crash.
+    await expect
+      .element(screen.getByRole("heading", { name: /ada lovelace/i }))
+      .toBeInTheDocument();
+  });
 });

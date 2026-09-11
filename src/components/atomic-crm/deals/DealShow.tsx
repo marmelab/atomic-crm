@@ -13,6 +13,7 @@ import {
 } from "ra-core";
 import { DeleteButton } from "@/components/admin/delete-button";
 import { EditButton } from "@/components/admin/edit-button";
+import { NumberField } from "@/components/admin/number-field";
 import { ReferenceField } from "@/components/admin/reference-field";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -133,15 +134,28 @@ const DealShowContent = () => {
               <span className="text-xs text-muted-foreground tracking-wide">
                 {translate("resources.deals.fields.amount")}
               </span>
-              <span className="text-sm">
-                {record.amount.toLocaleString("en-US", {
+              {/* Production defect repair: deals.amount has no NOT NULL
+                  constraint (a Deal created outside the normal
+                  create/edit form's own amount-sync effect can genuinely
+                  have no amount yet), but this raw .toLocaleString() call
+                  had no null guard and crashed the whole lightbox with an
+                  uncaught TypeError the moment such a Deal was opened —
+                  found via a real Committed Opportunity with no amount
+                  set. NumberField (already used identically on the
+                  Kanban DealCard) renders nothing for a null value
+                  instead of throwing — the same safe pattern, not a new
+                  one. */}
+              <NumberField
+                source="amount"
+                className="text-sm"
+                options={{
                   notation: "compact",
                   style: "currency",
                   currency,
                   currencyDisplay: "narrowSymbol",
                   minimumSignificantDigits: 3,
-                })}
-              </span>
+                }}
+              />
             </div>
 
             <div className="flex flex-col mr-10">
