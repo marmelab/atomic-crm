@@ -73,6 +73,17 @@ grant all on function public.set_sales_id_default() to anon;
 grant all on function public.set_sales_id_default() to authenticated;
 grant all on function public.set_sales_id_default() to service_role;
 
+-- Application Intake Atomicity + Idempotency slice: reachable ONLY via
+-- service_role, tighter than every other callable function above
+-- (merge_contacts included) — this is the transactional primitive behind
+-- the existing public /apply intake, not a new public capability. The
+-- Edge Function (public_application/index.ts, already service_role-only)
+-- remains the sole public entry point; anon/authenticated get nothing new.
+revoke all on function public.submit_public_application(bigint, bigint, text, text, text, text, jsonb) from public;
+revoke all on function public.submit_public_application(bigint, bigint, text, text, text, text, jsonb) from anon;
+revoke all on function public.submit_public_application(bigint, bigint, text, text, text, text, jsonb) from authenticated;
+grant all on function public.submit_public_application(bigint, bigint, text, text, text, text, jsonb) to service_role;
+
 -- Table grants
 grant all on table public.companies to anon;
 grant all on table public.companies to authenticated;

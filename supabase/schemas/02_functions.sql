@@ -1166,3 +1166,269 @@ BEGIN
   RETURN NEW;
 END;
 $$;
+
+-- Application Intake Atomicity + Idempotency slice: the single
+-- server-authoritative transactional operation for the public application
+-- intake path (mirrors, and is called by, supabase/functions/
+-- public_application/index.ts's handleSubmit — see that file's header for
+-- the caller-side validation it still does BEFORE calling this: honeypot,
+-- name/email/answer-length checks, and full offer/cohort existence + open-
+-- window validation, none of which needs to be inside this transaction
+-- since a rejection there means zero calls into this function at all).
+--
+-- Root-cause fix for the known intake gap: the previous implementation
+-- issued Contact -> Deal -> (Waitlist sync) -> Application -> Task as
+-- separate PostgREST round-trips with no shared transaction. A failure
+-- between any two steps left durable partial state (e.g. a bare Contact,
+-- or worse: an Application with no Review Task that NO retry could ever
+-- fix, because the exact-answers-match fast path above short-circuits
+-- before ever re-attempting Task creation). Wrapping the whole sequence in
+-- one PL/pgSQL function call gives it Postgres's own transaction boundary
+-- for free: any exception anywhere below rolls back every write this
+-- function made, so the only two possible outcomes are "fully applied" or
+-- "nothing happened" — never a partial result a retry can't repair.
+--
+-- Idempotency key: deliberately the request's own natural business key
+-- (normalized email, offer_id, cohort_id) plus a value-equality check on
+-- the answers themselves — not a generated/random idempotency token. A
+-- token tied to one browser/session would fail to recognize a genuine
+-- resubmission from a different device as the same logical application;
+-- the natural key already does, and is exactly what findActiveDeal /
+-- findPendingApplication / answersEqual already used before this change.
+--
+-- Concurrency: an advisory transaction lock keyed by the normalized email
+-- serializes two near-simultaneous submissions for the same applicant
+-- (there is no unique constraint on an email inside contacts.email_jsonb
+-- to lean on instead — introducing one is a larger, separate schema change
+-- this slice deliberately does not force). Released automatically at
+-- transaction end; never held past this call.
+--
+-- Security: SECURITY INVOKER (not DEFINER) — this function is reachable
+-- ONLY via service_role (see 06_grants.sql: EXECUTE is revoked from
+-- anon/authenticated entirely, tighter than every other callable function
+-- in this file, merge_contacts included). service_role already bypasses
+-- RLS on its own; DEFINER semantics would only add unneeded owner-
+-- privilege elevation. The public HTTP surface remains exactly
+-- public_application/index.ts — this function is not a new public
+-- capability, it's the existing one made atomic.
+CREATE OR REPLACE FUNCTION "public"."submit_public_application"(
+    "p_offer_id" bigint,
+    "p_cohort_id" bigint,
+    "p_first_name" text,
+    "p_last_name" text,
+    "p_email" text,
+    "p_phone" text,
+    "p_answers" jsonb
+) RETURNS jsonb
+    LANGUAGE "plpgsql"
+    SET "search_path" TO 'public'
+    AS $$
+DECLARE
+  v_email text := lower(trim(p_email));
+  v_contact contacts%ROWTYPE;
+  v_is_dne boolean;
+  v_deal deals%ROWTYPE;
+  v_deal_reused boolean := false;
+  v_pending_app applications%ROWTYPE;
+  v_answers_match boolean := false;
+  v_application_id bigint;
+  v_existing_application_id bigint;
+  v_sales_id bigint;
+  v_has_pending_task boolean;
+  v_applicant_name text;
+BEGIN
+  IF p_offer_id IS NULL THEN
+    RAISE EXCEPTION 'offer_invalid' USING ERRCODE = 'invalid_parameter_value';
+  END IF;
+  IF coalesce(trim(p_first_name), '') = '' OR coalesce(trim(p_last_name), '') = '' THEN
+    RAISE EXCEPTION 'name_invalid' USING ERRCODE = 'invalid_parameter_value';
+  END IF;
+  IF v_email = '' THEN
+    RAISE EXCEPTION 'email_invalid' USING ERRCODE = 'invalid_parameter_value';
+  END IF;
+
+  -- Defense-in-depth structural re-check — the Edge Function already
+  -- validated offer/cohort (including the Denver-timezone open-window
+  -- logic this function deliberately does not duplicate) before ever
+  -- calling here; this is the same minimal FK-existence backstop
+  -- handle_deal_saved() already applies to any deals insert regardless.
+  IF NOT EXISTS (SELECT 1 FROM offers WHERE id = p_offer_id AND is_active) THEN
+    RAISE EXCEPTION 'offer_invalid' USING ERRCODE = 'invalid_parameter_value';
+  END IF;
+  IF p_cohort_id IS NOT NULL AND NOT EXISTS (
+    SELECT 1 FROM cohorts WHERE id = p_cohort_id AND offer_id = p_offer_id
+  ) THEN
+    RAISE EXCEPTION 'cohort_invalid' USING ERRCODE = 'invalid_parameter_value';
+  END IF;
+
+  -- Serialize concurrent submissions for the same applicant identity for
+  -- the rest of this transaction (released automatically at commit/
+  -- rollback) — see header comment.
+  PERFORM pg_advisory_xact_lock(hashtext('submit_public_application:' || v_email));
+
+  -- Read current state ONCE, before any write (mirrors submitApplication.ts
+  -- / the pre-atomicity Edge Function exactly) so a true no-op retry can be
+  -- recognized with ZERO writes.
+  SELECT * INTO v_contact
+  FROM contacts c
+  WHERE EXISTS (
+    SELECT 1 FROM jsonb_array_elements(coalesce(c.email_jsonb, '[]'::jsonb)) AS e
+    WHERE lower(trim(e ->> 'email')) = v_email
+  )
+  ORDER BY c.id ASC
+  LIMIT 1;
+
+  v_is_dne := v_contact.id IS NOT NULL AND v_contact.sales_eligibility = 'do_not_engage';
+
+  IF v_contact.id IS NOT NULL AND NOT v_is_dne THEN
+    SELECT * INTO v_deal
+    FROM deals d
+    WHERE d.contact_id = v_contact.id
+      AND d.offer_id = p_offer_id
+      AND (p_cohort_id IS NULL OR d.cohort_id = p_cohort_id)
+      AND d.archived_at IS NULL
+      AND d.stage <> 'won'
+      AND d.outcome IS NULL
+    ORDER BY d.id ASC
+    LIMIT 1;
+  END IF;
+
+  IF v_deal.id IS NOT NULL THEN
+    SELECT * INTO v_pending_app
+    FROM applications a
+    WHERE a.opportunity_id = v_deal.id
+    ORDER BY a.id DESC
+    LIMIT 1;
+    IF v_pending_app.id IS NOT NULL AND v_pending_app.status <> 'pending' THEN
+      v_pending_app := NULL;
+    END IF;
+  END IF;
+
+  IF v_pending_app.id IS NOT NULL THEN
+    -- jsonb equality is key-order-independent (both sides are stored in
+    -- Postgres's own canonical jsonb form) — mirrors answersEqual()
+    -- exactly without needing a manual key-by-key comparison.
+    v_answers_match := p_answers = v_pending_app.raw_answers;
+  END IF;
+
+  -- Safe to trust "Application matches" alone as proof the whole prior
+  -- submission fully completed (including its Review Task) — UNLIKE the
+  -- FakeRest mirror (submitApplication.ts), which additionally checks the
+  -- Task exists before treating this as a no-op. Here, that extra check
+  -- would be redundant: this entire function is one transaction, so there
+  -- is no committed state where a still-pending Application exists but its
+  -- Task creation never ran — either the whole prior call committed
+  -- (Task included) or none of it did.
+  IF v_pending_app.id IS NOT NULL AND v_answers_match THEN
+    RETURN jsonb_build_object(
+      'status', 'submitted',
+      'application_id', v_pending_app.id,
+      'dne_auto_resolved', false
+    );
+  END IF;
+
+  -- Resolve or create the Contact.
+  IF v_contact.id IS NOT NULL THEN
+    UPDATE contacts SET last_seen = now() WHERE id = v_contact.id RETURNING * INTO v_contact;
+  ELSE
+    INSERT INTO contacts (
+      first_name, last_name, email_jsonb, phone_jsonb, tags,
+      has_newsletter, first_seen, last_seen, sales_eligibility
+    ) VALUES (
+      p_first_name, p_last_name,
+      jsonb_build_array(jsonb_build_object('email', p_email, 'type', 'Other')),
+      CASE WHEN coalesce(p_phone, '') <> ''
+        THEN jsonb_build_array(jsonb_build_object('number', p_phone, 'type', 'Other'))
+        ELSE '[]'::jsonb
+      END,
+      ARRAY[]::bigint[],
+      false, now(), now(), 'normal'
+    ) RETURNING * INTO v_contact;
+  END IF;
+
+  -- Resolve or create the Deal (never reused for a DNE contact — a fresh
+  -- Deal already in the exited state, exactly like both prior
+  -- implementations).
+  IF v_deal.id IS NULL THEN
+    INSERT INTO deals (
+      contact_id, offer_id, cohort_id, stage, outcome, owner_decision,
+      amount, entry_path, description
+    ) VALUES (
+      v_contact.id, p_offer_id, p_cohort_id, 'application_received',
+      CASE WHEN v_is_dne THEN 'lost' ELSE NULL END,
+      CASE WHEN v_is_dne THEN 'do_not_engage' ELSE NULL END,
+      (SELECT current_price FROM offers WHERE id = p_offer_id),
+      'application_form', ''
+    ) RETURNING * INTO v_deal;
+    -- name/snapshot fields are computed by the existing BEFORE trigger
+    -- handle_deal_saved(); the existing AFTER trigger on_deal_waitlist_sync
+    -- fires automatically for this fresh INSERT.
+  ELSE
+    v_deal_reused := true;
+    IF NOT v_is_dne THEN
+      -- Reusing writes nothing to `deals`, so on_deal_waitlist_sync never
+      -- fires for this path — mirror it explicitly (same rule, same WHERE
+      -- clause, as handle_deal_waitlist_sync() itself).
+      UPDATE waitlist_entries
+      SET status = 'converted', converted_at = now(), converted_opportunity_id = v_deal.id
+      WHERE contact_id = v_deal.contact_id
+        AND offer_id = v_deal.offer_id
+        AND status IN ('waiting', 'invited')
+        AND (cohort_id IS NULL OR cohort_id = v_deal.cohort_id);
+    END IF;
+  END IF;
+
+  -- Resolve, update-in-place, or create the Application.
+  IF v_pending_app.id IS NOT NULL THEN
+    UPDATE applications
+    SET raw_answers = p_answers, submitted_at = now()
+    WHERE id = v_pending_app.id
+    RETURNING id INTO v_application_id;
+  ELSE
+    SELECT a.id INTO v_existing_application_id
+    FROM applications a
+    WHERE a.opportunity_id = v_deal.id
+    ORDER BY a.id DESC
+    LIMIT 1;
+
+    IF v_existing_application_id IS NOT NULL THEN
+      v_application_id := v_existing_application_id;
+    ELSE
+      INSERT INTO applications (opportunity_id, raw_answers, submitted_at, status, reviewed_at)
+      VALUES (
+        v_deal.id, p_answers, now(),
+        CASE WHEN v_is_dne THEN 'do_not_engage' ELSE 'pending' END,
+        CASE WHEN v_is_dne THEN now() ELSE NULL END
+      ) RETURNING id INTO v_application_id;
+    END IF;
+  END IF;
+
+  -- Review Application Task: idempotent (skips if a pending one already
+  -- exists), never created for the DNE auto-resolve path.
+  IF NOT v_is_dne THEN
+    SELECT EXISTS (
+      SELECT 1 FROM tasks
+      WHERE contact_id = v_contact.id
+        AND type = 'review_application'
+        AND done_date IS NULL
+    ) INTO v_has_pending_task;
+
+    IF NOT v_has_pending_task THEN
+      SELECT id INTO v_sales_id FROM sales WHERE administrator = true LIMIT 1;
+      v_applicant_name := trim(both ' ' from coalesce(v_contact.first_name, '') || ' ' || coalesce(v_contact.last_name, ''));
+      INSERT INTO tasks (contact_id, type, text, due_date, status, sales_id)
+      VALUES (
+        v_contact.id, 'review_application',
+        'Review ' || v_applicant_name || '''s application',
+        now(), 'pending', v_sales_id
+      );
+    END IF;
+  END IF;
+
+  RETURN jsonb_build_object(
+    'status', 'submitted',
+    'application_id', v_application_id,
+    'dne_auto_resolved', v_is_dne
+  );
+END;
+$$;

@@ -4,7 +4,10 @@ import type { Application, Cohort, Contact, Deal, Offer, Sale } from "../types";
 import { validateOfferCohort } from "../deals/offerCohortValidation";
 import { getDenverDateString } from "../dashboard/artOracle/selectDailyArtwork";
 import { isContactDoNotEngage } from "../contacts/doNotEngageGuard";
-import { ensureReviewApplicationTask } from "../applications/reviewApplicationTask";
+import {
+  ensureReviewApplicationTask,
+  findPendingReviewApplicationTask,
+} from "../applications/reviewApplicationTask";
 import { syncWaitlistForActiveDeal } from "../waitlist/waitlistSync";
 
 // Native Application Intake slice (§1-§14): the dev/FakeRest-backed half of
@@ -199,13 +202,29 @@ export const submitApplication = async (
     ? await findPendingApplication(dataProvider, existingActiveDeal.id)
     : null;
 
+  // Application Intake Atomicity + Idempotency slice: this fast path used
+  // to trust "Application matches" alone as proof the whole prior
+  // submission fully completed. It doesn't: if Task creation failed on
+  // that prior attempt (the one gap this dev/FakeRest mirror can't close
+  // with a real transaction the way the production RPC now does — see
+  // supabase/schemas/02_functions.sql's submit_public_application()
+  // header), an identical retry would return early here and NEVER create
+  // the missing Task. Requiring the Task to already exist too makes this
+  // still a true no-op ONLY when the whole prior submission genuinely
+  // completed.
+  const existingPendingTask =
+    existingActiveDeal && existingContact
+      ? await findPendingReviewApplicationTask(dataProvider, existingContact.id)
+      : null;
   if (
     existingPendingApplication &&
-    answersEqual(existingPendingApplication.raw_answers, input.answers)
+    answersEqual(existingPendingApplication.raw_answers, input.answers) &&
+    existingPendingTask
   ) {
     // True state-level no-op: same applicant, same active Deal, same
-    // still-pending Application, byte-for-byte identical answers. Nothing
-    // downstream (Contact, Deal/stage, Task due date, history) is touched.
+    // still-pending Application, byte-for-byte identical answers, and the
+    // Review Task already exists. Nothing downstream (Contact, Deal/stage,
+    // Task due date, history) is touched.
     return {
       status: "submitted",
       applicationId: existingPendingApplication.id,

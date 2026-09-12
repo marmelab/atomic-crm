@@ -429,6 +429,102 @@ describe("submitApplication — Living Example (individual offer)", () => {
     expect(tasksAfter[0]!.status).toBe(tasksBefore[0]!.status);
   });
 
+  // Application Intake Atomicity + Idempotency slice, root-cause regression:
+  // before this fix, the exact-retry fast path trusted "Application
+  // matches" alone as proof the whole prior submission had fully
+  // completed. It didn't — a prior attempt where Task creation failed (or,
+  // pre-fix, any partial-write failure) left a pending Application with a
+  // permanently missing Review Task that NO retry could ever repair, since
+  // every identical resubmission just hit the same fast path and returned
+  // immediately. This fixture reproduces exactly that partial state by
+  // hand (Contact + Deal + matching-answers Application, deliberately no
+  // Task) and asserts a resubmission now completes the missing step
+  // instead of silently no-op'ing forever.
+  it("repairs a Contact/Deal/Application left with no Review Task by a prior partial failure, instead of permanently no-op'ing on retry", async () => {
+    const staleDeal: Deal = {
+      id: 42,
+      name: "Grace Hopper — The Living Example",
+      contact_id: CONTACT_ID,
+      offer_id: LE_OFFER_ID,
+      cohort_id: null,
+      stage: "application_received",
+      outcome: null,
+      owner_decision: null,
+      amount: 4000,
+      created_at: "2026-01-01T00:00:00.000Z",
+      updated_at: "2026-01-01T00:00:00.000Z",
+      sales_id: 0,
+      index: 0,
+      stage_entered_at: "2026-01-01T00:00:00.000Z",
+    };
+    const staleApplication: Application = {
+      id: 77,
+      opportunity_id: staleDeal.id,
+      status: "pending",
+      submitted_at: "2026-01-01T00:00:00.000Z",
+      reviewed_at: null,
+      raw_answers: { why_this_program: "Ready for a change." },
+      summary: null,
+      created_at: "2026-01-01T00:00:00.000Z",
+      updated_at: "2026-01-01T00:00:00.000Z",
+    };
+    const { dataProvider } = buildFixtures({
+      contacts: [
+        {
+          id: CONTACT_ID,
+          first_name: "Grace",
+          last_name: "Hopper",
+          email_jsonb: [{ email: "grace@example.com", type: "Work" }],
+        },
+      ],
+      deals: [staleDeal],
+      applications: [staleApplication],
+      // Deliberately no Task — the exact partial state a prior failed
+      // attempt would have left behind.
+    });
+
+    const result = await submitApplication(dataProvider, {
+      offerId: LE_OFFER_ID,
+      firstName: "Grace",
+      lastName: "Hopper",
+      email: "grace@example.com",
+      // Byte-for-byte identical to the stale Application's own answers —
+      // exactly the input that used to trigger the unrepairable fast path.
+      answers: { why_this_program: "Ready for a change." },
+    });
+
+    expect(result.status).toBe("submitted");
+    if (result.status !== "submitted") throw new Error("unreachable");
+    // Reuses the existing Application/Deal — still no duplicate created.
+    expect(result.applicationId).toBe(staleApplication.id);
+
+    const { total: dealCount } = await dataProvider.getList("deals", {
+      pagination: { page: 1, perPage: 10 },
+      sort: { field: "id", order: "ASC" },
+    });
+    expect(dealCount).toBe(1);
+    const { total: applicationCount } = await dataProvider.getList(
+      "applications",
+      {
+        pagination: { page: 1, perPage: 10 },
+        sort: { field: "id", order: "ASC" },
+      },
+    );
+    expect(applicationCount).toBe(1);
+
+    const { data: tasks, total: taskCount } = await dataProvider.getList<Task>(
+      "tasks",
+      {
+        pagination: { page: 1, perPage: 10 },
+        sort: { field: "id", order: "ASC" },
+      },
+    );
+    expect(taskCount).toBe(1);
+    expect(tasks[0]!.type).toBe("review_application");
+    expect(tasks[0]!.contact_id).toBe(CONTACT_ID);
+    expect(tasks[0]!.done_date).toBeFalsy();
+  });
+
   it("a later legitimate reapplication, once the prior Deal is no longer active, creates a fresh Deal + Application rather than reusing or overwriting the old one", async () => {
     const pastDeal: Deal = {
       id: 999,

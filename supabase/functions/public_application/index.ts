@@ -26,6 +26,17 @@ import { supabaseAdmin } from "../_shared/supabaseAdmin.ts";
 // deal_waitlist_sync/waitlistSync.ts and handle_deal_saved()/
 // offerCohortValidation.ts.
 //
+// Application Intake Atomicity + Idempotency slice: handleSubmit's actual
+// multi-table write (Contact/Deal/Waitlist/Application/Task) now happens
+// inside ONE Postgres transaction — supabase/schemas/02_functions.sql's
+// submit_public_application(), invoked below via supabaseAdmin.rpc(). This
+// function still owns every pre-write concern that benefits from staying
+// in TypeScript with a clean public error shape: honeypot, name/email/
+// answer-length validation, and full offer/cohort existence + open-window
+// validation (the RPC re-validates offer/cohort structurally as a
+// defense-in-depth backstop, but does not duplicate the Denver-timezone
+// window logic — see that function's own header).
+//
 // Verified against the real linked dev project (Native Application Intake
 // real-infrastructure verification pass): deployed, exercised through the
 // actual public /apply/living-example browser form, and confirmed end to
@@ -62,30 +73,6 @@ type CohortRow = {
   applications_close_at: string | null;
 };
 
-type ContactRow = {
-  id: number;
-  first_name: string | null;
-  last_name: string | null;
-  email_jsonb: { email: string; type: string }[] | null;
-  sales_eligibility: string;
-};
-
-type DealRow = {
-  id: number;
-  contact_id: number;
-  offer_id: number;
-  cohort_id: number | null;
-  stage: string;
-  outcome: string | null;
-  archived_at: string | null;
-};
-
-type ApplicationRow = {
-  id: number;
-  status: string;
-  raw_answers: Record<string, unknown>;
-};
-
 const normalizeEmail = (email: string): string => email.trim().toLowerCase();
 const isPlausibleEmail = (email: string): boolean =>
   /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -97,10 +84,6 @@ const getDenverDateString = (date: Date = new Date()): string =>
     month: "2-digit",
     day: "2-digit",
   }).format(date);
-
-const isActiveDeal = (
-  deal: Pick<DealRow, "stage" | "outcome" | "archived_at">,
-) => deal.archived_at == null && deal.stage !== "won" && deal.outcome == null;
 
 const isCohortAcceptingApplications = (
   cohort: Pick<
@@ -122,23 +105,6 @@ const jsonResponse = (body: unknown, status = 200) =>
     status,
     headers: { "Content-Type": "application/json", ...corsHeaders },
   });
-
-// Flat, user-authored answers — a per-key value comparison is enough; no
-// nested structures to deep-compare. Key order doesn't matter (both sides
-// are sorted before comparing), and neither side ever includes a timestamp
-// or generated id, so this can't be tripped up by a volatile value making
-// an otherwise-identical retry look "changed" (real-infrastructure
-// idempotency-refinement pass — mirrors
-// submitApplication.ts's own answersEqual exactly).
-const answersEqual = (
-  a: Record<string, unknown>,
-  b: Record<string, unknown>,
-): boolean => {
-  const aKeys = Object.keys(a).sort();
-  const bKeys = Object.keys(b).sort();
-  if (aKeys.length !== bKeys.length) return false;
-  return aKeys.every((key, i) => key === bKeys[i] && a[key] === b[key]);
-};
 
 // Rate-limiting/abuse-protection assessment (real-infrastructure
 // verification pass): an adversarial payload-size test against this real
@@ -222,264 +188,6 @@ const handleContext = async (body: Record<string, unknown>) => {
   return jsonResponse({ kind: "not-found" });
 };
 
-// Normalized-email match (case/whitespace-insensitive), the primary
-// durable matching key (§5). Read-only — never mutates.
-const findExistingContactByEmail = async (
-  email: string,
-): Promise<ContactRow | null> => {
-  // Full-table scan, matching the dev domain function's own documented
-  // limitation (submitApplication.ts's own equivalent) — correct at this
-  // app's actual scale; a production hardening pass would add a
-  // normalized/indexed email column instead.
-  const { data: contacts } = await supabaseAdmin
-    .from("contacts")
-    .select("id, first_name, last_name, email_jsonb, sales_eligibility");
-  const existing = ((contacts ?? []) as ContactRow[]).find((contact) =>
-    (contact.email_jsonb ?? []).some(
-      (entry) => entry.email && normalizeEmail(entry.email) === email,
-    ),
-  );
-  return existing ?? null;
-};
-
-// Existing Contact data is never overwritten — only `last_seen` is
-// touched, a metadata timestamp, not "meaningful" identity data. Skipped
-// entirely by the exact-retry fast path in handleSubmit (real-
-// infrastructure idempotency-refinement pass).
-const touchExistingContact = async (
-  existing: ContactRow,
-): Promise<ContactRow> => {
-  await supabaseAdmin
-    .from("contacts")
-    .update({ last_seen: new Date().toISOString() })
-    .eq("id", existing.id);
-  return existing;
-};
-
-const createContact = async (params: {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string | null;
-}): Promise<ContactRow> => {
-  const { data: created, error } = await supabaseAdmin
-    .from("contacts")
-    .insert({
-      first_name: params.firstName,
-      last_name: params.lastName,
-      email_jsonb: [{ email: params.email, type: "Other" }],
-      phone_jsonb: params.phone
-        ? [{ number: params.phone, type: "Other" }]
-        : [],
-      tags: [],
-      has_newsletter: false,
-      first_seen: new Date().toISOString(),
-      last_seen: new Date().toISOString(),
-      sales_eligibility: "normal",
-    })
-    .select("id, first_name, last_name, email_jsonb, sales_eligibility")
-    .single();
-  if (error || !created)
-    throw new Error(error?.message ?? "Failed to create contact");
-  return created as ContactRow;
-};
-
-// Duplicate-Opportunity avoidance (§7): an existing active Deal for the
-// same Contact + Offer + Cohort is reused rather than a second one
-// created. Read-only — never mutates. DNE contacts never reach here (§5,
-// see handleSubmit): searching for an active Deal at all would risk
-// silently reactivating one.
-const findActiveDeal = async (params: {
-  contactId: number;
-  offerId: number;
-  cohortId: number | null;
-}): Promise<DealRow | null> => {
-  let query = supabaseAdmin
-    .from("deals")
-    .select("id, contact_id, offer_id, cohort_id, stage, outcome, archived_at")
-    .eq("contact_id", params.contactId)
-    .eq("offer_id", params.offerId);
-  query =
-    params.cohortId != null ? query.eq("cohort_id", params.cohortId) : query;
-  const { data: existingDeals } = await query;
-  const existingActive = ((existingDeals ?? []) as DealRow[]).find(
-    isActiveDeal,
-  );
-  return existingActive ?? null;
-};
-
-// Never mutates stage beyond the initial value below (a Deal already
-// further along than "Application Received" should not visually regress).
-// DNE contacts always land here (never reuse, §5): a fresh Deal already in
-// the exited state, preserving the historical fact that they applied again
-// without touching any other Deal.
-const createDeal = async (params: {
-  contact: ContactRow;
-  offer: OfferRow;
-  cohort: CohortRow | null;
-  isDne: boolean;
-}): Promise<{ deal: DealRow; reused: boolean }> => {
-  const { data: created, error } = await supabaseAdmin
-    .from("deals")
-    .insert({
-      contact_id: params.contact.id,
-      offer_id: params.offer.id,
-      cohort_id: params.cohort?.id ?? null,
-      stage: "application_received",
-      outcome: params.isDne ? "lost" : null,
-      owner_decision: params.isDne ? "do_not_engage" : null,
-      amount: params.offer.current_price,
-      entry_path: "application_form",
-      description: "",
-    })
-    .select("id, contact_id, offer_id, cohort_id, stage, outcome, archived_at")
-    .single();
-  if (error || !created)
-    throw new Error(error?.message ?? "Failed to create deal");
-  return { deal: created as DealRow, reused: false };
-};
-
-// Mirrors handle_deal_waitlist_sync() (supabase/schemas/02_functions.sql)
-// exactly — same WHERE clause, same fields — for the one path that never
-// fires that trigger on its own (see the call site's own comment).
-const syncWaitlistForActiveDeal = async (deal: DealRow): Promise<void> => {
-  if (deal.archived_at != null || deal.outcome != null) return;
-  await supabaseAdmin
-    .from("waitlist_entries")
-    .update({
-      status: "converted",
-      converted_at: new Date().toISOString(),
-      converted_opportunity_id: deal.id,
-    })
-    .eq("contact_id", deal.contact_id)
-    .eq("offer_id", deal.offer_id)
-    .in("status", ["waiting", "invited"])
-    .or(
-      deal.cohort_id != null
-        ? `cohort_id.is.null,cohort_id.eq.${deal.cohort_id}`
-        : "cohort_id.is.null",
-    );
-};
-
-// The most recent Application for a Deal, but ONLY if it's still pending
-// review — an already-reviewed Application (approved / needs_higher_care /
-// not_fit / do_not_engage) is never eligible for the exact-retry or
-// update-in-place paths (real-infrastructure idempotency-refinement pass:
-// both are explicitly scoped to "while the existing Application is still
-// pending" — once Leif has acted, a later resubmission must not silently
-// rewrite what he already reviewed). Read-only — never mutates.
-const findPendingApplication = async (
-  dealId: number,
-): Promise<ApplicationRow | null> => {
-  const { data: existing } = await supabaseAdmin
-    .from("applications")
-    .select("id, status, raw_answers")
-    .eq("opportunity_id", dealId)
-    .order("id", { ascending: false })
-    .limit(1);
-  const mostRecent = (existing?.[0] as ApplicationRow | undefined) ?? null;
-  return mostRecent && mostRecent.status === "pending" ? mostRecent : null;
-};
-
-// Applies a materially-changed resubmission to the still-pending
-// Application already found by findPendingApplication — same row, same
-// id, only raw_answers/submitted_at move.
-const updatePendingApplication = async (
-  existing: ApplicationRow,
-  answers: Record<string, string>,
-): Promise<{ id: number }> => {
-  const { data: updated, error } = await supabaseAdmin
-    .from("applications")
-    .update({
-      raw_answers: answers,
-      submitted_at: new Date().toISOString(),
-    })
-    .eq("id", existing.id)
-    .select("id")
-    .single();
-  if (error || !updated)
-    throw new Error(error?.message ?? "Failed to update application");
-  return updated as { id: number };
-};
-
-// Idempotent: reached only when there's no still-pending Application to
-// update in place — either none exists yet for this Deal, or the most
-// recent one has already been reviewed (returned as-is, never rewritten;
-// see findPendingApplication above). A DNE application is recorded already
-// reviewed (status set directly, reviewed_at = submitted_at) since the
-// outcome is already durable.
-const findOrCreateApplication = async (params: {
-  dealId: number;
-  answers: Record<string, string>;
-  isDne: boolean;
-}): Promise<{ id: number }> => {
-  const { data: existing } = await supabaseAdmin
-    .from("applications")
-    .select("id")
-    .eq("opportunity_id", params.dealId)
-    .order("id", { ascending: false })
-    .limit(1);
-  if (existing && existing.length > 0) return existing[0] as { id: number };
-
-  const submittedAt = new Date().toISOString();
-  const { data: created, error } = await supabaseAdmin
-    .from("applications")
-    .insert({
-      opportunity_id: params.dealId,
-      raw_answers: params.answers,
-      submitted_at: submittedAt,
-      status: params.isDne ? "do_not_engage" : "pending",
-      reviewed_at: params.isDne ? submittedAt : null,
-    })
-    .select("id")
-    .single();
-  if (error || !created)
-    throw new Error(error?.message ?? "Failed to create application");
-  return created as { id: number };
-};
-
-const REVIEW_APPLICATION_TASK_TYPE = "review_application";
-
-// Acceptance-repair pass: the Dashboard's own task view (DashboardTasks.tsx)
-// filters by `sales_id: identity?.id` (the logged-in user's own tasks). A
-// Task created with no sales_id at all — every one this function produced
-// before this fix, since there is no logged-in identity during a public
-// submission — never matches that filter and so never surfaces there, even
-// though it genuinely exists (see submitApplication.ts's own
-// resolveDefaultTaskSalesId, which this mirrors: this app has exactly one
-// real owner, the `sales` row with administrator = true).
-const resolveDefaultTaskSalesId = async (): Promise<number | undefined> => {
-  const { data: administrators } = await supabaseAdmin
-    .from("sales")
-    .select("id")
-    .eq("administrator", true)
-    .limit(1);
-  return administrators?.[0]?.id;
-};
-
-const ensureReviewApplicationTask = async (
-  contactId: number,
-  applicantName: string,
-) => {
-  const { data: existingTasks } = await supabaseAdmin
-    .from("tasks")
-    .select("id, done_date")
-    .eq("contact_id", contactId)
-    .eq("type", REVIEW_APPLICATION_TASK_TYPE);
-  const hasPending = (existingTasks ?? []).some((task) => !task.done_date);
-  if (hasPending) return;
-
-  const salesId = await resolveDefaultTaskSalesId();
-  await supabaseAdmin.from("tasks").insert({
-    contact_id: contactId,
-    type: REVIEW_APPLICATION_TASK_TYPE,
-    text: `Review ${applicantName}'s application`,
-    due_date: new Date().toISOString(),
-    status: "pending",
-    ...(salesId != null ? { sales_id: salesId } : {}),
-  });
-};
-
 const handleSubmit = async (body: Record<string, unknown>) => {
   const firstName = String(body.firstName ?? "").trim();
   const lastName = String(body.lastName ?? "").trim();
@@ -551,96 +259,63 @@ const handleSubmit = async (body: Record<string, unknown>) => {
     }
   }
 
-  // Read current state ONCE, before any write, so an exact-duplicate retry
-  // (double-click, a browser/network retry, or a deliberate resubmission
-  // whose content genuinely didn't change) can be recognized and answered
-  // with ZERO writes — not even the Contact's own last_seen bump.
-  // Everything below either short-circuits on this read-only snapshot or
-  // mutates using it directly, rather than re-querying (real-
-  // infrastructure idempotency-refinement pass — mirrors
-  // submitApplication.ts's own submitApplication exactly).
-  const existingContact = await findExistingContactByEmail(email);
-  const isDne = existingContact?.sales_eligibility === "do_not_engage";
-  // DNE never reuses (§5, unchanged): always creates a fresh Deal/
-  // Application below — searching for an active Deal at all would risk
-  // silently reactivating one.
-  const existingActiveDeal =
-    existingContact && !isDne
-      ? await findActiveDeal({
-          contactId: existingContact.id,
-          offerId: offerRow.id,
-          cohortId: cohort?.id ?? null,
-        })
-      : null;
-  const existingPendingApplication = existingActiveDeal
-    ? await findPendingApplication(existingActiveDeal.id)
-    : null;
+  // Application Intake Atomicity + Idempotency slice: everything past this
+  // point — Contact resolve/create, Deal resolve/create, Waitlist sync for
+  // a reused Deal, Application resolve/update/create, Review Task ensure —
+  // used to be a sequence of independent PostgREST round-trips with no
+  // shared transaction, so a failure partway through could leave durable
+  // partial state no retry could always repair (see
+  // supabase/schemas/02_functions.sql's submit_public_application() header
+  // for the exact failure mode this replaced). It is now ONE Postgres
+  // function call, invoked here as the sole write for this whole flow —
+  // either the entire logical intake commits, or none of it does. Offer/
+  // cohort validation (including the Denver-timezone open-window logic
+  // above) deliberately stays here, before ever calling the function: a
+  // rejection here means zero calls into it, and it also re-validates
+  // offer/cohort itself as a defense-in-depth backstop (see that
+  // function's own header).
+  const { data: rpcResult, error: rpcError } = await supabaseAdmin.rpc(
+    "submit_public_application",
+    {
+      p_offer_id: offerRow.id,
+      p_cohort_id: cohort?.id ?? null,
+      p_first_name: firstName,
+      p_last_name: lastName,
+      p_email: email,
+      p_phone: phone,
+      p_answers: answers,
+    },
+  );
 
-  if (
-    existingPendingApplication &&
-    answersEqual(existingPendingApplication.raw_answers, answers)
-  ) {
-    // True state-level no-op: same applicant, same active Deal, same
-    // still-pending Application, byte-for-byte identical answers. Nothing
-    // downstream (Contact, Deal/stage, Task due date, history) is touched.
-    return jsonResponse({
-      status: "submitted",
-      applicationId: existingPendingApplication.id,
-      dneAutoResolved: false,
-    });
-  }
-
-  const contact = existingContact
-    ? await touchExistingContact(existingContact)
-    : await createContact({ firstName, lastName, email, phone });
-
-  const { deal, reused } = existingActiveDeal
-    ? { deal: existingActiveDeal, reused: true }
-    : await createDeal({ contact, offer: offerRow, cohort, isDne: !!isDne });
-
-  if (reused && !isDne) {
-    // A fresh Deal's INSERT fires the real handle_deal_waitlist_sync()
-    // Postgres trigger (supabase/schemas/02_functions.sql) automatically —
-    // reusing an existing Deal writes nothing to "deals" at all, so that
-    // trigger never fires for this path. Mirrors submitApplication.ts's own
-    // explicit call here exactly (§13) — found missing during the Native
-    // Application Intake real-infrastructure audit: without this, a
-    // returning applicant whose application reuses an existing active
-    // Opportunity would never have a compatible Waitlist Entry converted,
-    // unlike a fresh applicant.
-    await syncWaitlistForActiveDeal(deal);
-  }
-
-  const application = existingPendingApplication
-    ? // Present but didn't match the exact-retry check above: the
-      // applicant materially changed their answers before anyone
-      // reviewed the pending Application. Update in place — same
-      // Application row, same Deal, same Contact, same Task — only the
-      // content Leif will actually see when reviewing changes.
-      await updatePendingApplication(existingPendingApplication, answers)
-    : await findOrCreateApplication({
-        dealId: deal.id,
-        answers,
-        isDne: !!isDne,
-      });
-
-  // Review Application Task: never created for the DNE auto-resolve path
-  // — there is nothing pending for Leif to decide, the outcome is already
-  // durable. ensureReviewApplicationTask itself is idempotent (skips
-  // creation if a pending one already exists), so the existing Task's due
-  // date is never reset by a resubmission that reuses it — including the
-  // update-in-place path just above.
-  if (!isDne) {
-    await ensureReviewApplicationTask(
-      contact.id,
-      `${contact.first_name ?? ""} ${contact.last_name ?? ""}`.trim(),
+  if (rpcError) {
+    // The function's own defense-in-depth checks are sentinel message
+    // strings (see its header) — translated back to the exact same public
+    // response shape the pre-RPC validation above already uses for these
+    // cases. Any other error is an unexpected internal failure: logged
+    // with full detail server-side, never leaked to the public caller.
+    if (rpcError.message.includes("offer_invalid")) {
+      return jsonResponse({ status: "offer-invalid" });
+    }
+    if (rpcError.message.includes("cohort_invalid")) {
+      return jsonResponse({ status: "cohort-invalid" });
+    }
+    console.error(
+      "public_application submit_public_application error:",
+      rpcError,
     );
+    return createErrorResponse(500, "Failed to process application");
   }
+
+  const result = rpcResult as {
+    status: string;
+    application_id: number;
+    dne_auto_resolved: boolean;
+  };
 
   return jsonResponse({
     status: "submitted",
-    applicationId: application.id,
-    dneAutoResolved: !!isDne,
+    applicationId: result.application_id,
+    dneAutoResolved: result.dne_auto_resolved,
   });
 };
 
