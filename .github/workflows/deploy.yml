@@ -101,6 +101,11 @@ jobs:
             SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
             SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
             SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+            # Non-secret hostname (e.g. aws-0-us-west-1.pooler.supabase.com),
+            # from the Dashboard's Connect dialog -- Session pooler tab. Its
+            # per-project index can't be derived from the ref or region (see
+            # the migration step's own comment), so it has to be supplied.
+            SUPABASE_DB_POOLER_HOST: ${{ vars.SUPABASE_DB_POOLER_HOST }}
             VITE_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
             VITE_SB_PUBLISHABLE_KEY: ${{ secrets.SB_PUBLISHABLE_KEY }}
             IS_SUPABASE_CONFIGURED: ${{ secrets.SUPABASE_ACCESS_TOKEN && secrets.SUPABASE_DB_PASSWORD && secrets.SUPABASE_PROJECT_ID && secrets.SUPABASE_URL && secrets.SB_PUBLISHABLE_KEY }}
@@ -173,24 +178,38 @@ jobs:
                   fi
                   echo "Verified production target: $actual_name ($actual_ref), status=$actual_status"
 
-            # BLOCKED, not guessed: db push needs a project connection with no
-            # `link` step. Direct connection (db.$SUPABASE_PROJECT_ID.supabase.co)
-            # is confirmed IPv6-only for this project (no A record), and
+            # Direct connection (db.$SUPABASE_PROJECT_ID.supabase.co) is
+            # confirmed IPv6-only for this project (no A record), and
             # GitHub-hosted ubuntu-latest runners have no outbound IPv6 -- so
-            # that path cannot work. The session-pooler connection does work
-            # from this runner, but its host has a per-project index that
-            # cannot be derived from the project ref or region (Supabase's own
-            # docs: "the pooler host... can't be composed from your region").
-            # Needs SUPABASE_DB_POOLER_HOST (a non-secret hostname, e.g.
-            # aws-0-us-west-1.pooler.supabase.com -- from the Dashboard's
-            # Connect dialog, Session pooler tab) as a repo Variable before
-            # this can be implemented for real. Failing loudly here instead of
-            # attempting a guessed connection string.
+            # that format cannot work here. The Session Pooler connects over
+            # IPv4 on every plan (Supabase docs, "Connect to your database" /
+            # "Endpoints and IP versions"), using username
+            # postgres.$SUPABASE_PROJECT_ID and port 5432 for session mode
+            # (6543 is transaction mode -- not this one: db push needs a
+            # single persistent session, matching the docs' own guidance that
+            # migrations use a direct-connection-shaped, non-pooled-per-
+            # statement session). SUPABASE_DB_POOLER_HOST supplies the host,
+            # which cannot be derived from the ref/region alone. The password
+            # is percent-encoded with jq's @uri (already relied on above;
+            # ships preinstalled on ubuntu-latest) rather than assumed to be
+            # URL-safe. Nothing here is echoed: only the non-secret host is
+            # ever printed, never the encoded password or the assembled URL.
             - if: ${{ env.IS_SUPABASE_CONFIGURED }}
               name: 📡 Push supabase migrations
               run: |
-                  echo "::error::Migration push is blocked pending SUPABASE_DB_POOLER_HOST. See this step's preceding workflow comment for why (supabase/cli#50244 + confirmed IPv6-only direct connection + IPv4-only GitHub runners)."
-                  exit 1
+                  set -euo pipefail
+                  if [ -z "${SUPABASE_DB_POOLER_HOST:-}" ]; then
+                    echo "::error::SUPABASE_DB_POOLER_HOST is not set -- cannot reach the database without supabase link. Add it as a repository Variable (Session Pooler host from the Dashboard's Connect dialog)."
+                    exit 1
+                  fi
+                  if [ -z "${SUPABASE_DB_PASSWORD:-}" ]; then
+                    echo "::error::SUPABASE_DB_PASSWORD is not set."
+                    exit 1
+                  fi
+                  encoded_password=$(jq -rn --arg pw "$SUPABASE_DB_PASSWORD" '$pw|@uri')
+                  db_url="postgresql://postgres.${SUPABASE_PROJECT_ID}:${encoded_password}@${SUPABASE_DB_POOLER_HOST}:5432/postgres"
+                  echo "Pushing migrations via Session Pooler host: $SUPABASE_DB_POOLER_HOST"
+                  npx supabase db push --db-url "$db_url"
 
             - if: ${{ env.IS_SUPABASE_CONFIGURED && env.POSTMARK_WEBHOOK_USER && env.POSTMARK_WEBHOOK_PASSWORD && env.POSTMARK_WEBHOOK_AUTHORIZED_IPS }}
               name: 📡 Push supabase postmark webhook user secret
