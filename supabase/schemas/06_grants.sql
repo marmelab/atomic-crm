@@ -162,106 +162,265 @@ grant all on table public.offers to anon;
 grant all on table public.offers to authenticated;
 grant all on table public.offers to service_role;
 
+-- Narrowed for anon: RLS already restricts all access to `authenticated`
+-- only (see 05_policies.sql) and nothing in the app -- including every
+-- public Edge Function -- reads or writes this table through the anon
+-- role, only through service_role. See 20260913230000_anon_table_grant_hardening.sql.
+revoke select, insert, update, delete on table public.offers from anon;
+
 grant all on table public.offer_payment_options to anon;
 grant all on table public.offer_payment_options to authenticated;
 grant all on table public.offer_payment_options to service_role;
+
+-- Narrowed for anon: RLS already restricts all access to `authenticated`
+-- only (see 05_policies.sql) and nothing in the app -- including every
+-- public Edge Function -- reads or writes this table through the anon
+-- role, only through service_role. See 20260913230000_anon_table_grant_hardening.sql.
+revoke select, insert, update, delete on table public.offer_payment_options from anon;
 
 grant all on table public.cohorts to anon;
 grant all on table public.cohorts to authenticated;
 grant all on table public.cohorts to service_role;
 
+-- Narrowed for anon: RLS already restricts all access to `authenticated`
+-- only (see 05_policies.sql) and nothing in the app -- including every
+-- public Edge Function -- reads or writes this table through the anon
+-- role, only through service_role. See 20260913230000_anon_table_grant_hardening.sql.
+revoke select, insert, update, delete on table public.cohorts from anon;
+
 grant all on table public.applications to anon;
 grant all on table public.applications to authenticated;
 grant all on table public.applications to service_role;
+
+-- Narrowed for anon: RLS already restricts all access to `authenticated`
+-- only (see 05_policies.sql) and nothing in the app -- including every
+-- public Edge Function -- reads or writes this table through the anon
+-- role, only through service_role. See 20260913230000_anon_table_grant_hardening.sql.
+revoke select, insert, update, delete on table public.applications from anon;
 
 grant all on table public.enrollments to anon;
 grant all on table public.enrollments to authenticated;
 grant all on table public.enrollments to service_role;
 
+-- Narrowed for anon: RLS already restricts all access to `authenticated`
+-- only (see 05_policies.sql) and nothing in the app -- including every
+-- public Edge Function -- reads or writes this table through the anon
+-- role, only through service_role. See 20260913230000_anon_table_grant_hardening.sql.
+revoke select, insert, update, delete on table public.enrollments from anon;
+
 grant all on table public.onboarding_requirement_templates to anon;
 grant all on table public.onboarding_requirement_templates to authenticated;
 grant all on table public.onboarding_requirement_templates to service_role;
+
+-- Narrowed for anon: RLS already restricts all access to `authenticated`
+-- only (see 05_policies.sql) and nothing in the app -- including every
+-- public Edge Function -- reads or writes this table through the anon
+-- role, only through service_role. See 20260913230000_anon_table_grant_hardening.sql.
+revoke select, insert, update, delete on table public.onboarding_requirement_templates from anon;
 
 grant all on table public.enrollment_onboarding_items to anon;
 grant all on table public.enrollment_onboarding_items to authenticated;
 grant all on table public.enrollment_onboarding_items to service_role;
 
+-- Narrowed for anon: RLS already restricts all access to `authenticated`
+-- only (see 05_policies.sql) and nothing in the app -- including every
+-- public Edge Function -- reads or writes this table through the anon
+-- role, only through service_role. See 20260913230000_anon_table_grant_hardening.sql.
+revoke select, insert, update, delete on table public.enrollment_onboarding_items from anon;
+
 grant all on table public.offboarding_requirement_templates to anon;
 grant all on table public.offboarding_requirement_templates to authenticated;
 grant all on table public.offboarding_requirement_templates to service_role;
+
+-- Narrowed for anon: RLS already restricts all access to `authenticated`
+-- only (see 05_policies.sql) and nothing in the app -- including every
+-- public Edge Function -- reads or writes this table through the anon
+-- role, only through service_role. See 20260913230000_anon_table_grant_hardening.sql.
+revoke select, insert, update, delete on table public.offboarding_requirement_templates from anon;
 
 grant all on table public.enrollment_offboarding_items to anon;
 grant all on table public.enrollment_offboarding_items to authenticated;
 grant all on table public.enrollment_offboarding_items to service_role;
 
+-- Narrowed for anon: RLS already restricts all access to `authenticated`
+-- only (see 05_policies.sql) and nothing in the app -- including every
+-- public Edge Function -- reads or writes this table through the anon
+-- role, only through service_role. See 20260913230000_anon_table_grant_hardening.sql.
+revoke select, insert, update, delete on table public.enrollment_offboarding_items from anon;
+
 grant all on table public.enrollment_status_events to anon;
 grant all on table public.enrollment_status_events to authenticated;
 grant all on table public.enrollment_status_events to service_role;
+
+-- Narrowed for anon: RLS already restricts all access to `authenticated`
+-- only (see 05_policies.sql) and nothing in the app -- including every
+-- public Edge Function -- reads or writes this table through the anon
+-- role, only through service_role. See 20260913230000_anon_table_grant_hardening.sql.
+revoke select, insert, update, delete on table public.enrollment_status_events from anon;
 
 grant all on table public.scholarship_slots to anon;
 grant all on table public.scholarship_slots to authenticated;
 grant all on table public.scholarship_slots to service_role;
 
+-- Narrowed for anon: RLS already restricts all access to `authenticated`
+-- only (see 05_policies.sql) and nothing in the app -- including every
+-- public Edge Function -- reads or writes this table through the anon
+-- role, only through service_role. See 20260913230000_anon_table_grant_hardening.sql.
+revoke select, insert, update, delete on table public.scholarship_slots from anon;
+
 grant all on table public.scholarship_slot_events to anon;
 grant all on table public.scholarship_slot_events to authenticated;
 grant all on table public.scholarship_slot_events to service_role;
+
+-- Narrowed for anon: RLS already restricts all access to `authenticated`
+-- only (see 05_policies.sql) and nothing in the app -- including every
+-- public Edge Function -- reads or writes this table through the anon
+-- role, only through service_role. See 20260913230000_anon_table_grant_hardening.sql.
+revoke select, insert, update, delete on table public.scholarship_slot_events from anon;
 
 grant all on table public.waitlist_entries to anon;
 grant all on table public.waitlist_entries to authenticated;
 grant all on table public.waitlist_entries to service_role;
 
+-- Narrowed for anon: RLS already restricts all access to `authenticated`
+-- only (see 05_policies.sql) and nothing in the app -- including every
+-- public Edge Function -- reads or writes this table through the anon
+-- role, only through service_role. See 20260913230000_anon_table_grant_hardening.sql.
+revoke select, insert, update, delete on table public.waitlist_entries from anon;
+
 grant all on table public.sales_calls to anon;
 grant all on table public.sales_calls to authenticated;
 grant all on table public.sales_calls to service_role;
+
+-- Narrowed for anon: RLS already restricts all access to `authenticated`
+-- only (see 05_policies.sql) and nothing in the app -- including every
+-- public Edge Function -- reads or writes this table through the anon
+-- role, only through service_role. See 20260913230000_anon_table_grant_hardening.sql.
+revoke select, insert, update, delete on table public.sales_calls from anon;
 
 grant all on table public.sales_call_events to anon;
 grant all on table public.sales_call_events to authenticated;
 grant all on table public.sales_call_events to service_role;
 
+-- Narrowed for anon: RLS already restricts all access to `authenticated`
+-- only (see 05_policies.sql) and nothing in the app -- including every
+-- public Edge Function -- reads or writes this table through the anon
+-- role, only through service_role. See 20260913230000_anon_table_grant_hardening.sql.
+revoke select, insert, update, delete on table public.sales_call_events from anon;
+
 grant all on table public.client_sessions to anon;
 grant all on table public.client_sessions to authenticated;
 grant all on table public.client_sessions to service_role;
+
+-- Narrowed for anon: RLS already restricts all access to `authenticated`
+-- only (see 05_policies.sql) and nothing in the app -- including every
+-- public Edge Function -- reads or writes this table through the anon
+-- role, only through service_role. See 20260913230000_anon_table_grant_hardening.sql.
+revoke select, insert, update, delete on table public.client_sessions from anon;
 
 grant all on table public.client_session_events to anon;
 grant all on table public.client_session_events to authenticated;
 grant all on table public.client_session_events to service_role;
 
+-- Narrowed for anon: RLS already restricts all access to `authenticated`
+-- only (see 05_policies.sql) and nothing in the app -- including every
+-- public Edge Function -- reads or writes this table through the anon
+-- role, only through service_role. See 20260913230000_anon_table_grant_hardening.sql.
+revoke select, insert, update, delete on table public.client_session_events from anon;
+
 grant all on table public.expected_session_windows to anon;
 grant all on table public.expected_session_windows to authenticated;
 grant all on table public.expected_session_windows to service_role;
+
+-- Narrowed for anon: RLS already restricts all access to `authenticated`
+-- only (see 05_policies.sql) and nothing in the app -- including every
+-- public Edge Function -- reads or writes this table through the anon
+-- role, only through service_role. See 20260913230000_anon_table_grant_hardening.sql.
+revoke select, insert, update, delete on table public.expected_session_windows from anon;
 
 grant all on table public.enrollment_expected_sessions to anon;
 grant all on table public.enrollment_expected_sessions to authenticated;
 grant all on table public.enrollment_expected_sessions to service_role;
 
+-- Narrowed for anon: RLS already restricts all access to `authenticated`
+-- only (see 05_policies.sql) and nothing in the app -- including every
+-- public Edge Function -- reads or writes this table through the anon
+-- role, only through service_role. See 20260913230000_anon_table_grant_hardening.sql.
+revoke select, insert, update, delete on table public.enrollment_expected_sessions from anon;
+
 grant all on table public.client_session_cadence_issues to anon;
 grant all on table public.client_session_cadence_issues to authenticated;
 grant all on table public.client_session_cadence_issues to service_role;
+
+-- Narrowed for anon: RLS already restricts all access to `authenticated`
+-- only (see 05_policies.sql) and nothing in the app -- including every
+-- public Edge Function -- reads or writes this table through the anon
+-- role, only through service_role. See 20260913230000_anon_table_grant_hardening.sql.
+revoke select, insert, update, delete on table public.client_session_cadence_issues from anon;
 
 grant all on table public.client_session_cadence_issue_events to anon;
 grant all on table public.client_session_cadence_issue_events to authenticated;
 grant all on table public.client_session_cadence_issue_events to service_role;
 
+-- Narrowed for anon: RLS already restricts all access to `authenticated`
+-- only (see 05_policies.sql) and nothing in the app -- including every
+-- public Edge Function -- reads or writes this table through the anon
+-- role, only through service_role. See 20260913230000_anon_table_grant_hardening.sql.
+revoke select, insert, update, delete on table public.client_session_cadence_issue_events from anon;
+
 grant all on table public.deal_stage_events to anon;
 grant all on table public.deal_stage_events to authenticated;
 grant all on table public.deal_stage_events to service_role;
+
+-- Narrowed for anon: RLS already restricts all access to `authenticated`
+-- only (see 05_policies.sql) and nothing in the app -- including every
+-- public Edge Function -- reads or writes this table through the anon
+-- role, only through service_role. See 20260913230000_anon_table_grant_hardening.sql.
+revoke select, insert, update, delete on table public.deal_stage_events from anon;
 
 -- View grants
 grant all on table public.activity_log to anon;
 grant all on table public.activity_log to authenticated;
 grant all on table public.activity_log to service_role;
 
+-- Narrowed for anon: RLS already restricts all access to `authenticated`
+-- only (see 05_policies.sql) and nothing in the app -- including every
+-- public Edge Function -- reads or writes this table through the anon
+-- role, only through service_role. See 20260913230000_anon_table_grant_hardening.sql.
+revoke select, insert, update, delete on table public.activity_log from anon;
+
 grant all on table public.companies_summary to anon;
 grant all on table public.companies_summary to authenticated;
 grant all on table public.companies_summary to service_role;
+
+-- Narrowed for anon: RLS already restricts all access to `authenticated`
+-- only (see 05_policies.sql) and nothing in the app -- including every
+-- public Edge Function -- reads or writes this table through the anon
+-- role, only through service_role. See 20260913230000_anon_table_grant_hardening.sql.
+revoke select, insert, update, delete on table public.companies_summary from anon;
 
 grant all on table public.contacts_summary to anon;
 grant all on table public.contacts_summary to authenticated;
 grant all on table public.contacts_summary to service_role;
 
+-- Narrowed for anon: RLS already restricts all access to `authenticated`
+-- only (see 05_policies.sql) and nothing in the app -- including every
+-- public Edge Function -- reads or writes this table through the anon
+-- role, only through service_role. See 20260913230000_anon_table_grant_hardening.sql.
+revoke select, insert, update, delete on table public.contacts_summary from anon;
+
 grant all on table public.init_state to anon;
 grant all on table public.init_state to authenticated;
 grant all on table public.init_state to service_role;
+
+-- init_state is security_invoker = off (see 03_views.sql), so unlike
+-- every other view/table above it does NOT inherit anon's RLS block --
+-- SELECT is a genuine, load-bearing anon dependency: the pre-login "is
+-- this CRM initialized yet" check the app performs before any user
+-- exists to log in. Kept deliberately. insert/update/delete are narrowed
+-- for completeness -- structurally inert on this count() aggregate view
+-- regardless, but removed rather than left as unused surface. See 20260913230000_anon_table_grant_hardening.sql.
+revoke insert, update, delete on table public.init_state from anon;
 
 -- Sequence grants
 grant all on sequence public.companies_id_seq to anon;
@@ -389,17 +548,25 @@ grant all on sequence public.deal_stage_events_id_seq to authenticated;
 grant all on sequence public.deal_stage_events_id_seq to service_role;
 
 -- Default privileges
+-- Anon is deliberately absent from all three blocks below (narrowed by
+-- 20260913230000_anon_table_grant_hardening.sql): this is the exact
+-- mechanism that silently re-granted every table/sequence/function to
+-- anon by default the moment it was created, which is why so many tables
+-- ended up with an unrevoked "grant all ... to anon" in the first place
+-- (and why submit_public_application() needed its own explicit revoke —
+-- see that function's own grant block above — despite never having been
+-- explicitly granted to anon anywhere). A future table/function that
+-- genuinely needs anon access still can — just explicitly, in its own
+-- migration, the same way every other deliberate anon grant in this file
+-- already is.
 alter default privileges for role postgres in schema public grant all on sequences to postgres;
-alter default privileges for role postgres in schema public grant all on sequences to anon;
 alter default privileges for role postgres in schema public grant all on sequences to authenticated;
 alter default privileges for role postgres in schema public grant all on sequences to service_role;
 
 alter default privileges for role postgres in schema public grant all on functions to postgres;
-alter default privileges for role postgres in schema public grant all on functions to anon;
 alter default privileges for role postgres in schema public grant all on functions to authenticated;
 alter default privileges for role postgres in schema public grant all on functions to service_role;
 
 alter default privileges for role postgres in schema public grant all on tables to postgres;
-alter default privileges for role postgres in schema public grant all on tables to anon;
 alter default privileges for role postgres in schema public grant all on tables to authenticated;
 alter default privileges for role postgres in schema public grant all on tables to service_role;
