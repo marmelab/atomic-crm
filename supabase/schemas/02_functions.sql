@@ -1311,15 +1311,31 @@ BEGIN
     v_answers_match := p_answers = v_pending_app.raw_answers;
   END IF;
 
-  -- Safe to trust "Application matches" alone as proof the whole prior
-  -- submission fully completed (including its Review Task) — UNLIKE the
-  -- FakeRest mirror (submitApplication.ts), which additionally checks the
-  -- Task exists before treating this as a no-op. Here, that extra check
-  -- would be redundant: this entire function is one transaction, so there
-  -- is no committed state where a still-pending Application exists but its
-  -- Task creation never ran — either the whole prior call committed
-  -- (Task included) or none of it did.
-  IF v_pending_app.id IS NOT NULL AND v_answers_match THEN
+  -- Adversarial-review correction: an earlier draft of this function
+  -- trusted "Application matches" alone, reasoning that atomicity makes
+  -- "Application exists but Task doesn't" unreachable. That's only true
+  -- for rows THIS function itself created — it is NOT true for a row the
+  -- OLD, pre-atomicity code path already left behind before this function
+  -- was ever deployed (exactly the legacy-partial-state case this whole
+  -- migration exists to repair). Without this check, such a legacy row
+  -- would hit this fast path on its very next matching resubmission and
+  -- return early WITHOUT ever creating the missing Task — silently
+  -- perpetuating the original bug for any row that predates this
+  -- deployment. Checking Task existence here too (mirrors
+  -- submitApplication.ts's own identical check) costs nothing once this
+  -- function has been the only writer for a while (the Task will simply
+  -- already exist), and is exactly what repairs a legacy row instead of
+  -- rubber-stamping it.
+  IF v_contact.id IS NOT NULL AND NOT v_is_dne THEN
+    SELECT EXISTS (
+      SELECT 1 FROM tasks
+      WHERE contact_id = v_contact.id
+        AND type = 'review_application'
+        AND done_date IS NULL
+    ) INTO v_has_pending_task;
+  END IF;
+
+  IF v_pending_app.id IS NOT NULL AND v_answers_match AND coalesce(v_has_pending_task, false) THEN
     RETURN jsonb_build_object(
       'status', 'submitted',
       'application_id', v_pending_app.id,

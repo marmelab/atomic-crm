@@ -24,6 +24,12 @@
 -- capability, the existing Edge Function remains the sole public entry
 -- point and is updated in the same slice to call this instead of
 -- sequencing independent writes itself.
+--
+-- Revision (adversarial-review pass, before first deployment): the
+-- original draft's no-op fast path trusted "Application matches" alone,
+-- which is unsafe against a legacy row the OLD non-atomic code already
+-- left behind (Application exists, Task doesn't) before this function was
+-- ever deployed — see the function's own inline comment at that check.
 
 CREATE OR REPLACE FUNCTION "public"."submit_public_application"(
     "p_offer_id" bigint,
@@ -61,6 +67,11 @@ BEGIN
     RAISE EXCEPTION 'email_invalid' USING ERRCODE = 'invalid_parameter_value';
   END IF;
 
+  -- Defense-in-depth structural re-check — the Edge Function already
+  -- validated offer/cohort (including the Denver-timezone open-window
+  -- logic this function deliberately does not duplicate) before ever
+  -- calling here; this is the same minimal FK-existence backstop
+  -- handle_deal_saved() already applies to any deals insert regardless.
   IF NOT EXISTS (SELECT 1 FROM offers WHERE id = p_offer_id AND is_active) THEN
     RAISE EXCEPTION 'offer_invalid' USING ERRCODE = 'invalid_parameter_value';
   END IF;
@@ -70,8 +81,14 @@ BEGIN
     RAISE EXCEPTION 'cohort_invalid' USING ERRCODE = 'invalid_parameter_value';
   END IF;
 
+  -- Serialize concurrent submissions for the same applicant identity for
+  -- the rest of this transaction (released automatically at commit/
+  -- rollback) — see header comment.
   PERFORM pg_advisory_xact_lock(hashtext('submit_public_application:' || v_email));
 
+  -- Read current state ONCE, before any write (mirrors submitApplication.ts
+  -- / the pre-atomicity Edge Function exactly) so a true no-op retry can be
+  -- recognized with ZERO writes.
   SELECT * INTO v_contact
   FROM contacts c
   WHERE EXISTS (
@@ -108,18 +125,37 @@ BEGIN
   END IF;
 
   IF v_pending_app.id IS NOT NULL THEN
+    -- jsonb equality is key-order-independent (both sides are stored in
+    -- Postgres's own canonical jsonb form) — mirrors answersEqual()
+    -- exactly without needing a manual key-by-key comparison.
     v_answers_match := p_answers = v_pending_app.raw_answers;
   END IF;
 
-  -- Safe to trust "Application matches" alone as proof the whole prior
-  -- submission fully completed (including its Review Task) — UNLIKE the
-  -- FakeRest mirror (submitApplication.ts), which additionally checks the
-  -- Task exists before treating this as a no-op. Here, that extra check
-  -- would be redundant: this entire function is one transaction, so there
-  -- is no committed state where a still-pending Application exists but its
-  -- Task creation never ran — either the whole prior call committed
-  -- (Task included) or none of it did.
-  IF v_pending_app.id IS NOT NULL AND v_answers_match THEN
+  -- Adversarial-review correction: an earlier draft of this function
+  -- trusted "Application matches" alone, reasoning that atomicity makes
+  -- "Application exists but Task doesn't" unreachable. That's only true
+  -- for rows THIS function itself created — it is NOT true for a row the
+  -- OLD, pre-atomicity code path already left behind before this function
+  -- was ever deployed (exactly the legacy-partial-state case this whole
+  -- migration exists to repair). Without this check, such a legacy row
+  -- would hit this fast path on its very next matching resubmission and
+  -- return early WITHOUT ever creating the missing Task — silently
+  -- perpetuating the original bug for any row that predates this
+  -- deployment. Checking Task existence here too (mirrors
+  -- submitApplication.ts's own identical check) costs nothing once this
+  -- function has been the only writer for a while (the Task will simply
+  -- already exist), and is exactly what repairs a legacy row instead of
+  -- rubber-stamping it.
+  IF v_contact.id IS NOT NULL AND NOT v_is_dne THEN
+    SELECT EXISTS (
+      SELECT 1 FROM tasks
+      WHERE contact_id = v_contact.id
+        AND type = 'review_application'
+        AND done_date IS NULL
+    ) INTO v_has_pending_task;
+  END IF;
+
+  IF v_pending_app.id IS NOT NULL AND v_answers_match AND coalesce(v_has_pending_task, false) THEN
     RETURN jsonb_build_object(
       'status', 'submitted',
       'application_id', v_pending_app.id,
@@ -127,6 +163,7 @@ BEGIN
     );
   END IF;
 
+  -- Resolve or create the Contact.
   IF v_contact.id IS NOT NULL THEN
     UPDATE contacts SET last_seen = now() WHERE id = v_contact.id RETURNING * INTO v_contact;
   ELSE
@@ -145,6 +182,9 @@ BEGIN
     ) RETURNING * INTO v_contact;
   END IF;
 
+  -- Resolve or create the Deal (never reused for a DNE contact — a fresh
+  -- Deal already in the exited state, exactly like both prior
+  -- implementations).
   IF v_deal.id IS NULL THEN
     INSERT INTO deals (
       contact_id, offer_id, cohort_id, stage, outcome, owner_decision,
@@ -156,9 +196,15 @@ BEGIN
       (SELECT current_price FROM offers WHERE id = p_offer_id),
       'application_form', ''
     ) RETURNING * INTO v_deal;
+    -- name/snapshot fields are computed by the existing BEFORE trigger
+    -- handle_deal_saved(); the existing AFTER trigger on_deal_waitlist_sync
+    -- fires automatically for this fresh INSERT.
   ELSE
     v_deal_reused := true;
     IF NOT v_is_dne THEN
+      -- Reusing writes nothing to `deals`, so on_deal_waitlist_sync never
+      -- fires for this path — mirror it explicitly (same rule, same WHERE
+      -- clause, as handle_deal_waitlist_sync() itself).
       UPDATE waitlist_entries
       SET status = 'converted', converted_at = now(), converted_opportunity_id = v_deal.id
       WHERE contact_id = v_deal.contact_id
@@ -168,6 +214,7 @@ BEGIN
     END IF;
   END IF;
 
+  -- Resolve, update-in-place, or create the Application.
   IF v_pending_app.id IS NOT NULL THEN
     UPDATE applications
     SET raw_answers = p_answers, submitted_at = now()
@@ -192,6 +239,8 @@ BEGIN
     END IF;
   END IF;
 
+  -- Review Application Task: idempotent (skips if a pending one already
+  -- exists), never created for the DNE auto-resolve path.
   IF NOT v_is_dne THEN
     SELECT EXISTS (
       SELECT 1 FROM tasks
