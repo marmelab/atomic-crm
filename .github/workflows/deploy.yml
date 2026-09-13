@@ -140,26 +140,70 @@ jobs:
             - name: 🔨 Build
               run: npm run build
 
+            # supabase/cli#50244 (open, confirmed): supabase link always calls
+            # GET /v1/projects/{ref}/api-keys?reveal=true, which the platform's
+            # own OpenAPI spec gates behind api_gateway_keys_secret_read -- a
+            # permission that exists NOWHERE in the scoped-token catalog (not
+            # under any preset, including Full access). No scoped PAT can ever
+            # satisfy it; only a classic (unscoped) PAT can. We deliberately do
+            # not use a classic PAT here, so `link` is replaced below with an
+            # explicit identity check plus --project-ref/--db-url on the two
+            # commands that actually need to reach the project. Neither of
+            # those calls the broken endpoint.
             - if: ${{ env.IS_SUPABASE_CONFIGURED }}
-              name: 🔗 Supabase Link
-              run: npx supabase link --project-ref $SUPABASE_PROJECT_ID --debug
+              name: 🔒 Verify production project identity
+              run: |
+                  set -euo pipefail
+                  # GET /v1/projects/{ref} needs only Project Settings: Read
+                  # (already granted) and never touches the broken api-keys
+                  # reveal endpoint. jq ships preinstalled on ubuntu-latest.
+                  response=$(curl -sf \
+                    -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+                    "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_ID")
+                  actual_ref=$(echo "$response" | jq -r '.ref')
+                  actual_name=$(echo "$response" | jq -r '.name')
+                  actual_status=$(echo "$response" | jq -r '.status')
+                  if [ "$actual_ref" != "$SUPABASE_PROJECT_ID" ]; then
+                    echo "::error::Project ref mismatch -- token/API returned '$actual_ref', expected '$SUPABASE_PROJECT_ID'. Refusing to deploy."
+                    exit 1
+                  fi
+                  if [ "$actual_name" != "leif-crm" ]; then
+                    echo "::error::Project name mismatch -- expected 'leif-crm', got '$actual_name'. Refusing to deploy."
+                    exit 1
+                  fi
+                  echo "Verified production target: $actual_name ($actual_ref), status=$actual_status"
 
+            # BLOCKED, not guessed: db push needs a project connection with no
+            # `link` step. Direct connection (db.$SUPABASE_PROJECT_ID.supabase.co)
+            # is confirmed IPv6-only for this project (no A record), and
+            # GitHub-hosted ubuntu-latest runners have no outbound IPv6 -- so
+            # that path cannot work. The session-pooler connection does work
+            # from this runner, but its host has a per-project index that
+            # cannot be derived from the project ref or region (Supabase's own
+            # docs: "the pooler host... can't be composed from your region").
+            # Needs SUPABASE_DB_POOLER_HOST (a non-secret hostname, e.g.
+            # aws-0-us-west-1.pooler.supabase.com -- from the Dashboard's
+            # Connect dialog, Session pooler tab) as a repo Variable before
+            # this can be implemented for real. Failing loudly here instead of
+            # attempting a guessed connection string.
             - if: ${{ env.IS_SUPABASE_CONFIGURED }}
               name: 📡 Push supabase migrations
-              run: npx supabase db push
+              run: |
+                  echo "::error::Migration push is blocked pending SUPABASE_DB_POOLER_HOST. See this step's preceding workflow comment for why (supabase/cli#50244 + confirmed IPv6-only direct connection + IPv4-only GitHub runners)."
+                  exit 1
 
             - if: ${{ env.IS_SUPABASE_CONFIGURED && env.POSTMARK_WEBHOOK_USER && env.POSTMARK_WEBHOOK_PASSWORD && env.POSTMARK_WEBHOOK_AUTHORIZED_IPS }}
               name: 📡 Push supabase postmark webhook user secret
               run: |
-                  npx supabase secrets set POSTMARK_WEBHOOK_USER=${{ env.POSTMARK_WEBHOOK_USER }}
-                  npx supabase secrets set POSTMARK_WEBHOOK_PASSWORD=${{ env.POSTMARK_WEBHOOK_PASSWORD }}
-                  npx supabase secrets set POSTMARK_WEBHOOK_AUTHORIZED_IPS=${{ env.POSTMARK_WEBHOOK_AUTHORIZED_IPS }}
-                  npx supabase secrets set VITE_INBOUND_EMAIL=${{ env.VITE_INBOUND_EMAIL }}
-                  npx supabase secrets set VITE_ATTACHMENTS_BUCKET=${{ env.VITE_ATTACHMENTS_BUCKET }}
+                  npx supabase secrets set --project-ref "$SUPABASE_PROJECT_ID" POSTMARK_WEBHOOK_USER=${{ env.POSTMARK_WEBHOOK_USER }}
+                  npx supabase secrets set --project-ref "$SUPABASE_PROJECT_ID" POSTMARK_WEBHOOK_PASSWORD=${{ env.POSTMARK_WEBHOOK_PASSWORD }}
+                  npx supabase secrets set --project-ref "$SUPABASE_PROJECT_ID" POSTMARK_WEBHOOK_AUTHORIZED_IPS=${{ env.POSTMARK_WEBHOOK_AUTHORIZED_IPS }}
+                  npx supabase secrets set --project-ref "$SUPABASE_PROJECT_ID" VITE_INBOUND_EMAIL=${{ env.VITE_INBOUND_EMAIL }}
+                  npx supabase secrets set --project-ref "$SUPABASE_PROJECT_ID" VITE_ATTACHMENTS_BUCKET=${{ env.VITE_ATTACHMENTS_BUCKET }}
 
             - if: ${{ env.IS_SUPABASE_CONFIGURED }}
               name: 📡 Deploy supabase functions
-              run: npx supabase functions deploy
+              run: npx supabase functions deploy --project-ref "$SUPABASE_PROJECT_ID"
 
             - if: ${{ !env.SUPABASE_ACCESS_TOKEN }}
               name: Check SUPABASE_ACCESS_TOKEN secret
