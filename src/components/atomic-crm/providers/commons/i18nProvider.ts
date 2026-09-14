@@ -39,6 +39,11 @@ const frenchCatalog = mergeTranslations(
   frenchCrmMessages,
 );
 
+// The app ships in French. The e2e build sets VITE_DEFAULT_LOCALE=en (.env.e2e)
+// so the specs can keep asserting on the English catalog.
+const defaultLocale: "en" | "fr" =
+  import.meta.env.VITE_DEFAULT_LOCALE === "en" ? "en" : "fr";
+
 export const i18nProvider = polyglotI18nProvider(
   (locale) => {
     if (locale === "fr") {
@@ -46,7 +51,7 @@ export const i18nProvider = polyglotI18nProvider(
     }
     return englishCatalog;
   },
-  "fr",
+  defaultLocale,
   [
     { locale: "en", name: "English" },
     { locale: "fr", name: "Français" },

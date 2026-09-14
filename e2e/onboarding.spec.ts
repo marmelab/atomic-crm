@@ -4,7 +4,7 @@ test("user onboarding", async ({ page, isMobile, menu, dismissToast }) => {
   await page.goto("/");
 
   // Expect a title "to contain" a substring.
-  await expect(page).toHaveTitle(/Atomic CRM/);
+  await expect(page).toHaveTitle(/Vital Ô Réflex 360°/);
   await expect(page.getByText("Welcome to Atomic CRM")).toBeVisible();
 
   await page.getByLabel("First name").fill("John");
