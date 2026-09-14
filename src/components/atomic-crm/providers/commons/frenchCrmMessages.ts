@@ -49,7 +49,7 @@ export const frenchCrmMessages = {
       followed_by_you: "Suivie par vous",
       no_contacts: "Aucun contact",
       nb_contacts: "%{smart_count} contact |||| %{smart_count} contacts",
-      nb_deals: "%{smart_count} affaire |||| %{smart_count} affaires",
+      nb_deals: "%{smart_count} dossier |||| %{smart_count} dossiers",
       sizes: {
         one_employee: "1 employé",
         two_to_nine_employees: "2-9 employés",
@@ -180,7 +180,7 @@ export const frenchCrmMessages = {
       },
     },
     deals: {
-      name: "Affaire |||| Affaires",
+      name: "Dossier |||| Dossiers",
       fields: {
         name: "Nom",
         description: "Description",
@@ -192,40 +192,40 @@ export const frenchCrmMessages = {
         stage: "Étape",
       },
       action: {
-        back_to_deal: "Retour à l'affaire",
-        create: "Créer une affaire",
-        new: "Nouvelle affaire",
+        back_to_deal: "Retour au dossier",
+        create: "Créer un dossier",
+        new: "Nouveau dossier",
       },
       field_categories: {
         misc: "Divers",
       },
       filters: {
-        only_mine: "Seulement les affaires que je gère",
+        only_mine: "Seulement les dossiers que je gère",
       },
       archived: {
         action: "Archiver",
-        error: "Erreur : affaire non archivée",
-        list_title: "Affaires archivées",
-        success: "Affaire archivée",
-        title: "Affaire archivée",
-        view: "Afficher les affaires archivées",
+        error: "Erreur : dossier non archivé",
+        list_title: "Dossiers archivés",
+        success: "Dossier archivé",
+        title: "Dossier archivé",
+        view: "Afficher les dossiers archivés",
       },
       inputs: {
         linked_to: "Lié à",
       },
       unarchived: {
         action: "Renvoyer au tableau",
-        error: "Erreur : affaire non désarchivée",
-        success: "Affaire désarchivée",
+        error: "Erreur : dossier non désarchivé",
+        success: "Dossier désarchivé",
       },
-      updated: "Affaire mise à jour",
+      updated: "Dossier mis à jour",
       empty: {
-        before_create: "avant de créer une affaire.",
-        description: "Il semble que votre liste d'affaires soit vide.",
-        title: "Aucune affaire trouvée",
+        before_create: "avant de créer un dossier.",
+        description: "Il semble que votre liste de dossiers soit vide.",
+        title: "Aucun dossier trouvé",
       },
       import: {
-        title: "Importer des affaires",
+        title: "Importer des dossiers",
       },
       invalid_date: "Date invalide",
     },
@@ -237,7 +237,7 @@ export const frenchCrmMessages = {
         date: "Date",
         attachments: "Pièces jointes",
         contact_id: "Contact",
-        deal_id: "Affaire",
+        deal_id: "Dossier",
       },
       action: {
         add: "Ajouter une note",
@@ -413,17 +413,17 @@ export const frenchCrmMessages = {
       you_added_contact: "Vous avez ajouté le contact",
       added_note: "%{name} a ajouté une note sur",
       you_added_note: "Vous avez ajouté une note sur",
-      added_note_about_deal: "%{name} a ajouté une note sur l'affaire",
-      you_added_note_about_deal: "Vous avez ajouté une note sur l'affaire",
-      added_deal: "%{name} a ajouté l'affaire",
-      you_added_deal: "Vous avez ajouté l'affaire",
+      added_note_about_deal: "%{name} a ajouté une note sur le dossier",
+      you_added_note_about_deal: "Vous avez ajouté une note sur le dossier",
+      added_deal: "%{name} a ajouté le dossier",
+      you_added_deal: "Vous avez ajouté le dossier",
       at_company: "chez",
       to: "à",
       load_more: "Charger plus d'activité",
     },
     dashboard: {
-      deals_chart: "Revenus des affaires à venir",
-      deals_pipeline: "Pipeline des affaires",
+      deals_chart: "Revenus des dossiers à venir",
+      deals_pipeline: "Pipeline des dossiers",
       latest_activity: "Dernière activité",
       latest_activity_error:
         "Erreur lors du chargement de la dernière activité",
@@ -502,7 +502,7 @@ export const frenchCrmMessages = {
         categories: "Catégories",
         currency: "Devise",
         pipeline_help:
-          "Sélectionnez les étapes d'affaire à considérer comme des affaires dans le pipeline.",
+          "Sélectionnez les étapes de dossier à considérer comme des dossiers dans le pipeline.",
         pipeline_statuses: "Statuts des pipelines",
         stages: "Étapes",
       },
@@ -526,7 +526,7 @@ export const frenchCrmMessages = {
       validation: {
         duplicate: "%{display_name} en double : %{items}",
         in_use:
-          "Impossible de supprimer %{display_name} encore utilisés par des affaires : %{items}",
+          "Impossible de supprimer %{display_name} encore utilisés par des dossiers : %{items}",
         validating: "Validation\u2026",
         entities: {
           categories: "catégories",

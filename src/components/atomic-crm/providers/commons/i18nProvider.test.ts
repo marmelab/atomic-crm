@@ -41,7 +41,7 @@ describe("i18nProvider", () => {
     await i18nProvider.changeLocale("fr");
 
     expect(i18nProvider.translate("resources.deals.empty.title")).toBe(
-      "Aucune affaire trouvée",
+      "Aucun dossier trouvé",
     );
   });
 
