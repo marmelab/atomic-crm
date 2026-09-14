@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { getInitialLocale, i18nProvider } from "./i18nProvider";
+import { i18nProvider } from "./i18nProvider";
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -45,21 +45,15 @@ describe("i18nProvider", () => {
     );
   });
 
-  it("uses browser french locale when available", () => {
-    vi.stubGlobal("navigator", {
-      language: "fr-FR",
-      languages: ["fr-FR", "en-US"],
-    });
-
-    expect(getInitialLocale()).toBe("fr");
-  });
-
-  it("falls back to english when browser locale is unsupported", () => {
+  it("starts in french regardless of the browser locale", async () => {
     vi.stubGlobal("navigator", {
       language: "es-ES",
       languages: ["es-ES", "pt-BR"],
     });
+    vi.resetModules();
 
-    expect(getInitialLocale()).toBe("en");
+    const { i18nProvider: freshProvider } = await import("./i18nProvider");
+
+    expect(freshProvider.getLocale()).toBe("fr");
   });
 });
