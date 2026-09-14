@@ -236,6 +236,28 @@ declare
   v_option_pricing_mode text;
   v_rows int;
 begin
+  -- Payment-authority guard (Go-Live Blocker: Won Payment Authority slice):
+  -- handle_deal_won()'s own AFTER trigger unconditionally creates a real
+  -- Enrollment, onboarding checklist/Tasks, and (for scholarship pricing)
+  -- consumes a real scholarship slot the instant stage becomes 'won' — with
+  -- no other check on how it got there. Won must only ever be reached via a
+  -- successful Stripe payment (stripe_webhook/index.ts, which writes
+  -- through supabaseAdmin using the service_role key — see that function's
+  -- own header). auth.role() reflects the verified PostgREST JWT's `role`
+  -- claim: 'service_role' for the real webhook, 'authenticated' for an
+  -- ordinary CRM user, and NULL for a direct database/migration connection
+  -- that never went through PostgREST at all (trusted recovery/admin
+  -- context — deliberately still permitted, per that path's own need to
+  -- correct data by hand). An ordinary authenticated CRM user must never be
+  -- able to fabricate a successful purchase merely by editing a Deal.
+  if new.stage = 'won'
+     and (tg_op = 'INSERT' or old.stage is distinct from 'won')
+     and auth.role() is not null
+     and auth.role() <> 'service_role'
+  then
+    raise exception 'Deal % cannot be set to Won directly — Won is only reached via a successful Stripe payment', new.id;
+  end if;
+
   select * into v_offer from offers where id = new.offer_id;
   if v_offer.id is null then
     raise exception 'Invalid offer_id %', new.offer_id;

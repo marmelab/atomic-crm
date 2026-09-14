@@ -1,4 +1,10 @@
-import { required, useGetList, useGetOne, useTranslate } from "ra-core";
+import {
+  required,
+  useGetList,
+  useGetOne,
+  useRecordContext,
+  useTranslate,
+} from "ra-core";
 import { useEffect, useRef } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import { ReferenceInput } from "@/components/admin/reference-input";
@@ -10,7 +16,7 @@ import { Separator } from "@/components/ui/separator";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 import { useConfigurationContext } from "../root/ConfigurationContext";
-import type { Offer, OfferPaymentOption } from "../types";
+import type { Deal, Offer, OfferPaymentOption } from "../types";
 import { resolveOpportunityAmount } from "./dealAmount";
 import { OpportunityPersonInput } from "./OpportunityPersonInput";
 import {
@@ -155,6 +161,25 @@ const DealInfoInputs = () => {
 const DealMiscInputs = () => {
   const { dealStages } = useConfigurationContext();
   const translate = useTranslate();
+  const record = useRecordContext<Deal>();
+  // Go-Live Blocker: Won Payment Authority slice — "won" stays in the full
+  // dealStages config (display/filtering/reporting/Kanban/dashboard labels
+  // all still resolve it normally), but is deliberately excluded from the
+  // choices offered by THIS ordinary, authenticated edit form. Won is
+  // commercial/payment state: it must only ever be reached via a real
+  // Stripe payment (stripe_webhook), never by hand-picking it from a
+  // dropdown. The durable backstop lives in the database itself
+  // (handle_deal_saved()'s payment-authority guard, migration
+  // 20260914153328) — this is the UI half of the defense-in-depth pair,
+  // not the enforcement itself. An already-Won Deal opened here still
+  // needs "Won" present as a choice, or the Select would render blank for
+  // its own current value — the guard only cares about transitions INTO
+  // Won, and a record whose stage is already "won" submitting "won"
+  // unchanged is a no-op on both the trigger and handle_deal_won() itself.
+  const editableDealStages =
+    record?.stage === "won"
+      ? dealStages
+      : dealStages.filter((stage) => stage.value !== "won");
   return (
     <div className="flex flex-col gap-4 flex-1">
       <h3 className="text-base font-medium">
@@ -170,7 +195,7 @@ const DealMiscInputs = () => {
       />
       <SelectInput
         source="stage"
-        choices={dealStages}
+        choices={editableDealStages}
         optionText="label"
         optionValue="value"
         defaultValue="interested"
