@@ -1,6 +1,5 @@
 ---
-paths:
-  - "**/*"
+paths: []
 ---
 
 # Git policy for agents

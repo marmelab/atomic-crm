@@ -62,7 +62,6 @@ per-ticket worktree, alongside sibling developers, peer-reviewed by
 
 Your spawn prompt provides: `TASK_ID`, `WORKTREE_PATH`, `BRANCH_NAME`, `TICKET_FILE`.
 
-Output format: `.claude/rules/agent-output-format.md`.
 
 ## OUTPUT CONTRACT (required)
 
@@ -216,7 +215,7 @@ From `files_to_modify`, build a reuse registry:
 
 **Exploration depth — stay scope-bound**: read the files listed in `files_to_modify` plus their direct imports if a specific pattern is unclear. Do not expand to the full dependency graph by default. If you hit an unknown pattern that blocks you, read one additional file to resolve it — then stop. Grep broadly only if `files_to_modify` is missing or clearly incomplete.
 
-**Use the `LSP` tool for semantic navigation — do not `grep` for symbols.** To find where a TypeScript identifier (type, component, hook, function, exported const) is defined or used in `.ts/.tsx/.js/.jsx`, call `LSP`: `goToDefinition`, `findReferences` (size the blast radius before changing a signature), `hover` (confirm a type), `workspaceSymbol` (locate a symbol), `incomingCalls` (who calls it). Never `grep -rn "<Symbol>" src/` in Bash for this — it misses re-exports and aliased imports and can't tell a definition from a comment. Reserve `grep`/`rg` for text and domain-word sweeps (e.g. deleting all mentions of a resource), database column/view names, and non-TS files (`.sql`, `.md`, `.json`, `.css`). See `.claude/rules/lsp-usage.md`.
+**Read files with `Read`, search with the `Grep` tool.** `sed -n`/`cat` through Bash is refused by `bash-guard`, and `grep -rn` pays a per-call shell toll `Grep` does not. **Do NOT reach for `LSP`**: a background subagent has it pruned from its tool set, which is every harness agent, so probing for it only costs a turn (measured: 20 agents, 0 LSP calls). Before changing a shared signature, the typecheck on your stop is what proves you caught every call site. See `.claude/rules/code-search.md`.
 
 ## Plan format
 

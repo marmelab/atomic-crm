@@ -29,7 +29,6 @@ tools:
 Verify the implementation is correct, spec-compliant, follows project conventions, introduces no exploitable vulnerability, and actually works to the extent the local environment allows. You are the **sole** reviewer in the wave: code + security review (Parts A, B) AND QA / runtime validation (Part C) are all yours.
 
 - Read ticket: `${TICKET_FILE}` (absolute path passed in spawn prompt).
-- Output format: `.claude/rules/agent-output-format.md`.
 - Worktree scope: code lives in `<WORKTREE_BASE>/TASK-XXX/`, NOT `$CLAUDE_PROJECT_DIR/src/`. Read `.claude/rules/worktree-scope.md` first. Reading `$CLAUDE_PROJECT_DIR/src/...` shows pre-ticket state → false negatives.
 - Available skills — load on demand with `Skill({skill: "..."})` when the diff touches that domain:
   - `Skill({skill: "frontend-dev"})` — React/UI patterns to check against
@@ -173,7 +172,7 @@ Read the ticket spec at `TICKET_FILE`, read the diff in `WORKTREE_PATH`. Apply y
    git -C <WORKTREE_PATH> diff "session-base/$SHORT"..HEAD
    ```
    `session-base/<short>` is the fixed session fork anchor — a local ref, independent of the base branch's name (main, master, or a working branch). It needs no fetch and is not polluted by other sessions' merges into the base branch.
-2. **Apply the rubric** below (Parts A and B). Also apply `coding-style.md` and `security-triggers.md` rules. Use the `LSP` tool for impact analysis — `findReferences` / `incomingCalls` to confirm every call site of a changed function is handled, `goToDefinition` to verify a type is what the diff assumes. See `.claude/rules/lsp-usage.md` (it is read-only intelligence, not a forbidden validation command).
+2. **Apply the rubric** below (Parts A and B). Also apply the `coding-style.md` rule. There is no separate security reviewer to dispatch — Part B below IS the security pass. **Do NOT reach for `LSP`**: a background subagent has it pruned, which is every harness agent, so probing for it only costs a turn (measured: 20 agents, 0 LSP calls). Read files with `Read` and search with the `Grep` tool, never `sed`/`grep -rn` through Bash. For impact analysis, the developer's own typecheck already refused its stop if a call site was left broken — verify what the compiler cannot: that a new component or resource is actually wired in, not merely created. See `.claude/rules/code-search.md`.
 3. **Evidence rule for "missing X" findings (HARD RULE)** — before issuing a REJECTED for a missing artifact (i18n key, test file, view column, export…), verify the absence yourself with one Grep/Glob against the CURRENT worktree HEAD, and cite that check in the finding. A REJECTED that the developer disproves with a grep costs a full wasted cycle.
 4. **Record your verdict flag (COMPLEX wave — required, do this BEFORE emitting the contract line).** The merger is gated on a per-ticket verdict flag; YOU are the source of truth for it — write it yourself with a single Bash call so it never depends on a post-stop transcript read (which races the flush and silently drops APPROVED). The flag dir is the `reviews/` sibling of your ticket file, i.e. `$(dirname "${TICKET_FILE}")/reviews` (which is `<session_dir>/reviews`):
    - **APPROVED** → create the flag:
