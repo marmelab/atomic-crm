@@ -60,7 +60,16 @@ The create affordance is one of the things that differs:
 | | Locator |
 | --- | --- |
 | mobile | `getByRole("button", { name: "Create" })`, and `MobileNavigation.tsx` labels it `ra.action.create` |
-| desktop | `getByRole("button", { name: <the resource's own label> })` |
+| desktop | `getByRole("link", { name: <the resource's own label> })` — a **link**, not a button |
+
+The desktop role is the trap: `<CreateButton />` is named button and renders an anchor, so
+`getByRole("button", ...)` matches nothing and the failure reads as a missing toolbar.
+
+The list ALSO renders a create link in its empty state, with the same accessible name. Two
+elements, so a bare `getByRole("link", { name })` is a strict-mode violation the moment the
+list is empty — and seeding through the fixtures is what makes it non-empty. Do not paper
+over it with `.or()`, which matches both: scope to the toolbar, or assert on the one the
+spec means.
 
 The desktop label is per-resource, from `englishCrmMessages.ts` (`<CreateButton />` resolves
 `resources.<name>.action.create`, falling back to `ra.action.create`):
@@ -171,3 +180,5 @@ await page.getByRole("button", { name: "Sign in" }).click();
 - [ ] Record links are matched on `#/<resource>/...`, not `/<resource>/...`.
 - [ ] Row locators are scoped to the list container, not to the whole page.
 - [ ] Nothing reloads or navigates before the save's PATCH has been awaited.
+- [ ] The desktop create affordance is matched as a `link`, not a `button`, and the
+      empty-state create link cannot make the locator ambiguous.
