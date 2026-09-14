@@ -27,6 +27,7 @@ import { ContactEditSheet } from "./ContactEditSheet";
 import { ContactStatusSelector } from "./ContactInputs";
 import { ContactPersonalInfo } from "./ContactPersonalInfo";
 import { ContactBackgroundInfo } from "./ContactBackgroundInfo";
+import { ContactPositionInfo } from "./ContactPositionInfo";
 import { ContactTasksList } from "./ContactTasksList";
 import type { Contact } from "../types";
 import { Avatar } from "./Avatar";
@@ -205,6 +206,15 @@ const ContactShowContentMobile = () => {
                 <Separator />
                 <div className="mt-3">
                   <ContactPersonalInfo />
+                </div>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold">
+                  {translate("resources.contacts.field_categories.position")}
+                </h3>
+                <Separator />
+                <div className="mt-3">
+                  <ContactPositionInfo />
                 </div>
               </div>
               <div>

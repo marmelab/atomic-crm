@@ -7,6 +7,7 @@ import { Notification } from "@/components/admin/notification";
 import { createDataProvider } from "@/components/atomic-crm/providers/fakerest";
 import { DEFAULT_USER } from "@/components/atomic-crm/providers/fakerest/authProvider";
 import type { Db } from "@/components/atomic-crm/providers/fakerest/dataGenerator/types";
+import { generateChoices } from "@/components/atomic-crm/providers/fakerest/dataGenerator/choices";
 import type {
   Company,
   Contact,
@@ -45,6 +46,7 @@ const baseSale: Sale = {
 // that matter for each scenario.
 export const createCrmDb = (overrides: Partial<Db> = {}): Db =>
   ({
+    choices: generateChoices(),
     companies: [],
     configuration: [{ config: {}, id: 1 }],
     contact_notes: [],
@@ -76,7 +78,7 @@ export const buildCompany = (overrides: Partial<Company> = {}): Company => ({
   revenue: "",
   sales_id: 0,
   sector: "Tech",
-  size: 10,
+  size: 100,
   state_abbr: "CA",
   tax_identifier: "",
   website: "",

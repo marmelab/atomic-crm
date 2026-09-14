@@ -1,19 +1,19 @@
 type TranslateFn = (key: string, options?: { [key: string]: any }) => string;
 
 const defaultCompanySizeLabels: Record<number, string> = {
-  1: "1 employee",
-  10: "2-9 employees",
-  50: "10-49 employees",
-  250: "50-249 employees",
-  500: "250 or more employees",
+  50: "Fewer than 50 employees",
+  100: "50-100 employees",
+  250: "100-250 employees",
+  500: "250-500 employees",
+  1000: "More than 500 employees",
 };
 
 const companySizeTranslationKeys: Record<number, string> = {
-  1: "resources.companies.sizes.one_employee",
-  10: "resources.companies.sizes.two_to_nine_employees",
-  50: "resources.companies.sizes.ten_to_forty_nine_employees",
-  250: "resources.companies.sizes.fifty_to_two_hundred_forty_nine_employees",
-  500: "resources.companies.sizes.two_hundred_fifty_or_more_employees",
+  50: "resources.companies.sizes.fewer_than_fifty_employees",
+  100: "resources.companies.sizes.fifty_to_one_hundred_employees",
+  250: "resources.companies.sizes.one_hundred_to_two_hundred_fifty_employees",
+  500: "resources.companies.sizes.two_hundred_fifty_to_five_hundred_employees",
+  1000: "resources.companies.sizes.more_than_five_hundred_employees",
 };
 
 export const getTranslatedCompanySizeLabel = (

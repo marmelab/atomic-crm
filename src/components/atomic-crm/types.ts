@@ -48,11 +48,23 @@ export type Sale = {
   password?: string;
 } & Pick<RaRecord, "id">;
 
+/** Headcount brackets: <50, 50-100, 100-250, 250-500, +500. */
+export type CompanySize = 50 | 100 | 250 | 500 | 1000;
+
+/** Fixed relationship statuses shared by contacts and deals. */
+export type RelationshipStatus = "prospect" | "client" | "partner";
+
+/** A user-extensible option list entry (deal origins, objectives, meeting modes/types). */
+export type Choice = {
+  category: string;
+  label: string;
+} & Pick<RaRecord, "id">;
+
 export type Company = {
   name: string;
   logo: RAFile;
   sector: string;
-  size: 1 | 10 | 50 | 250 | 500;
+  size: CompanySize;
   linkedin_url: string;
   website: string;
   phone_number: string;
@@ -69,6 +81,7 @@ export type Company = {
   context_links?: string[];
   nb_contacts?: number;
   nb_deals?: number;
+  nb_sites?: number | null;
 } & Pick<RaRecord, "id">;
 
 export type EmailAndType = {
@@ -100,6 +113,10 @@ export type Contact = {
   phone_jsonb: PhoneNumberAndType[];
   nb_tasks?: number;
   company_name?: string;
+  company_start_date?: string | null;
+  decision_role?: string | null;
+  relationship_status?: RelationshipStatus | null;
+  linked_contact_ids?: Identifier[] | null;
 } & Pick<RaRecord, "id">;
 
 export type ContactNote = {
@@ -125,6 +142,12 @@ export type Deal = {
   expected_closing_date: string;
   sales_id: Identifier;
   index: number;
+  confidentiality?: RelationshipStatus | null;
+  reference?: string | null;
+  origin?: string | null;
+  motivation?: string | null;
+  objectives?: string[] | null;
+  other_expectations?: string | null;
 } & Pick<RaRecord, "id">;
 
 export type DealNote = {
@@ -151,6 +174,8 @@ export type Task = {
   due_date: string;
   done_date?: string | null;
   sales_id?: Identifier;
+  location?: string | null;
+  mode?: string | null;
 } & Pick<RaRecord, "id">;
 
 export type ActivityCompanyCreated = {

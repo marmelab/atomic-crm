@@ -12,6 +12,8 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { contactOptionText } from "../misc/ContactOption";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { AutocompleteCompanyInput } from "../companies/AutocompleteCompanyInput.tsx";
+import { ChoiceInput } from "../misc/ChoiceInput";
+import { relationshipStatuses } from "../misc/relationshipStatuses";
 
 export const DealInputs = () => {
   const isMobile = useIsMobile();
@@ -32,7 +34,15 @@ const DealInfoInputs = () => {
   return (
     <div className="flex flex-col gap-4 flex-1">
       <TextInput source="name" validate={required()} helperText={false} />
+      <TextInput source="reference" helperText={false} />
       <TextInput source="description" multiline rows={3} helperText={false} />
+      <TextInput source="motivation" multiline rows={4} helperText={false} />
+      <TextInput
+        source="other_expectations"
+        multiline
+        rows={4}
+        helperText={false}
+      />
     </div>
   );
 };
@@ -72,6 +82,13 @@ const DealMiscInputs = () => {
         {translate("resources.deals.field_categories.misc")}
       </h3>
 
+      <SelectInput
+        source="confidentiality"
+        choices={relationshipStatuses}
+        helperText={false}
+      />
+      <ChoiceInput source="origin" category="deal_origin" />
+      <ChoiceInput source="objectives" category="deal_objective" multiple />
       <SelectInput
         source="category"
         choices={dealCategories}

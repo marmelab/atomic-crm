@@ -12,6 +12,7 @@ alter table public.deal_notes enable row level security;
 alter table public.sales enable row level security;
 alter table public.tags enable row level security;
 alter table public.tasks enable row level security;
+alter table public.choices enable row level security;
 alter table public.configuration enable row level security;
 alter table public.favicons_excluded_domains enable row level security;
 
@@ -67,3 +68,9 @@ create policy "Enable update for admins" on public.configuration for update to a
 
 -- Favicons excluded domains
 create policy "Enable access for authenticated users only" on public.favicons_excluded_domains to authenticated using (true) with check (true);
+
+-- Choices (user-extensible option lists)
+create policy "Enable read access for authenticated users" on public.choices for select to authenticated using (true);
+create policy "Enable insert for authenticated users only" on public.choices for insert to authenticated with check (true);
+create policy "Enable update for authenticated users only" on public.choices for update to authenticated using (true) with check (true);
+create policy "Choice Delete Policy" on public.choices for delete to authenticated using (true);

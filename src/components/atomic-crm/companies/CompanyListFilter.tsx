@@ -1,18 +1,27 @@
 import { Building, Truck, Users } from "lucide-react";
-import { FilterLiveForm, useGetIdentity, useTranslate } from "ra-core";
+import {
+  FilterLiveForm,
+  useGetIdentity,
+  useGetList,
+  useTranslate,
+} from "ra-core";
 import { ToggleFilterButton } from "@/components/admin/toggle-filter-button";
 import { SearchInput } from "@/components/admin/search-input";
 
 import { FilterCategory } from "../filters/FilterCategory";
-import { useConfigurationContext } from "../root/ConfigurationContext";
+import type { Choice } from "../types";
 import { AccountManagerFilter } from "../sales/AccountManagerInput";
 import { getTranslatedCompanySizeLabel } from "./getTranslatedCompanySizeLabel";
 import { sizes } from "./sizes";
 
 export const CompanyListFilter = () => {
   const { identity } = useGetIdentity();
-  const { companySectors } = useConfigurationContext();
   const translate = useTranslate();
+  const { data: sectors } = useGetList<Choice>("choices", {
+    filter: { category: "company_sector" },
+    pagination: { page: 1, perPage: 200 },
+    sort: { field: "id", order: "ASC" },
+  });
   const translatedSizes = sizes.map((size) => ({
     ...size,
     name: getTranslatedCompanySizeLabel(size, translate),
@@ -41,12 +50,12 @@ export const CompanyListFilter = () => {
         icon={<Truck className="h-4 w-4" />}
         label="resources.companies.fields.sector"
       >
-        {companySectors.map((sector) => (
+        {(sectors ?? []).map((sector) => (
           <ToggleFilterButton
             className="w-full justify-between"
             label={sector.label}
-            key={sector.value}
-            value={{ sector: sector.value }}
+            key={sector.id}
+            value={{ sector: sector.label }}
           />
         ))}
       </FilterCategory>

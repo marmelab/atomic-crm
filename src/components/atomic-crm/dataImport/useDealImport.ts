@@ -5,7 +5,14 @@ import { useConfigurationContext } from "../root/ConfigurationContext";
 import { useCompanyResolver } from "./useCompanyResolver";
 import { createEachRow } from "./createEachRow";
 import { toConfiguredValue, toInteger, toIsoDate, toText } from "./parseCell";
-import type { ImportRow, ProcessImportBatch } from "./types";
+import type { ImportCell, ImportRow, ProcessImportBatch } from "./types";
+
+/** Splits a comma-separated CSV cell into the labels it lists. */
+const toList = (cell: ImportCell) =>
+  toText(cell)
+    ?.split(",")
+    .map((label) => label.trim())
+    .filter(Boolean);
 
 /** One CSV row, with the values needed before its deal can be created. */
 type DealRow = {
@@ -58,6 +65,12 @@ export function useDealImport(): ProcessImportBatch {
               category: toConfiguredValue(row.category, dealCategories),
               stage,
               description: toText(row.description),
+              reference: toText(row.reference),
+              confidentiality: toText(row.confidentiality),
+              origin: toText(row.origin),
+              objectives: toList(row.objectives),
+              motivation: toText(row.motivation),
+              other_expectations: toText(row.other_expectations),
               // amount lands in a bigint column, which rejects "4500.50"
               amount: toInteger(row.amount),
               expected_closing_date: toIsoDate(row.expected_closing_date),

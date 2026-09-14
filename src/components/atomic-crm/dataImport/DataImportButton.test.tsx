@@ -127,16 +127,16 @@ describe("DataImportButton", () => {
       .toHaveAttribute("download", "crm_deals_sample.csv");
   });
 
-  it("imports companies, mapping sector labels and numeric columns", async () => {
+  it("imports companies, keeping sector labels and mapping numeric columns", async () => {
     const { dataProvider, screen } = await renderImport(useCompanyImport, [
       {
         name: "Acme",
-        sector: "Information Technology",
+        sector: "Technologies de l'information",
         size: 50,
         city: "New York",
         website: "https://acme.example",
       },
-      { name: "Globex", sector: "Not a sector", size: null, city: null },
+      { name: "Globex", sector: "Secteur inédit", size: null, city: null },
     ]);
 
     await screen.getByRole("button", { name: "run import" }).click();
@@ -147,13 +147,14 @@ describe("DataImportButton", () => {
     expect(companies[0]).toMatchObject({
       city: "New York",
       name: "Acme",
-      sector: "information-technology",
-      // 50 employees falls in the "50-249 employees" bucket
-      size: 250,
+      sector: "Technologies de l'information",
+      // 50 employees falls in the "50-100 employees" bucket
+      size: 100,
       website: "https://acme.example",
     });
-    // An unknown sector is dropped rather than stored as a free-text value
-    expect(companies[1].sector).toBeUndefined();
+    // Sectors are free text backed by the `choices` referential, so a sector
+    // that is not in the list yet is kept as imported
+    expect(companies[1].sector).toBe("Secteur inédit");
     expect(companies[1].size).toBeUndefined();
   });
 
@@ -166,7 +167,7 @@ describe("DataImportButton", () => {
     await expect.element(screen.getByText("imported")).toBeVisible();
 
     const { data: companies } = await listAll(dataProvider, "companies");
-    // 42 employees is not a bucket id; it belongs to "10-49 employees"
+    // 42 employees is not a bucket id; it belongs to "fewer than 50 employees"
     expect(companies[0].size).toBe(50);
   });
 

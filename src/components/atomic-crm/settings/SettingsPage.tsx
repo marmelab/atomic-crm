@@ -122,7 +122,6 @@ const transformFormValues = (data: Record<string, any>) => ({
     lightModeLogo: data.lightModeLogo,
     darkModeLogo: data.darkModeLogo,
     currency: data.currency,
-    companySectors: ensureValues(data.companySectors),
     dealCategories: ensureValues(data.dealCategories),
     taskTypes: ensureValues(data.taskTypes),
     dealStages: ensureValues(data.dealStages),
@@ -170,7 +169,6 @@ const SettingsForm = () => {
       lightModeLogo: { src: config.lightModeLogo },
       darkModeLogo: { src: config.darkModeLogo },
       currency: config.currency,
-      companySectors: config.companySectors,
       dealCategories: config.dealCategories,
       taskTypes: config.taskTypes,
       dealStages: config.dealStages,
@@ -315,18 +313,9 @@ const SettingsFormFields = () => {
                 smart_count: 2,
               })}
             </h2>
-            <h3 className="text-lg font-medium text-muted-foreground">
-              {translate("crm.settings.companies.sectors")}
-            </h3>
-            <ArrayInput
-              source="companySectors"
-              label={false}
-              helperText={false}
-            >
-              <SimpleFormIterator disableReordering disableClear>
-                <TextInput source="label" label={false} />
-              </SimpleFormIterator>
-            </ArrayInput>
+            <p className="text-sm text-muted-foreground">
+              {translate("crm.settings.companies.sectors_hint")}
+            </p>
           </CardContent>
         </Card>
 

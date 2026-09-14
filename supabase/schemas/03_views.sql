@@ -92,6 +92,7 @@ select
     c.revenue,
     c.tax_identifier,
     c.logo,
+    c.nb_sites,
     count(distinct d.id) as nb_deals,
     count(distinct co.id) as nb_contacts
 from public.companies c
@@ -118,6 +119,10 @@ select
     co.linkedin_url,
     co.email_jsonb,
     co.phone_jsonb,
+    co.company_start_date,
+    co.decision_role,
+    co.relationship_status,
+    co.linked_contact_ids,
     (jsonb_path_query_array(co.email_jsonb, '$[*]."email"'))::text as email_fts,
     (jsonb_path_query_array(co.phone_jsonb, '$[*]."number"'))::text as phone_fts,
     c.name as company_name,

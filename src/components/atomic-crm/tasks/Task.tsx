@@ -121,6 +121,11 @@ export const Task = ({
               )}
               {task.text}
             </div>
+            {(task.mode || task.location) && (
+              <div className="text-sm text-muted-foreground">
+                {[task.mode, task.location].filter(Boolean).join(" — ")}
+              </div>
+            )}
             <div className="text-sm text-muted-foreground">
               {translate("resources.tasks.fields.due_short")}
               &nbsp;

@@ -2,14 +2,15 @@ import { required, useRecordContext, useTranslate } from "ra-core";
 import { ReferenceInput } from "@/components/admin/reference-input";
 import { TextInput } from "@/components/admin/text-input";
 import { SelectInput } from "@/components/admin/select-input";
+import { NumberInput } from "@/components/admin/number-input";
 import { ArrayInput } from "@/components/admin/array-input";
 import { SimpleFormIterator } from "@/components/admin/simple-form-iterator";
 import { Separator } from "@/components/ui/separator";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 import ImageEditorField from "../misc/ImageEditorField";
+import { ChoiceInput } from "../misc/ChoiceInput";
 import { isLinkedinUrl } from "../misc/isLinkedInUrl";
-import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Company, Sale } from "../types";
 import { getTranslatedCompanySizeLabel } from "./getTranslatedCompanySizeLabel";
 import { sizes } from "./sizes";
@@ -96,7 +97,6 @@ const CompanyContactInputs = () => {
 
 const CompanyContextInputs = () => {
   const translate = useTranslate();
-  const { companySectors } = useConfigurationContext();
   const translatedSizes = sizes.map((size) => ({
     ...size,
     name: getTranslatedCompanySizeLabel(size, translate),
@@ -108,14 +108,9 @@ const CompanyContextInputs = () => {
           _: "Context",
         })}
       </h6>
-      <SelectInput
-        source="sector"
-        choices={companySectors}
-        optionText="label"
-        optionValue="value"
-        helperText={false}
-      />
+      <ChoiceInput source="sector" category="company_sector" />
       <SelectInput source="size" choices={translatedSizes} helperText={false} />
+      <NumberInput source="nb_sites" min={0} helperText={false} />
       <TextInput source="revenue" helperText={false} />
       <TextInput source="tax_identifier" helperText={false} />
     </div>

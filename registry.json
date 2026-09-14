@@ -306,6 +306,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/providers/fakerest/dataGenerator/choices.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/providers/commons/mergeContacts.ts",
           "type": "registry:component"
         },
@@ -422,6 +426,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/misc/relationshipStatuses.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/misc/isLinkedInUrl.ts",
           "type": "registry:component"
         },
@@ -471,6 +479,10 @@
         },
         {
           "path": "src/components/atomic-crm/misc/ContactOption.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/misc/ChoiceInput.tsx",
           "type": "registry:component"
         },
         {
@@ -734,6 +746,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/contacts/ContactPositionInfo.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/contacts/ContactPersonalInfo.tsx",
           "type": "registry:component"
         },
@@ -783,6 +799,10 @@
         },
         {
           "path": "src/components/atomic-crm/contacts/ContactAside.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/contacts/CompanyContactsCount.tsx",
           "type": "registry:component"
         },
         {

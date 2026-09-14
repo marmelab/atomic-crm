@@ -74,9 +74,21 @@ export const AutocompleteArrayInput = (
       inputText?:
         | React.ReactNode
         | ((option: any | undefined) => React.ReactNode);
+      /**
+       * Called with the current search text when the user picks the "create"
+       * entry. Must return the created choice (or nothing to abort).
+       */
+      onCreate?: (filter: string) => any | Promise<any>;
+      /** Translation key for the "create" entry label. */
+      createLabel?: string;
     },
 ) => {
-  const { filterToQuery = DefaultFilterToQuery, inputText } = props;
+  const {
+    filterToQuery = DefaultFilterToQuery,
+    inputText,
+    onCreate,
+    createLabel = "ra.action.create_item",
+  } = props;
   const {
     allChoices = [],
     source,
@@ -130,6 +142,27 @@ export const AutocompleteArrayInput = (
     field.value.includes(getChoiceValue(choice)),
   );
   const [filterValue, setFilterValue] = React.useState("");
+
+  const trimmedFilter = filterValue.trim();
+  const canCreate =
+    !!onCreate &&
+    trimmedFilter !== "" &&
+    !allChoices.some(
+      (choice) =>
+        String(getChoiceText(choice)).toLowerCase() ===
+        trimmedFilter.toLowerCase(),
+    );
+
+  const handleCreate = useEvent(async () => {
+    const created = await onCreate?.(trimmedFilter);
+    setFilterValue("");
+    if (isFromReference) {
+      setFilters(filterToQuery(""));
+    }
+    if (created) {
+      field.onChange([...field.value, getChoiceValue(created)]);
+    }
+  });
 
   const getInputText = useCallback(
     (selectedChoice: any) => {
@@ -216,7 +249,7 @@ export const AutocompleteArrayInput = (
           </div>
           <div className="relative">
             <CommandList ref={listRef}>
-              {open && availableChoices.length > 0 ? (
+              {open && (availableChoices.length > 0 || canCreate) ? (
                 <div className="absolute top-2 z-10 w-full rounded-md border bg-popover text-popover-foreground shadow-md outline-none animate-in">
                   <CommandGroup className="h-full overflow-auto">
                     {availableChoices.map((choice) => {
@@ -250,6 +283,22 @@ export const AutocompleteArrayInput = (
                         </CommandItem>
                       );
                     })}
+                    {canCreate && (
+                      <CommandItem
+                        value={`@@create@@${trimmedFilter}`}
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                        }}
+                        onSelect={handleCreate}
+                        className="cursor-pointer"
+                      >
+                        {translate(createLabel, {
+                          item: trimmedFilter,
+                          _: `Create "${trimmedFilter}"`,
+                        })}
+                      </CommandItem>
+                    )}
                   </CommandGroup>
                 </div>
               ) : null}

@@ -17,12 +17,18 @@ import { RadioButtonGroupInput } from "@/components/admin/radio-button-group-inp
 import { SelectInput } from "@/components/admin/select-input";
 import { ArrayInput } from "@/components/admin/array-input";
 import { SimpleFormIterator } from "@/components/admin/simple-form-iterator";
+import { DateInput } from "@/components/admin/date-input";
+import { AutocompleteArrayInput } from "@/components/admin/autocomplete-array-input";
+import { ReferenceArrayInput } from "@/components/admin/reference-array-input";
 
 import { isLinkedinUrl } from "../misc/isLinkedInUrl";
 import { StatusSelector } from "../notes";
 import type { Sale, Contact } from "../types";
 import { Avatar } from "./Avatar";
 import { AutocompleteCompanyInput } from "../companies/AutocompleteCompanyInput.tsx";
+import { CompanyContactsCount } from "./CompanyContactsCount";
+import { contactOptionText } from "../misc/ContactOption";
+import { relationshipStatuses } from "../misc/relationshipStatuses";
 import {
   contactGender,
   translateContactGenderLabel,
@@ -89,6 +95,14 @@ const ContactPositionInputs = () => {
       <ReferenceInput source="company_id" reference="companies" perPage={10}>
         <AutocompleteCompanyInput label="resources.contacts.fields.company_id" />
       </ReferenceInput>
+      <CompanyContactsCount />
+      <DateInput source="company_start_date" helperText={false} />
+      <TextInput source="decision_role" helperText={false} />
+      <SelectInput
+        source="relationship_status"
+        choices={relationshipStatuses}
+        helperText={false}
+      />
     </div>
   );
 };
@@ -212,6 +226,16 @@ const ContactMiscInputs = () => {
         {translate("resources.contacts.field_categories.misc")}
       </h6>
       <TextInput source="background" multiline helperText={false} />
+      <ReferenceArrayInput
+        source="linked_contact_ids"
+        reference="contacts_summary"
+      >
+        <AutocompleteArrayInput
+          label="resources.contacts.fields.linked_contact_ids"
+          optionText={contactOptionText}
+          helperText={false}
+        />
+      </ReferenceArrayInput>
       <BooleanInput source="has_newsletter" helperText={false} />
       <ReferenceInput
         reference="sales"

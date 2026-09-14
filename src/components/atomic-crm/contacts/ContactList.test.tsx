@@ -182,7 +182,7 @@ describe("ContactList", () => {
       const screen = await render(<AdminAccountManagerFilter />);
 
       await expect
-        .element(screen.getByRole("button", { name: "Me" }))
+        .element(screen.getByRole("button", { name: "Me", exact: true }))
         .toBeVisible();
       await expect
         .element(screen.getByRole("button", { name: "Jane Doe" }))
@@ -193,7 +193,7 @@ describe("ContactList", () => {
       const screen = await render(<NonAdminAccountManagerFilter />);
 
       await expect
-        .element(screen.getByRole("button", { name: "Me" }))
+        .element(screen.getByRole("button", { name: "Me", exact: true }))
         .toBeVisible();
       await expect
         .element(screen.getByRole("button", { name: "Marie Curie" }))

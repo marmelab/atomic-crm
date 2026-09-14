@@ -94,7 +94,33 @@ export const mergeContacts = async (
       });
     }) || [];
 
-  // 4. Update winner contact with loser data
+  // 4. Repoint contacts that list the loser among their linked contacts
+  const { data: linkingContacts } = await dataProvider.getList<Contact>(
+    "contacts",
+    {
+      filter: { "linked_contact_ids@cs": `{${loserId}}` },
+      pagination: { page: 1, perPage: 1000 },
+      sort: { field: "id", order: "ASC" },
+    },
+  );
+
+  const linkUpdates =
+    linkingContacts
+      ?.filter((contact) => contact.id !== winnerId)
+      .map((contact) =>
+        dataProvider.update<Contact>("contacts", {
+          id: contact.id,
+          data: {
+            linked_contact_ids: mergeArraysUnique(
+              (contact.linked_contact_ids || []).filter((id) => id !== loserId),
+              [winnerId],
+            ),
+          },
+          previousData: contact,
+        }),
+      ) || [];
+
+  // 5. Update winner contact with loser data
   const mergedEmails = mergeObjectArraysUnique(
     winnerContact.email_jsonb || [],
     loserContact.email_jsonb || [],
@@ -131,6 +157,15 @@ export const mergeContacts = async (
           ? winnerContact.last_seen
           : loserContact.last_seen,
       sales_id: winnerContact.sales_id ?? loserContact.sales_id,
+      company_start_date:
+        winnerContact.company_start_date ?? loserContact.company_start_date,
+      decision_role: winnerContact.decision_role ?? loserContact.decision_role,
+      relationship_status:
+        winnerContact.relationship_status ?? loserContact.relationship_status,
+      linked_contact_ids: mergeArraysUnique(
+        winnerContact.linked_contact_ids || [],
+        loserContact.linked_contact_ids || [],
+      ).filter((id) => id !== loserId),
       tags: mergeArraysUnique(
         winnerContact.tags || [],
         loserContact.tags || [],
@@ -144,10 +179,11 @@ export const mergeContacts = async (
     ...taskUpdates,
     ...noteUpdates,
     ...dealUpdates,
+    ...linkUpdates,
     winnerUpdate,
   ]);
 
-  // 5. Delete the loser contact
+  // 6. Delete the loser contact
   await dataProvider.delete<Contact>("contacts", {
     id: loserId,
     previousData: loserContact,

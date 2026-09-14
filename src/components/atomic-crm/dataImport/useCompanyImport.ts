@@ -2,9 +2,8 @@ import { useCallback } from "react";
 import { useDataProvider, useGetIdentity } from "ra-core";
 
 import { mapSizeToCategory } from "../companies/sizes";
-import { useConfigurationContext } from "../root/ConfigurationContext";
 import { createEachRow } from "./createEachRow";
-import { toConfiguredValue, toNumber, toText } from "./parseCell";
+import { toNumber, toText } from "./parseCell";
 import type { ImportCell, ProcessImportBatch } from "./types";
 
 /**
@@ -12,7 +11,6 @@ import type { ImportCell, ProcessImportBatch } from "./types";
  * left empty — except `name`, which the database requires.
  */
 export function useCompanyImport(): ProcessImportBatch {
-  const { companySectors } = useConfigurationContext();
   const { identity } = useGetIdentity();
   const dataProvider = useDataProvider();
 
@@ -23,7 +21,7 @@ export function useCompanyImport(): ProcessImportBatch {
           dataProvider.create("companies", {
             data: {
               name: toText(row.name),
-              sector: toConfiguredValue(row.sector, companySectors),
+              sector: toText(row.sector),
               size: sizeOf(row.size),
               linkedin_url: toText(row.linkedin_url),
               website: toText(row.website),
@@ -36,13 +34,14 @@ export function useCompanyImport(): ProcessImportBatch {
               description: toText(row.description),
               revenue: toText(row.revenue),
               tax_identifier: toText(row.tax_identifier),
+              nb_sites: toNumber(row.nb_sites),
               sales_id: identity?.id,
               created_at: new Date().toISOString(),
             },
           }),
         ),
       ),
-    [companySectors, dataProvider, identity?.id],
+    [dataProvider, identity?.id],
   );
 }
 

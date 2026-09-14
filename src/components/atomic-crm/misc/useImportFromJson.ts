@@ -12,7 +12,6 @@ import type { CrmDataProvider } from "../providers/types";
 import type { RAFile, Tag } from "../types";
 import { colors } from "../tags/colors";
 import { mapSizeToCategory } from "../companies/sizes";
-import { useConfigurationContext } from "../root/ConfigurationContext";
 import { contactGender } from "../contacts/contactModel";
 
 export type ImportFromJsonStats = {
@@ -98,7 +97,6 @@ export const useImportFromJson = (): [
   const { data: currentSale } = useGetIdentity();
   const dataProvider = useDataProvider<CrmDataProvider>();
   const refresh = useRefresh();
-  const { companySectors } = useConfigurationContext();
   const [state, setState] = useState<ImportFromJsonState>({
     status: "idle",
     error: null,
@@ -226,27 +224,6 @@ export const useImportFromJson = (): [
         return;
       }
       try {
-        // Validate sector against configuration
-        const sector = dataToImport.sector?.trim();
-        if (sector && !companySectors.some((s) => s.value === sector)) {
-          setState((old) => ({
-            ...old,
-            status: "importing",
-            error: null,
-            failedImports: {
-              ...old.failedImports,
-              companies: [
-                ...old.failedImports.companies,
-                {
-                  ...(dataToImport as any),
-                  error: `Invalid sector "${sector}". Must be one of: ${companySectors.map((s) => s.value).join(", ")}`,
-                },
-              ],
-            },
-          }));
-          return;
-        }
-
         const { data } = await dataProvider.create("companies", {
           data: {
             name: dataToImport.name.trim(),
@@ -256,7 +233,7 @@ export const useImportFromJson = (): [
             address: dataToImport.address?.trim(),
             zipcode: dataToImport.zipcode?.trim(),
             state_abbr: dataToImport.state_abbr?.trim(),
-            sector: sector || undefined,
+            sector: dataToImport.sector?.trim() || undefined,
             size: dataToImport.size
               ? mapSizeToCategory(dataToImport.size)
               : undefined,

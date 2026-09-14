@@ -119,6 +119,37 @@ const DealShowContent = () => {
               </span>
             </div>
 
+            {record.reference && (
+              <div className="flex flex-col mr-10">
+                <span className="text-xs text-muted-foreground tracking-wide">
+                  {translate("resources.deals.fields.reference")}
+                </span>
+                <span className="text-sm">{record.reference}</span>
+              </div>
+            )}
+
+            {record.confidentiality && (
+              <div className="flex flex-col mr-10">
+                <span className="text-xs text-muted-foreground tracking-wide">
+                  {translate("resources.deals.fields.confidentiality")}
+                </span>
+                <span className="text-sm">
+                  {translate(
+                    `crm.relationship_status.${record.confidentiality}`,
+                  )}
+                </span>
+              </div>
+            )}
+
+            {record.origin && (
+              <div className="flex flex-col mr-10">
+                <span className="text-xs text-muted-foreground tracking-wide">
+                  {translate("resources.deals.fields.origin")}
+                </span>
+                <span className="text-sm">{record.origin}</span>
+              </div>
+            )}
+
             {record.category && (
               <div className="flex flex-col mr-10">
                 <span className="text-xs text-muted-foreground tracking-wide">
@@ -157,12 +188,45 @@ const DealShowContent = () => {
             </div>
           )}
 
+          {!!record.objectives?.length && (
+            <div className="m-4">
+              <span className="text-xs text-muted-foreground tracking-wide">
+                {translate("resources.deals.fields.objectives")}
+              </span>
+              <div className="flex flex-wrap gap-1 mt-1">
+                {record.objectives.map((objective) => (
+                  <Badge key={objective} variant="outline">
+                    {objective}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
+
           {record.description && (
             <div className="m-4 whitespace-pre-line">
               <span className="text-xs text-muted-foreground tracking-wide">
                 {translate("resources.deals.fields.description")}
               </span>
               <p className="text-sm leading-6">{record.description}</p>
+            </div>
+          )}
+
+          {record.motivation && (
+            <div className="m-4 whitespace-pre-line">
+              <span className="text-xs text-muted-foreground tracking-wide">
+                {translate("resources.deals.fields.motivation")}
+              </span>
+              <p className="text-sm leading-6">{record.motivation}</p>
+            </div>
+          )}
+
+          {record.other_expectations && (
+            <div className="m-4 whitespace-pre-line">
+              <span className="text-xs text-muted-foreground tracking-wide">
+                {translate("resources.deals.fields.other_expectations")}
+              </span>
+              <p className="text-sm leading-6">{record.other_expectations}</p>
             </div>
           )}
 

@@ -1,3 +1,4 @@
+import { generateChoices } from "./choices";
 import { generateCompanies } from "./companies";
 import { generateContactNotes } from "./contactNotes";
 import { generateContacts } from "./contacts";
@@ -13,6 +14,7 @@ export default (): Db => {
   const db = {} as Db;
   db.sales = generateSales(db);
   db.tags = generateTags(db);
+  db.choices = generateChoices(db);
   db.companies = generateCompanies(db);
   db.contacts = generateContacts(db);
   db.contact_notes = generateContactNotes(db);

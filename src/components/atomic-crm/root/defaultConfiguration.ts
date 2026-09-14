@@ -12,20 +12,6 @@ export const defaultCurrency = "USD";
 
 export const defaultTitle = "Vital Ô Réflex 360°";
 
-export const defaultCompanySectors = [
-  { value: "communication-services", label: "Communication Services" },
-  { value: "consumer-discretionary", label: "Consumer Discretionary" },
-  { value: "consumer-staples", label: "Consumer Staples" },
-  { value: "energy", label: "Energy" },
-  { value: "financials", label: "Financials" },
-  { value: "health-care", label: "Health Care" },
-  { value: "industrials", label: "Industrials" },
-  { value: "information-technology", label: "Information Technology" },
-  { value: "materials", label: "Materials" },
-  { value: "real-estate", label: "Real Estate" },
-  { value: "utilities", label: "Utilities" },
-];
-
 export const defaultDealStages = [
   { value: "opportunity", label: "Opportunity" },
   { value: "proposal-sent", label: "Proposal Sent" },
@@ -65,7 +51,6 @@ export const defaultTaskTypes = [
 ];
 
 export const defaultConfiguration: ConfigurationContextValue = {
-  companySectors: defaultCompanySectors,
   currency: defaultCurrency,
   dealCategories: defaultDealCategories,
   dealPipelineStatuses: defaultDealPipelineStatuses,

@@ -1,4 +1,5 @@
 import type {
+  Choice,
   Company,
   Contact,
   ContactNote,
@@ -11,6 +12,7 @@ import type {
 import type { ConfigurationContextValue } from "../../../root/ConfigurationContext";
 
 export interface Db {
+  choices: Choice[];
   companies: Company[];
   contacts: Contact[];
   contact_notes: ContactNote[];

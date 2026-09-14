@@ -26,6 +26,9 @@ export type ContactImportSchema = {
   status: string;
   tags: string;
   linkedin_url: string;
+  company_start_date: string;
+  decision_role: string;
+  relationship_status: string;
 };
 
 export function useContactImport() {
@@ -86,6 +89,9 @@ export function useContactImport() {
             company: companyName,
             tags: tagNames,
             linkedin_url,
+            company_start_date,
+            decision_role,
+            relationship_status,
           }) => {
             const email_jsonb = [
               { email: email_work, type: "Work" },
@@ -125,6 +131,9 @@ export function useContactImport() {
                 tags: tagList.map((tag) => tag.id),
                 sales_id: user?.identity?.id,
                 linkedin_url,
+                company_start_date: company_start_date || null,
+                decision_role,
+                relationship_status,
               },
             });
           },

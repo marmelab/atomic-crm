@@ -90,6 +90,10 @@ grant all on table public.sales to anon;
 grant all on table public.sales to authenticated;
 grant all on table public.sales to service_role;
 
+grant all on table public.choices to anon;
+grant all on table public.choices to authenticated;
+grant all on table public.choices to service_role;
+
 grant all on table public.tags to anon;
 grant all on table public.tags to authenticated;
 grant all on table public.tags to service_role;
@@ -151,6 +155,10 @@ grant all on sequence public.favicons_excluded_domains_id_seq to service_role;
 grant all on sequence public.sales_id_seq to anon;
 grant all on sequence public.sales_id_seq to authenticated;
 grant all on sequence public.sales_id_seq to service_role;
+
+grant all on sequence public.choices_id_seq to anon;
+grant all on sequence public.choices_id_seq to authenticated;
+grant all on sequence public.choices_id_seq to service_role;
 
 grant all on sequence public.tags_id_seq to anon;
 grant all on sequence public.tags_id_seq to authenticated;

@@ -40,7 +40,6 @@ import {
 } from "./ConfigurationContext";
 import type { CrmDataProvider } from "../providers/types";
 import {
-  defaultCompanySectors,
   defaultCurrency,
   defaultDarkModeLogo,
   defaultDealCategories,
@@ -79,7 +78,6 @@ export type CRMProps = {
  * default configurations and themes but allows for customization through props. The component
  * seeds the store with any custom prop values for backwards compatibility.
  *
- * @param {LabeledValue[]} companySectors - The list of company sectors used in the application.
  * @param {string} currency - The ISO 4217 currency code used to format monetary values (e.g. "USD", "EUR", "GBP").
  * @param {RaThemeOptions} darkTheme - The theme to use when the application is in dark mode.
  * @param {LabeledValue[]} dealCategories - The categories of deals used in the application.
@@ -115,7 +113,6 @@ export type CRMProps = {
  * export default App;
  */
 export const CRM = ({
-  companySectors = defaultCompanySectors,
   currency = defaultCurrency,
   dealCategories = defaultDealCategories,
   dealPipelineStatuses = defaultDealPipelineStatuses,
@@ -151,7 +148,6 @@ export const CRM = ({
   useEffect(() => {
     if (!store.getItem(CONFIGURATION_STORE_KEY)) {
       store.setItem(CONFIGURATION_STORE_KEY, {
-        companySectors,
         currency,
         dealCategories,
         dealPipelineStatuses,

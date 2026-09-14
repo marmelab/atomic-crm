@@ -19,11 +19,11 @@ describe("ContactShow", () => {
     mockIsMobile.mockReturnValue(true);
   });
 
-  it("renders a safe zero-task label before nb_tasks is available", async () => {
+  it("renders a safe zero-meeting label before nb_tasks is available", async () => {
     const screen = await render(<MobileSuccess />);
 
     await expect
-      .element(screen.getByRole("tab", { name: "0 tasks" }))
+      .element(screen.getByRole("tab", { name: "0 meetings" }))
       .toBeVisible();
     await expect
       .poll(

@@ -13,13 +13,21 @@ import type { Company, Contact } from "../../../types";
 import type { Db } from "./types";
 import { randomDate, weightedBoolean } from "./utils";
 
-const maxContacts = {
-  1: 1,
-  10: 4,
+const maxContacts: Record<number, number> = {
   50: 12,
-  250: 25,
+  100: 25,
+  250: 40,
   500: 50,
+  1000: 60,
 };
+
+const decisionRoles = [
+  "Décideur",
+  "Prescripteur",
+  "Utilisateur",
+  "Acheteur",
+  "Influenceur",
+];
 
 const getRandomContactDetailsType = () =>
   random.arrayElement(["Work", "Home", "Other"]) as "Work" | "Home" | "Other";
@@ -84,6 +92,16 @@ export const generateContacts = (db: Db, size = 500): Required<Contact>[] => {
       email_jsonb,
       phone_jsonb,
       background: lorem.sentence(),
+      company_start_date: randomDate(new Date(company.created_at))
+        .toISOString()
+        .split("T")[0],
+      decision_role: random.arrayElement(decisionRoles),
+      relationship_status: random.arrayElement([
+        "prospect",
+        "client",
+        "partner",
+      ] as const),
+      linked_contact_ids: [],
       acquisition: random.arrayElement(["inbound", "outbound"]),
       avatar,
       first_seen: first_seen,

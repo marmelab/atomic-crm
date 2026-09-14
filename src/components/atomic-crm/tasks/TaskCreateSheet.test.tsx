@@ -57,19 +57,18 @@ describe("TaskCreateSheet", () => {
     await screen.getByText("Grace Hopper").click();
 
     await typeInput.click();
-    const typeOptions = screen.getByRole("listbox");
-    await typeOptions.getByText("Call").click();
+    await screen.getByText("Premier contact").click();
 
-    const dueDateInput = screen.getByLabelText(/due date/i);
+    const dueDateInput = screen.getByLabelText(/date and time/i);
     await dueDateInput.clear();
     await dueDateInput.fill("2026-03-06T12:30");
 
     await screen.getByRole("button", { name: /^save$/i }).click();
 
-    await expect.element(screen.getByText("Task added")).toBeInTheDocument();
+    await expect.element(screen.getByText("Meeting added")).toBeInTheDocument();
 
     await expect
-      .element(screen.getByText("Create Task"))
+      .element(screen.getByText("Create meeting"))
       .not.toBeInTheDocument();
 
     await expect
@@ -95,7 +94,7 @@ describe("TaskCreateSheet", () => {
     expect(createdTask).toMatchObject({
       contact_id: 2,
       text: "Follow up about onboarding",
-      type: "call",
+      type: "Premier contact",
     });
     expect(tasks.data).toHaveLength(2);
 

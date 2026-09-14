@@ -13,10 +13,11 @@ export const frenchCrmMessages = {
         created_at: "Date de création",
         nb_contacts: "Nombre de contacts",
         revenue: "Chiffre d'affaires",
-        sector: "Secteur",
-        size: "Taille",
+        sector: "Secteur d'activité",
+        size: "Effectif",
+        nb_sites: "Nombre de sites",
         tax_identifier: "Identifiant fiscal",
-        address: "Adresse",
+        address: "Localisation du siège",
         city: "Ville",
         zipcode: "Code postal",
         state_abbr: "État",
@@ -51,11 +52,11 @@ export const frenchCrmMessages = {
       nb_contacts: "%{smart_count} contact |||| %{smart_count} contacts",
       nb_deals: "%{smart_count} dossier |||| %{smart_count} dossiers",
       sizes: {
-        one_employee: "1 employé",
-        two_to_nine_employees: "2-9 employés",
-        ten_to_forty_nine_employees: "10-49 employés",
-        fifty_to_two_hundred_forty_nine_employees: "50-249 employés",
-        two_hundred_fifty_or_more_employees: "250 employés ou plus",
+        fewer_than_fifty_employees: "Moins de 50 salariés",
+        fifty_to_one_hundred_employees: "50 à 100 salariés",
+        one_hundred_to_two_hundred_fifty_employees: "100 à 250 salariés",
+        two_hundred_fifty_to_five_hundred_employees: "250 à 500 salariés",
+        more_than_five_hundred_employees: "Plus de 500 salariés",
       },
       autocomplete: {
         create_error:
@@ -78,8 +79,12 @@ export const frenchCrmMessages = {
         first_name: "Prénom",
         last_name: "Nom",
         last_seen: "Dernière activité",
-        title: "Titre",
+        title: "Fonction",
         company_id: "Entreprise",
+        company_start_date: "Ancienneté dans l'entreprise",
+        decision_role: "Rôle dans la décision",
+        relationship_status: "Statut",
+        linked_contact_ids: "Contacts liés",
         email_jsonb: "Adresses e-mail",
         email: "E-mail",
         phone_jsonb: "Numéros de téléphone",
@@ -87,7 +92,7 @@ export const frenchCrmMessages = {
         linkedin_url: "URL LinkedIn",
         background: "Informations de contexte",
         has_newsletter: "Abonné à la newsletter",
-        sales_id: "Responsable de compte",
+        sales_id: "Consultant / Formateur VitalÔréflex lié",
       },
       action: {
         add: "Ajouter un contact",
@@ -105,6 +110,8 @@ export const frenchCrmMessages = {
         followed_by_you: "Suivi par vous",
         status_none: "Aucun",
       },
+      company_contacts_count:
+        "Déjà %{smart_count} contact lié à cette entreprise |||| Déjà %{smart_count} contacts liés à cette entreprise",
       position_at: "%{title} chez",
       position_at_company: "%{title} chez %{company}",
       empty: {
@@ -170,7 +177,7 @@ export const frenchCrmMessages = {
         this_week: "Cette semaine",
         today: "Aujourd'hui",
         tags: "Étiquettes",
-        tasks: "Tâches",
+        tasks: "Rendez-vous",
       },
       hot: {
         empty_change_status:
@@ -183,9 +190,15 @@ export const frenchCrmMessages = {
       name: "Dossier |||| Dossiers",
       fields: {
         name: "Nom",
+        reference: "Référence dossier",
         description: "Description",
         company_id: "Entreprise",
-        contact_ids: "Contacts",
+        contact_ids: "Contacts liés",
+        confidentiality: "Confidentialité",
+        origin: "Origine du contact",
+        objectives: "Objectifs exprimés",
+        motivation: "Motif de la démarche",
+        other_expectations: "Autres attentes exprimées",
         category: "Catégorie",
         amount: "Budget",
         expected_closing_date: "Date de clôture prévue",
@@ -305,47 +318,51 @@ export const frenchCrmMessages = {
       },
     },
     tasks: {
-      name: "Tâche |||| Tâches",
-      forcedCaseName: "Tâche",
+      name: "Rendez-vous |||| Rendez-vous",
+      forcedCaseName: "Rendez-vous",
       fields: {
         text: "Description",
-        due_date: "Date d'échéance",
-        type: "Type",
+        due_date: "Date et heure",
+        type: "Type de rendez-vous",
+        mode: "Mode de rendez-vous",
+        location: "Lieu",
+        sales_id: "Consultant / Formateur",
         contact_id: "Contact",
-        due_short: "échéance",
+        due_short: "le",
       },
       action: {
-        add: "Ajouter une tâche",
-        create: "Créer une tâche",
-        edit: "Modifier la tâche",
+        add: "Ajouter un rendez-vous",
+        create: "Créer un rendez-vous",
+        edit: "Modifier le rendez-vous",
       },
       actions: {
         postpone_next_week: "Reporté à la semaine prochaine",
         postpone_tomorrow: "Reporter à demain",
-        title: "Actions de tâche",
+        title: "Actions de rendez-vous",
       },
-      added: "Tâche ajoutée",
-      deleted: "Tâche supprimée avec succès",
+      added: "Rendez-vous ajouté",
+      deleted: "Rendez-vous supprimé avec succès",
       dialog: {
-        create: "Créer une tâche",
-        create_for: "Créer une tâche pour %{name}",
+        create: "Créer un rendez-vous",
+        create_for: "Créer un rendez-vous pour %{name}",
       },
       sheet: {
-        edit: "Modifier la tâche",
-        edit_for: "Modifier la tâche pour %{name}",
+        edit: "Modifier le rendez-vous",
+        edit_for: "Modifier le rendez-vous pour %{name}",
       },
-      empty: "Aucune tâche pour l'instant",
-      empty_list_hint: "Les tâches ajoutées à vos contacts apparaîtront ici.",
+      empty: "Aucun rendez-vous pour l'instant",
+      empty_list_hint:
+        "Les rendez-vous ajoutés à vos contacts apparaîtront ici.",
       filters: {
         later: "Plus tard",
         overdue: "En retard",
         this_week: "Cette semaine",
         today: "Aujourd'hui",
         tomorrow: "Demain",
-        with_pending: "Avec des tâches en attente",
+        with_pending: "Avec des rendez-vous en attente",
       },
       regarding_contact: "(Concernant : %{name})",
-      updated: "Tâche mise à jour",
+      updated: "Rendez-vous mis à jour",
     },
     tags: {
       name: "Étiquette |||| Étiquettes",
@@ -363,6 +380,16 @@ export const frenchCrmMessages = {
     },
   },
   crm: {
+    choices: {
+      create_error: "Une erreur s'est produite lors de la création du choix",
+      create_item: 'Ajouter "%{item}"',
+      create_label: "Commencez à taper pour ajouter un nouveau choix",
+    },
+    relationship_status: {
+      prospect: "Prospect",
+      client: "Client",
+      partner: "Partenaire",
+    },
     action: {
       reset_password: "Réinitialiser le mot de passe",
     },
@@ -397,7 +424,7 @@ export const frenchCrmMessages = {
       read_more: "En savoir plus",
       retry: "Réessayer",
       show_less: "Afficher moins",
-      task_count: "%{smart_count} tâche |||| %{smart_count} tâches",
+      task_count: "%{smart_count} rendez-vous |||| %{smart_count} rendez-vous",
       copied: "Copié !",
       copy: "Copier",
       loading: "Chargement...",
@@ -434,7 +461,7 @@ export const frenchCrmMessages = {
         progress: "%{step}/3 terminé",
         whats_next: "Et ensuite ?",
       },
-      upcoming_tasks: "Tâches à venir",
+      upcoming_tasks: "Rendez-vous à venir",
     },
     data_import: {
       button: "Importer un fichier CSV",
@@ -477,7 +504,7 @@ export const frenchCrmMessages = {
       },
       idle: {
         description_1:
-          "Vous pouvez importer des ventes, des entreprises, des contacts, des entreprises, des notes et des tâches.",
+          "Vous pouvez importer des ventes, des entreprises, des contacts, des entreprises, des notes et des rendez-vous.",
         description_2:
           "Les données doivent se trouver dans un fichier JSON correspondant à l'exemple suivant :",
       },
@@ -495,7 +522,8 @@ export const frenchCrmMessages = {
     settings: {
       about: "À propos",
       companies: {
-        sectors: "Secteurs",
+        sectors_hint:
+          "Les secteurs d'activité se gèrent directement depuis le formulaire d'une entreprise : saisissez un nouveau secteur pour l'ajouter à la liste partagée.",
       },
       dark_mode_logo: "Logo du mode sombre",
       deals: {

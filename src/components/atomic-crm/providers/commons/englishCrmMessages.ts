@@ -12,9 +12,10 @@ export const englishCrmMessages = {
         nb_contacts: "Number of contacts",
         revenue: "Revenue",
         sector: "Sector",
-        size: "Size",
+        size: "Headcount",
+        nb_sites: "Number of sites",
         tax_identifier: "Tax Identifier",
-        address: "Address",
+        address: "Headquarters location",
         city: "City",
         zipcode: "Zip code",
         state_abbr: "State",
@@ -49,11 +50,11 @@ export const englishCrmMessages = {
       nb_contacts: "%{smart_count} contact |||| %{smart_count} contacts",
       nb_deals: "%{smart_count} deal |||| %{smart_count} deals",
       sizes: {
-        one_employee: "1 employee",
-        two_to_nine_employees: "2-9 employees",
-        ten_to_forty_nine_employees: "10-49 employees",
-        fifty_to_two_hundred_forty_nine_employees: "50-249 employees",
-        two_hundred_fifty_or_more_employees: "250 or more employees",
+        fewer_than_fifty_employees: "Fewer than 50 employees",
+        fifty_to_one_hundred_employees: "50-100 employees",
+        one_hundred_to_two_hundred_fifty_employees: "100-250 employees",
+        two_hundred_fifty_to_five_hundred_employees: "250-500 employees",
+        more_than_five_hundred_employees: "More than 500 employees",
       },
       autocomplete: {
         create_error: "An error occurred while creating the company",
@@ -75,8 +76,12 @@ export const englishCrmMessages = {
         first_name: "First name",
         last_name: "Last name",
         last_seen: "Last seen",
-        title: "Title",
+        title: "Job title",
         company_id: "Company",
+        company_start_date: "With the company since",
+        decision_role: "Role in the decision",
+        relationship_status: "Status",
+        linked_contact_ids: "Linked contacts",
         email_jsonb: "Email addresses",
         email: "Email",
         phone_jsonb: "Phone numbers",
@@ -84,7 +89,7 @@ export const englishCrmMessages = {
         linkedin_url: "LinkedIn URL",
         background: "Background info (bio, how you met, etc)",
         has_newsletter: "Has newsletter",
-        sales_id: "Account manager",
+        sales_id: "Linked VitalÔréflex consultant / trainer",
       },
       action: {
         add: "Add contact",
@@ -102,6 +107,8 @@ export const englishCrmMessages = {
         followed_by_you: "Followed by you",
         status_none: "None",
       },
+      company_contacts_count:
+        "Already %{smart_count} contact linked to this company |||| Already %{smart_count} contacts linked to this company",
       position_at: "%{title} at",
       position_at_company: "%{title} at %{company}",
       empty: {
@@ -166,7 +173,7 @@ export const englishCrmMessages = {
         this_week: "This week",
         today: "Today",
         tags: "Tags",
-        tasks: "Tasks",
+        tasks: "Meetings",
       },
       hot: {
         empty_change_status:
@@ -179,9 +186,15 @@ export const englishCrmMessages = {
       name: "Deal |||| Deals",
       fields: {
         name: "Name",
+        reference: "Reference",
         description: "Description",
         company_id: "Company",
-        contact_ids: "Contacts",
+        contact_ids: "Linked contacts",
+        confidentiality: "Confidentiality",
+        origin: "Origin",
+        objectives: "Stated objectives",
+        motivation: "Reason for the request",
+        other_expectations: "Other stated expectations",
         category: "Category",
         amount: "Budget",
         expected_closing_date: "Expected closing date",
@@ -300,47 +313,50 @@ export const englishCrmMessages = {
       },
     },
     tasks: {
-      name: "Task |||| Tasks",
-      forcedCaseName: "Task",
+      name: "Meeting |||| Meetings",
+      forcedCaseName: "Meeting",
       fields: {
         text: "Description",
-        due_date: "Due date",
-        type: "Type",
+        due_date: "Date and time",
+        type: "Meeting type",
+        mode: "Meeting mode",
+        location: "Location",
+        sales_id: "Consultant / Trainer",
         contact_id: "Contact",
-        due_short: "due",
+        due_short: "on",
       },
       action: {
-        add: "Add task",
-        create: "Create task",
-        edit: "Edit task",
+        add: "Add meeting",
+        create: "Create meeting",
+        edit: "Edit meeting",
       },
       actions: {
         postpone_next_week: "Postpone to next week",
         postpone_tomorrow: "Postpone to tomorrow",
-        title: "task actions",
+        title: "meeting actions",
       },
-      added: "Task added",
-      deleted: "Task deleted successfully",
+      added: "Meeting added",
+      deleted: "Meeting deleted successfully",
       dialog: {
-        create: "Create task",
-        create_for: "Create task for %{name}",
+        create: "Create meeting",
+        create_for: "Create meeting for %{name}",
       },
       sheet: {
-        edit: "Edit task",
-        edit_for: "Edit task for %{name}",
+        edit: "Edit meeting",
+        edit_for: "Edit meeting for %{name}",
       },
-      empty: "No tasks yet",
-      empty_list_hint: "Tasks added to your contacts will appear here.",
+      empty: "No meetings yet",
+      empty_list_hint: "Meetings added to your contacts will appear here.",
       filters: {
         later: "Later",
         overdue: "Overdue",
         this_week: "This week",
         today: "Today",
         tomorrow: "Tomorrow",
-        with_pending: "With pending tasks",
+        with_pending: "With pending meetings",
       },
       regarding_contact: "(Re: %{name})",
-      updated: "Task updated",
+      updated: "Meeting updated",
     },
     tags: {
       name: "Tag |||| Tags",
@@ -358,6 +374,16 @@ export const englishCrmMessages = {
     },
   },
   crm: {
+    choices: {
+      create_error: "An error occurred while creating the option",
+      create_item: 'Add "%{item}"',
+      create_label: "Start typing to add a new option",
+    },
+    relationship_status: {
+      prospect: "Prospect",
+      client: "Client",
+      partner: "Partner",
+    },
     action: {
       reset_password: "Reset Password",
     },
@@ -396,7 +422,7 @@ export const englishCrmMessages = {
       copy: "Copy",
       loading: "Loading...",
       me: "Me",
-      task_count: "%{smart_count} task |||| %{smart_count} tasks",
+      task_count: "%{smart_count} meeting |||| %{smart_count} meetings",
     },
     changelog: {
       title: "Changelog",
@@ -428,7 +454,7 @@ export const englishCrmMessages = {
         progress: "%{step}/3 done",
         whats_next: "What's next?",
       },
-      upcoming_tasks: "Upcoming Tasks",
+      upcoming_tasks: "Upcoming Meetings",
     },
     data_import: {
       button: "Import CSV",
@@ -469,7 +495,7 @@ export const englishCrmMessages = {
       },
       idle: {
         description_1:
-          "You can import sales, companies, contacts, companies, notes, and tasks.",
+          "You can import sales, companies, contacts, companies, notes, and meetings.",
         description_2:
           "Data must be in a JSON file matching the following sample:",
       },
@@ -488,7 +514,8 @@ export const englishCrmMessages = {
     settings: {
       about: "About",
       companies: {
-        sectors: "Sectors",
+        sectors_hint:
+          "Sectors are managed from the company form: type a new sector to add it to the shared list.",
       },
       dark_mode_logo: "Dark Mode Logo",
       deals: {

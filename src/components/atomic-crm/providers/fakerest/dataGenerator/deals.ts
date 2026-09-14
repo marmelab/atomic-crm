@@ -6,6 +6,7 @@ import {
   defaultDealStages,
 } from "../../../root/defaultConfiguration";
 import type { Deal } from "../../../types";
+import { choiceLabels } from "./choices";
 import type { Db } from "./types";
 import { randomDate } from "./utils";
 
@@ -33,6 +34,19 @@ export const generateDeals = (db: Db): Deal[] => {
       company_id: company.id,
       contact_ids: contacts.map((contact) => contact.id),
       category: random.arrayElement(defaultDealCategories).value,
+      reference: `DOS-${String(id + 1).padStart(4, "0")}`,
+      confidentiality: random.arrayElement([
+        "prospect",
+        "client",
+        "partner",
+      ] as const),
+      origin: random.arrayElement(choiceLabels.deal_origin),
+      objectives: random.arrayElements(
+        choiceLabels.deal_objective,
+        datatype.number({ min: 1, max: 3 }),
+      ),
+      motivation: lorem.paragraph(),
+      other_expectations: lorem.sentence(),
       stage: random.arrayElement(defaultDealStages).value,
       description: lorem.paragraphs(datatype.number({ min: 1, max: 4 })),
       amount: datatype.number(1000) * 100,

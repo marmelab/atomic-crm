@@ -14,7 +14,6 @@ import { SelectField } from "@/components/admin/select-field";
 
 import { formatLocalizedDate } from "../misc/RelativeDate";
 import { AsideSection } from "../misc/AsideSection";
-import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Company } from "../types";
 import { getTranslatedCompanySizeLabel } from "./getTranslatedCompanySizeLabel";
 import { sizes } from "./sizes";
@@ -107,14 +106,11 @@ export const CompanyInfo = ({ record }: { record: Company }) => {
 };
 
 export const ContextInfo = ({ record }: { record: Company }) => {
-  const { companySectors } = useConfigurationContext();
   const translate = useTranslate();
   if (!record.revenue && !record.id) {
     return null;
   }
 
-  const sector = companySectors.find((s) => s.value === record.sector);
-  const sectorLabel = sector?.label;
   const translatedSizes = sizes.map((size) => ({
     ...size,
     name: getTranslatedCompanySizeLabel(size, translate),
@@ -124,15 +120,21 @@ export const ContextInfo = ({ record }: { record: Company }) => {
     <AsideSection
       title={translate("resources.companies.field_categories.context")}
     >
-      {sectorLabel && (
+      {record.sector && (
         <span>
-          {translate("resources.companies.fields.sector")}: {sectorLabel}
+          {translate("resources.companies.fields.sector")}: {record.sector}
         </span>
       )}
       {record.size && (
         <span>
           {translate("resources.companies.fields.size")}:{" "}
           <SelectField source="size" choices={translatedSizes} />
+        </span>
+      )}
+      {record.nb_sites != null && (
+        <span>
+          {translate("resources.companies.fields.nb_sites")}:{" "}
+          <TextField source="nb_sites" />
         </span>
       )}
       {record.revenue && (

@@ -9,11 +9,11 @@ import {
 } from "faker/locale/en_US";
 
 import { randomDate } from "./utils";
-import { defaultCompanySectors } from "../../../root/defaultConfiguration";
-import type { Company, RAFile } from "../../../types";
+import { choiceLabels } from "./choices";
+import type { Company, CompanySize, RAFile } from "../../../types";
 import type { Db } from "./types";
 
-const sizes = [1, 10, 50, 250, 500];
+const sizes = [50, 100, 250, 500, 1000];
 
 const regex = /\W+/;
 
@@ -27,8 +27,9 @@ export const generateCompanies = (db: Db, size = 55): Required<Company>[] => {
         title: lorem.text(1),
         src: `https://marmelab.com/react-admin-crm/logos/${id}.png`,
       } as RAFile,
-      sector: random.arrayElement(defaultCompanySectors).value,
-      size: random.arrayElement(sizes) as 1 | 10 | 50 | 250 | 500,
+      sector: random.arrayElement(choiceLabels.company_sector),
+      size: random.arrayElement(sizes) as CompanySize,
+      nb_sites: datatype.number({ min: 1, max: 12 }),
       linkedin_url: `https://www.linkedin.com/company/${name
         .toLowerCase()
         .replace(regex, "_")}`,
