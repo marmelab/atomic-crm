@@ -95,6 +95,11 @@ export const defaultTaskTypes = [
   // cancellation, so it never silently strands — see
   // sales-calls/salesCallCancelledTask.ts.
   { value: "sales_call_cancelled", label: "Sales Call Cancelled" },
+  // Go-Live Blocker: Sales-Call No-Show/Rebooking slice — the no-show
+  // mirror of sales_call_cancelled directly above: surfaces an Opportunity
+  // left at Call Booked whose latest call concluded as a no-show, so it
+  // never silently strands either — see sales-calls/salesCallNoShowTask.ts.
+  { value: "sales_call_no_show", label: "Sales Call No-Show" },
   // Client + Session Operations cadence correction: surfaces an active
   // Enrollment's expected 1:1 week (from Leif's real Year Planning
   // calendar) that closed with no fulfilling session — see

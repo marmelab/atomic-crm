@@ -648,7 +648,14 @@ create table public.sales_calls (
     dismissal_reason text,
     created_at timestamp with time zone not null default now(),
     updated_at timestamp with time zone not null default now(),
-    constraint sales_calls_status_check check (status in ('booked', 'cancelled')),
+    -- 'completed' added (Go-Live Blocker: Sales-Call No-Show/Rebooking
+    -- slice): a concluded call (attendance recorded, attended or no_show)
+    -- must leave 'booked' — sales_calls_one_booked_per_opportunity_idx
+    -- below is a PARTIAL unique index on (opportunity_id) WHERE status =
+    -- 'booked', so a concluded call that never transitions away from
+    -- 'booked' silently blocks a genuine rebooking's fresh INSERT with a
+    -- unique-violation. See completeSalesCallOutcome.ts's own comment.
+    constraint sales_calls_status_check check (status in ('booked', 'completed', 'cancelled')),
     constraint sales_calls_attendance_check check (attendance in ('attended', 'no_show')),
     constraint sales_calls_source_check check (source in ('acuity', 'manual'))
 );

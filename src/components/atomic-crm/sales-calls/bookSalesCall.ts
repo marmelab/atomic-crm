@@ -6,6 +6,7 @@ import {
   updateSalesCallTaskDueDate,
 } from "./salesCallTask";
 import { completeSalesCallCancelledTask } from "./salesCallCancelledTask";
+import { completeSalesCallNoShowTask } from "./salesCallNoShowTask";
 import { ensureResolveSalesCallTask } from "./resolveSalesCallTask";
 import { resolveDefaultTaskSalesId } from "./resolveDefaultTaskSalesId";
 
@@ -132,6 +133,12 @@ export const bookSalesCall = async (
     // acceptance repair pass; see cancelSalesCall.ts). A safe no-op when
     // no such task is pending.
     await completeSalesCallCancelledTask(dataProvider, input.contactId, now);
+    // Same resolution for a no-show's own "decide next steps" task
+    // (Go-Live Blocker: Sales-Call No-Show/Rebooking slice) — a fresh
+    // booking IS the rescheduling decision, so the task that asked "does
+    // this person want to reschedule?" is answered. A safe no-op when no
+    // such task is pending.
+    await completeSalesCallNoShowTask(dataProvider, input.contactId, now);
   } else {
     await ensureResolveSalesCallTask(dataProvider, {
       contactId: input.contactId,

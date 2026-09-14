@@ -1,11 +1,12 @@
 import { Draggable } from "@hello-pangea/dnd";
-import { useRedirect, RecordContextProvider } from "ra-core";
+import { useGetList, useRedirect, RecordContextProvider } from "ra-core";
 import { ReferenceField } from "@/components/admin/reference-field";
 import { NumberField } from "@/components/admin/number-field";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 
 import { useConfigurationContext } from "../root/ConfigurationContext";
-import type { Deal } from "../types";
+import type { Deal, SalesCall } from "../types";
 
 export const DealCard = ({ deal, index }: { deal: Deal; index: number }) => {
   if (!deal) return null;
@@ -61,6 +62,9 @@ export const DealCardContent = ({
                   link={false}
                 />
               </p>
+              {deal.stage === "call_booked" && (
+                <SalesCallNoShowBadge opportunityId={deal.id} />
+              )}
             </div>
             <p className="text-xs text-muted-foreground mt-1 truncate">
               {/* What they're applying for, alongside the value (Native
@@ -95,5 +99,31 @@ export const DealCardContent = ({
         </Card>
       </RecordContextProvider>
     </div>
+  );
+};
+
+// Go-Live Blocker: Sales-Call No-Show/Rebooking slice — the smallest
+// useful Kanban-visibility fix: a Call Booked card whose latest Sales
+// Call concluded as a no-show looked identical to one with a genuinely
+// upcoming call, so a stranded Opportunity was invisible without opening
+// it. Sorted by id DESC (same convention as DealSalesCallSection.tsx) so
+// a fresh rebooking's new row — attendance null — naturally wins over the
+// old concluded one and the badge correctly disappears; no separate
+// "is there a newer booking" check needed.
+const SalesCallNoShowBadge = ({
+  opportunityId,
+}: {
+  opportunityId: Deal["id"];
+}) => {
+  const { data: salesCalls } = useGetList<SalesCall>("sales_calls", {
+    filter: { opportunity_id: opportunityId },
+    pagination: { page: 1, perPage: 1 },
+    sort: { field: "id", order: "DESC" },
+  });
+  if (salesCalls?.[0]?.attendance !== "no_show") return null;
+  return (
+    <Badge variant="destructive" className="shrink-0">
+      No-show
+    </Badge>
   );
 };

@@ -125,6 +125,15 @@ describe("completeSalesCallOutcome", () => {
       sort: { field: "id", order: "ASC" },
     });
     expect(followUpCount).toBe(0);
+
+    // Go-Live Blocker: Sales-Call No-Show/Rebooking slice — an attended
+    // call concludes exactly the same as a no-show for sales_calls.status
+    // (see that slice's migration/comment); only attendance differs.
+    const { data: salesCall } = await dataProvider.getOne<SalesCall>(
+      "sales_calls",
+      { id: SALES_CALL_ID },
+    );
+    expect(salesCall.status).toBe("completed");
   });
 
   it("Attended + Would Work With + Thinking (default): defaults the follow-up to +4 days and moves the Opportunity to Decision", async () => {
@@ -271,7 +280,7 @@ describe("completeSalesCallOutcome", () => {
     expect(salesCall.attendance).toBe("attended");
   });
 
-  it("No-show: records attendance and completes the task, without touching owner/prospect decision or stage", async () => {
+  it("No-show: records attendance, completes the task, creates exactly one no-show follow-up Task, and never changes the Opportunity to Lost/Nurture/Committed/etc.", async () => {
     const { dataProvider } = buildFixtures();
 
     const result = await completeSalesCallOutcome({
@@ -285,6 +294,10 @@ describe("completeSalesCallOutcome", () => {
     const { data: deal } = await dataProvider.getOne<Deal>("deals", {
       id: DEAL_ID,
     });
+    // Go-Live Blocker: Sales-Call No-Show/Rebooking slice — the stage/
+    // outcome/owner_decision restraint is unchanged (still nobody's
+    // decision to guess); this is exactly the "do NOT auto-mark
+    // Lost/Nurture/Not Fit/Do Not Engage" requirement.
     expect(deal.stage).toBe("call_booked");
     expect(deal.owner_decision).toBeNull();
     expect(deal.outcome).toBeNull();
@@ -299,6 +312,48 @@ describe("completeSalesCallOutcome", () => {
       { id: SALES_CALL_ID },
     );
     expect(salesCall.attendance).toBe("no_show");
+    // Go-Live Blocker fix: a concluded call must leave 'booked' — see
+    // sales_calls_one_booked_per_opportunity_idx's own comment in
+    // 01_tables.sql for why (blocks/corrupts a genuine rebooking otherwise).
+    expect(salesCall.status).toBe("completed");
+
+    // Go-Live Blocker fix: exactly one unresolved "decide next steps"
+    // follow-up Task exists — the re-surfaced human decision.
+    const { data: allTasks } = await dataProvider.getList<Task>("tasks", {
+      filter: { contact_id: CONTACT_ID, type: "sales_call_no_show" },
+      pagination: { page: 1, perPage: 10 },
+      sort: { field: "id", order: "ASC" },
+    });
+    expect(allTasks).toHaveLength(1);
+    expect(allTasks[0].status).toBe("pending");
+    expect(allTasks[0].text).toBe(
+      "Ada Lovelace's sales call was a no-show — decide next steps",
+    );
+  });
+
+  it("No-show is idempotent: re-completing an already-recorded no-show never creates a second follow-up Task", async () => {
+    const { dataProvider } = buildFixtures();
+
+    await completeSalesCallOutcome({
+      dataProvider,
+      salesCallId: SALES_CALL_ID,
+      contactName: "Ada Lovelace",
+      attendance: "no_show",
+    });
+    const second = await completeSalesCallOutcome({
+      dataProvider,
+      salesCallId: SALES_CALL_ID,
+      contactName: "Ada Lovelace",
+      attendance: "no_show",
+    });
+    expect(second.status).toBe("already-completed");
+
+    const { data: allTasks } = await dataProvider.getList<Task>("tasks", {
+      filter: { contact_id: CONTACT_ID, type: "sales_call_no_show" },
+      pagination: { page: 1, perPage: 10 },
+      sort: { field: "id", order: "ASC" },
+    });
+    expect(allTasks).toHaveLength(1);
   });
 
   it("is idempotent: completing an already-completed call is a safe no-op, never a second write", async () => {

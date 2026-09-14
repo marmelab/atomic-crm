@@ -4,6 +4,7 @@ import { createDataProvider } from "../providers/fakerest/dataProvider";
 import { createCrmDb, buildContact } from "@/test/StoryWrapper";
 import type { Deal, Offer, SalesCall, Task } from "../types";
 import { bookSalesCall } from "./bookSalesCall";
+import { completeSalesCallOutcome } from "./completeSalesCallOutcome";
 
 const CONTACT_ID = 1;
 const OFFER_ID = 1;
@@ -216,5 +217,181 @@ describe("bookSalesCall", () => {
       id: DEAL_ID,
     });
     expect(updatedDeal.sales_call_at).toBe("2026-09-12T15:00:00.000Z");
+  });
+
+  // Go-Live Blocker: Sales-Call No-Show/Rebooking slice.
+  describe("rebooking after a concluded call", () => {
+    it("a genuine rebooking after a no-show creates a FRESH Sales Call row, preserves the concluded no-show row as history, and the new row has attendance null", async () => {
+      const { dataProvider, deal } = buildFixtures({ stage: "call_booked" });
+
+      const first = await bookSalesCall({
+        dataProvider,
+        contactId: CONTACT_ID,
+        contactName: "Ada Lovelace",
+        opportunityId: deal.id,
+        scheduledAt: "2026-09-10T15:00:00.000Z",
+        source: "acuity",
+        acuityAppointmentId: "acuity-original",
+        acuityAppointmentTypeId: "12345",
+      });
+      expect(first.status).toBe("booked");
+      const originalSalesCallId = (first as { salesCall: SalesCall }).salesCall
+        .id;
+
+      await completeSalesCallOutcome({
+        dataProvider,
+        salesCallId: originalSalesCallId,
+        contactName: "Ada Lovelace",
+        attendance: "no_show",
+      });
+
+      const rebooking = await bookSalesCall({
+        dataProvider,
+        contactId: CONTACT_ID,
+        contactName: "Ada Lovelace",
+        opportunityId: deal.id,
+        scheduledAt: "2026-09-20T15:00:00.000Z",
+        source: "acuity",
+        acuityAppointmentId: "acuity-rebooked",
+        acuityAppointmentTypeId: "12345",
+      });
+      // Not "reused-existing-booking" — a genuinely new row.
+      expect(rebooking.status).toBe("booked");
+      const rebookedSalesCall = (rebooking as { salesCall: SalesCall })
+        .salesCall;
+      expect(rebookedSalesCall.id).not.toBe(originalSalesCallId);
+      expect(rebookedSalesCall.attendance).toBeFalsy();
+      expect(rebookedSalesCall.status).toBe("booked");
+
+      // The concluded no-show row is untouched, permanent history.
+      const { data: originalSalesCall } = await dataProvider.getOne<SalesCall>(
+        "sales_calls",
+        { id: originalSalesCallId },
+      );
+      expect(originalSalesCall.attendance).toBe("no_show");
+      expect(originalSalesCall.status).toBe("completed");
+      expect(originalSalesCall.scheduled_at).toBe("2026-09-10T15:00:00.000Z");
+
+      const { total: salesCallCount } = await dataProvider.getList(
+        "sales_calls",
+        {
+          filter: { opportunity_id: DEAL_ID },
+          pagination: { page: 1, perPage: 10 },
+          sort: { field: "id", order: "ASC" },
+        },
+      );
+      expect(salesCallCount).toBe(2);
+
+      // The new call's outcome can be recorded normally — no
+      // "already-completed" false positive from the stale old row.
+      const outcome = await completeSalesCallOutcome({
+        dataProvider,
+        salesCallId: rebookedSalesCall.id,
+        contactName: "Ada Lovelace",
+        attendance: "attended",
+        ownerDecision: "would_work_with",
+        prospectDecision: "yes",
+      });
+      expect(outcome.status).toBe("completed");
+
+      const { data: updatedDeal } = await dataProvider.getOne<Deal>("deals", {
+        id: DEAL_ID,
+      });
+      expect(updatedDeal.stage).toBe("committed");
+    });
+
+    it("a rebooking auto-resolves the outstanding no-show follow-up Task", async () => {
+      const { dataProvider, deal } = buildFixtures({ stage: "call_booked" });
+
+      const first = await bookSalesCall({
+        dataProvider,
+        contactId: CONTACT_ID,
+        contactName: "Ada Lovelace",
+        opportunityId: deal.id,
+        scheduledAt: "2026-09-10T15:00:00.000Z",
+        source: "acuity",
+        acuityAppointmentId: "acuity-original-2",
+        acuityAppointmentTypeId: "12345",
+      });
+      const originalSalesCallId = (first as { salesCall: SalesCall }).salesCall
+        .id;
+      await completeSalesCallOutcome({
+        dataProvider,
+        salesCallId: originalSalesCallId,
+        contactName: "Ada Lovelace",
+        attendance: "no_show",
+      });
+
+      const { data: pendingBefore } = await dataProvider.getList<Task>(
+        "tasks",
+        {
+          filter: { contact_id: CONTACT_ID, type: "sales_call_no_show" },
+          pagination: { page: 1, perPage: 10 },
+          sort: { field: "id", order: "ASC" },
+        },
+      );
+      expect(pendingBefore).toHaveLength(1);
+      expect(pendingBefore[0].status).toBe("pending");
+
+      await bookSalesCall({
+        dataProvider,
+        contactId: CONTACT_ID,
+        contactName: "Ada Lovelace",
+        opportunityId: deal.id,
+        scheduledAt: "2026-09-20T15:00:00.000Z",
+        source: "acuity",
+        acuityAppointmentId: "acuity-rebooked-2",
+        acuityAppointmentTypeId: "12345",
+      });
+
+      const { data: afterRebooking } = await dataProvider.getList<Task>(
+        "tasks",
+        {
+          filter: { contact_id: CONTACT_ID, type: "sales_call_no_show" },
+          pagination: { page: 1, perPage: 10 },
+          sort: { field: "id", order: "ASC" },
+        },
+      );
+      expect(afterRebooking).toHaveLength(1);
+      expect(afterRebooking[0].status).toBe("completed");
+    });
+
+    it("does not create duplicate no-show follow-up Tasks across repeated processing", async () => {
+      const { dataProvider, deal } = buildFixtures({ stage: "call_booked" });
+
+      const first = await bookSalesCall({
+        dataProvider,
+        contactId: CONTACT_ID,
+        contactName: "Ada Lovelace",
+        opportunityId: deal.id,
+        scheduledAt: "2026-09-10T15:00:00.000Z",
+        source: "acuity",
+        acuityAppointmentId: "acuity-original-3",
+        acuityAppointmentTypeId: "12345",
+      });
+      const salesCallId = (first as { salesCall: SalesCall }).salesCall.id;
+
+      await completeSalesCallOutcome({
+        dataProvider,
+        salesCallId,
+        contactName: "Ada Lovelace",
+        attendance: "no_show",
+      });
+      // A duplicate/retried outcome-recording call — idempotent no-op per
+      // completeSalesCallOutcome.ts's own "already-completed" guard.
+      await completeSalesCallOutcome({
+        dataProvider,
+        salesCallId,
+        contactName: "Ada Lovelace",
+        attendance: "no_show",
+      });
+
+      const { data: tasks } = await dataProvider.getList<Task>("tasks", {
+        filter: { contact_id: CONTACT_ID, type: "sales_call_no_show" },
+        pagination: { page: 1, perPage: 10 },
+        sort: { field: "id", order: "ASC" },
+      });
+      expect(tasks).toHaveLength(1);
+    });
   });
 });

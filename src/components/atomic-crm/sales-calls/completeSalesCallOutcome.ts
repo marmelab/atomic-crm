@@ -17,6 +17,7 @@ import { completeSalesCallTask } from "./salesCallTask";
 import { ensureFollowUpTask } from "./followUpTask";
 import { resolveDefaultTaskSalesId } from "./resolveDefaultTaskSalesId";
 import { ensureOfferPageToken } from "../deals/offerPageToken";
+import { ensureSalesCallNoShowTask } from "./salesCallNoShowTask";
 
 export type CompleteSalesCallOutcomeInput = {
   dataProvider: DataProvider;
@@ -86,7 +87,21 @@ export const completeSalesCallOutcome = async (
   const now = new Date().toISOString();
   await dataProvider.update<SalesCall>("sales_calls", {
     id: salesCall.id,
-    data: { attendance: input.attendance, attendance_recorded_at: now },
+    // Go-Live Blocker: Sales-Call No-Show/Rebooking slice — status also
+    // leaves 'booked' the instant an outcome is recorded (attended or
+    // no-show), never just before. sales_calls_one_booked_per_opportunity_idx
+    // is a partial unique index on (opportunity_id) WHERE status='booked';
+    // leaving a concluded call at 'booked' forever either silently
+    // corrupts a genuine rebooking (bookSalesCall.ts's own "existing
+    // booked call" matching reuses/retargets THIS row instead of creating
+    // a fresh one, leaving attendance permanently stuck) or blocks the
+    // fresh row's INSERT outright with a unique-violation. See migration
+    // 20260914165113.
+    data: {
+      attendance: input.attendance,
+      attendance_recorded_at: now,
+      status: "completed",
+    },
     previousData: salesCall,
   });
   await dataProvider.create("sales_call_events", {
@@ -107,7 +122,16 @@ export const completeSalesCallOutcome = async (
   if (input.attendance === "no_show") {
     // Explicitly no further Opportunity write: a no-show is not a
     // decision about fit or interest, and this slice does not auto-guess
-    // what happens next (rebooking is a human call).
+    // what happens next (rebooking is a human call). What DOES change here
+    // (Go-Live Blocker: Sales-Call No-Show/Rebooking slice): a task now
+    // re-surfaces that decision, mirroring cancelSalesCall.ts's own
+    // "no active call + still Call Booked must always mean a visible task"
+    // invariant — a no-show is exactly that same stranding risk.
+    await ensureSalesCallNoShowTask(dataProvider, {
+      contactId: salesCall.contact_id,
+      contactName: input.contactName,
+      salesId: await resolveDefaultTaskSalesId(dataProvider),
+    });
     return { status: "completed" };
   }
 

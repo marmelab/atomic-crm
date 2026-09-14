@@ -457,7 +457,7 @@ export type WaitlistEntry = {
 // recorded, with occurred_at and whatever old/new values are relevant) are
 // preserved separately in SalesCallEvent — this row is only ever the
 // current/summary state, never the history itself.
-export type SalesCallStatus = "booked" | "cancelled";
+export type SalesCallStatus = "booked" | "completed" | "cancelled";
 export type SalesCallAttendance = "attended" | "no_show";
 export type SalesCallSource = "acuity" | "manual";
 
