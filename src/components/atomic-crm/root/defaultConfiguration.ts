@@ -10,7 +10,7 @@ export const defaultLightModeLogo = lightModeLogo;
 
 export const defaultCurrency = "USD";
 
-export const defaultTitle = "Atomic CRM";
+export const defaultTitle = "Vital Ô Réflex 360°";
 
 export const defaultCompanySectors = [
   { value: "communication-services", label: "Communication Services" },
