@@ -10,18 +10,50 @@ import {
 } from "./PublicApplicationForm";
 import { NotFoundNotice } from "./NotFoundNotice";
 
+// Real Growing Yourself Up Application copy (Real LE + GYU Application
+// Forms slice, Phase 4; corrected in human-acceptance round 1). Wording is
+// Leif's own; round 1 corrected "your facing" -> "you're facing" and "with
+// program with Leif" -> "this program with Leif", and asked for "now" to
+// render in italics within Question 2's otherwise-unchanged text (plain
+// <em>, not raw HTML — see PublicApplicationForm.tsx's ApplicationQuestion
+// type). Keys are prefixed gyu_ so they can never collide with a Living
+// Example key (Phase 6: "no collisions between offer question sets") and
+// stay stable across round 1's wording corrections — no unnecessary
+// answer-key churn.
 const QUESTIONS: ApplicationQuestion[] = [
   {
-    key: "why_this_cohort",
-    label: "Why this cohort?",
+    key: "gyu_biggest_challenge",
+    label:
+      "What's the biggest challenge you're facing in your personal growth and healing?",
     required: true,
-    placeholder: "What made you want to apply for this cohort?",
   },
   {
-    key: "availability",
-    label: "Availability",
-    required: false,
-    placeholder: "Anything about your schedule we should know?",
+    key: "gyu_why_now",
+    label: (
+      <>
+        Why are you ready for support and change <em>now</em>?
+      </>
+    ),
+    required: true,
+  },
+  {
+    key: "gyu_hoped_outcome",
+    label:
+      "What are you hoping this program with Leif helps you create in your life and relationships?",
+    required: true,
+  },
+  {
+    // Final human-acceptance tweak: the same treatment as LE's
+    // le_commitment_scale — no `inputType: "short"`, so this renders as
+    // the standard Textarea rather than a single-line field. Leif doesn't
+    // want either commitment-scale question to read as numeric-only;
+    // applicants may answer "8 — I'm ready, but finances are the
+    // concern." and need room for that context. Question wording and key
+    // are unchanged.
+    key: "gyu_commitment_scale",
+    label:
+      "On a scale from 1–10, how ready are you to make a time, financial, and personal commitment to the change you want?",
+    required: true,
   },
 ];
 
@@ -83,8 +115,16 @@ export const GrowingYourselfUpApplicationPage = ({
 
   return (
     <PublicApplicationLayout
-      title={`${context.offerName} — ${context.cohortName}`}
-      orientation="A few questions to get to know you and your fit for this cohort."
+      title="Growing Yourself Up Application"
+      orientation={
+        <>
+          Take your time and answer as honestly as you can.
+          <br />
+          This helps me get a sense of where you’re looking for support and if
+          Growing Yourself Up is the right fit!
+        </>
+      }
+      cover
     >
       <PublicApplicationForm
         questions={QUESTIONS}
@@ -95,7 +135,9 @@ export const GrowingYourselfUpApplicationPage = ({
             firstName: values.firstName,
             lastName: values.lastName,
             email: values.email,
-            phone: values.phone || null,
+            // Round 1: phone removed entirely — see LivingExampleApplicationPage.tsx's
+            // identical comment for why this needs no backend change.
+            phone: null,
             answers: values.answers,
           });
           if (result.status === "submitted") return { ok: true };

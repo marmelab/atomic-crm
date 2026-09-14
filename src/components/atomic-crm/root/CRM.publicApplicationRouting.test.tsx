@@ -33,6 +33,13 @@ import type {
 // session to confirm the submitted Contact/Application/Opportunity/Task
 // are visible through the CRM's own resource list — the exact chain a
 // human tester follows.
+//
+// Real LE + GYU Application Forms slice: updated for the real
+// questionnaire content (LivingExampleApplicationPage.tsx /
+// GrowingYourselfUpApplicationPage.tsx) — every question in both real
+// sets is now required, so every test below fills all of them, not just
+// one placeholder question. Field labels/button copy also changed
+// ("First name" -> "First Name", "Submit application" -> "Submit").
 const unauthenticatedProvider: AuthProvider = {
   checkAuth: async () => {
     throw new Error("not authenticated");
@@ -157,6 +164,44 @@ const renderAdminRoute = (
     </MemoryRouter>,
   );
 
+// Every real LE question is required (Real LE + GYU Application Forms
+// slice, Phase 3) — fills all five so validation passes.
+const fillLivingExampleQuestions = async (
+  screen: Awaited<ReturnType<typeof renderPublicRoute>>,
+  filler: string,
+) => {
+  await screen
+    .getByLabelText(/^What's the main pattern/)
+    .fill(`${filler} — main pattern.`);
+  await screen
+    .getByLabelText(/^What have you already tried/)
+    .fill(`${filler} — prior attempts.`);
+  await screen
+    .getByLabelText(/^How are you hoping to change/)
+    .fill(`${filler} — hoped change.`);
+  await screen
+    .getByLabelText(/^How are you hoping I will support/)
+    .fill(`${filler} — hoped support.`);
+  await screen.getByLabelText(/^On a scale of 1–10/).fill("8");
+};
+
+// Every real GYU question is required too (Phase 4).
+const fillGrowingYourselfUpQuestions = async (
+  screen: Awaited<ReturnType<typeof renderPublicRoute>>,
+  filler: string,
+) => {
+  await screen
+    .getByLabelText(/^What's the biggest challenge/)
+    .fill(`${filler} — biggest challenge.`);
+  await screen
+    .getByLabelText(/^Why are you ready/)
+    .fill(`${filler} — why now.`);
+  await screen
+    .getByLabelText(/^What are you hoping this program/)
+    .fill(`${filler} — hoped outcome.`);
+  await screen.getByLabelText(/^On a scale from 1–10/).fill("8");
+};
+
 describe("Public /apply routes — unauthenticated access + shared demo state", () => {
   it("Living Example: renders with no login redirect, and the submitted Contact/Application/Opportunity/Task are visible through the SAME dataProvider the CRM itself reads", async () => {
     await page.viewport(1280, 900);
@@ -170,16 +215,14 @@ describe("Public /apply routes — unauthenticated access + shared demo state", 
     // authProvider's checkAuth always throws, yet the form renders instead
     // of a login page.
     await expect
-      .element(screen.getByLabelText("First name"))
+      .element(screen.getByLabelText(/^First Name/))
       .toBeInTheDocument();
 
-    await screen.getByLabelText("First name").fill("Natasha");
-    await screen.getByLabelText("Last name").fill("Repair");
-    await screen.getByLabelText("Email").fill("natasha.repair@example.com");
-    await screen
-      .getByLabelText("Why this program?")
-      .fill("Testing the acceptance repair.");
-    await screen.getByRole("button", { name: "Submit application" }).click();
+    await screen.getByLabelText(/^First Name/).fill("Natasha");
+    await screen.getByLabelText(/^Last Name/).fill("Repair");
+    await screen.getByLabelText(/^Email/).fill("natasha.repair@example.com");
+    await fillLivingExampleQuestions(screen, "Testing the acceptance repair");
+    await screen.getByRole("button", { name: "Submit" }).click();
 
     await expect
       .element(screen.getByText("Application received"))
@@ -215,6 +258,16 @@ describe("Public /apply routes — unauthenticated access + shared demo state", 
     expect(applications[0].opportunity_id).toBe(deals[0].id);
     expect(applications[0].status).toBe("pending");
     expect(applications[0].submitted_at).toBeTruthy();
+    // All five real LE keys landed in raw_answers, not a single placeholder.
+    expect(Object.keys(applications[0].raw_answers).sort()).toEqual(
+      [
+        "le_main_pattern",
+        "le_prior_attempts",
+        "le_hoped_change",
+        "le_hoped_support",
+        "le_commitment_scale",
+      ].sort(),
+    );
 
     const { data: tasks } = await dataProvider.getList<Task>("tasks", {
       filter: { type: "review_application" },
@@ -244,16 +297,17 @@ describe("Public /apply routes — unauthenticated access + shared demo state", 
     );
 
     await expect
-      .element(screen.getByLabelText("First name"))
+      .element(screen.getByLabelText(/^First Name/))
       .toBeInTheDocument();
 
-    await screen.getByLabelText("First name").fill("Tycho");
-    await screen.getByLabelText("Last name").fill("Repair");
-    await screen.getByLabelText("Email").fill("tycho.repair@example.com");
-    await screen
-      .getByLabelText("Why this cohort?")
-      .fill("Testing the acceptance repair.");
-    await screen.getByRole("button", { name: "Submit application" }).click();
+    await screen.getByLabelText(/^First Name/).fill("Tycho");
+    await screen.getByLabelText(/^Last Name/).fill("Repair");
+    await screen.getByLabelText(/^Email/).fill("tycho.repair@example.com");
+    await fillGrowingYourselfUpQuestions(
+      screen,
+      "Testing the acceptance repair",
+    );
+    await screen.getByRole("button", { name: "Submit" }).click();
 
     await expect
       .element(screen.getByText("Application received"))
@@ -266,6 +320,26 @@ describe("Public /apply routes — unauthenticated access + shared demo state", 
     expect(deals).toHaveLength(1);
     expect(deals[0].offer_id).toBe(gyuOffer.id);
     expect(deals[0].cohort_id).toBe(septemberCohort.id);
+
+    const { data: applications } = await dataProvider.getList<Application>(
+      "applications",
+      {
+        pagination: { page: 1, perPage: 10 },
+        sort: { field: "id", order: "ASC" },
+      },
+    );
+    expect(applications).toHaveLength(1);
+    // All four real GYU keys landed in raw_answers — and none of the LE
+    // keys, proving the two question sets never cross-contaminate
+    // (Phase 6: "no collisions between offer question sets").
+    expect(Object.keys(applications[0].raw_answers).sort()).toEqual(
+      [
+        "gyu_biggest_challenge",
+        "gyu_why_now",
+        "gyu_hoped_outcome",
+        "gyu_commitment_scale",
+      ].sort(),
+    );
 
     const adminScreen = await renderAdminRoute(dataProvider, "/applications");
     await expect
@@ -305,13 +379,14 @@ describe("Public /apply routes — unauthenticated access + shared demo state", 
       "/apply/living-example",
     );
 
-    await screen.getByLabelText("First name").fill("Lau");
-    await screen.getByLabelText("Last name").fill("Repair");
-    await screen.getByLabelText("Email").fill("lau.repair@example.com");
-    await screen
-      .getByLabelText("Why this program?")
-      .fill("Reproducing the missing Dashboard task.");
-    await screen.getByRole("button", { name: "Submit application" }).click();
+    await screen.getByLabelText(/^First Name/).fill("Lau");
+    await screen.getByLabelText(/^Last Name/).fill("Repair");
+    await screen.getByLabelText(/^Email/).fill("lau.repair@example.com");
+    await fillLivingExampleQuestions(
+      screen,
+      "Reproducing the missing Dashboard task",
+    );
+    await screen.getByRole("button", { name: "Submit" }).click();
     await expect
       .element(screen.getByText("Application received"))
       .toBeInTheDocument();
@@ -346,13 +421,14 @@ describe("Public /apply routes — unauthenticated access + shared demo state", 
       "/apply/growing-yourself-up/1",
     );
 
-    await screen.getByLabelText("First name").fill("Sable");
-    await screen.getByLabelText("Last name").fill("Repair");
-    await screen.getByLabelText("Email").fill("sable.repair@example.com");
-    await screen
-      .getByLabelText("Why this cohort?")
-      .fill("Reproducing the missing Dashboard task for GYU.");
-    await screen.getByRole("button", { name: "Submit application" }).click();
+    await screen.getByLabelText(/^First Name/).fill("Sable");
+    await screen.getByLabelText(/^Last Name/).fill("Repair");
+    await screen.getByLabelText(/^Email/).fill("sable.repair@example.com");
+    await fillGrowingYourselfUpQuestions(
+      screen,
+      "Reproducing the missing Dashboard task for GYU",
+    );
+    await screen.getByRole("button", { name: "Submit" }).click();
     await expect
       .element(screen.getByText("Application received"))
       .toBeInTheDocument();
@@ -381,13 +457,11 @@ describe("Public /apply routes — unauthenticated access + shared demo state", 
       "/apply/living-example",
     );
 
-    await screen.getByLabelText("First name").fill("Dana");
-    await screen.getByLabelText("Last name").fill("Existing");
-    await screen.getByLabelText("Email").fill("dana.existing@example.com");
-    await screen
-      .getByLabelText("Why this program?")
-      .fill("Testing DNE auto-resolve.");
-    await screen.getByRole("button", { name: "Submit application" }).click();
+    await screen.getByLabelText(/^First Name/).fill("Dana");
+    await screen.getByLabelText(/^Last Name/).fill("Existing");
+    await screen.getByLabelText(/^Email/).fill("dana.existing@example.com");
+    await fillLivingExampleQuestions(screen, "Testing DNE auto-resolve");
+    await screen.getByRole("button", { name: "Submit" }).click();
 
     // Identical applicant-facing copy — no hint anything is different.
     await expect
@@ -427,16 +501,15 @@ describe("Public /apply routes — unauthenticated access + shared demo state", 
       "/apply/living-example",
     );
 
-    await screen.getByLabelText("First name").fill("Double");
-    await screen.getByLabelText("Last name").fill("Click");
-    await screen.getByLabelText("Email").fill("double.click@example.com");
-    await screen
-      .getByLabelText("Why this program?")
-      .fill("Testing duplicate-submit protection.");
+    await screen.getByLabelText(/^First Name/).fill("Double");
+    await screen.getByLabelText(/^Last Name/).fill("Click");
+    await screen.getByLabelText(/^Email/).fill("double.click@example.com");
+    await fillLivingExampleQuestions(
+      screen,
+      "Testing duplicate-submit protection",
+    );
 
-    const submitButton = screen.getByRole("button", {
-      name: "Submit application",
-    });
+    const submitButton = screen.getByRole("button", { name: "Submit" });
     await submitButton.click();
 
     // The button disables synchronously with the click (PublicApplicationForm.tsx's
@@ -500,20 +573,20 @@ describe("Public /apply routes — unauthenticated access + shared demo state", 
       </MemoryRouter>,
     );
 
-    await screen.getByLabelText("First name").fill("Fails");
-    await screen.getByLabelText("Last name").fill("Safely");
-    await screen.getByLabelText("Email").fill("fails.safely@example.com");
-    await screen
-      .getByLabelText("Why this program?")
-      .fill("Testing the failure path.");
-    await screen.getByRole("button", { name: "Submit application" }).click();
+    await screen.getByLabelText(/^First Name/).fill("Fails");
+    await screen.getByLabelText(/^Last Name/).fill("Safely");
+    await screen.getByLabelText(/^Email/).fill("fails.safely@example.com");
+    await fillLivingExampleQuestions(screen, "Testing the failure path");
+    await screen.getByRole("button", { name: "Submit" }).click();
 
     await expect
       .element(screen.getByText("Application received"))
       .not.toBeInTheDocument();
     await expect
       .element(
-        screen.getByText("Something went wrong on our end. Please try again."),
+        screen.getByText(
+          "Something went wrong on our end. Your answers are still here — please try submitting again.",
+        ),
       )
       .toBeInTheDocument();
 

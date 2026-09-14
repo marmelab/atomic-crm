@@ -9,12 +9,56 @@ import {
 } from "./PublicApplicationForm";
 import { NotFoundNotice } from "./NotFoundNotice";
 
+// Real Living Example / "The Living Example Application" copy (Real LE +
+// GYU Application Forms slice, Phase 3; corrected in human-acceptance
+// round 1). Wording is Leif's own, preserved exactly for his own visual
+// review except where he's explicitly corrected it (round 1: "mediation"
+// -> "meditation", Question 4 reworded). Keys are prefixed le_ so they can
+// never collide with a Growing Yourself Up key even though the two forms'
+// raw_answers live in unrelated rows regardless (Phase 6: "no collisions
+// between offer question sets"). Keys stay stable across round 1's
+// wording corrections — no unnecessary answer-key churn.
 const QUESTIONS: ApplicationQuestion[] = [
   {
-    key: "why_this_program",
-    label: "Why this program?",
+    key: "le_main_pattern",
+    label:
+      "What's the main pattern, emotion, or relationship dynamic you're struggling with right now?",
+    helperText: "(Be specific—what keeps happening?)",
     required: true,
-    placeholder: "What made you want to apply?",
+  },
+  {
+    key: "le_prior_attempts",
+    label: "What have you already tried to change or shift this?",
+    helperText: "(Working with a therapist, meditation, personal work, etc.)",
+    required: true,
+  },
+  {
+    key: "le_hoped_change",
+    label: "How are you hoping to change through working together?",
+    helperText: "(Be as real as possible)",
+    required: true,
+  },
+  {
+    key: "le_hoped_support",
+    label: "How are you hoping I will support you?",
+    helperText: "(What does “support” mean to you?)",
+    required: true,
+  },
+  {
+    // Human-acceptance round 4: Leif does NOT want this constrained to a
+    // numeric-only/single-line-feeling input — applicants may answer
+    // "10 — but I'm scared of the money!" and need room for that context.
+    // No `inputType: "short"` here (unlike GYU's equivalent scale
+    // question) so this renders as the normal Textarea, same as every
+    // other LE question — no numeric validation exists anywhere in this
+    // form to begin with (the "short" variant was always a plain text
+    // Input, never type="number"), so this is purely a UI-affordance
+    // change, not a validation change.
+    key: "le_commitment_scale",
+    label:
+      "On a scale of 1–10, how committed are you to changing this pattern/way-of-being?",
+    helperText: "(Time commitment, financial commitment, personal commitment)",
+    required: true,
   },
 ];
 
@@ -56,8 +100,16 @@ export const LivingExampleApplicationPage = ({
 
   return (
     <PublicApplicationLayout
-      title={context.offerName}
-      orientation="A few questions to get to know you and your fit for the program."
+      title="The Living Example Application"
+      orientation={
+        <>
+          Take your time and answer as honestly as you can.
+          <br />
+          This helps me get a sense of where you’re needing support and whether
+          working together could be a good fit.
+        </>
+      }
+      cover
     >
       <PublicApplicationForm
         questions={QUESTIONS}
@@ -67,7 +119,13 @@ export const LivingExampleApplicationPage = ({
             firstName: values.firstName,
             lastName: values.lastName,
             email: values.email,
-            phone: values.phone || null,
+            // Round 1: phone removed entirely (Leif doesn't want it on
+            // either form). Passed as null, not omitted — matches the
+            // existing PublicApplicationInput type (`phone?: string |
+            // null`) and the Edge Function/RPC's own existing null-safe
+            // handling; no backend change needed since phone was already
+            // optional/null-capable end to end.
+            phone: null,
             answers: values.answers,
           });
           if (result.status === "submitted") return { ok: true };
