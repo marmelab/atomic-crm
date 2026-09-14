@@ -17,7 +17,7 @@ export const frenchCrmMessages = {
         size: "Effectif",
         nb_sites: "Nombre de sites",
         tax_identifier: "Identifiant fiscal",
-        address: "Localisation du siège",
+        address: "Adresse",
         city: "Ville",
         zipcode: "Code postal",
         state_abbr: "État",
@@ -36,7 +36,7 @@ export const frenchCrmMessages = {
       field_categories: {
         contact: "Contact",
         additional_info: "Informations supplémentaires",
-        address: "Adresse",
+        address: "Localisation du siège",
         context: "Contexte",
       },
       action: {

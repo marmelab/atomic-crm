@@ -15,7 +15,7 @@ export const englishCrmMessages = {
         size: "Headcount",
         nb_sites: "Number of sites",
         tax_identifier: "Tax Identifier",
-        address: "Headquarters location",
+        address: "Address",
         city: "City",
         zipcode: "Zip code",
         state_abbr: "State",
@@ -34,7 +34,7 @@ export const englishCrmMessages = {
       field_categories: {
         contact: "Contact",
         additional_info: "Additional information",
-        address: "Address",
+        address: "Headquarters location",
         context: "Context",
       },
       action: {

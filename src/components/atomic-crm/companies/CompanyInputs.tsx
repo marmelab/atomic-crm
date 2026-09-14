@@ -123,7 +123,7 @@ const CompanyAddressInputs = () => {
     <div className="flex flex-col gap-4">
       <h6 className="text-lg font-semibold">
         {translate("resources.companies.field_categories.address", {
-          _: "Address",
+          _: "Headquarters location",
         })}
       </h6>
       <TextInput source="address" helperText={false} />
