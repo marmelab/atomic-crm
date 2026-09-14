@@ -32,6 +32,10 @@ export default defineConfig({
       workbox: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff,woff2}"],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MiB
+        // The demo build is published under /demo of the same Pages site, so it
+        // falls inside this service worker's scope. Without this, the default
+        // navigation fallback serves the CRM's index.html for every /demo/ URL.
+        navigateFallbackDenylist: [/\/demo\//],
       },
       manifest: false, // Use existing manifest.json from public/
     }),
