@@ -13,55 +13,20 @@ permissions:
     contents: write
 
 jobs:
-    deploy-doc:
-        name: 🚀 Deploy (doc)
-        runs-on: ubuntu-latest
-        timeout-minutes: 5
-
-        env:
-          PRODUCTION_REMOTE: https://git:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
-
-        steps:
-            - name: 📥 Checkout repo
-              uses: actions/checkout@v4
-
-            - name: ⚙️ Setup node
-              uses: actions/setup-node@v4
-              with:
-                  node-version: 22
-                  cache: npm
-
-            - name: ⚙️ Setup git
-              run: |
-                git remote set-url origin https://git:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}
-                git config --global user.email support+actions@github.com
-                git config --global user.name github-actions-bot
-
-            - name: 📥 Download deps
-              run: make doc-install
-
-            - name: 🔨 Build Registry
-              run: make registry-build
-
-            - name: 🔨 Build Documentation
-              run: make doc-build
-
-            - name: 📡 Deploy Registry
-              run: make registry-deploy
-
-            - name: 📡 Deploy Documentation
-              run: make doc-deploy
-
     deploy-demo:
         name: 🚀 Deploy (demo)
         runs-on: ubuntu-latest
         timeout-minutes: 10
+        # Published into the /demo subfolder of the same Pages site as the
+        # supabase build, which owns the root. That deploy cleans the whole
+        # branch, so it has to finish first.
+        needs: deploy-supabase
 
         env:
             VITE_IS_DEMO: true
             VITE_INBOUND_EMAIL: ${{ vars.VITE_INBOUND_EMAIL }}
             VITE_ATTACHMENTS_BUCKET: ${{ vars.VITE_ATTACHMENTS_BUCKET || 'attachments' }}
-            PRODUCTION_REMOTE: https://git:${{ secrets.DEPLOY_TOKEN || secrets.GITHUB_TOKEN }}@github.com/${{ vars.DEMO_DEPLOY_REPOSITORY }}
+            PRODUCTION_REMOTE: https://git:${{ secrets.DEPLOY_TOKEN || secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
 
         steps:
             - name: 📥 Checkout repo
@@ -75,8 +40,8 @@ jobs:
 
             - name: ⚙️ Setup git
               run: |
-                  echo Deploying to pages to ${{ vars.DEMO_DEPLOY_REPOSITORY }}
-                  git remote set-url origin https://git:${{ secrets.DEPLOY_TOKEN || secrets.GITHUB_TOKEN }}@github.com/${{ vars.DEMO_DEPLOY_REPOSITORY }}
+                  echo Deploying to pages to ${{ github.repository }}
+                  git remote set-url origin https://git:${{ secrets.DEPLOY_TOKEN || secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
                   git remote add production $PRODUCTION_REMOTE
                   git config --global user.email support+actions@github.com
                   git config --global user.name github-actions-bot
@@ -88,7 +53,9 @@ jobs:
               run: npm run build:demo
 
             - name: 📡 Deploy GitHub pages
-              run: npx gh-pages --remote production -d dist -b ${{ vars.DEPLOY_BRANCH || 'gh-pages' }}
+              # --dest demo: serve at <pages-url>/demo/. gh-pages scopes its
+              # cleanup to --dest, so this only replaces the demo/ subtree.
+              run: npx gh-pages --remote production -d dist --dest demo -b ${{ vars.DEPLOY_BRANCH || 'gh-pages' }}
               env:
                   GITHUB_TOKEN: ${{ secrets.DEPLOY_TOKEN || secrets.GITHUB_TOKEN }}
 
@@ -107,7 +74,7 @@ jobs:
             VITE_IS_DEMO: ${{ vars.VITE_IS_DEMO }}
             VITE_INBOUND_EMAIL: ${{ vars.VITE_INBOUND_EMAIL }}
             VITE_ATTACHMENTS_BUCKET: ${{ vars.VITE_ATTACHMENTS_BUCKET || 'attachments' }}
-            PRODUCTION_REMOTE: https://git:${{ secrets.DEPLOY_TOKEN || secrets.GITHUB_TOKEN }}@github.com/${{ vars.DEPLOY_REPOSITORY }}
+            PRODUCTION_REMOTE: https://git:${{ secrets.DEPLOY_TOKEN || secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
             POSTMARK_WEBHOOK_USER: ${{secrets.POSTMARK_WEBHOOK_USER}}
             POSTMARK_WEBHOOK_PASSWORD: ${{secrets.POSTMARK_WEBHOOK_PASSWORD}}
             POSTMARK_WEBHOOK_AUTHORIZED_IPS: ${{secrets.POSTMARK_WEBHOOK_AUTHORIZED_IPS}}
@@ -125,8 +92,8 @@ jobs:
 
             - name: ⚙️ Setup git
               run: |
-                  echo Deploying to pages to ${{ vars.DEPLOY_REPOSITORY }}
-                  git remote set-url origin https://git:${{ secrets.DEPLOY_TOKEN || secrets.GITHUB_TOKEN }}@github.com/${{ vars.DEPLOY_REPOSITORY }}
+                  echo Deploying to pages to ${{ github.repository }}
+                  git remote set-url origin https://git:${{ secrets.DEPLOY_TOKEN || secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
                   git remote add production $PRODUCTION_REMOTE
                   git config --global user.email support+actions@github.com
                   git config --global user.name github-actions-bot
