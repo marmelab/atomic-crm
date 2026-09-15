@@ -15,6 +15,7 @@ import { useFormContext } from "react-hook-form";
 import { SaveButton } from "@/components/admin/form";
 import { cn } from "@/lib/utils";
 
+import { useTouchContactLastSeen } from "../contacts/useTouchContactLastSeen";
 import { NoteInputs } from "./NoteInputs";
 import { getCurrentDate } from "./utils";
 import { foreignKeyMapping } from "./foreignKeyMapping";
@@ -62,6 +63,7 @@ const NoteCreateButton = ({
   record: RaRecord<Identifier>;
 }) => {
   const [update] = useUpdate();
+  const touchContactLastSeen = useTouchContactLastSeen();
   const notify = useNotify();
   const translate = useTranslate();
   const { identity } = useGetIdentity();
@@ -88,15 +90,15 @@ const NoteCreateButton = ({
 
     reset(resetValues, { keepValues: false });
     refetch();
-    update(reference, {
-      id: (record && record.id) as unknown as Identifier,
-      data: {
-        last_seen:
-          reference === "contacts" ? new Date().toISOString() : undefined,
-        status: data.status,
-      },
-      previousData: record,
-    });
+    if (reference === "contacts") {
+      touchContactLastSeen(record.id, { status: data.status });
+    } else {
+      update(reference, {
+        id: record.id as unknown as Identifier,
+        data: { status: data.status },
+        previousData: record,
+      });
+    }
     notify("resources.notes.added", {
       messageArgs: {
         _: "Note added",

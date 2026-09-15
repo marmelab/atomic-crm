@@ -1,14 +1,13 @@
 import {
   type Identifier,
-  useDataProvider,
   useGetIdentity,
   useGetOne,
   useGetRecordRepresentation,
   useNotify,
   useTranslate,
-  useUpdate,
 } from "ra-core";
 import type { Task } from "../types";
+import { useTouchContactLastSeen } from "../contacts/useTouchContactLastSeen";
 import { CreateSheet } from "../misc/CreateSheet";
 import { TaskFormContent } from "./TaskFormContent";
 
@@ -33,8 +32,7 @@ export const TaskCreateSheet = ({
     { id: contact_id! },
     { enabled: !selectContact },
   );
-  const [update] = useUpdate();
-  const dataProvider = useDataProvider();
+  const touchContactLastSeen = useTouchContactLastSeen();
   const notify = useNotify();
 
   if (!identity) return null;
@@ -44,25 +42,7 @@ export const TaskCreateSheet = ({
     // No redirect, only close the sheet
     onOpenChange(false);
 
-    if (!data.contact_id) return;
-
-    try {
-      const { data: contact } = await dataProvider.getOne("contacts", {
-        id: data.contact_id,
-      });
-      if (!contact) return;
-      await update(
-        "contacts",
-        {
-          id: data.contact_id,
-          data: { last_seen: new Date().toISOString() },
-          previousData: contact,
-        },
-        { returnPromise: true },
-      );
-    } catch (error) {
-      console.error("Could not update the contact last_seen date", error);
-    }
+    await touchContactLastSeen(data.contact_id);
   };
 
   return (

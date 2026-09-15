@@ -1,14 +1,14 @@
 import {
   type Identifier,
-  useDataProvider,
   useGetIdentity,
   useGetOne,
   useGetRecordRepresentation,
   useNotify,
   useRedirect,
   useTranslate,
-  useUpdate,
 } from "ra-core";
+import type { ContactNote } from "../types";
+import { useTouchContactLastSeen } from "../contacts/useTouchContactLastSeen";
 import { CreateSheet } from "../misc/CreateSheet";
 import { foreignKeyMapping } from "./foreignKeyMapping";
 import { NoteInputsMobile } from "./NoteInputsMobile";
@@ -33,8 +33,7 @@ export const NoteCreateSheet = ({
     { id: contact_id! },
     { enabled: !selectContact },
   );
-  const [update] = useUpdate();
-  const dataProvider = useDataProvider();
+  const touchContactLastSeen = useTouchContactLastSeen();
   const notify = useNotify();
   const redirect = useRedirect();
   const translate = useTranslate();
@@ -43,7 +42,7 @@ export const NoteCreateSheet = ({
 
   if (!identity) return null;
 
-  const handleSuccess = async (data: any) => {
+  const handleSuccess = async (data: ContactNote) => {
     notify("resources.notes.added", {
       messageArgs: {
         _: "Note added",
@@ -51,27 +50,10 @@ export const NoteCreateSheet = ({
     });
     onOpenChange(false);
 
-    const referenceRecordId = data[foreignKeyMapping["contacts"]];
-    if (!referenceRecordId) return;
-    redirect("show", "contacts", referenceRecordId);
+    if (!data.contact_id) return;
+    redirect("show", "contacts", data.contact_id);
 
-    try {
-      const { data: contact } = await dataProvider.getOne("contacts", {
-        id: referenceRecordId,
-      });
-      if (!contact) return;
-      await update(
-        "contacts",
-        {
-          id: referenceRecordId as unknown as Identifier,
-          data: { last_seen: new Date().toISOString(), status: data.status },
-          previousData: contact,
-        },
-        { returnPromise: true },
-      );
-    } catch (error) {
-      console.error("Could not update the contact last_seen date", error);
-    }
+    await touchContactLastSeen(data.contact_id, { status: data.status });
   };
 
   return (

@@ -2,13 +2,11 @@ import { Plus } from "lucide-react";
 import {
   CreateBase,
   Form,
-  useDataProvider,
   useGetIdentity,
   useGetRecordRepresentation,
   useNotify,
   useRecordContext,
   useTranslate,
-  useUpdate,
 } from "ra-core";
 import { useState } from "react";
 import { SaveButton } from "@/components/admin/form";
@@ -27,6 +25,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
+import { useTouchContactLastSeen } from "../contacts/useTouchContactLastSeen";
 import type { Task } from "../types";
 import { TaskFormContent } from "./TaskFormContent";
 
@@ -38,8 +37,7 @@ export const AddTask = ({
   display?: "chip" | "icon";
 }) => {
   const { identity } = useGetIdentity();
-  const dataProvider = useDataProvider();
-  const [update] = useUpdate();
+  const touchContactLastSeen = useTouchContactLastSeen();
   const notify = useNotify();
   const translate = useTranslate();
   const contact = useRecordContext();
@@ -53,23 +51,7 @@ export const AddTask = ({
     setOpen(false);
     notify("resources.tasks.added");
 
-    try {
-      const { data: contact } = await dataProvider.getOne("contacts", {
-        id: data.contact_id,
-      });
-      if (!contact) return;
-      await update(
-        "contacts",
-        {
-          id: contact.id,
-          data: { last_seen: new Date().toISOString() },
-          previousData: contact,
-        },
-        { returnPromise: true },
-      );
-    } catch (error) {
-      console.error("Could not update the contact last_seen date", error);
-    }
+    await touchContactLastSeen(data.contact_id);
   };
 
   if (!identity) return null;
