@@ -77,8 +77,8 @@ const renderDialog = (open = true) =>
 describe("GlobalSearchDialog", () => {
   // The dialog reads useIsMobile, and the layouts expose different resources,
   // so the viewport is part of the arrangement in every test below.
-  beforeEach(() => {
-    page.viewport(1600, 900);
+  beforeEach(async () => {
+    await page.viewport(1600, 900);
   });
 
   it("puts nothing in the document while closed", async () => {
@@ -171,6 +171,62 @@ describe("GlobalSearchDialog", () => {
       .toBeVisible();
   });
 
+  it("keeps subtitles for records on id 0, which FakeRest generators use", async () => {
+    const screen = await render(
+      <StoryWrapper
+        data={{
+          companies: [{ id: 0, name: "Zero Corp", sector: "Food" }],
+          contacts: [
+            buildContact({
+              company_id: 0,
+              company_name: "Zero Corp",
+              id: 0,
+            }),
+          ],
+          contact_notes: [
+            {
+              contact_id: 0,
+              date: "2025-02-01T10:00:00.000Z",
+              id: 0,
+              sales_id: 0,
+              status: "warm",
+              text: "Note on the zeroth contact about sourdough",
+            },
+          ],
+          deals: [
+            {
+              company_id: 0,
+              created_at: "2025-01-05T10:00:00.000Z",
+              id: 0,
+              name: "Deal zero for sourdough",
+              stage: "opportunity",
+            },
+          ],
+        }}
+      >
+        <GlobalSearchDialog open onOpenChange={() => {}} />
+      </StoryWrapper>,
+    );
+
+    await screen.getByPlaceholder(PLACEHOLDER).fill("sourdough");
+
+    await expect
+      .element(screen.getByText("Note on the zeroth contact about sourdough"))
+      .toBeVisible();
+    await expect
+      .element(
+        screen
+          .getByRole("group", { name: "Contact notes" })
+          .getByText("Ada Lovelace"),
+      )
+      .toBeVisible();
+    await expect
+      .element(
+        screen.getByRole("group", { name: "Deals" }).getByText("Zero Corp"),
+      )
+      .toBeVisible();
+  });
+
   it("shows the deal's company as its subtitle", async () => {
     const screen = await renderDialog();
 
@@ -209,8 +265,8 @@ describe("GlobalSearchDialog", () => {
 });
 
 describe("GlobalSearchDialog on mobile", () => {
-  beforeEach(() => {
-    page.viewport(375, 667);
+  beforeEach(async () => {
+    await page.viewport(375, 667);
   });
 
   it("omits deals, which have no page on the mobile layout", async () => {

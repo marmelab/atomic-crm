@@ -36,7 +36,9 @@ const getLabels = async <T extends { id: Identifier }>(
   ids: (Identifier | undefined | null)[],
   getLabel: (record: T) => string,
 ): Promise<Map<Identifier, string>> => {
-  const uniqueIds = [...new Set(ids.filter(Boolean) as Identifier[])];
+  const uniqueIds = [
+    ...new Set(ids.filter((id) => id != null) as Identifier[]),
+  ];
   if (uniqueIds.length === 0) {
     return new Map();
   }
@@ -139,9 +141,10 @@ export async function getSearchResults(
       resource: "deals" as const,
       record_id: deal.id,
       title: deal.name,
-      subtitle: deal.company_id
-        ? (companyLabels.get(deal.company_id) ?? null)
-        : null,
+      subtitle:
+        deal.company_id != null
+          ? (companyLabels.get(deal.company_id) ?? null)
+          : null,
       contact_id: null,
       deal_id: deal.id,
       date: deal.created_at ?? null,

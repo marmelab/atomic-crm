@@ -95,6 +95,33 @@ describe("getSearchResultUrl", () => {
     expect(getSearchResultUrl(result, true)).toBeNull();
   });
 
+  it("links records whose parent id is 0", () => {
+    // FakeRest generators assign array-index ids, so 0 is a real record.
+    expect(
+      getSearchResultUrl(
+        { resource: "tasks", record_id: 0, contact_id: 0, deal_id: null },
+        false,
+      ),
+    ).toBe("/contacts/0/show");
+    expect(
+      getSearchResultUrl(
+        {
+          resource: "contact_notes",
+          record_id: 0,
+          contact_id: 0,
+          deal_id: null,
+        },
+        true,
+      ),
+    ).toBe("/contacts/0/notes/0");
+    expect(
+      getSearchResultUrl(
+        { resource: "deal_notes", record_id: 0, contact_id: null, deal_id: 0 },
+        false,
+      ),
+    ).toBe("/deals/0/show");
+  });
+
   it("returns null when the parent record of a note or task is missing", () => {
     expect(
       getSearchResultUrl(

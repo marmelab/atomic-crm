@@ -1,6 +1,22 @@
 alter table "public"."tasks" add column "created_at" timestamp with time zone not null default now();
 
-update "public"."tasks" set "created_at" = coalesce("done_date", "due_date", "created_at");
+-- Existing rows have no creation time to recover, so fall back to the best
+-- available proxy: when the task was completed, a due date that has already
+-- passed, or the contact's first_seen. `least(..., now())` keeps the result in
+-- the past -- search_index sorts on this column, and a future date would put
+-- every open task above every note, contact and deal. A bare `now()` would be
+-- no better: it would tie every open task at the top of that same sort.
+update "public"."tasks" t
+set "created_at" = least(
+    coalesce(
+        t."done_date",
+        case when t."due_date" < now() then t."due_date" end,
+        c."first_seen"
+    ),
+    now()
+)
+from "public"."contacts" c
+where c."id" = t."contact_id";
 
 create or replace view "public"."search_index" with (security_invoker = on) as  SELECT ('company.'::text || c.id) AS id,
     'companies'::text AS resource,
