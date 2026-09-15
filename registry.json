@@ -662,6 +662,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/contacts/useTouchContactLastSeen.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/contacts/useContactImport.tsx",
           "type": "registry:component"
         },
