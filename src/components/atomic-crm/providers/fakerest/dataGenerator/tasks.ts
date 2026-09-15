@@ -48,6 +48,7 @@ export const generateTasks = (db: Db) => {
       ).toISOString(),
       done_date: undefined,
       sales_id: 0,
+      created_at: randomDate(new Date(contact.first_seen)).toISOString(),
     };
   });
 };
