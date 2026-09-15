@@ -67,6 +67,31 @@ const data = {
   ],
 } as any;
 
+// Every record on id 0, the id the FakeRest generators start from.
+const zeroIdData = {
+  companies: [{ id: 0, name: "Zero Corp", sector: "Food" }],
+  contacts: [buildContact({ company_id: 0, company_name: "Zero Corp", id: 0 })],
+  contact_notes: [
+    {
+      contact_id: 0,
+      date: "2025-02-01T10:00:00.000Z",
+      id: 0,
+      sales_id: 0,
+      status: "warm",
+      text: "Note on the zeroth contact about sourdough",
+    },
+  ],
+  deals: [
+    {
+      company_id: 0,
+      created_at: "2025-01-05T10:00:00.000Z",
+      id: 0,
+      name: "Deal zero for sourdough",
+      stage: "opportunity",
+    },
+  ],
+} as any;
+
 const renderDialog = (open = true) =>
   render(
     <StoryWrapper data={data}>
@@ -173,37 +198,7 @@ describe("GlobalSearchDialog", () => {
 
   it("keeps subtitles for records on id 0, which FakeRest generators use", async () => {
     const screen = await render(
-      <StoryWrapper
-        data={{
-          companies: [{ id: 0, name: "Zero Corp", sector: "Food" }],
-          contacts: [
-            buildContact({
-              company_id: 0,
-              company_name: "Zero Corp",
-              id: 0,
-            }),
-          ],
-          contact_notes: [
-            {
-              contact_id: 0,
-              date: "2025-02-01T10:00:00.000Z",
-              id: 0,
-              sales_id: 0,
-              status: "warm",
-              text: "Note on the zeroth contact about sourdough",
-            },
-          ],
-          deals: [
-            {
-              company_id: 0,
-              created_at: "2025-01-05T10:00:00.000Z",
-              id: 0,
-              name: "Deal zero for sourdough",
-              stage: "opportunity",
-            },
-          ],
-        }}
-      >
+      <StoryWrapper data={zeroIdData}>
         <GlobalSearchDialog open onOpenChange={() => {}} />
       </StoryWrapper>,
     );
