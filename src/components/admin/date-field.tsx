@@ -108,8 +108,8 @@ export const DateField = genericMemo(DateFieldImpl);
 export interface DateFieldProps<
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   RecordType extends Record<string, any> = Record<string, any>,
-> extends FieldProps<RecordType>,
-    HTMLAttributes<HTMLSpanElement> {
+>
+  extends FieldProps<RecordType>, HTMLAttributes<HTMLSpanElement> {
   locales?: Intl.LocalesArgument;
   options?: Intl.DateTimeFormatOptions;
   showTime?: boolean;

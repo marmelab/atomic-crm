@@ -74,8 +74,8 @@ export const UrlField = genericMemo(UrlFieldImpl);
 export interface UrlFieldProps<
   //eslint-disable-next-line @typescript-eslint/no-explicit-any
   RecordType extends Record<string, any> = Record<string, any>,
-> extends FieldProps<RecordType>,
-    AnchorHTMLAttributes<HTMLAnchorElement> {}
+>
+  extends FieldProps<RecordType>, AnchorHTMLAttributes<HTMLAnchorElement> {}
 
 // useful to prevent click bubbling in a DataTable with rowClick
 const stopPropagation = (e: React.MouseEvent<HTMLAnchorElement>) =>

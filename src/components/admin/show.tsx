@@ -21,8 +21,7 @@ import { cn } from "@/lib/utils";
 import { EditButton } from "@/components/admin/edit-button";
 
 export interface ShowProps
-  extends ShowViewProps,
-    Omit<ShowBaseProps, "children"> {}
+  extends ShowViewProps, Omit<ShowBaseProps, "children"> {}
 
 /**
  * A complete show page with breadcrumb, title, and default actions.

@@ -22,6 +22,7 @@ export default defineConfig({
         },
         resolve: {
           preserveSymlinks: true,
+          dedupe: ["react-router", "react-router-dom"],
           alias: {
             "@": path.resolve(__dirname, "./src"),
           },

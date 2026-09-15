@@ -90,8 +90,7 @@ export const List = <RecordType extends RaRecord = RaRecord>(
 };
 
 export interface ListProps<RecordType extends RaRecord = RaRecord>
-  extends ListBaseProps<RecordType>,
-    ListViewProps<RecordType> {}
+  extends ListBaseProps<RecordType>, ListViewProps<RecordType> {}
 
 /**
  * The view component for List pages with layout and UI.
