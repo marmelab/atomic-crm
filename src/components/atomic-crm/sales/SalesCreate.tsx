@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import type { CrmDataProvider } from "../providers/types";
 import type { SalesFormData } from "../types";
+import { getSalesErrorNotification } from "./salesErrorNotification";
 import { SalesInputs } from "./SalesInputs";
 
 export function SalesCreate() {
@@ -28,15 +29,14 @@ export function SalesCreate() {
       redirect("/sales");
     },
     onError: (error) => {
-      notify(
+      const { message, args } = getSalesErrorNotification(
+        error,
         error.message ||
           translate("resources.sales.create.error", {
             _: "An error occurred while creating the user.",
           }),
-        {
-          type: "error",
-        },
       );
+      notify(message, { type: "error", messageArgs: args });
     },
   });
   const onSubmit: SubmitHandler<SalesFormData> = async (data) => {
