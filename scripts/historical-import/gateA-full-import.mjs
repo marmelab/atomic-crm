@@ -239,14 +239,28 @@ for (const row of janWaitlist.rows) {
 // Run the REAL orchestrator for every person.
 // ---------------------------------------------------------------------------
 const nextIdByTable = JSON.parse(fs.readFileSync(nextIdsFile, "utf8"));
-// Cohort ids read live from the target database — the writer resolves
-// intended_cohort_id by NAME and fails closed when absent, so this has to
-// be the real target state rather than a hardcoded guess.
+
+// The target database's CURRENT rows (baseline + anything a prior pass
+// committed), so every check-then-insert guard in the writer is answered
+// from reality. Assuming "empty" here is what produced the duplicate
+// acuity_appointment_id Postgres rejected, and would have silently
+// duplicated Contacts, which carry no unique email index.
+const targetState = JSON.parse(fs.readFileSync(targetStateFile, "utf8"));
+
+// Cohort ids read live from the target database, in the same round trip as
+// the rest of the state. The writer resolves intended_cohort_id by NAME,
+// and the SAME cohort carries a DIFFERENT id in the disposable proof
+// project and in MAIN — so a static file here emits a foreign key to
+// whichever database that file was captured from. Read live, fail closed.
 const cohortIdByName = new Map(
-  JSON.parse(
-    fs.readFileSync(path.join(DATA, "target_cohorts.json"), "utf8"),
-  ).map((c) => [c.name, c.id]),
+  (targetState.cohorts ?? []).map((c) => [c.name, c.id]),
 );
+if (cohortIdByName.size === 0) {
+  throw new Error(
+    "target state carries no cohorts — regenerate with the current gateA-prepare.sql rather than resolving cohort ids from a stale capture",
+  );
+}
+
 let priorState = {
   ledger: new Map(),
   contactsByEmail: new Map(),
@@ -261,12 +275,6 @@ if (priorStateFile) {
   };
 }
 
-// The target database's CURRENT rows (baseline + anything a prior pass
-// committed), so every check-then-insert guard in the writer is answered
-// from reality. Assuming "empty" here is what produced the duplicate
-// acuity_appointment_id Postgres rejected, and would have silently
-// duplicated Contacts, which carry no unique email index.
-const targetState = JSON.parse(fs.readFileSync(targetStateFile, "utf8"));
 // Committed facts the rulings-driven pass below must consult, so that a
 // rerun reaches the same decisions as the first pass rather than
 // re-creating what is already there.

@@ -11,6 +11,12 @@
 --   state — the rows that already exist, so the writer's check-then-insert
 --     guards are answered from reality. Contacts carry NO unique email
 --     index, so assuming "empty" here duplicates people silently.
+--
+--     Cohorts belong here for the same reason. The writer resolves
+--     intended_cohort_id by NAME, and cohort ids differ between the
+--     disposable proof project and MAIN (January 2027 is id 1 in one and
+--     id 4 in the other), so a cohort id carried in a static file is a
+--     foreign key to whatever that other database happened to number it.
 select jsonb_pretty(jsonb_build_object(
   'nextIds', (
     select jsonb_object_agg(t, nextid) from (
@@ -28,6 +34,7 @@ select jsonb_pretty(jsonb_build_object(
   ),
   'state', jsonb_build_object(
     'contacts', coalesce((select jsonb_agg(jsonb_build_object('id',id,'first_name',first_name,'last_name',last_name,'stripe_customer_id',stripe_customer_id,'email_jsonb',email_jsonb)) from contacts),'[]'::jsonb),
+    'cohorts', coalesce((select jsonb_agg(jsonb_build_object('id',id,'name',name,'offer_id',offer_id)) from cohorts),'[]'::jsonb),
     'salesCallAcuity', coalesce((select jsonb_agg(jsonb_build_object('id',id,'a',acuity_appointment_id)) from sales_calls where acuity_appointment_id is not null),'[]'::jsonb),
     'clientSessionAcuity', coalesce((select jsonb_agg(jsonb_build_object('id',id,'a',acuity_appointment_id)) from client_sessions where acuity_appointment_id is not null),'[]'::jsonb),
     'enrollmentsByDeal', coalesce((select jsonb_agg(jsonb_build_object('id',id,'d',opportunity_id)) from enrollments),'[]'::jsonb),
