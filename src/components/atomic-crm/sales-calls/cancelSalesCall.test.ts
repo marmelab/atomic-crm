@@ -6,12 +6,18 @@ import type { Deal, Offer, SalesCall, Task } from "../types";
 import { bookSalesCall } from "./bookSalesCall";
 import { cancelSalesCall } from "./cancelSalesCall";
 
-// GYU real-infrastructure slice, human-acceptance repair pass: cancelling
-// the only booked call for an Opportunity still at Call Booked used to
-// leave it silently stranded — correct data, but no task telling anyone a
-// decision is needed. Found via a real cancellation against real
-// infrastructure, not a fixture. See cancelSalesCall.ts's own
-// ensureFollowUpIfStranded for the exact invariant this covers.
+// Canonical cancellation, shared by the manual "Cancelled" choice in
+// Complete Sales Call and by the Acuity webhook. What these mostly assert
+// is what cancellation must NEVER do: claim an attendance, tag the Contact,
+// decide a disposition, or leave Call Booked asserting a call that does not
+// exist.
+//
+// This file previously encoded the opposite: the Opportunity stayed in Call
+// Booked and a "stranded lead" task was created to compensate. That made
+// Call Booked mean two different things, so Leif ruled it means exactly one
+// — there is a genuine booked future call. Returning the Deal to Approved
+// IS the needs-booking signal the stranding task stood in for, so the task
+// is retired along with the old behaviour.
 
 const CONTACT_ID = 1;
 const OFFER_ID = 2;
@@ -48,32 +54,48 @@ const buildDeal = (overrides: Partial<Deal> = {}): Deal => ({
 });
 
 const buildFixtures = (dealOverrides: Partial<Deal> = {}) => {
-  // The follow-up task's text reads the Contact's own stored name, not
-  // whatever contactName a caller passed to bookSalesCall for the booking
-  // task — matching that intentional real Contact identity here.
   const contact = buildContact({
     id: CONTACT_ID,
     first_name: "GYU",
     last_name: "Test Monkey",
   });
-  const offer = buildOffer();
-  const deal = buildDeal(dealOverrides);
 
   const dataProvider = createDataProvider({
     db: createCrmDb({
       contacts: [contact],
-      offers: [offer],
-      deals: [deal],
+      offers: [buildOffer()],
+      deals: [buildDeal(dealOverrides)],
       tasks: [],
     }),
     silent: true,
     latency: 0,
   });
 
-  return { dataProvider, deal };
+  return { dataProvider, deal: buildDeal(dealOverrides) };
 };
 
-const fetchCancelledFollowUpTasks = async (
+const book = async (
+  dataProvider: ReturnType<typeof createDataProvider>,
+  acuityId: string,
+  opportunityId: number | null = DEAL_ID,
+  scheduledAt = "2026-09-10T15:00:00.000Z",
+) => {
+  const booked = await bookSalesCall({
+    dataProvider,
+    contactId: CONTACT_ID,
+    contactName: "GYU Test Monkey",
+    opportunityId,
+    scheduledAt,
+    source: "acuity",
+    acuityAppointmentId: acuityId,
+    acuityAppointmentTypeId: "64654501",
+  });
+  return (booked as { salesCall: SalesCall }).salesCall.id;
+};
+
+// The retired behaviour's task type. Asserted absent rather than deleted
+// from the codebase, so a regression that reintroduces it fails loudly.
+const fetchStrandingTasks = async (
   dataProvider: ReturnType<typeof createDataProvider>,
 ) => {
   const { data } = await dataProvider.getList<Task>("tasks", {
@@ -84,191 +106,149 @@ const fetchCancelledFollowUpTasks = async (
   return data;
 };
 
-describe("cancelSalesCall — the stranded-Opportunity invariant", () => {
-  it("cancelling the only booked call for a Call Booked Opportunity creates a Sales Call Cancelled task", async () => {
-    const { dataProvider, deal } = buildFixtures();
-    const booked = await bookSalesCall({
-      dataProvider,
-      contactId: CONTACT_ID,
-      contactName: "GYU Test Monkey",
-      opportunityId: deal.id,
-      scheduledAt: "2026-09-10T15:00:00.000Z",
-      source: "acuity",
-      acuityAppointmentId: "acuity-cancel-1",
-      acuityAppointmentTypeId: "64654501",
-    });
-    const salesCallId = (booked as { salesCall: SalesCall }).salesCall.id;
+describe("cancelSalesCall — canonical cancellation", () => {
+  it("cancels the call, frees the Opportunity from Call Booked, and closes that call's task", async () => {
+    const { dataProvider } = buildFixtures();
+    const salesCallId = await book(dataProvider, "acuity-cancel-1");
 
     const result = await cancelSalesCall(dataProvider, salesCallId);
     expect(result.status).toBe("cancelled");
 
-    const { data: updatedDeal } = await dataProvider.getOne<Deal>("deals", {
+    const { data: call } = await dataProvider.getOne<SalesCall>("sales_calls", {
+      id: salesCallId,
+    });
+    expect(call.status).toBe("cancelled");
+    expect(call.cancelled_at).toBeTruthy();
+    // When it WAS going to happen is part of the history.
+    expect(call.original_scheduled_at).toBe("2026-09-10T15:00:00.000Z");
+    // Nobody was there to attend or miss it.
+    expect(call.attendance).toBeFalsy();
+
+    const { data: deal } = await dataProvider.getOne<Deal>("deals", {
       id: DEAL_ID,
     });
-    // Never regressed by cancellation — a human/business decision, not
-    // something this invariant should guess.
-    expect(updatedDeal.stage).toBe("call_booked");
+    // Call Booked asserted a booked call; there is none.
+    expect(deal.stage).toBe("approved");
+    // But nothing was decided about pursuing them.
+    expect(deal.outcome).toBeFalsy();
 
-    const followUpTasks = await fetchCancelledFollowUpTasks(dataProvider);
-    expect(followUpTasks).toHaveLength(1);
-    expect(followUpTasks[0].text).toContain("GYU Test Monkey");
-    expect(followUpTasks[0].status).toBe("pending");
-    expect(followUpTasks[0].done_date).toBeFalsy();
-  });
-
-  it("a duplicate cancellation webhook for the same call is a safe no-op — no duplicate follow-up task", async () => {
-    const { dataProvider, deal } = buildFixtures();
-    const booked = await bookSalesCall({
-      dataProvider,
-      contactId: CONTACT_ID,
-      contactName: "GYU Test Monkey",
-      opportunityId: deal.id,
-      scheduledAt: "2026-09-10T15:00:00.000Z",
-      source: "acuity",
-      acuityAppointmentId: "acuity-cancel-dup",
-      acuityAppointmentTypeId: "64654501",
+    // That call's task is cancelled, not completed — nobody did it.
+    const { data: tasks } = await dataProvider.getList<Task>("tasks", {
+      filter: { sales_call_id: salesCallId },
+      pagination: { page: 1, perPage: 10 },
+      sort: { field: "id", order: "ASC" },
     });
-    const salesCallId = (booked as { salesCall: SalesCall }).salesCall.id;
+    for (const task of tasks) {
+      expect(task.status).toBe("cancelled");
+      expect(task.done_date).toBeFalsy();
+    }
 
-    const first = await cancelSalesCall(dataProvider, salesCallId);
-    const second = await cancelSalesCall(dataProvider, salesCallId);
-    expect(first.status).toBe("cancelled");
-    expect(second.status).toBe("already-cancelled");
-
-    const followUpTasks = await fetchCancelledFollowUpTasks(dataProvider);
-    expect(followUpTasks).toHaveLength(1);
+    // And no stranding task is invented to explain the stage.
+    expect(await fetchStrandingTasks(dataProvider)).toHaveLength(0);
   });
 
-  it("does not create a follow-up task when the booking was never matched to an Opportunity", async () => {
+  it("never attaches a No-show tag — cancelling is not failing to turn up", async () => {
     const { dataProvider } = buildFixtures();
-    const booked = await bookSalesCall({
-      dataProvider,
-      contactId: CONTACT_ID,
-      contactName: "GYU Test Monkey",
-      opportunityId: null,
-      scheduledAt: "2026-09-10T15:00:00.000Z",
-      source: "acuity",
-      acuityAppointmentId: "acuity-cancel-unmatched",
-      acuityAppointmentTypeId: "64654501",
-    });
-    const salesCallId = (booked as { salesCall: SalesCall }).salesCall.id;
-
+    const salesCallId = await book(dataProvider, "acuity-cancel-tag");
     await cancelSalesCall(dataProvider, salesCallId);
 
-    const followUpTasks = await fetchCancelledFollowUpTasks(dataProvider);
-    expect(followUpTasks).toHaveLength(0);
-  });
-
-  it("does not create a follow-up task when the Opportunity already moved past Call Booked", async () => {
-    const { dataProvider, deal } = buildFixtures({ stage: "committed" });
-    const booked = await bookSalesCall({
-      dataProvider,
-      contactId: CONTACT_ID,
-      contactName: "GYU Test Monkey",
-      opportunityId: deal.id,
-      scheduledAt: "2026-09-10T15:00:00.000Z",
-      source: "manual",
+    const { data: tags } = await dataProvider.getList("tags", {
+      filter: {},
+      pagination: { page: 1, perPage: 100 },
+      sort: { field: "id", order: "ASC" },
     });
-    const salesCallId = (booked as { salesCall: SalesCall }).salesCall.id;
-
-    await cancelSalesCall(dataProvider, salesCallId);
-
-    const followUpTasks = await fetchCancelledFollowUpTasks(dataProvider);
-    expect(followUpTasks).toHaveLength(0);
-  });
-
-  it("does not create a follow-up task when another currently-booked call already covers the Opportunity", async () => {
-    // This exact state (two simultaneously "booked" sales_calls rows for
-    // one Opportunity) is already impossible to reach through the app's
-    // own write path — salesCallValidation.ts's own beforeCreate guard
-    // (mirroring the real database's sales_calls_one_booked_per_
-    // opportunity_idx partial unique index) refuses a second one. Seeded
-    // directly at fixture-construction time, bypassing that guard on
-    // purpose, so the defensive check inside cancelSalesCall.ts itself is
-    // still proven correct on its own — not merely inherited for free from
-    // a constraint elsewhere that a future migration could relax.
-    const contact = buildContact({
+    const noShowTag = tags.find(
+      (tag: { name?: string }) => tag.name?.toLowerCase() === "no-show",
+    );
+    const { data: contact } = await dataProvider.getOne("contacts", {
       id: CONTACT_ID,
-      first_name: "GYU",
-      last_name: "Test Monkey",
     });
-    const offer = buildOffer();
-    const deal = buildDeal();
-    const firstCall: SalesCall = {
-      id: 501,
-      opportunity_id: deal.id,
-      contact_id: CONTACT_ID,
-      status: "booked",
-      original_scheduled_at: "2026-09-10T15:00:00.000Z",
-      scheduled_at: "2026-09-10T15:00:00.000Z",
-      reschedule_count: 0,
-      source: "acuity",
-      acuity_appointment_id: "acuity-cancel-multi-1",
-      acuity_appointment_type_id: "64654501",
-      created_at: "2026-09-10T15:00:00.000Z",
-      updated_at: "2026-09-10T15:00:00.000Z",
-    };
-    const secondCall: SalesCall = {
-      id: 502,
-      opportunity_id: deal.id,
-      contact_id: CONTACT_ID,
-      status: "booked",
-      original_scheduled_at: "2026-09-11T15:00:00.000Z",
-      scheduled_at: "2026-09-11T15:00:00.000Z",
-      reschedule_count: 0,
-      source: "manual",
-      created_at: "2026-09-11T15:00:00.000Z",
-      updated_at: "2026-09-11T15:00:00.000Z",
-    };
-
-    const dataProvider = createDataProvider({
-      db: createCrmDb({
-        contacts: [contact],
-        offers: [offer],
-        deals: [deal],
-        sales_calls: [firstCall, secondCall],
-        tasks: [],
-      }),
-      silent: true,
-      latency: 0,
-    });
-
-    await cancelSalesCall(dataProvider, firstCall.id);
-
-    const followUpTasks = await fetchCancelledFollowUpTasks(dataProvider);
-    expect(followUpTasks).toHaveLength(0);
+    if (noShowTag) {
+      expect(contact.tags ?? []).not.toContain(noShowTag.id);
+    }
   });
 
-  it("a fresh booking after a stranding cancellation completes the follow-up task", async () => {
-    const { dataProvider, deal } = buildFixtures();
-    const booked = await bookSalesCall({
-      dataProvider,
-      contactId: CONTACT_ID,
-      contactName: "GYU Test Monkey",
-      opportunityId: deal.id,
-      scheduledAt: "2026-09-10T15:00:00.000Z",
-      source: "acuity",
-      acuityAppointmentId: "acuity-cancel-rebook-1",
-      acuityAppointmentTypeId: "64654501",
+  it("is idempotent — a duplicate webhook adds no second event", async () => {
+    const { dataProvider } = buildFixtures();
+    const salesCallId = await book(dataProvider, "acuity-cancel-2");
+
+    expect((await cancelSalesCall(dataProvider, salesCallId)).status).toBe(
+      "cancelled",
+    );
+    expect((await cancelSalesCall(dataProvider, salesCallId)).status).toBe(
+      "already-cancelled",
+    );
+
+    const { data: events } = await dataProvider.getList("sales_call_events", {
+      filter: { sales_call_id: salesCallId, kind: "cancelled" },
+      pagination: { page: 1, perPage: 10 },
+      sort: { field: "id", order: "ASC" },
     });
-    const salesCallId = (booked as { salesCall: SalesCall }).salesCall.id;
+    expect(events).toHaveLength(1);
+  });
+
+  it("leaves an Opportunity that already moved past Call Booked exactly where it is", async () => {
+    const { dataProvider } = buildFixtures({ stage: "decision" });
+    const salesCallId = await book(dataProvider, "acuity-cancel-3");
     await cancelSalesCall(dataProvider, salesCallId);
-    expect(await fetchCancelledFollowUpTasks(dataProvider)).toHaveLength(1);
 
-    await bookSalesCall({
+    const { data: deal } = await dataProvider.getOne<Deal>("deals", {
+      id: DEAL_ID,
+    });
+    // Cancelling an old call must never drag a progressed Deal backwards.
+    expect(deal.stage).toBe("decision");
+  });
+
+  it("does not touch any Opportunity when the booking was never matched to one", async () => {
+    const { dataProvider } = buildFixtures();
+    const salesCallId = await book(dataProvider, "acuity-cancel-4", null);
+
+    const result = await cancelSalesCall(dataProvider, salesCallId);
+    expect(result.status).toBe("cancelled");
+
+    const { data: deal } = await dataProvider.getOne<Deal>("deals", {
+      id: DEAL_ID,
+    });
+    expect(deal.stage).toBe("call_booked");
+  });
+
+  it("supports a genuine rebooking afterwards, without resurrecting the cancelled call", async () => {
+    const { dataProvider } = buildFixtures();
+    const firstId = await book(dataProvider, "acuity-rebook-1");
+    await cancelSalesCall(dataProvider, firstId);
+
+    const secondId = await book(
       dataProvider,
-      contactId: CONTACT_ID,
-      contactName: "GYU Test Monkey",
-      opportunityId: deal.id,
-      scheduledAt: "2026-09-15T15:00:00.000Z",
-      source: "acuity",
-      acuityAppointmentId: "acuity-cancel-rebook-2",
-      acuityAppointmentTypeId: "64654501",
+      "acuity-rebook-2",
+      DEAL_ID,
+      "2026-10-20T15:00:00.000Z",
+    );
+    expect(secondId).not.toBe(firstId);
+
+    const { data: cancelled } = await dataProvider.getOne<SalesCall>(
+      "sales_calls",
+      { id: firstId },
+    );
+    expect(cancelled.status).toBe("cancelled");
+    const { data: live } = await dataProvider.getOne<SalesCall>("sales_calls", {
+      id: secondId,
+    });
+    expect(live.status).toBe("booked");
+  });
+
+  it("refuses to cancel a call that genuinely happened", async () => {
+    const { dataProvider } = buildFixtures();
+    const salesCallId = await book(dataProvider, "acuity-attended");
+    const { data: call } = await dataProvider.getOne<SalesCall>("sales_calls", {
+      id: salesCallId,
+    });
+    await dataProvider.update<SalesCall>("sales_calls", {
+      id: salesCallId,
+      data: { attendance: "attended", status: "completed" },
+      previousData: call,
     });
 
-    const followUpTasks = await fetchCancelledFollowUpTasks(dataProvider);
-    expect(followUpTasks).toHaveLength(1);
-    expect(followUpTasks[0].status).toBe("completed");
-    expect(followUpTasks[0].done_date).toBeTruthy();
+    const result = await cancelSalesCall(dataProvider, salesCallId);
+    expect(result.status).toBe("already-attended");
   });
 });

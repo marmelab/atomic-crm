@@ -230,7 +230,7 @@ describe("processAcuityWebhookEvent", () => {
     ]);
   });
 
-  it("canceled: marks the call cancelled and cancels the pending task, without touching Opportunity stage", async () => {
+  it("canceled: a client cancelling in Acuity lands in the SAME state as the manual Cancelled choice", async () => {
     const { dataProvider, deal } = buildFixtures();
     await processAcuityWebhookEvent({
       dataProvider,
@@ -262,7 +262,13 @@ describe("processAcuityWebhookEvent", () => {
     const { data: updatedDeal } = await dataProvider.getOne<Deal>("deals", {
       id: DEAL_ID,
     });
-    expect(updatedDeal.stage).toBe("call_booked");
+    // The unified canonical behaviour: Call Booked asserted a booked call
+    // and there is none, so the Opportunity returns to Approved — exactly
+    // what the manual "Cancelled" choice produces (see
+    // cancelSalesCall.test.ts). Both paths call the same action; a
+    // divergence here is the bug this unification removed.
+    expect(updatedDeal.stage).toBe("approved");
+    expect(updatedDeal.outcome).toBeFalsy();
     expect(updatedDeal.sales_call_at).toBeNull();
 
     const { data: tasks } = await dataProvider.getList<Task>("tasks", {

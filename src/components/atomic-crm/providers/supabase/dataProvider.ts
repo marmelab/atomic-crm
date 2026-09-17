@@ -226,6 +226,21 @@ const getDataProviderWithCustomMethods = () => {
       }
       return data as { status: string };
     },
+    // Cancelling is one human action, so production runs it as ONE
+    // transaction too: the CRM can never land with the call cancelled while
+    // the Opportunity still claims a booked call, or with the task still
+    // pending, because a second client write failed.
+    async recordSalesCallCancelled(salesCallId: Identifier) {
+      const { data, error } = await getSupabaseClient().rpc(
+        "record_sales_call_cancelled",
+        { p_sales_call_id: salesCallId },
+      );
+      if (error) {
+        console.error("record_sales_call_cancelled.error", error);
+        throw new Error("Failed to record the sales call as cancelled");
+      }
+      return data as { status: string };
+    },
     async mergeContacts(sourceId: Identifier, targetId: Identifier) {
       const { data, error } = await getSupabaseClient().functions.invoke(
         "merge_contacts",

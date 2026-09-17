@@ -27,13 +27,14 @@ import {
 import type {
   OpportunityOwnerDecision,
   OpportunityProspectDecision,
-  SalesCallAttendance,
 } from "../types";
 import {
   DEFAULT_THINKING_FOLLOW_UP_DAYS,
-  salesCallAttendances,
+  salesCallOutcomeChoices,
+  type SalesCallOutcomeChoice,
 } from "./salesCallConstants";
 import { completeSalesCallOutcome } from "./completeSalesCallOutcome";
+import { cancelSalesCall } from "./cancelSalesCall";
 
 const defaultFollowUpDate = () =>
   addDays(new Date(), DEFAULT_THINKING_FOLLOW_UP_DAYS)
@@ -66,9 +67,10 @@ export const CompleteSalesCallDialog = ({
   const notify = useNotify();
   const refresh = useRefresh();
 
-  const [attendance, setAttendance] = useState<SalesCallAttendance | null>(
-    null,
-  );
+  // The three-way human answer. Only 'attended'/'no_show' are attendance
+  // values the database understands; 'cancelled' is a different kind of
+  // fact and goes down its own canonical path.
+  const [outcome, setOutcome] = useState<SalesCallOutcomeChoice | null>(null);
   const [ownerDecision, setOwnerDecision] =
     useState<OpportunityOwnerDecision | null>(null);
   const [prospectDecision, setProspectDecision] =
@@ -77,7 +79,7 @@ export const CompleteSalesCallDialog = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const reset = () => {
-    setAttendance(null);
+    setOutcome(null);
     setOwnerDecision(null);
     setProspectDecision(null);
     setFollowUpDate("");
@@ -89,22 +91,45 @@ export const CompleteSalesCallDialog = ({
   };
 
   const canSubmit =
-    attendance === "no_show" ||
-    (attendance === "attended" &&
+    outcome === "cancelled" ||
+    outcome === "no_show" ||
+    (outcome === "attended" &&
       ownerDecision != null &&
       (ownerDecision !== "would_work_with" ||
         (prospectDecision != null &&
           (prospectDecision !== "thinking" || !!followUpDate))));
 
   const handleSubmit = async () => {
-    if (!attendance || isSubmitting) return;
+    if (!outcome || isSubmitting) return;
     setIsSubmitting(true);
     try {
+      // Cancellation is not an attendance outcome, so it does not go
+      // through completeSalesCallOutcome at all — it uses the same
+      // canonical action the Acuity webhook uses, so a call cancelled in
+      // the CRM and one cancelled by the client end in identical state.
+      if (outcome === "cancelled") {
+        const cancelled = await cancelSalesCall(dataProvider, salesCallId);
+        if (
+          cancelled.status === "cancelled" ||
+          cancelled.status === "already-cancelled"
+        ) {
+          notify("resources.deals.sales_call.cancelled", {
+            type: "info",
+            _: "Sales call cancelled. The Opportunity needs a new booking.",
+          });
+          handleOpenChange(false);
+          refresh();
+        } else {
+          notify("ra.notification.http_error", { type: "error" });
+        }
+        return;
+      }
+
       const result = await completeSalesCallOutcome({
         dataProvider,
         salesCallId,
         contactName,
-        attendance,
+        attendance: outcome,
         ownerDecision,
         prospectDecision,
         followUpDate: prospectDecision === "thinking" ? followUpDate : null,
@@ -154,17 +179,19 @@ export const CompleteSalesCallDialog = ({
         <div className="flex flex-col gap-6">
           <fieldset className="flex flex-col gap-3">
             <Label className="text-sm font-medium">
-              {translate("resources.deals.sales_call.attendance", {
-                _: "Attendance",
+              {/* Works for all three: "Attendance" cannot describe a call
+                  that never happened. */}
+              {translate("resources.deals.sales_call.what_happened", {
+                _: "What happened with this call?",
               })}
             </Label>
             <RadioGroup
-              value={attendance ?? undefined}
+              value={outcome ?? undefined}
               onValueChange={(value) =>
-                setAttendance(value as SalesCallAttendance)
+                setOutcome(value as SalesCallOutcomeChoice)
               }
             >
-              {salesCallAttendances.map((choice) => (
+              {salesCallOutcomeChoices.map((choice) => (
                 <div key={choice.value} className="flex items-center gap-2">
                   <RadioGroupItem
                     value={choice.value}
@@ -181,7 +208,7 @@ export const CompleteSalesCallDialog = ({
             </RadioGroup>
           </fieldset>
 
-          {attendance === "attended" && (
+          {outcome === "attended" && (
             <fieldset className="flex flex-col gap-3 rounded-lg border p-4">
               <Label className="text-sm font-medium">
                 {translate("resources.deals.sales_call.owner_fit_question", {

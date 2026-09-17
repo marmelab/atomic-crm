@@ -47,6 +47,7 @@ import { getCompanyAvatar } from "../commons/getCompanyAvatar";
 import { getContactAvatar } from "../commons/getContactAvatar";
 import { mergeContacts } from "../commons/mergeContacts";
 import { recordSalesCallNoShow as recordSalesCallNoShowMirror } from "../../sales-calls/recordSalesCallNoShow";
+import { cancelSalesCallMirror } from "../../sales-calls/cancelSalesCall";
 import { assertNoDuplicateActiveWaitlistEntry } from "../../waitlist/waitlistEntryValidation";
 import { ACTIVE_WAITLIST_STATUSES } from "../../waitlist/waitlistConstants";
 import { syncWaitlistForActiveDeal } from "../../waitlist/waitlistSync";
@@ -801,6 +802,20 @@ export const createDataProvider = ({
     // atomicity guarantee comes from the real function.
     recordSalesCallNoShow: async (salesCallId: Identifier) => {
       return recordSalesCallNoShowMirror(baseDataProvider, salesCallId);
+    },
+    // Cancellation runs against THIS provider, not baseDataProvider: it is
+    // the one carrying the "sales_calls" resource hooks, so
+    // syncDealSalesCallAt fires and deals.sales_call_at is cleared —
+    // exactly what the sync_deal_sales_call_at() trigger does in
+    // production. Bound to baseDataProvider it would skip those hooks and
+    // leave a cancelled call still advertised as the Opportunity's next
+    // call. Points at the mirror directly so cancelSalesCall does not
+    // dispatch back into this registration.
+    recordSalesCallCancelled: async (salesCallId: Identifier) => {
+      // The OUTER provider: the "sales_calls" lifecycle hooks live in the
+      // withLifecycleCallbacks wrapper below, not on this object, so only
+      // the outer one fires syncDealSalesCallAt.
+      return cancelSalesCallMirror(dataProvider, salesCallId);
     },
     getConfiguration: async (): Promise<ConfigurationContextValue> => {
       const { data } = await baseDataProvider.getOne("configuration", {
