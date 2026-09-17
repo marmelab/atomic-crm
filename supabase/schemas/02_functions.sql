@@ -762,6 +762,12 @@ declare
   v_old_rank int;
   v_new_rank int;
 begin
+  -- Terminal exits are reachable from anywhere; only the fulfillment
+  -- sequence itself can be skipped.
+  if new.status in ('withdrawn', 'ended') then
+    return new;
+  end if;
+
   v_old_rank := case old.status
     when 'onboarding' then 0
     when 'active' then 1
@@ -1567,6 +1573,87 @@ BEGIN
     'dne_auto_resolved', v_is_dne
   );
 END;
+$$;
+
+CREATE OR REPLACE FUNCTION "public"."record_sales_call_cancelled"("p_sales_call_id" bigint) RETURNS "jsonb"
+    LANGUAGE "plpgsql"
+    SECURITY DEFINER
+    SET "search_path" TO 'public'
+    AS $$
+declare
+  v_call sales_calls%ROWTYPE;
+  v_now timestamptz := now();
+  v_deal_returned boolean := false;
+  v_tasks_closed int := 0;
+begin
+  select * into v_call from sales_calls where id = p_sales_call_id for update;
+  if not found then
+    return jsonb_build_object('status', 'not-found');
+  end if;
+
+  -- Never overwrite a call that genuinely happened. Someone attended it;
+  -- cancelling it afterwards would erase that.
+  if v_call.attendance = 'attended' then
+    return jsonb_build_object('status', 'already-attended');
+  end if;
+
+  -- 1. The Sales Call is the canonical record of the cancellation.
+  --    original_scheduled_at is untouched — when it WAS going to happen is
+  --    part of the history. attendance stays exactly as it is: null for a
+  --    call that was cancelled before it was due, and a previously recorded
+  --    no_show is never rewritten by a later cancellation of a DIFFERENT
+  --    call (each call is its own record).
+  --    status leaves 'booked', which also frees
+  --    sales_calls_one_booked_per_opportunity_idx for a genuine rebooking.
+  if v_call.status <> 'cancelled' then
+    update sales_calls
+       set status = 'cancelled',
+           cancelled_at = coalesce(v_call.cancelled_at, v_now),
+           updated_at = v_now
+     where id = v_call.id;
+
+    insert into sales_call_events (sales_call_id, kind, occurred_at)
+    values (v_call.id, 'cancelled', v_now);
+  end if;
+
+  -- 2. A task telling Leif to deal with this specific call is no longer
+  --    real work. Cancelled rather than completed — nobody did it — using
+  --    the status vocabulary tasks already has. done_date is deliberately
+  --    left alone: a cancelled task was never done.
+  update tasks
+     set status = 'cancelled'
+   where sales_call_id = v_call.id
+     and status in ('pending', 'waiting');
+  get diagnostics v_tasks_closed = row_count;
+
+  -- 3. The Opportunity leaves Call Booked. Only from 'call_booked', and
+  --    only while it is still active — a Deal that has since progressed or
+  --    exited is not dragged backwards by cancelling an old call.
+  --    stage_entered_at is set so record_deal_stage_event() timestamps the
+  --    transition as happening now rather than reusing the old value.
+  if v_call.opportunity_id is not null then
+    update deals
+       set stage = 'approved',
+           stage_entered_at = v_now,
+           updated_at = v_now
+     where id = v_call.opportunity_id
+       and stage = 'call_booked'
+       and outcome is null
+       and archived_at is null;
+    v_deal_returned := found;
+  end if;
+
+  return jsonb_build_object(
+    'status', case when v_call.status = 'cancelled' then 'already-cancelled' else 'cancelled' end,
+    'sales_call_id', v_call.id,
+    'opportunity_id', v_call.opportunity_id,
+    'deal_returned_to_approved', v_deal_returned,
+    'tasks_closed', v_tasks_closed,
+    -- Reported so a caller can be explicit that nothing was decided about
+    -- pursuing this person.
+    'outcome_left_undecided', true
+  );
+end;
 $$;
 
 CREATE OR REPLACE FUNCTION "public"."record_sales_call_no_show"("p_sales_call_id" bigint) RETURNS "jsonb"

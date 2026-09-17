@@ -220,6 +220,83 @@ describe("ClientList", () => {
   // hold are that she is not presented as a current client, and not
   // described as having "Completed" the programme she left. Distinct ids
   // again, per this file's own convention.
+  // Samantha Putkunz: the container ran its course without her finishing
+  // the work and without a formal withdrawal. "Completed" would claim she
+  // finished; "Withdrawn" would claim she told us she was leaving.
+  it("files an ended container under Past and labels it neither Completed nor Withdrawn", async () => {
+    await page.viewport(1280, 900);
+
+    const endedEnrollment: Enrollment = {
+      id: 15,
+      opportunity_id: 15,
+      status: "ended",
+      start_date: "2026-04-29",
+      end_date: "2026-08-24",
+      created_at: "2026-04-29T00:00:00.000Z",
+      updated_at: "2026-08-24T00:00:00.000Z",
+    };
+    const currentEnrollment: Enrollment = {
+      id: 16,
+      opportunity_id: 16,
+      status: "active",
+      start_date: "2026-01-01",
+      end_date: null,
+      created_at: "2026-01-01T00:00:00.000Z",
+      updated_at: "2026-01-01T00:00:00.000Z",
+    };
+
+    const dataProvider = createDataProvider({
+      db: createCrmDb({
+        contacts: [
+          buildContact({ id: 15, first_name: "Ended", last_name: "Container" }),
+          buildContact({ id: 16, first_name: "Still", last_name: "Going" }),
+        ],
+        offers: [gyuOffer],
+        deals: [buildDeal(15, 15), buildDeal(16, 16)],
+        enrollments: [endedEnrollment, currentEnrollment],
+        enrollment_onboarding_items: [],
+        enrollment_offboarding_items: [],
+      }),
+      silent: true,
+    });
+
+    const screen = await render(
+      <MemoryRouter initialEntries={["/enrollments"]}>
+        <CRM
+          dataProvider={dataProvider}
+          authProvider={createTestAuthProvider()}
+          i18nProvider={testI18nProvider}
+          store={memoryStore()}
+          disableTelemetry
+          layout={({ children }) => (
+            <>
+              {children}
+              <Notification />
+            </>
+          )}
+        />
+      </MemoryRouter>,
+    );
+
+    await expect
+      .element(screen.getByRole("heading", { name: "Active", exact: true }))
+      .toBeInTheDocument();
+    await expect.element(screen.getByText("Still Going")).toBeInTheDocument();
+
+    // Not current: filed under the collapsed Past section.
+    await expect
+      .element(screen.getByText("Ended Container"))
+      .not.toBeInTheDocument();
+
+    // And neither loaded word appears anywhere on the page.
+    await expect
+      .element(screen.getByText("Completed", { exact: true }))
+      .not.toBeInTheDocument();
+    await expect
+      .element(screen.getByText("Withdrawn", { exact: true }))
+      .not.toBeInTheDocument();
+  });
+
   it("treats a withdrawn client as past, and never labels her as having completed the programme", async () => {
     await page.viewport(1280, 900);
 

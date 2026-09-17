@@ -480,7 +480,9 @@ create table public.enrollments (
     -- absence forced the historical importer to choose between erasing that
     -- someone ever enrolled and labelling them "Completed" — see
     -- useClientsGrouped.ts, which files every terminal status under Past.
-    constraint enrollments_status_check check (status in ('onboarding', 'active', 'offboarding', 'completed', 'withdrawn'))
+    -- 'ended': the container ran its course without successful completion
+    -- and without a formal withdrawal. Neutral about the person on purpose.
+    constraint enrollments_status_check check (status in ('onboarding', 'active', 'offboarding', 'completed', 'withdrawn', 'ended'))
 );
 
 -- The AGREED payment schedule for a Deal, for arrangements the equal-

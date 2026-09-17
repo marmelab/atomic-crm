@@ -9,6 +9,7 @@ export const enrollmentStatuses: {
   { value: "offboarding", label: "Offboarding" },
   { value: "completed", label: "Completed" },
   { value: "withdrawn", label: "Withdrawn" },
+  { value: "ended", label: "Ended" },
 ];
 
 export const enrollmentStatusLabels: Record<EnrollmentStatus, string> = {
@@ -17,6 +18,7 @@ export const enrollmentStatusLabels: Record<EnrollmentStatus, string> = {
   offboarding: "Offboarding",
   completed: "Completed",
   withdrawn: "Withdrawn",
+  ended: "Ended",
 };
 
 // Manual Task UX repair, round 2: the canonical definition of "Leif is

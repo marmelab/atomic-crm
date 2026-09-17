@@ -322,7 +322,11 @@ export type EnrollmentStatus =
   // who signed up and then left before finishing did not complete the
   // programme, and saying they did would be a visible falsehood on their
   // own record. Reached only through the historical importer today.
-  | "withdrawn";
+  | "withdrawn"
+  // Terminal, and distinct from both: the container ran its course without
+  // the client finishing the work and without a formal withdrawal. Neutral
+  // by design — it describes the container, not the person.
+  | "ended";
 
 // The commercial/client lifecycle after a successful sale. At most one per
 // Opportunity.
