@@ -214,6 +214,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/tags/ensureContactTag.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/tags/colors.ts",
           "type": "registry:component"
         },
@@ -359,6 +363,10 @@
         },
         {
           "path": "src/components/atomic-crm/sales-calls/syncDealSalesCallAt.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/sales-calls/selectCurrentSalesCall.ts",
           "type": "registry:component"
         },
         {
@@ -1102,7 +1110,15 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/deals/resolveApprovedOpportunity.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/deals/releaseScholarshipReservation.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/deals/recordOpportunityDecision.ts",
           "type": "registry:component"
         },
         {
@@ -1174,6 +1190,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/deals/applyDealStageDrop.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/deals/ScholarshipPricingControl.tsx",
           "type": "registry:component"
         },
@@ -1187,6 +1207,10 @@
         },
         {
           "path": "src/components/atomic-crm/deals/OpportunityPersonInput.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/deals/OpportunityDecisionActions.tsx",
           "type": "registry:component"
         },
         {
@@ -1455,6 +1479,10 @@
         },
         {
           "path": "src/components/atomic-crm/contacts/ContactImportButton.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/contacts/ContactIdentifiers.tsx",
           "type": "registry:component"
         },
         {
