@@ -74,6 +74,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/waitlist/isImportProvenance.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/waitlist/WaitlistSection.tsx",
           "type": "registry:component"
         },
@@ -1570,6 +1574,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/applications/useHistoricalApplications.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/applications/useApplicationsGrouped.ts",
           "type": "registry:component"
         },
@@ -1595,6 +1603,10 @@
         },
         {
           "path": "src/components/atomic-crm/applications/answerLabels.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/applications/HistoricalApplicationSections.tsx",
           "type": "registry:component"
         },
         {
