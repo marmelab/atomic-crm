@@ -214,4 +214,90 @@ describe("ClientList", () => {
       .element(screen.getByText("Past Person"))
       .not.toBeInTheDocument();
   });
+
+  // Someone who signed up and then left before finishing. The historical
+  // importer can now record that truthfully, and the two things that must
+  // hold are that she is not presented as a current client, and not
+  // described as having "Completed" the programme she left. Distinct ids
+  // again, per this file's own convention.
+  it("treats a withdrawn client as past, and never labels her as having completed the programme", async () => {
+    await page.viewport(1280, 900);
+
+    const withdrawnEnrollment: Enrollment = {
+      id: 13,
+      opportunity_id: 13,
+      status: "withdrawn",
+      start_date: "2026-08-05",
+      end_date: null,
+      created_at: "2026-08-05T00:00:00.000Z",
+      updated_at: "2026-08-05T00:00:00.000Z",
+    };
+    const activeEnrollment: Enrollment = {
+      id: 14,
+      opportunity_id: 14,
+      status: "active",
+      start_date: "2026-01-01",
+      end_date: null,
+      created_at: "2026-01-01T00:00:00.000Z",
+      updated_at: "2026-01-01T00:00:00.000Z",
+    };
+
+    const dataProvider = createDataProvider({
+      db: createCrmDb({
+        contacts: [
+          buildContact({
+            id: 13,
+            first_name: "Withdrawn",
+            last_name: "Person",
+          }),
+          buildContact({ id: 14, first_name: "Current", last_name: "Person" }),
+        ],
+        offers: [gyuOffer],
+        deals: [buildDeal(13, 13), buildDeal(14, 14)],
+        enrollments: [withdrawnEnrollment, activeEnrollment],
+        enrollment_onboarding_items: [],
+        enrollment_offboarding_items: [],
+      }),
+      silent: true,
+    });
+
+    const screen = await render(
+      <MemoryRouter initialEntries={["/enrollments"]}>
+        <CRM
+          dataProvider={dataProvider}
+          authProvider={createTestAuthProvider()}
+          i18nProvider={testI18nProvider}
+          store={memoryStore()}
+          disableTelemetry
+          layout={({ children }) => (
+            <>
+              {children}
+              <Notification />
+            </>
+          )}
+        />
+      </MemoryRouter>,
+    );
+
+    // The genuinely current client is the only one shown as such.
+    await expect
+      .element(screen.getByRole("heading", { name: "Active", exact: true }))
+      .toBeInTheDocument();
+    await expect
+      .element(screen.getByText("Current Person"))
+      .toBeInTheDocument();
+
+    // She is filed under Past, which is collapsed — so she is not on screen
+    // among Leif's current clients.
+    await expect
+      .element(screen.getByText("Withdrawn Person"))
+      .not.toBeInTheDocument();
+
+    // And the word "Completed" is nowhere on this page: the only terminal
+    // client here withdrew, and saying otherwise about a real person is the
+    // exact failure this status exists to prevent.
+    await expect
+      .element(screen.getByText("Completed", { exact: true }))
+      .not.toBeInTheDocument();
+  });
 });

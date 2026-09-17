@@ -475,7 +475,12 @@ create table public.enrollments (
     end_date date,
     created_at timestamp with time zone not null default now(),
     updated_at timestamp with time zone not null default now(),
-    constraint enrollments_status_check check (status in ('onboarding', 'active', 'offboarding', 'completed'))
+    -- 'withdrawn' is terminal like 'completed', and exists because a
+    -- person who signed up and then left before finishing is neither. Its
+    -- absence forced the historical importer to choose between erasing that
+    -- someone ever enrolled and labelling them "Completed" — see
+    -- useClientsGrouped.ts, which files every terminal status under Past.
+    constraint enrollments_status_check check (status in ('onboarding', 'active', 'offboarding', 'completed', 'withdrawn'))
 );
 
 -- Scholarship Pricing + Capacity slice: the single authoritative

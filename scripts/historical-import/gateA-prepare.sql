@@ -35,6 +35,12 @@ select jsonb_pretty(jsonb_build_object(
   'state', jsonb_build_object(
     'contacts', coalesce((select jsonb_agg(jsonb_build_object('id',id,'first_name',first_name,'last_name',last_name,'stripe_customer_id',stripe_customer_id,'email_jsonb',email_jsonb)) from contacts),'[]'::jsonb),
     'cohorts', coalesce((select jsonb_agg(jsonb_build_object('id',id,'name',name,'offer_id',offer_id)) from cohorts),'[]'::jsonb),
+    -- Commercial terms of every Deal that already exists, so a ruling which
+    -- establishes what somebody actually paid can be compared against what
+    -- is recorded. Without this the importer can only get the terms right on
+    -- a Deal it creates itself, and a person already imported under the
+    -- default standard pricing stays wrong forever.
+    'dealTerms', coalesce((select jsonb_agg(jsonb_build_object('id',id,'pm',pricing_mode,'t',selected_payment_total,'n',selected_installment_count,'a',selected_installment_amount)) from deals),'[]'::jsonb),
     'salesCallAcuity', coalesce((select jsonb_agg(jsonb_build_object('id',id,'a',acuity_appointment_id)) from sales_calls where acuity_appointment_id is not null),'[]'::jsonb),
     'clientSessionAcuity', coalesce((select jsonb_agg(jsonb_build_object('id',id,'a',acuity_appointment_id)) from client_sessions where acuity_appointment_id is not null),'[]'::jsonb),
     'enrollmentsByDeal', coalesce((select jsonb_agg(jsonb_build_object('id',id,'d',opportunity_id)) from enrollments),'[]'::jsonb),

@@ -91,7 +91,10 @@ export const useClientsGrouped = (): {
     // done with it — so it belongs in Active (each row's own Badge
     // already shows "Offboarding" distinctly, via ClientList.tsx's
     // existing per-row status badge), never silently buried under Past
-    // before Complete client actually happens. Only "completed" is Past.
+    // before Complete client actually happens. Past is every TERMINAL
+    // status — "completed" and "withdrawn" alike: someone who left the
+    // programme is just as much not-current work as someone who finished
+    // it, and the per-row badge is what distinguishes the two.
     if (enrollment.status === "onboarding") needsOnboarding.push(row);
     else if (
       enrollment.status === "active" ||

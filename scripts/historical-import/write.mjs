@@ -175,6 +175,11 @@ export async function insertHistoricalDeal(client, input) {
     stageEnteredAt,
     stageEnteredAtEvidence,
     cohortId,
+    // Commercial terms, present only when a ruling actually establishes
+    // them. Default to the standard-pricing shape so every other Deal
+    // writes exactly the SQL it wrote before.
+    pricingMode = "standard",
+    commercialTerms = null,
   } = input;
 
   // Fail-fast guard (Phase 4M, defense-in-depth): real Postgres's own
@@ -221,6 +226,24 @@ export async function insertHistoricalDeal(client, input) {
     }
   }
 
+  if (pricingMode !== "standard" && pricingMode !== "scholarship") {
+    throw new Error(
+      `insertHistoricalDeal: invalid pricingMode (${pricingMode}) for sourceKey "${sourceKey}" — deals_pricing_mode_check allows only 'standard' or 'scholarship'.`,
+    );
+  }
+  // A commercial arrangement is only representable if the ruling states all
+  // three parts. A total with no period, or a period with no total, is a
+  // half-fact — and dividing one into the other to fill the gap would be
+  // inventing a payment schedule nobody agreed to.
+  if (commercialTerms) {
+    const { total, installments } = commercialTerms;
+    if (!(total > 0) || !Number.isInteger(installments) || installments < 1) {
+      throw new Error(
+        `insertHistoricalDeal: refusing to write commercial terms for sourceKey "${sourceKey}" — a ruling must establish a positive total and a whole number of payments, got total=${total} installments=${installments}.`,
+      );
+    }
+  }
+
   const existingLedger = await client.query(
     `select entity_id from historical_import_records where entity_table = 'deals' and source_key = $1`,
     [sourceKey],
@@ -233,8 +256,16 @@ export async function insertHistoricalDeal(client, input) {
   }
 
   const inserted = await client.query(
-    `insert into deals (name, contact_id, offer_id, cohort_id, stage, outcome, pricing_mode, stage_entered_at, created_at, updated_at)
-     values ($1, $2, $3, $4, $5, $6, 'standard', $7, $8, $9) returning id`,
+    // selected_payment_option_id stays null on purpose: a bespoke
+    // accommodation Leif granted one person is not an entry in the Offer's
+    // public payment-option catalog, and pointing at a catalog row whose
+    // numbers differ would misstate the agreement. The selected_* snapshot
+    // columns are exactly the place a Deal's own agreed terms live.
+    // offer_price_snapshot is left to handle_deal_saved(), which derives it
+    // from the Offer's scholarship_price rather than its current_price.
+    `insert into deals (name, contact_id, offer_id, cohort_id, stage, outcome, pricing_mode, stage_entered_at, created_at, updated_at,
+                         selected_payment_total, selected_installment_count, selected_installment_amount)
+     values ($1, $2, $3, $4, $5, $6, $10, $7, $8, $9, $11, $12, $13) returning id`,
     [
       name,
       contactId,
@@ -245,6 +276,10 @@ export async function insertHistoricalDeal(client, input) {
       stageEnteredAt,
       createdAt,
       updatedAt,
+      pricingMode,
+      commercialTerms?.total ?? null,
+      commercialTerms?.installments ?? null,
+      commercialTerms?.installmentAmount ?? null,
     ],
   );
   const dealId = inserted.rows[0].id;
@@ -459,6 +494,51 @@ export async function insertHistoricalWaitlistEntry(client, input) {
 // otherwise stamp now() — see the guard in 02_functions.sql).
 // ---------------------------------------------------------------------------
 
+/**
+ * Corrects the commercial terms of a Deal that ALREADY exists, to match a
+ * ruling that establishes what the person actually paid.
+ *
+ * Needed because a ruling can arrive after the person was already imported
+ * — the writer that created their Deal had no terms to write and correctly
+ * defaulted to standard pricing. Re-running the import would not fix that:
+ * the provenance ledger makes it a no-op, which is exactly the behaviour
+ * that keeps reruns safe. So the correction has to be its own explicit,
+ * idempotent step.
+ *
+ * Caller-driven idempotency: the generator compares the ruling against the
+ * target's current terms and only calls this when they genuinely differ, so
+ * a run that has nothing to correct issues no SQL at all.
+ */
+export async function applyHistoricalDealCommercialTerms(
+  client,
+  { dealId, pricingMode, commercialTerms },
+) {
+  if (pricingMode !== "standard" && pricingMode !== "scholarship") {
+    throw new Error(
+      `applyHistoricalDealCommercialTerms: invalid pricingMode (${pricingMode}) for deal ${dealId}.`,
+    );
+  }
+  if (!dealId) {
+    throw new Error(
+      "applyHistoricalDealCommercialTerms: refusing to update without a resolved dealId.",
+    );
+  }
+  // offer_price_snapshot is deliberately NOT set here. handle_deal_saved()
+  // re-derives it from the Offer's scholarship_price the moment pricing_mode
+  // changes — letting the trigger own it keeps one authority for that field
+  // instead of two that can disagree.
+  await client.query(
+    `update deals set pricing_mode = $2, selected_payment_total = $3, selected_installment_count = $4, selected_installment_amount = $5, updated_at = updated_at where id = $1`,
+    [
+      dealId,
+      pricingMode,
+      commercialTerms?.total ?? null,
+      commercialTerms?.installments ?? null,
+      commercialTerms?.installmentAmount ?? null,
+    ],
+  );
+}
+
 export async function insertHistoricalEnrollment(client, input) {
   const {
     sourceKey,
@@ -512,6 +592,9 @@ export async function insertHistoricalEnrollment(client, input) {
     sourceSystem,
     operation: "create",
     batchId,
+    // Carries a date-confidence caveat when one applies, the same way a
+    // Deal records stage_entered_at:APPROXIMATE_SOURCE_TIMESTAMP.
+    evidenceNotes: input.evidenceNotes ?? null,
   });
   return { enrollmentId, operation: "create" };
 }

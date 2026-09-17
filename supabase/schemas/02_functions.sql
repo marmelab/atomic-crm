@@ -291,69 +291,78 @@ begin
     end if;
   end if;
 
-  -- Scholarship Pricing + Capacity slice: pricing_mode is frozen the
-  -- instant a Deal reaches Won, exactly like every other commercial
-  -- snapshot field below — never editable again afterward.
-  if tg_op = 'UPDATE' and old.stage = 'won' and new.pricing_mode is distinct from old.pricing_mode then
-    raise exception 'Cannot change pricing_mode on deal % once it has reached Won', new.id;
-  end if;
+  -- Historical Migration slice: everything from here to the matching end if
+  -- is live scholarship CONTROL — who may grant it, when, and who holds the
+  -- Offer's single slot. An import states what was already true and claims
+  -- no live capacity, so it is skipped wholesale under migration mode. See
+  -- set_historical_migration_mode()'s own header for why this GUC check is
+  -- safe, and handle_deal_won() for the identical treatment of its own
+  -- side effects.
+  if current_setting('app.migration_mode', true) is distinct from 'true' then
+    -- Scholarship Pricing + Capacity slice: pricing_mode is frozen the
+    -- instant a Deal reaches Won, exactly like every other commercial
+    -- snapshot field below — never editable again afterward.
+    if tg_op = 'UPDATE' and old.stage = 'won' and new.pricing_mode is distinct from old.pricing_mode then
+      raise exception 'Cannot change pricing_mode on deal % once it has reached Won', new.id;
+    end if;
 
-  -- Scholarship can only ever be granted via an explicit Deal edit (Leif
-  -- toggling an EXISTING Opportunity), never at creation — this also
-  -- sidesteps needing new.id (not yet populated in a BEFORE INSERT
-  -- trigger for a generated-identity primary key) for the slot claim below.
-  if tg_op = 'INSERT' and new.pricing_mode = 'scholarship' then
-    raise exception 'A new Opportunity cannot be created directly as scholarship — grant scholarship pricing via Deal edit after creation';
-  end if;
+    -- Scholarship can only ever be granted via an explicit Deal edit (Leif
+    -- toggling an EXISTING Opportunity), never at creation — this also
+    -- sidesteps needing new.id (not yet populated in a BEFORE INSERT
+    -- trigger for a generated-identity primary key) for the slot claim below.
+    if tg_op = 'INSERT' and new.pricing_mode = 'scholarship' then
+      raise exception 'A new Opportunity cannot be created directly as scholarship — grant scholarship pricing via Deal edit after creation';
+    end if;
 
-  -- A scholarship Deal's held slot is scoped to its CURRENT offer_id — never
-  -- silently re-scope a held reservation to a different Offer. Release the
-  -- scholarship first, then move offer_id, then re-grant if still desired.
-  if tg_op = 'UPDATE'
-     and old.pricing_mode = 'scholarship'
-     and new.offer_id is distinct from old.offer_id
-  then
-    raise exception 'Cannot change offer_id on deal % while it holds a scholarship reservation — release scholarship pricing first', new.id;
-  end if;
+    -- A scholarship Deal's held slot is scoped to its CURRENT offer_id — never
+    -- silently re-scope a held reservation to a different Offer. Release the
+    -- scholarship first, then move offer_id, then re-grant if still desired.
+    if tg_op = 'UPDATE'
+       and old.pricing_mode = 'scholarship'
+       and new.offer_id is distinct from old.offer_id
+    then
+      raise exception 'Cannot change offer_id on deal % while it holds a scholarship reservation — release scholarship pricing first', new.id;
+    end if;
 
-  if tg_op = 'UPDATE' and new.pricing_mode is distinct from old.pricing_mode then
-    if new.pricing_mode = 'scholarship' then
-      if v_offer.scholarship_price is null then
-        raise exception 'Offer % has no scholarship price configured', new.offer_id;
+    if tg_op = 'UPDATE' and new.pricing_mode is distinct from old.pricing_mode then
+      if new.pricing_mode = 'scholarship' then
+        if v_offer.scholarship_price is null then
+          raise exception 'Offer % has no scholarship price configured', new.offer_id;
+        end if;
+
+        -- Atomic grant: claims this Offer's single scholarship_slots row for
+        -- this Deal. The INSERT ... ON CONFLICT DO UPDATE ... WHERE guard is
+        -- Postgres's native compare-and-swap — the row lock taken while
+        -- evaluating the conflicting row serializes two concurrent grant
+        -- attempts for the same Offer automatically; whichever commits first
+        -- wins outright, the other's WHERE fails to match (0 rows), detected
+        -- below via GET DIAGNOSTICS and turned into a clean rejection of the
+        -- whole write. No app-level check-then-act gap.
+        insert into scholarship_slots (offer_id, holder_deal_id, reserved_at)
+        values (new.offer_id, new.id, now())
+        on conflict (offer_id) do update
+          set holder_deal_id = excluded.holder_deal_id,
+              reserved_at = excluded.reserved_at
+          where scholarship_slots.holder_deal_id is null
+            and scholarship_slots.holder_enrollment_id is null;
+        get diagnostics v_rows = row_count;
+        if v_rows = 0 then
+          raise exception 'Scholarship slot for offer % is already held', new.offer_id;
+        end if;
+
+        insert into scholarship_slot_events (offer_id, deal_id, event_type, occurred_at)
+        values (new.offer_id, new.id, 'scholarship_granted', now());
+      elsif old.pricing_mode = 'scholarship' then
+        -- Release: only valid pre-Won (the immutability guard above already
+        -- rejected this branch once Won), so this exact Deal is guaranteed to
+        -- still be the slot's holder_deal_id if it ever held one.
+        update scholarship_slots
+          set holder_deal_id = null, reserved_at = null, updated_at = now()
+          where offer_id = old.offer_id and holder_deal_id = new.id;
+
+        insert into scholarship_slot_events (offer_id, deal_id, event_type, occurred_at)
+        values (old.offer_id, new.id, 'scholarship_released', now());
       end if;
-
-      -- Atomic grant: claims this Offer's single scholarship_slots row for
-      -- this Deal. The INSERT ... ON CONFLICT DO UPDATE ... WHERE guard is
-      -- Postgres's native compare-and-swap — the row lock taken while
-      -- evaluating the conflicting row serializes two concurrent grant
-      -- attempts for the same Offer automatically; whichever commits first
-      -- wins outright, the other's WHERE fails to match (0 rows), detected
-      -- below via GET DIAGNOSTICS and turned into a clean rejection of the
-      -- whole write. No app-level check-then-act gap.
-      insert into scholarship_slots (offer_id, holder_deal_id, reserved_at)
-      values (new.offer_id, new.id, now())
-      on conflict (offer_id) do update
-        set holder_deal_id = excluded.holder_deal_id,
-            reserved_at = excluded.reserved_at
-        where scholarship_slots.holder_deal_id is null
-          and scholarship_slots.holder_enrollment_id is null;
-      get diagnostics v_rows = row_count;
-      if v_rows = 0 then
-        raise exception 'Scholarship slot for offer % is already held', new.offer_id;
-      end if;
-
-      insert into scholarship_slot_events (offer_id, deal_id, event_type, occurred_at)
-      values (new.offer_id, new.id, 'scholarship_granted', now());
-    elsif old.pricing_mode = 'scholarship' then
-      -- Release: only valid pre-Won (the immutability guard above already
-      -- rejected this branch once Won), so this exact Deal is guaranteed to
-      -- still be the slot's holder_deal_id if it ever held one.
-      update scholarship_slots
-        set holder_deal_id = null, reserved_at = null, updated_at = now()
-        where offer_id = old.offer_id and holder_deal_id = new.id;
-
-      insert into scholarship_slot_events (offer_id, deal_id, event_type, occurred_at)
-      values (old.offer_id, new.id, 'scholarship_released', now());
     end if;
   end if;
 

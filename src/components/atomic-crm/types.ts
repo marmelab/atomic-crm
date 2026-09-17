@@ -285,7 +285,12 @@ export type EnrollmentStatus =
   | "onboarding"
   | "active"
   | "offboarding"
-  | "completed";
+  | "completed"
+  // Terminal, like "completed", and deliberately distinct from it: someone
+  // who signed up and then left before finishing did not complete the
+  // programme, and saying they did would be a visible falsehood on their
+  // own record. Reached only through the historical importer today.
+  | "withdrawn";
 
 // The commercial/client lifecycle after a successful sale. At most one per
 // Opportunity.

@@ -15,6 +15,11 @@ import { makeShimClient } from "./gateA-sql-shim.mjs";
 import { isJanuaryDatabaseConstructionArtifact } from "./applicationMapping.mjs";
 import { applyIdentitySplitRulings } from "./plan.mjs";
 import { insertHistoricalDeal, insertHistoricalEnrollment } from "./write.mjs";
+import {
+  commercialTermsFromRuling,
+  reconcileDealCommercialTerms,
+  applyFallWithdrawnRuling,
+} from "./historicalCorrections.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DATA = path.join(__dirname, "data");
@@ -295,8 +300,17 @@ const tally = {
   enrollments: 0,
   salesCalls: 0,
   clientSessions: 0,
+  enrollmentStatusEvents: 0,
+  commercialTermsCorrected: 0,
   skipped: 0,
 };
+
+// The date the historical sources were captured already showing the
+// withdrawn people as no longer clients. Used ONLY as a known-by upper
+// bound when a ruling states no withdrawal date, never as a claim that the
+// withdrawal happened on this day — see the fallWithdrawn block, which
+// stamps the distinction into the provenance ledger.
+const WITHDRAWAL_KNOWN_BY_DATE = "2026-09-15";
 
 const contactIdByEmail = new Map();
 const dealIdByEmail = new Map();
@@ -323,6 +337,12 @@ for (const person of people) {
     else if (w === "insertHistoricalClientSession") tally.clientSessions++;
   }
 }
+
+// Current commercial terms of every Deal that already exists, so a ruling
+// can be compared against what is actually recorded.
+const dealTermsById = new Map(
+  (targetState.dealTerms ?? []).map((d) => [String(d.id), d]),
+);
 
 // --- Rulings-driven Fall enrollment additions ------------------------------
 // Explicit human rulings, not derivable from the Pipeline/Application
@@ -388,6 +408,8 @@ for (const [email, ruling] of Object.entries(
       stageEnteredAt: when,
       stageEnteredAtEvidence: "APPROXIMATE_SOURCE_TIMESTAMP",
       cohortId: null,
+      pricingMode: ruling.pricingMode ?? "standard",
+      commercialTerms: commercialTermsFromRuling(ruling),
     });
     if (dealResult.operation === "create") tally.deals++;
     dealId = dealResult.dealId;
@@ -415,6 +437,61 @@ for (const [email, ruling] of Object.entries(
       endDate: null,
     });
     if (enr.operation === "create") tally.enrollments++;
+  }
+
+  // Terms correction for a Deal that already existed. The create path above
+  // writes them directly, but anyone imported before their ruling gained
+  // commercial terms already has a Deal, and the provenance ledger makes a
+  // rerun skip them entirely — so the only way those terms ever become
+  // true is an explicit comparison against what the target records.
+  const reconciled = await reconcileDealCommercialTerms(client, {
+    dealId,
+    ruling,
+    currentTerms: dealTermsById.get(String(dealId)),
+  });
+  if (reconciled.corrected) tally.commercialTermsCorrected++;
+}
+
+// --- Rulings-driven historical withdrawals ---------------------------------
+// Somebody who signed up for a cohort and then left is TWO facts, and
+// dropping either one misrepresents them: omit the enrollment and the CRM
+// says they were never a client at all; omit the withdrawal and it says
+// they still are. The Deal alone cannot carry this — it records where the
+// sales conversation ended up, not that a real enrollment happened and
+// then ended. No second Deal and no Application: the ruling establishes an
+// enrollment, not another relationship or a submission.
+for (const [email, ruling] of Object.entries(
+  rulings.gyuJanuaryReconciliation.fallWithdrawn ?? {},
+)) {
+  const person = byEmail.get(email);
+  if (!person)
+    throw new Error(`fallWithdrawn: no canonical person for ${email}`);
+
+  const dealId =
+    dealIdByEmail.get(email) ??
+    [
+      `phase3-2026:${email}:deal`,
+      `phase3-2026:${email}:deal:GYU`,
+      `phase3-2026:${email}:deal:LE`,
+    ]
+      .map((k) => ledgerIndex.get(`deals:${k}`))
+      .find((v) => v != null) ??
+    null;
+
+  const result = await applyFallWithdrawnRuling(client, {
+    email,
+    ruling,
+    person,
+    dealId,
+    batchId,
+    alreadyEnrolled:
+      enrollmentIdByEmail.get(email) != null ||
+      enrollmentByDealId.has(String(dealId)),
+    knownByDate: WITHDRAWAL_KNOWN_BY_DATE,
+  });
+  if (result.written) {
+    tally.enrollments++;
+    tally.enrollmentStatusEvents += result.statusEvents;
   }
 }
 
