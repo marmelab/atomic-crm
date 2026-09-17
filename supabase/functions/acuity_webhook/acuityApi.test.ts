@@ -27,6 +27,8 @@ describe("fetchAcuityAppointment", () => {
           lastName: "Lovelace",
           datetime: "2026-09-10T18:00:00.000Z",
           appointmentTypeID: 111,
+          id: 12345,
+          canceled: false,
         }),
     });
     global.fetch = fetchSpy as unknown as typeof fetch;
@@ -39,6 +41,10 @@ describe("fetchAcuityAppointment", () => {
       lastName: "Lovelace",
       datetime: "2026-09-10T18:00:00.000Z",
       appointmentTypeID: 111,
+      // Reconciliation needs both: the id to key on, and whether Acuity
+      // still considers the appointment live.
+      id: 12345,
+      canceled: false,
     });
     const [url, init] = fetchSpy.mock.calls[0];
     expect(url).toBe("https://acuityscheduling.com/api/v1/appointments/12345");

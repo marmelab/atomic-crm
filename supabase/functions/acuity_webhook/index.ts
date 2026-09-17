@@ -4,6 +4,7 @@ import { OptionsMiddleware } from "../_shared/cors.ts";
 import { createErrorResponse } from "../_shared/utils.ts";
 import { verifyAcuitySignature } from "./acuitySignature.ts";
 import { fetchAcuityAppointment } from "./acuityApi.ts";
+import { reconcileAcuityWithCounts } from "./acuityReconcile.ts";
 import {
   handleCanceled,
   handleRescheduled,
@@ -104,6 +105,35 @@ Deno.serve(async (req: Request) =>
         503,
         "Acuity API credentials are not configured.",
       );
+    }
+
+    // Periodic reconciliation shares this function because the Acuity
+    // credentials already live here and duplicating them into a second
+    // Edge Function would mean two places to rotate. It is NOT a webhook:
+    // it carries no Acuity signature (nothing signed it — pg_cron did),
+    // so it authenticates with the same cron secret
+    // sync_year_planning_calendar already uses, and is checked BEFORE the
+    // signature path so a reconciliation run is never mistaken for an
+    // unsigned webhook.
+    if (new URL(req.url).searchParams.get("action") === "reconcile") {
+      const cronSecret = Deno.env.get("CRON_INVOKE_SECRET");
+      if (!cronSecret) {
+        return createErrorResponse(
+          503,
+          "Cron invocation secret is not configured.",
+        );
+      }
+      if (req.headers.get("x-cron-secret") !== cronSecret) {
+        // Deliberately generic, same convention as the signature check.
+        return createErrorResponse(401, "Invalid cron invocation secret.");
+      }
+
+      const sinceDaysParam = new URL(req.url).searchParams.get("sinceDays");
+      const result = await reconcileAcuityWithCounts({
+        credentials: { userId, apiKey },
+        sinceDays: sinceDaysParam ? Number(sinceDaysParam) : undefined,
+      });
+      return jsonResponse({ status: "reconciled", ...result });
     }
 
     const rawBody = await req.text();

@@ -82,6 +82,47 @@ function createFakeDb(seed: Record<string, Row[]>) {
   // from the real function would hide exactly the class of bug this
   // convergence exists to prevent.
   const rpc = (name: string, args: Record<string, unknown>) => {
+    // The effective-dated appointment-type resolver. Seeded from the same
+    // offers/cohorts fixtures, so these tests exercise the real path the
+    // handlers now take instead of the retired direct column lookup.
+    if (name === "resolve_acuity_appointment_type") {
+      const typeId = String(args.p_appointment_type_id);
+      const offer = (tables.offers ?? []).find(
+        (o) => String(o.acuity_appointment_type_id) === typeId,
+      );
+      if (offer) {
+        return Promise.resolve({
+          data: [
+            {
+              offer_id: offer.id,
+              offer_name: offer.name,
+              kind: "sales_call",
+              cohort_id: null,
+              resolution: "mapped",
+            },
+          ],
+          error: null,
+        });
+      }
+      const cohort = (tables.cohorts ?? []).find(
+        (c) => String(c.acuity_appointment_type_id) === typeId,
+      );
+      if (cohort) {
+        return Promise.resolve({
+          data: [
+            {
+              offer_id: cohort.offer_id,
+              offer_name: null,
+              kind: "sales_call",
+              cohort_id: cohort.id,
+              resolution: "mapped",
+            },
+          ],
+          error: null,
+        });
+      }
+      return Promise.resolve({ data: [], error: null });
+    }
     if (name !== "record_sales_call_cancelled") {
       return Promise.resolve({
         data: null,

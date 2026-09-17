@@ -44,33 +44,71 @@ const isActiveDeal = (
 // match (Acuity only ever sends the type's numeric id). A partial unique
 // index on each column (supabase/schemas/01_tables.sql) guarantees at most
 // one Offer/Cohort ever claims a given appointment type.
+export type AppointmentMeaning = {
+  offer: OfferRow;
+  cohort: CohortRow | null;
+  kind: "sales_call" | "client_session";
+};
+
+// What a booking on this appointment type MEANT on the day it was booked.
+//
+// Reads the effective-dated map (resolve_acuity_appointment_type) rather
+// than offers.acuity_appointment_type_id, because an appointment type does
+// not mean one thing forever: 64654501 is called "Growing Yourself Up"
+// today, and the same type carried Leif's earlier 1:1 coaching in
+// 2024-2025. Resolving a 2025 booking through today's name would invent a
+// GYU sales history that never happened.
+//
+// FAILS CLOSED. Returns null when the map has no period for that date
+// (a gap) and when the period exists but is explicitly undetermined —
+// there is an interval on 64654501 where nothing establishes the meaning,
+// and a booking landing there must be left for a human rather than
+// guessed at.
 export const resolveOfferCohort = async (
   appointmentTypeId: string,
-): Promise<{ offer: OfferRow; cohort: CohortRow | null } | null> => {
-  const { data: offers } = await supabaseAdmin
-    .from("offers")
-    .select("id, name, type, acuity_appointment_type_id")
-    .eq("acuity_appointment_type_id", appointmentTypeId)
-    .limit(1);
-  if (offers && offers.length > 0) {
-    return { offer: offers[0] as OfferRow, cohort: null };
+  onDate: string,
+): Promise<AppointmentMeaning | null> => {
+  const { data, error } = await supabaseAdmin.rpc(
+    "resolve_acuity_appointment_type",
+    { p_appointment_type_id: appointmentTypeId, p_on: onDate },
+  );
+  if (error) {
+    console.error("acuity: appointment-type resolution failed", error.message);
+    return null;
   }
-
-  const { data: cohorts } = await supabaseAdmin
-    .from("cohorts")
-    .select("id, name, offer_id, acuity_appointment_type_id")
-    .eq("acuity_appointment_type_id", appointmentTypeId)
-    .limit(1);
-  if (!cohorts || cohorts.length === 0) return null;
-  const cohort = cohorts[0] as CohortRow;
+  const row = (Array.isArray(data) ? data[0] : data) as
+    | {
+        offer_id: number | null;
+        offer_name: string | null;
+        kind: string;
+        cohort_id: number | null;
+        resolution: string;
+      }
+    | undefined;
+  if (!row || row.resolution !== "mapped" || row.offer_id == null) return null;
 
   const { data: offer } = await supabaseAdmin
     .from("offers")
     .select("id, name, type, acuity_appointment_type_id")
-    .eq("id", cohort.offer_id)
+    .eq("id", row.offer_id)
     .maybeSingle();
   if (!offer) return null;
-  return { offer: offer as OfferRow, cohort };
+
+  let cohort: CohortRow | null = null;
+  if (row.cohort_id != null) {
+    const { data: found } = await supabaseAdmin
+      .from("cohorts")
+      .select("id, name, offer_id, acuity_appointment_type_id")
+      .eq("id", row.cohort_id)
+      .maybeSingle();
+    cohort = (found as CohortRow) ?? null;
+  }
+
+  return {
+    offer: offer as OfferRow,
+    cohort,
+    kind: row.kind === "client_session" ? "client_session" : "sales_call",
+  };
 };
 
 // Normalized-email match-or-create, the same principle Native Application

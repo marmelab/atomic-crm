@@ -2,10 +2,12 @@
 import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockFrom = vi.hoisted(() => vi.fn());
+const mockRpc = vi.hoisted(() => vi.fn());
 
 vi.mock("../_shared/supabaseAdmin.ts", () => ({
   supabaseAdmin: {
     from: (...args: unknown[]) => mockFrom(...args),
+    rpc: (...args: unknown[]) => mockRpc(...args),
   },
 }));
 
@@ -32,84 +34,109 @@ describe("acuityMatching", () => {
     });
   });
 
-  describe("resolveOfferCohort", () => {
-    it("resolves an individual Offer via its stable appointment-type id, never a name match", async () => {
-      const offer = {
-        id: 1,
-        type: "individual",
-        acuity_appointment_type_id: "111",
-      };
-      mockFrom.mockImplementation((table: string) => {
+  describe("resolveOfferCohort — effective-dated", () => {
+    const offerRow = (over = {}) => ({
+      id: 2,
+      name: "Growing Yourself Up",
+      type: "group",
+      acuity_appointment_type_id: "64654501",
+      ...over,
+    });
+
+    const mockResolution = (row) => {
+      mockRpc.mockImplementation(() =>
+        Promise.resolve({ data: row ? [row] : [], error: null }),
+      );
+    };
+
+    it("resolves a booking by the date it was booked for, not by the type name today", async () => {
+      mockResolution({
+        offer_id: 2,
+        offer_name: "Growing Yourself Up",
+        kind: "sales_call",
+        cohort_id: null,
+        resolution: "mapped",
+      });
+      mockFrom.mockImplementation((table) => {
         if (table === "offers") {
           return {
             select: () => ({
               eq: () => ({
-                limit: () => Promise.resolve({ data: [offer], error: null }),
+                maybeSingle: () => Promise.resolve({ data: offerRow() }),
               }),
             }),
           };
         }
-        throw new Error(`unexpected table: ${table}`);
+        throw new Error("unexpected table: " + table);
       });
 
-      const result = await resolveOfferCohort("111");
+      const result = await resolveOfferCohort("64654501", "2026-10-16");
 
-      expect(result).toEqual({ offer, cohort: null });
+      expect(mockRpc).toHaveBeenCalledWith("resolve_acuity_appointment_type", {
+        p_appointment_type_id: "64654501",
+        p_on: "2026-10-16",
+      });
+      expect(result).toEqual({
+        offer: offerRow(),
+        cohort: null,
+        kind: "sales_call",
+      });
     });
 
-    it("resolves a group Cohort's Offer via the Cohort's own appointment-type id", async () => {
-      const cohort = { id: 5, offer_id: 2, acuity_appointment_type_id: "222" };
-      const offer = { id: 2, type: "group", acuity_appointment_type_id: null };
-      mockFrom.mockImplementation((table: string) => {
-        if (table === "offers") {
-          return {
-            select: () => ({
-              eq: (field: string) => {
-                if (field === "acuity_appointment_type_id") {
-                  return {
-                    limit: () => Promise.resolve({ data: [], error: null }),
-                  };
-                }
-                // resolving the cohort's own offer by id
-                return { maybeSingle: () => Promise.resolve({ data: offer }) };
-              },
-            }),
-          };
-        }
-        if (table === "cohorts") {
-          return {
-            select: () => ({
-              eq: () => ({
-                limit: () => Promise.resolve({ data: [cohort], error: null }),
-              }),
-            }),
-          };
-        }
-        throw new Error(`unexpected table: ${table}`);
+    // The interval on 64654501 where nothing establishes the meaning. A
+    // booking landing there is left for a human rather than guessed at.
+    it("fails closed on an interval the map explicitly cannot determine", async () => {
+      mockResolution({
+        offer_id: null,
+        offer_name: null,
+        kind: "sales_call",
+        cohort_id: null,
+        resolution: "unknown",
       });
 
-      const result = await resolveOfferCohort("222");
-
-      expect(result).toEqual({ offer, cohort });
+      expect(await resolveOfferCohort("64654501", "2026-03-05")).toBeNull();
     });
 
-    it("returns null for an unmapped appointment type — never guessed", async () => {
-      mockFrom.mockImplementation((table: string) => {
-        if (table === "offers" || table === "cohorts") {
-          return {
-            select: () => ({
-              eq: () => ({
-                limit: () => Promise.resolve({ data: [], error: null }),
-              }),
-            }),
-          };
-        }
-        throw new Error(`unexpected table: ${table}`);
+    it("fails closed on a gap — a type/date nothing claims", async () => {
+      mockResolution(null);
+
+      expect(await resolveOfferCohort("99999999", "2026-01-01")).toBeNull();
+    });
+
+    it("reports a client-session type as such, so it can never become a sales Opportunity", async () => {
+      mockResolution({
+        offer_id: 1,
+        offer_name: "The Living Example",
+        kind: "client_session",
+        cohort_id: null,
+        resolution: "mapped",
       });
+      mockFrom.mockImplementation(() => ({
+        select: () => ({
+          eq: () => ({
+            maybeSingle: () =>
+              Promise.resolve({
+                data: offerRow({
+                  id: 1,
+                  name: "The Living Example",
+                  type: "individual",
+                }),
+              }),
+          }),
+        }),
+      }));
 
-      const result = await resolveOfferCohort("999999");
+      const result = await resolveOfferCohort("90522599", "2026-10-05");
 
-      expect(result).toBeNull();
+      expect(result?.kind).toBe("client_session");
+    });
+
+    it("fails closed when the resolver itself errors, never guessing a default", async () => {
+      mockRpc.mockImplementation(() =>
+        Promise.resolve({ data: null, error: { message: "boom" } }),
+      );
+
+      expect(await resolveOfferCohort("64654501", "2026-10-16")).toBeNull();
     });
   });
 

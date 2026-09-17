@@ -160,10 +160,21 @@ export const handleScheduled = async (
     return jsonResponse({ status: "already-booked" });
   }
 
+  // Resolved as of the APPOINTMENT'S OWN DATE, not today: the map is
+  // effective-dated because an Acuity type does not mean one thing
+  // forever. Fails closed on an unmapped type, an undetermined interval,
+  // or a client-session type reaching the sales-call path.
   const mapping = await resolveOfferCohort(
     String(appointment.appointmentTypeID),
+    appointment.datetime.slice(0, 10),
   );
   if (!mapping) return jsonResponse({ status: "unknown-appointment-type" });
+  if (mapping.kind !== "sales_call") {
+    // A client session is never evidence of a sales Opportunity — Mads
+    // Bunch reached the client calendar by accident and must not have
+    // become one.
+    return jsonResponse({ status: "not-a-sales-call" });
+  }
 
   const contact = await findOrCreateContact(appointment);
   const contactName =
