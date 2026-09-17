@@ -369,7 +369,7 @@ describe("the three canonical outcomes each resolve the ambiguity", () => {
       salesCallId: booking.id,
       contactName: "Ada Lovelace",
       attendance: "attended",
-      ownerDecision: "approved",
+      ownerDecision: "would_work_with",
       prospectDecision: "thinking",
       followUpDate: "2026-09-24",
     });

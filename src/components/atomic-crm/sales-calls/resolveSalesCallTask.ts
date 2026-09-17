@@ -53,7 +53,11 @@ export const ensureResolveSalesCallTask = async (
     contactName: string;
     salesCall: Pick<
       SalesCall,
-      "id" | "scheduled_at" | "scheduled_on" | "schedule_precision"
+      | "id"
+      | "scheduled_at"
+      | "scheduled_on"
+      | "schedule_precision"
+      | "original_scheduled_at"
     >;
     salesId?: Identifier | null;
   },
