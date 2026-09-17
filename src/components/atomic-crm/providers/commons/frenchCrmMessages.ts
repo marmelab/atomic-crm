@@ -74,7 +74,8 @@ export const frenchCrmMessages = {
       fields: {
         first_name: "Prénom",
         last_name: "Nom",
-        last_seen: "Dernière activité",
+        first_seen: "Date d'ajout",
+        last_seen: "Derniere activite",
         title: "Titre",
         company_id: "Entreprise",
         email_jsonb: "Adresses e-mail",

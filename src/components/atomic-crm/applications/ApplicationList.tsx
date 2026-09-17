@@ -19,6 +19,8 @@ import {
   type ApplicationGroups,
   type ApplicationRow,
 } from "./useApplicationsGrouped";
+import { useHistoricalApplications } from "./useHistoricalApplications";
+import { HistoricalApplicationSections } from "./HistoricalApplicationSections";
 
 // Applications is a single, unified Application table underneath — the
 // grouping below is purely presentational, derived from each Application's
@@ -38,12 +40,21 @@ import {
 export const ApplicationList = () => {
   const translate = useTranslate();
   const { isPending, needsReview, reviewed } = useApplicationsGrouped();
+  // Imported Applications are a separate population on purpose: history to
+  // browse, never review work. They are also the reason this page read
+  // "No applications yet" while holding 159 records.
+  const {
+    isPending: historicalPending,
+    total: historicalCount,
+    groups: historicalGroups,
+  } = useHistoricalApplications();
 
-  if (isPending) return null;
+  if (isPending || historicalPending) return null;
 
   const needsReviewCount = countApplications(needsReview);
   const reviewedCount = countApplications(reviewed);
-  const isEmpty = needsReviewCount === 0 && reviewedCount === 0;
+  const isEmpty =
+    needsReviewCount === 0 && reviewedCount === 0 && historicalCount === 0;
 
   return (
     <div className="flex flex-col gap-8 mt-1 p-1 max-w-3xl">
@@ -94,6 +105,31 @@ export const ApplicationList = () => {
             <AccordionContent>
               <div className="flex flex-col gap-6 pt-2">
                 <ApplicationGroupSections groups={reviewed} />
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      )}
+
+      {historicalCount > 0 && (
+        <Accordion type="single" collapsible>
+          <AccordionItem value="historical" className="border-none">
+            <AccordionTrigger className="text-lg font-semibold hover:no-underline py-0">
+              {translate("resources.applications.historical", {
+                _: "Historical Applications",
+              })}
+              <span className="text-sm font-normal text-muted-foreground ml-auto mr-2">
+                {historicalCount}
+              </span>
+            </AccordionTrigger>
+            <AccordionContent>
+              <div className="flex flex-col gap-6 pt-2">
+                <p className="text-sm text-muted-foreground">
+                  {translate("resources.applications.historical_orientation", {
+                    _: "Applications imported from before the CRM. They are a record of what happened, not work waiting on you.",
+                  })}
+                </p>
+                <HistoricalApplicationSections groups={historicalGroups} />
               </div>
             </AccordionContent>
           </AccordionItem>

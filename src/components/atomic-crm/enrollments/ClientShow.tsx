@@ -291,9 +291,19 @@ const PaymentContextCard = ({
   currency: string;
 }) => {
   const translate = useTranslate();
-  const installments = deal.selected_installment_count ?? 1;
-  const installmentAmount =
-    deal.selected_installment_amount ?? deal.selected_payment_total ?? 0;
+
+  // What this person actually agreed to pay is selected_payment_total, and
+  // for most imported clients it was never recorded. offer_price_snapshot is
+  // the OFFER's list price at save time — a fact about the product, not
+  // about them — so it must never stand in as though it were their terms.
+  // It previously did, and combined with `selected_installment_count ?? 1`
+  // it rendered a scholarship client's page as the full list price followed
+  // by "Paid in full", which was false twice over.
+  const agreedTotal = deal.selected_payment_total;
+  const termsRecorded = agreedTotal != null;
+  const installments = deal.selected_installment_count ?? null;
+  const installmentAmount = deal.selected_installment_amount ?? null;
+  const isScholarship = deal.pricing_mode === "scholarship";
 
   return (
     <Card>
@@ -304,10 +314,32 @@ const PaymentContextCard = ({
           })}
         </span>
         <span className="text-lg font-semibold">
-          {deal.offer_name_snapshot} —{" "}
-          {formatOfferPageAmount(deal.offer_price_snapshot ?? 0, currency)}
+          {deal.offer_name_snapshot}
+          {termsRecorded ? (
+            <> — {formatOfferPageAmount(agreedTotal, currency)}</>
+          ) : null}
         </span>
-        {installments > 1 ? (
+
+        {isScholarship && (
+          <span className="text-sm text-muted-foreground">
+            {translate("resources.enrollments.scholarship_pricing", {
+              _: "Scholarship pricing.",
+            })}
+          </span>
+        )}
+
+        {!termsRecorded ? (
+          // Said plainly, because not knowing is the truth here. The
+          // alternative — printing the list price — is what made a
+          // scholarship client look like a full-price one.
+          <span className="text-sm text-muted-foreground">
+            {translate("resources.enrollments.terms_not_recorded", {
+              _: "Commercial terms were not recorded for this historical client.",
+            })}
+          </span>
+        ) : installments != null &&
+          installments > 1 &&
+          installmentAmount != null ? (
           <span className="text-sm text-muted-foreground">
             {formatRemainingInstallmentsCopy(
               installments,
@@ -316,9 +348,13 @@ const PaymentContextCard = ({
             )}
           </span>
         ) : (
+          // The agreed structure, never a receipt. Nothing in the CRM
+          // verifies that a payment was actually collected, so this says
+          // what was agreed and stops there — "Paid in full" would be a
+          // claim about money having changed hands.
           <span className="text-sm text-muted-foreground">
-            {translate("resources.enrollments.paid_in_full", {
-              _: "Paid in full.",
+            {translate("resources.enrollments.single_payment_terms", {
+              _: "Agreed as a single payment.",
             })}
           </span>
         )}
@@ -460,6 +496,29 @@ const OnboardingChecklistCard = ({
   // disclosure convention SessionsCard's own History already uses,
   // rather than inventing a new interaction. Never deleted: expanding it
   // still shows every item exactly as before.
+  // An imported historical client has no checklist rows: their onboarding
+  // happened outside the CRM and the importer correctly declined to
+  // manufacture one. Rendering the ordinary card then produced an empty
+  // "Onboarding" box that read as broken. Saying what is true is both
+  // shorter and honest — and deliberately NOT a set of pre-ticked steps,
+  // which would claim work was tracked here when it never was.
+  if (requiredItems.length === 0 && optionalItems.length === 0) {
+    return (
+      <div className="rounded-lg border px-4 py-2.5">
+        <span className="text-xs text-muted-foreground tracking-wide">
+          {translate("resources.enrollments.onboarding_checklist", {
+            _: "Onboarding",
+          })}
+        </span>
+        <p className="text-sm text-muted-foreground">
+          {translate("resources.enrollments.onboarding_not_tracked", {
+            _: "Historical enrollment — onboarding was not tracked in the CRM.",
+          })}
+        </p>
+      </div>
+    );
+  }
+
   if (collapsed) {
     return (
       <details className="group rounded-lg border">
@@ -469,6 +528,7 @@ const OnboardingChecklistCard = ({
             done: requiredDoneCount,
             total: requiredItems.length,
           })}
+          {/* see the historical empty state above for why total can be 0 */}
           <span className="text-muted-foreground group-open:rotate-180 transition-transform">
             ▾
           </span>

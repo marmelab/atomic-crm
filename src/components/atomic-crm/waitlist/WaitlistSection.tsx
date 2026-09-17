@@ -19,6 +19,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { InviteToBookDialog } from "./InviteToBookDialog";
 import { isInvitable } from "./waitlistInvitations";
 import { isBulkInviteDeliveryEnabled } from "./waitlistInviteFeature";
+import { isImportProvenance } from "./isImportProvenance";
 
 // The "Waitlist" section shared by the Living Example, Group Program, and
 // Cohort pages (Waitlists slice, §7/§8/§21). A real waitlist can run into
@@ -279,6 +280,13 @@ const metaFor = (
   );
   const parts = [`${joinedLabel} ${formatTimestampString(entry.joinedAt)}`];
   if (entry.desiredTiming) parts.push(entry.desiredTiming);
-  if (entry.notes) parts.push(entry.notes);
+  // Import provenance stays STORED on the row — it is the audit trail for
+  // how a historical membership's joined_at was derived, and deleting it
+  // would destroy that. It just does not belong in the everyday row, where
+  // 37 copies of "Historical import: waitlist order 3 of 21 is
+  // source-confirmed (Existing List)..." drown out the person's name. A
+  // note Leif actually typed still shows; only migration evidence is held
+  // back, and it remains visible in the entry's own record.
+  if (entry.notes && !isImportProvenance(entry.notes)) parts.push(entry.notes);
   return parts.join(" · ");
 };

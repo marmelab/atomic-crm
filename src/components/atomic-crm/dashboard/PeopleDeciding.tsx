@@ -1,6 +1,10 @@
 import { useGetList, useGetMany, useTranslate } from "ra-core";
 
-import { isPersonDeciding } from "../deals/peopleDeciding";
+import {
+  DECIDING_STAGE,
+  hasStatedDeciding,
+  isPersonDeciding,
+} from "../deals/peopleDeciding";
 import { formatISODateString } from "../deals/dealUtils";
 import { PersonCard } from "../misc/ProgramLayout";
 import type { Contact, Deal } from "../types";
@@ -10,8 +14,12 @@ import type { Contact, Deal } from "../types";
 // doesn't compete visually with Tasks.
 export const PeopleDeciding = () => {
   const translate = useTranslate();
+  // The same population the Pipeline's Decision column shows. Filtering on
+  // prospect_decision here is what made the Dashboard disagree with the
+  // Pipeline — that field is set on one Opportunity out of 120, so the
+  // Dashboard reported nobody deciding while 8 people were.
   const { data: deals, isPending: isPendingDeals } = useGetList<Deal>("deals", {
-    filter: { prospect_decision: "thinking" },
+    filter: { stage: DECIDING_STAGE, "archived_at@is": null },
     pagination: { page: 1, perPage: 50 },
     sort: { field: "follow_up_date", order: "ASC" },
   });
@@ -66,6 +74,10 @@ export const PeopleDeciding = () => {
                 meta={
                   <>
                     {deal.offer_name_snapshot}
+                    {hasStatedDeciding(deal) &&
+                      ` · ${translate("crm.dashboard.said_thinking", {
+                        _: "said they are thinking it over",
+                      })}`}
                     {deal.follow_up_date &&
                       ` · ${translate("crm.dashboard.follow_up_on", {
                         _: "follow up %{date}",

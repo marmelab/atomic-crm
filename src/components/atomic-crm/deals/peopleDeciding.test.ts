@@ -1,36 +1,94 @@
-import { describe, expect, test } from "vitest";
-import { isPersonDeciding } from "./peopleDeciding";
+import { describe, expect, it } from "vitest";
 
-const base = {
-  prospect_decision: "thinking",
-  owner_decision: "would_work_with",
-  stage: "decision",
-  outcome: null,
-};
+import {
+  DECIDING_STAGE,
+  hasStatedDeciding,
+  isPersonDeciding,
+} from "./peopleDeciding";
 
+// The bug these tests now guard: the Dashboard and the Pipeline disagreed
+// about who is deciding. The Pipeline's Decision column showed 8 people; the
+// Dashboard said "Nobody is currently deciding". One definition now, based
+// on the stage — the fact that is always recorded.
 describe("isPersonDeciding", () => {
-  test("includes an active, thinking prospect the owner would work with", () => {
+  const base = { stage: DECIDING_STAGE, outcome: null, archived_at: null };
+
+  it("is true for a live Opportunity at the Decision stage", () => {
     expect(isPersonDeciding(base)).toBe(true);
   });
 
-  test("excludes prospects who are not Thinking", () => {
-    expect(isPersonDeciding({ ...base, prospect_decision: "yes" })).toBe(false);
-    expect(isPersonDeciding({ ...base, prospect_decision: null })).toBe(false);
+  it("does not require the optional decision fields to be filled in", () => {
+    // This is the regression. Every imported Opportunity has these unset —
+    // requiring them emptied the Dashboard while the Pipeline stayed full.
+    expect(
+      isPersonDeciding({
+        ...base,
+        prospect_decision: null,
+        owner_decision: null,
+      } as Parameters<typeof isPersonDeciding>[0]),
+    ).toBe(true);
   });
 
-  test("excludes Won opportunities", () => {
-    expect(isPersonDeciding({ ...base, stage: "won" })).toBe(false);
+  it("is false at any other stage", () => {
+    for (const stage of [
+      "interested",
+      "application_received",
+      "call_booked",
+      "committed",
+      "won",
+    ]) {
+      expect(isPersonDeciding({ ...base, stage })).toBe(false);
+    }
   });
 
-  test("excludes exited opportunities (any outcome set)", () => {
+  it("is false once an exit outcome closes the loop", () => {
     expect(isPersonDeciding({ ...base, outcome: "lost" })).toBe(false);
+    expect(isPersonDeciding({ ...base, outcome: "nurture" })).toBe(false);
     expect(isPersonDeciding({ ...base, outcome: "not_fit" })).toBe(false);
   });
 
-  test("excludes opportunities the owner would not work on", () => {
+  it("is false for an archived Opportunity", () => {
     expect(
-      isPersonDeciding({ ...base, owner_decision: "workshops_only" }),
+      isPersonDeciding({ ...base, archived_at: "2026-01-01T00:00:00.000Z" }),
     ).toBe(false);
-    expect(isPersonDeciding({ ...base, owner_decision: null })).toBe(false);
+  });
+});
+
+// Kept as display colour, deliberately no longer a filter.
+describe("hasStatedDeciding", () => {
+  it("is true only when the prospect said they are thinking and Leif would work with them", () => {
+    expect(
+      hasStatedDeciding({
+        prospect_decision: "thinking",
+        owner_decision: "would_work_with",
+      }),
+    ).toBe(true);
+  });
+
+  it("is false when either half is missing or different", () => {
+    expect(
+      hasStatedDeciding({
+        prospect_decision: "thinking",
+        owner_decision: null,
+      }),
+    ).toBe(false);
+    expect(
+      hasStatedDeciding({
+        prospect_decision: null,
+        owner_decision: "would_work_with",
+      }),
+    ).toBe(false);
+    expect(
+      hasStatedDeciding({
+        prospect_decision: "yes",
+        owner_decision: "would_work_with",
+      }),
+    ).toBe(false);
+    expect(
+      hasStatedDeciding({
+        prospect_decision: "thinking",
+        owner_decision: "workshops_only",
+      }),
+    ).toBe(false);
   });
 });

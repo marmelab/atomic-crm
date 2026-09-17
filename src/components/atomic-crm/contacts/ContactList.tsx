@@ -90,7 +90,13 @@ const ContactBulkActionButtons = () => (
 
 const ContactListActions = () => (
   <TopToolbar>
-    <SortButton fields={["first_name", "last_name"]} />
+    {/* SortButton toggles ASC/DESC on the field you pick, so these four
+        fields are the eight orderings Leif asked for: date added and last
+        activity newest/oldest, and both names A-Z/Z-A. first_seen is when
+        the Contact was added; last_seen is their most recent activity. */}
+    <SortButton
+      fields={["last_name", "first_name", "first_seen", "last_seen"]}
+    />
     <ContactImportButton />
     <ExportButton exporter={exporter} />
     <CreateButton />

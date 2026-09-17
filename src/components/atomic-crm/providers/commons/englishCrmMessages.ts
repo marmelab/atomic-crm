@@ -71,7 +71,8 @@ export const englishCrmMessages = {
       fields: {
         first_name: "First name",
         last_name: "Last name",
-        last_seen: "Last seen",
+        first_seen: "Date added",
+        last_seen: "Last activity",
         title: "Title",
         company_id: "Company",
         email_jsonb: "Email addresses",

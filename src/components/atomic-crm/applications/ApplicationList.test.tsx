@@ -28,6 +28,7 @@ const contacts = [
   { id: 102, first_name: "Jordan", last_name: "Lee" },
   { id: 103, first_name: "Naomi", last_name: "Ellison" },
   { id: 104, first_name: "Historic", last_name: "Applicant" },
+  { id: 105, first_name: "Dealless", last_name: "Applicant" },
 ];
 
 const deals = [
@@ -39,6 +40,19 @@ const deals = [
 ];
 
 const applications = [
+  // The shape that made this page unable to show ANY history: an imported
+  // Application with no Opportunity at all. 88 of production's 159 look like
+  // this, and grouping via the Deal drops every one of them.
+  {
+    id: 398,
+    contact_id: 105,
+    opportunity_id: null,
+    offer_id: 2,
+    intended_cohort_id: 11,
+    source: "historical_import",
+    status: "waitlist",
+    submitted_at: "2024-02-02T10:00:00.000Z",
+  },
   // Gate A: an imported historical record. It keeps its true source status
   // ("pending" is what the Notion source said) but must never become
   // present-day review work just because it is now reachable.
@@ -46,6 +60,8 @@ const applications = [
     id: 399,
     contact_id: 104,
     opportunity_id: 204,
+    offer_id: 1,
+    intended_cohort_id: null,
     source: "historical_import",
     status: "pending",
     submitted_at: "2024-01-01T10:00:00.000Z",
@@ -162,6 +178,41 @@ describe("ApplicationList", () => {
       .find((el) => el.textContent === "September Cohort")
       ?.closest("div");
     expect(septemberSection?.textContent).not.toContain("Jordan Lee");
+  });
+
+  it("makes imported Applications browsable under Historical Applications instead of hiding the whole page", async () => {
+    const screen = await render(<ApplicationList />, { wrapper: Wrapper });
+
+    // The regression: with every Application imported, the page read
+    // "No applications yet" while holding all of them.
+    await expect
+      .element(screen.getByText("No applications yet."))
+      .not.toBeInTheDocument();
+
+    // History starts collapsed so it never competes with real review work.
+    await expect
+      .element(screen.getByText("Historic Applicant"))
+      .not.toBeInTheDocument();
+
+    const historicalTrigger = screen.getByText("Historical Applications");
+    await expect.element(historicalTrigger).toBeInTheDocument();
+    await historicalTrigger.click();
+
+    await expect
+      .element(screen.getByText("Historic Applicant"))
+      .toBeInTheDocument();
+  });
+
+  it("keeps a Deal-less historical Application visible, grouped by what it was applied FOR", async () => {
+    const screen = await render(<ApplicationList />, { wrapper: Wrapper });
+
+    await screen.getByText("Historical Applications").click();
+
+    // Resolved from the Application's own intended_cohort_id — it has no
+    // Deal to read an offer off, which is exactly why it used to disappear.
+    await expect
+      .element(screen.getByText("Dealless Applicant"))
+      .toBeInTheDocument();
   });
 
   it("shows the offer group label above its cohorts", async () => {
