@@ -8,6 +8,7 @@ import type { Deal } from "../types";
 import { DealColumn } from "./DealColumn";
 import type { DealsByStage } from "./stages";
 import { getDealsByStage } from "./stages";
+import { applyDealStageDrop } from "./applyDealStageDrop";
 
 export const DealListContent = () => {
   const { dealStages, dealPipelineStatuses } = useConfigurationContext();
@@ -38,55 +39,31 @@ export const DealListContent = () => {
 
   const onDragEnd: OnDragEndResponder = (result) => {
     const { destination, source } = result;
+    if (!destination || destination.droppableId === source.droppableId) return;
 
-    if (!destination) {
-      return;
-    }
+    const sourceDeal = dealsByStage[source.droppableId]?.[source.index];
+    if (!sourceDeal) return;
 
-    const sourceStage = source.droppableId;
-    const destinationStage = destination.droppableId;
-
-    // Kanban queue-ordering slice: columns now sort by stage_entered_at
-    // (getDealsByStage, ./stages.ts), not a manual drag position, so
-    // reordering within the same column has nothing left to persist — the
-    // card visually returns to its real, time-based place, same as before
-    // the drag.
-    if (destinationStage === sourceStage) {
-      return;
-    }
-
-    const sourceDeal = dealsByStage[sourceStage][source.index]!;
-
-    // Compute the local state change synchronously. The card is placed at
-    // the END of the destination column here — not at the drop index —
-    // because the shared "deals" stage-change hook below always stamps
-    // stage_entered_at to "now", and the column sorts oldest-first, so the
-    // bottom is exactly where the real data will place it once the update
-    // round-trips. Placing it there immediately avoids a visual snap after
-    // refetch.
+    // Move the card immediately, to the END of the destination column —
+    // not the drop index — because the shared "deals" stage-change hook
+    // always stamps stage_entered_at to "now" and the column sorts
+    // oldest-first, so the bottom is exactly where the real data will put
+    // it once the update round-trips. Placing it there now avoids a visual
+    // snap after refetch.
     setDealsByStage(
       moveDealToStageLocal(
         sourceDeal,
-        sourceStage,
-        destinationStage,
+        source.droppableId,
+        destination.droppableId,
         dealsByStage,
       ),
     );
 
-    // Persist the stage change through the one shared path every other
-    // stage-changing pathway (Application review, sales-call booking/
-    // outcomes) already uses — the "deals" resource hook stamps
-    // stage_entered_at and records the deal_stage_events history row, so
-    // there is nothing else to do here.
-    dataProvider
-      .update("deals", {
-        id: sourceDeal.id,
-        data: { stage: destinationStage },
-        previousData: sourceDeal,
-      })
-      .then(() => {
-        refetch();
-      });
+    // The durable half lives in applyDealStageDrop so it can be proven
+    // without simulating a browser drag.
+    applyDealStageDrop(dataProvider, { result, dealsByStage }).then(() => {
+      refetch();
+    });
   };
 
   return (
