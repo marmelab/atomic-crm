@@ -754,6 +754,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/offers/newBusinessOffers.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/offers/index.ts",
           "type": "registry:component"
         },
@@ -1003,6 +1007,10 @@
         },
         {
           "path": "src/components/atomic-crm/enrollments/startOffboarding.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/enrollments/resolveCommercialTerms.ts",
           "type": "registry:component"
         },
         {
