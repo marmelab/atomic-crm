@@ -218,6 +218,8 @@ grant all on table public.onboarding_requirement_templates to service_role;
 -- role, only through service_role. See 20260913230000_anon_table_grant_hardening.sql.
 revoke select, insert, update, delete on table public.onboarding_requirement_templates from anon;
 
+grant all on table public.deal_payment_schedule_items to authenticated;
+grant all on table public.deal_payment_schedule_items to service_role;
 grant all on table public.enrollment_onboarding_items to anon;
 grant all on table public.enrollment_onboarding_items to authenticated;
 grant all on table public.enrollment_onboarding_items to service_role;

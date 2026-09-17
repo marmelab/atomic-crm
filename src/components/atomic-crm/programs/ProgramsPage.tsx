@@ -8,6 +8,7 @@ import { CohortCapacityCard } from "../dashboard/CohortCapacityCard";
 import type { Cohort, Offer } from "../types";
 import { IndividualProgramCard } from "./IndividualProgramCard";
 import { NewProgramDialog } from "./NewProgramDialog";
+import { NEW_BUSINESS_OFFERS_FILTER } from "../offers/newBusinessOffers";
 
 // The user-facing "Programs" hub (§6 of the Programs + Opportunity UX
 // slice): a unified view over the existing Offer/Cohort model, not a new
@@ -19,9 +20,14 @@ export const ProgramsPage = () => {
   const translate = useTranslate();
   const [newProgramOpen, setNewProgramOpen] = useState(false);
 
+  // Retired Offers stay out of the Programs nav — this is active business
+  // navigation, not history. (The individual filter below happens to
+  // exclude the legacy Offer too, via max_active_clients, but relying on
+  // that coincidence would break the moment a retired Offer had a capacity.)
   const { data: offers, isPending: offersPending } = useGetList<Offer>(
     "offers",
     {
+      filter: NEW_BUSINESS_OFFERS_FILTER,
       pagination: { page: 1, perPage: 100 },
       sort: { field: "name", order: "ASC" },
     },

@@ -7,6 +7,7 @@ import { SelectInput } from "@/components/admin/select-input";
 import { TextInput } from "@/components/admin/text-input";
 
 import { cohortStatuses } from "./cohortConstants";
+import { NEW_BUSINESS_OFFERS_FILTER } from "../offers/newBusinessOffers";
 
 // Cohorts only ever belong to a GROUP offer (enforced server-side by
 // cohorts_offer_id_fkey + the offer picker filter below).
@@ -15,7 +16,7 @@ export const CohortInputs = () => (
     <ReferenceInput
       source="offer_id"
       reference="offers"
-      filter={{ type: "group" }}
+      filter={{ ...NEW_BUSINESS_OFFERS_FILTER, type: "group" }}
     >
       <AutocompleteInput
         label="resources.cohorts.fields.offer_id"

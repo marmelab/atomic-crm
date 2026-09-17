@@ -7,6 +7,7 @@ import { TextInput } from "@/components/admin/text-input";
 
 import { CreateDialog } from "../misc/CreateDialog";
 import type { Offer } from "../types";
+import { NEW_BUSINESS_OFFERS_FILTER } from "../offers/newBusinessOffers";
 
 // The Contact-page counterpart to AddToWaitlistSheet.tsx. That one is
 // opened FROM a Program/Cohort page, so the Offer (and sometimes the
@@ -101,7 +102,11 @@ const OfferAndCohortInputs = () => {
 
   return (
     <div className="flex flex-col gap-4">
-      <ReferenceInput source="offer_id" reference="offers">
+      <ReferenceInput
+        source="offer_id"
+        reference="offers"
+        filter={NEW_BUSINESS_OFFERS_FILTER}
+      >
         <AutocompleteInput
           label="resources.waitlist_entries.fields.offer_id"
           optionText="name"

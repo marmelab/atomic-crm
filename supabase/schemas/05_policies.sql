@@ -26,6 +26,7 @@ alter table public.sales_calls enable row level security;
 alter table public.sales_call_events enable row level security;
 alter table public.deal_stage_events enable row level security;
 alter table public.onboarding_requirement_templates enable row level security;
+alter table public.deal_payment_schedule_items enable row level security;
 alter table public.enrollment_onboarding_items enable row level security;
 alter table public.offboarding_requirement_templates enable row level security;
 alter table public.enrollment_offboarding_items enable row level security;
@@ -134,6 +135,10 @@ create policy "Enable update for authenticated users only" on public.onboarding_
 create policy "Onboarding Requirement Templates Delete Policy" on public.onboarding_requirement_templates for delete to authenticated using (true);
 
 -- Enrollment Onboarding Items
+create policy "Enable read access for authenticated users" on public.deal_payment_schedule_items for select to authenticated using (true);
+create policy "Enable insert for authenticated users only" on public.deal_payment_schedule_items for insert to authenticated with check (true);
+create policy "Enable update for authenticated users only" on public.deal_payment_schedule_items for update to authenticated using (true) with check (true);
+create policy "Deal Payment Schedule Items Delete Policy" on public.deal_payment_schedule_items for delete to authenticated using (true);
 create policy "Enable read access for authenticated users" on public.enrollment_onboarding_items for select to authenticated using (true);
 create policy "Enable insert for authenticated users only" on public.enrollment_onboarding_items for insert to authenticated with check (true);
 create policy "Enable update for authenticated users only" on public.enrollment_onboarding_items for update to authenticated using (true) with check (true);

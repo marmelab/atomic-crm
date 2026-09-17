@@ -40,6 +40,7 @@ import type {
   EnrollmentOffboardingItem,
   EnrollmentOnboardingItem,
   Offer,
+  DealPaymentScheduleItem,
 } from "../types";
 import { AddTask } from "../tasks/AddTask";
 import { TasksListByDueDate } from "../tasks/TasksListByDueDate";
@@ -56,6 +57,7 @@ import { reopenOffboardingItem } from "./reopenOffboardingItem";
 import { reopenOnboardingItem } from "./reopenOnboardingItem";
 import { startOffboarding } from "./startOffboarding";
 import { useEnrollmentOperationalData } from "./useEnrollmentOperationalData";
+import { resolveCommercialTerms } from "./resolveCommercialTerms";
 
 // Contracts + Onboarding slice: the Enrollment/Client page rebuilt as the
 // real operational home for onboarding (architecture review, §9) — Contact/
@@ -86,6 +88,7 @@ const EnrollmentOperationalHome = () => {
     items,
     offboardingItems,
     tasks,
+    scheduleItems,
   } = useEnrollmentOperationalData(enrollment);
 
   if (isPending || !enrollment || !deal || !offer) return null;
@@ -208,7 +211,11 @@ const EnrollmentOperationalHome = () => {
         </div>
       </div>
 
-      <PaymentContextCard deal={deal} currency={currency} />
+      <PaymentContextCard
+        deal={deal}
+        scheduleItems={scheduleItems}
+        currency={currency}
+      />
 
       {/* Human-acceptance repair, offboarding hierarchy: while status is
           "offboarding" itself, this IS the primary lifecycle action —
@@ -285,24 +292,22 @@ const EnrollmentOperationalHome = () => {
 
 const PaymentContextCard = ({
   deal,
+  scheduleItems,
   currency,
 }: {
   deal: NonNullable<ReturnType<typeof useEnrollmentOperationalData>["deal"]>;
+  scheduleItems: DealPaymentScheduleItem[];
   currency: string;
 }) => {
   const translate = useTranslate();
 
-  // What this person actually agreed to pay is selected_payment_total, and
-  // for most imported clients it was never recorded. offer_price_snapshot is
-  // the OFFER's list price at save time — a fact about the product, not
-  // about them — so it must never stand in as though it were their terms.
-  // It previously did, and combined with `selected_installment_count ?? 1`
-  // it rendered a scholarship client's page as the full list price followed
-  // by "Paid in full", which was false twice over.
-  const agreedTotal = deal.selected_payment_total;
-  const termsRecorded = agreedTotal != null;
-  const installments = deal.selected_installment_count ?? null;
-  const installmentAmount = deal.selected_installment_amount ?? null;
+  // One decision, made in resolveCommercialTerms: an explicit schedule wins,
+  // then the Deal's simple snapshot, then nothing. Crucially "nothing" is
+  // rendered as nothing — offer_price_snapshot is the OFFER's list price, a
+  // fact about the product rather than about this person, and standing it in
+  // (together with `selected_installment_count ?? 1`) is what displayed a
+  // scholarship client as the full list price followed by "Paid in full".
+  const terms = resolveCommercialTerms(deal, scheduleItems);
   const isScholarship = deal.pricing_mode === "scholarship";
 
   return (
@@ -315,8 +320,8 @@ const PaymentContextCard = ({
         </span>
         <span className="text-lg font-semibold">
           {deal.offer_name_snapshot}
-          {termsRecorded ? (
-            <> — {formatOfferPageAmount(agreedTotal, currency)}</>
+          {terms.kind !== "unknown" ? (
+            <> — {formatOfferPageAmount(terms.total, currency)}</>
           ) : null}
         </span>
 
@@ -328,35 +333,84 @@ const PaymentContextCard = ({
           </span>
         )}
 
-        {!termsRecorded ? (
-          // Said plainly, because not knowing is the truth here. The
-          // alternative — printing the list price — is what made a
-          // scholarship client look like a full-price one.
+        {terms.kind === "unknown" && (
+          // Said plainly, because not knowing is the truth here.
           <span className="text-sm text-muted-foreground">
             {translate("resources.enrollments.terms_not_recorded", {
               _: "Commercial terms were not recorded for this historical client.",
             })}
           </span>
-        ) : installments != null &&
-          installments > 1 &&
-          installmentAmount != null ? (
-          <span className="text-sm text-muted-foreground">
-            {formatRemainingInstallmentsCopy(
-              installments,
-              installmentAmount,
-              currency,
-            )}
-          </span>
-        ) : (
-          // The agreed structure, never a receipt. Nothing in the CRM
-          // verifies that a payment was actually collected, so this says
-          // what was agreed and stops there — "Paid in full" would be a
-          // claim about money having changed hands.
-          <span className="text-sm text-muted-foreground">
-            {translate("resources.enrollments.single_payment_terms", {
-              _: "Agreed as a single payment.",
-            })}
-          </span>
+        )}
+
+        {terms.kind === "simple" &&
+          (terms.installments > 1 && terms.installmentAmount != null ? (
+            <span className="text-sm text-muted-foreground">
+              {formatRemainingInstallmentsCopy(
+                terms.installments,
+                terms.installmentAmount,
+                currency,
+              )}
+            </span>
+          ) : (
+            // The agreed structure, never a receipt: nothing here verifies
+            // money changed hands, so "Paid in full" would be a claim the
+            // CRM cannot support.
+            <span className="text-sm text-muted-foreground">
+              {translate("resources.enrollments.single_payment_terms", {
+                _: "Agreed as a single payment.",
+              })}
+            </span>
+          ))}
+
+        {terms.kind === "schedule" && (
+          <div className="flex flex-col gap-0.5">
+            <span className="text-sm text-muted-foreground">
+              {translate("resources.enrollments.schedule_summary", {
+                _: "%{paid} paid · %{outstanding} outstanding",
+                paid: formatOfferPageAmount(terms.paidTotal, currency),
+                outstanding: formatOfferPageAmount(
+                  terms.outstandingTotal,
+                  currency,
+                ),
+              })}
+            </span>
+            {terms.items.map((item) => (
+              <span
+                key={item.id}
+                className="text-sm text-muted-foreground tabular-nums"
+              >
+                {formatOfferPageAmount(Number(item.amount), currency)}
+                {" — "}
+                {item.status === "paid"
+                  ? // Deliberately not "confirmed": a schedule item marked
+                    // paid on Leif's word is a weaker claim than a verified
+                    // Stripe transaction, and the two must not read alike.
+                    item.source === "stripe"
+                    ? translate(
+                        "resources.enrollments.schedule_paid_verified",
+                        {
+                          _: "paid (confirmed by Stripe)",
+                        },
+                      )
+                    : item.paid_on
+                      ? translate("resources.enrollments.schedule_paid_on", {
+                          _: "paid %{date}",
+                          date: formatISODateString(item.paid_on),
+                        })
+                      : translate("resources.enrollments.schedule_paid", {
+                          _: "paid",
+                        })
+                  : item.due_date
+                    ? translate("resources.enrollments.schedule_due_on", {
+                        _: "due %{date}",
+                        date: formatISODateString(item.due_date),
+                      })
+                    : translate("resources.enrollments.schedule_due", {
+                        _: "due (no date set)",
+                      })}
+              </span>
+            ))}
+          </div>
         )}
       </CardContent>
     </Card>

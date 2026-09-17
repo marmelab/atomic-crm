@@ -9,6 +9,7 @@ import type {
   EnrollmentOnboardingItem,
   Offer,
   Task,
+  DealPaymentScheduleItem,
 } from "../types";
 
 // Backs the Enrollment/Client page (Contracts + Onboarding slice, extended
@@ -43,6 +44,27 @@ export const useEnrollmentOperationalData = (enrollment?: Enrollment) => {
     { id: deal?.cohort_id as Cohort["id"] },
     { enabled: deal?.cohort_id != null },
   );
+
+  // The agreed payment schedule, when this Deal has one. Absent for a
+  // simple plan, which still renders from the Deal's own snapshot — see
+  // resolveCommercialTerms for which wins.
+  //
+  // Deliberately NOT part of isPending below. A schedule is supplementary:
+  // most Deals have none, and resolveCommercialTerms already treats "no
+  // rows" as "fall back to the Deal snapshot". Gating the whole Client page
+  // on it meant one slow or failing supplementary query blanked the page —
+  // including every operational thing on it that has nothing to do with
+  // money. It resolves a moment later and the Payment card re-renders.
+  const { data: scheduleItems, isPending: schedulePending } =
+    useGetList<DealPaymentScheduleItem>(
+      "deal_payment_schedule_items",
+      {
+        filter: { deal_id: deal?.id },
+        pagination: { page: 1, perPage: 100 },
+        sort: { field: "sequence", order: "ASC" },
+      },
+      { enabled: deal != null },
+    );
 
   const { data: items, isPending: itemsPending } =
     useGetList<EnrollmentOnboardingItem>(
@@ -95,5 +117,6 @@ export const useEnrollmentOperationalData = (enrollment?: Enrollment) => {
     items: isPending ? [] : (items ?? []),
     offboardingItems: isPending ? [] : (offboardingItems ?? []),
     tasks: isPending ? [] : (tasks ?? []),
+    scheduleItems: schedulePending ? [] : (scheduleItems ?? []),
   };
 };

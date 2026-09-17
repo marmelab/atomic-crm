@@ -281,6 +281,38 @@ export type Application = {
   updated_at: string;
 } & Pick<RaRecord, "id">;
 
+// The AGREED payment schedule for a Deal — a deposit plus a later balance,
+// unequal amounts, specific due dates, some already paid. The equal-
+// installment snapshot on Deal (selected_payment_total / _installment_count
+// / _installment_amount) cannot express those, and flattening them loses the
+// arrangement.
+//
+// Deliberately NOT a transaction ledger. "status: paid" with
+// "source: owner_stated" means Leif says it was paid — a different and
+// weaker claim than a verified Stripe payment, which is what
+// source: "stripe" plus stripe_payment_intent_id means. A database
+// constraint keeps the two from being confused.
+export type PaymentScheduleItemStatus = "scheduled" | "paid" | "void";
+export type PaymentScheduleItemSource =
+  | "owner_stated"
+  | "stripe"
+  | "historical_import";
+
+export type DealPaymentScheduleItem = {
+  deal_id: Identifier;
+  amount: number;
+  sequence: number;
+  // Null when genuinely unknown — never a placeholder date.
+  due_date?: string | null;
+  status: PaymentScheduleItemStatus;
+  paid_on?: string | null;
+  source: PaymentScheduleItemSource;
+  stripe_payment_intent_id?: string | null;
+  notes?: string | null;
+  created_at: string;
+  updated_at: string;
+} & Pick<RaRecord, "id">;
+
 export type EnrollmentStatus =
   | "onboarding"
   | "active"

@@ -24,6 +24,7 @@ import {
   opportunityOutcomes,
   opportunitySources,
 } from "./opportunityConstants";
+import { NEW_BUSINESS_OFFERS_FILTER } from "../offers/newBusinessOffers";
 
 export const DealInputs = () => {
   const isMobile = useIsMobile();
@@ -57,6 +58,7 @@ const DealInfoInputs = () => {
   // which payment options this form may select among.
   const pricingMode = useWatch({ control, name: "pricing_mode" }) ?? "standard";
   const { data: offers } = useGetList<Offer>("offers", {
+    filter: NEW_BUSINESS_OFFERS_FILTER,
     pagination: { page: 1, perPage: 100 },
   });
   const selectedOffer = offers?.find(
@@ -117,7 +119,11 @@ const DealInfoInputs = () => {
   return (
     <div className="flex flex-col gap-4 flex-1">
       <div className="flex flex-col sm:flex-row gap-4 [&>div]:flex-1 [&_button]:w-full">
-        <ReferenceInput source="offer_id" reference="offers">
+        <ReferenceInput
+          source="offer_id"
+          reference="offers"
+          filter={NEW_BUSINESS_OFFERS_FILTER}
+        >
           <AutocompleteInput
             label="resources.deals.fields.offer_id"
             optionText="name"
