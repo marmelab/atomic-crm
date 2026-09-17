@@ -21,6 +21,10 @@ export type TaskActionKind =
   | "application-review"
   | "opportunity-context"
   | "enrollment-context"
+  // "which Opportunity does this booking belong to?" — the matching screen.
+  | "sales-call-needs-matching"
+  // "what happened on this call?" — the outcome screen. A DIFFERENT
+  // question with a different answer, so a different destination.
   | "resolve-sales-call"
   | "resolve-client-session-cadence"
   | "task-detail";
@@ -72,14 +76,23 @@ const ENROLLMENT_CONTEXT_TYPES: ReadonlySet<string> = new Set([
   "offboarding_item",
 ]);
 
-// resolve_sales_call (Unmatched Sales Call Resolution slice): used to fall
-// back to "task-detail" (the generic Edit sheet) — genuinely not useful
-// there, since the actual question ("what Opportunity does this booking
-// belong to?") isn't answerable from Description/Due date/Type/Status.
-// Resolves DETERMINISTICALLY via Task.sales_call_id (set at creation,
-// backfilled for pre-existing rows — see migration 20260904240000) to a
-// dedicated resolution page, never the generic modal — see
-// useTaskActionDestination.ts.
+// sales_call_needs_matching (Unmatched Sales Call Resolution slice): used
+// to fall back to "task-detail" (the generic Edit sheet) — genuinely not
+// useful there, since the actual question ("what Opportunity does this
+// booking belong to?") isn't answerable from Description/Due date/Type/
+// Status. Resolves DETERMINISTICALLY via Task.sales_call_id (set at
+// creation, backfilled for pre-existing rows — see migration
+// 20260904240000) to the dedicated matching page, never the generic modal.
+const SALES_CALL_NEEDS_MATCHING_TYPES: ReadonlySet<string> = new Set([
+  "sales_call_needs_matching",
+]);
+
+// resolve_sales_call: attached to the right Opportunity already, so the
+// matching page has nothing to ask. Production acceptance caught exactly
+// that contradiction — the task said "needs matching", the page it opened
+// said "this booking is already attached to an Opportunity". This type
+// goes to the call's outcome resolution instead, offering the three
+// canonical actions (call happened / no-show / cancelled).
 const RESOLVE_SALES_CALL_TYPES: ReadonlySet<string> = new Set([
   "resolve_sales_call",
 ]);
@@ -107,6 +120,9 @@ export const classifyTaskActionKind = (
   }
   if (taskType && ENROLLMENT_CONTEXT_TYPES.has(taskType)) {
     return "enrollment-context";
+  }
+  if (taskType && SALES_CALL_NEEDS_MATCHING_TYPES.has(taskType)) {
+    return "sales-call-needs-matching";
   }
   if (taskType && RESOLVE_SALES_CALL_TYPES.has(taskType)) {
     return "resolve-sales-call";

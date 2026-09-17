@@ -7,6 +7,7 @@ import {
   isDueLater,
   isDueNext7Days,
   isDone,
+  TASK_TYPES_WITHOUT_MEANINGFUL_DUE_DATE,
 } from "./tasksPredicate";
 import { startOfToday } from "date-fns/startOfToday";
 import { endOfToday } from "date-fns/endOfToday";
@@ -148,26 +149,61 @@ describe("tasksPredicate", () => {
   });
 
   describe("isDone", () => {
-    const base = { due_date: today.toISOString(), done_date: null };
+    // Built per-test, not at collection time: `today` is assigned in
+    // beforeEach, which has not run yet while describe bodies are being
+    // collected. Reading it here threw, and a throw during collection
+    // failed the WHOLE file — every test in it, including these, had
+    // silently never run.
+    const makeBase = () => ({ due_date: today.toISOString(), done_date: null });
 
     it("is false for a pending task", () => {
-      expect(isDone({ ...base, status: "pending" })).toBe(false);
+      expect(isDone({ ...makeBase(), status: "pending" })).toBe(false);
     });
 
     it("is false for a waiting task", () => {
-      expect(isDone({ ...base, status: "waiting" })).toBe(false);
+      expect(isDone({ ...makeBase(), status: "waiting" })).toBe(false);
     });
 
     it("is true once done_date is set, regardless of status", () => {
-      expect(isDone({ ...base, done_date: today.toISOString() })).toBe(true);
+      expect(isDone({ ...makeBase(), done_date: today.toISOString() })).toBe(
+        true,
+      );
     });
 
     it("is true for a completed task", () => {
-      expect(isDone({ ...base, status: "completed" })).toBe(true);
+      expect(isDone({ ...makeBase(), status: "completed" })).toBe(true);
     });
 
     it("is true for a cancelled task", () => {
-      expect(isDone({ ...base, status: "cancelled" })).toBe(true);
+      expect(isDone({ ...makeBase(), status: "cancelled" })).toBe(true);
+    });
+  });
+
+  // Both sales-call task types carry a due_date that is an internal
+  // DB-required field set to "now" at creation — never a commitment Leif
+  // made. They belong in Needs Attention, not in a date bucket.
+  describe("TASK_TYPES_WITHOUT_MEANINGFUL_DUE_DATE", () => {
+    it("covers both sales-call question types and the cadence one", () => {
+      expect(
+        TASK_TYPES_WITHOUT_MEANINGFUL_DUE_DATE.has("sales_call_needs_matching"),
+      ).toBe(true);
+      expect(
+        TASK_TYPES_WITHOUT_MEANINGFUL_DUE_DATE.has("resolve_sales_call"),
+      ).toBe(true);
+      expect(
+        TASK_TYPES_WITHOUT_MEANINGFUL_DUE_DATE.has(
+          "resolve_client_session_cadence",
+        ),
+      ).toBe(true);
+    });
+
+    it("does not swallow an ordinary task type with a real due date", () => {
+      expect(TASK_TYPES_WITHOUT_MEANINGFUL_DUE_DATE.has("sales_call")).toBe(
+        false,
+      );
+      expect(TASK_TYPES_WITHOUT_MEANINGFUL_DUE_DATE.has("follow_up")).toBe(
+        false,
+      );
     });
   });
 

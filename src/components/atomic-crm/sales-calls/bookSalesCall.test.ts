@@ -120,7 +120,7 @@ describe("bookSalesCall", () => {
     }
 
     const { data: resolveTasks } = await dataProvider.getList<Task>("tasks", {
-      filter: { contact_id: CONTACT_ID, type: "resolve_sales_call" },
+      filter: { contact_id: CONTACT_ID, type: "sales_call_needs_matching" },
       pagination: { page: 1, perPage: 10 },
       sort: { field: "id", order: "ASC" },
     });

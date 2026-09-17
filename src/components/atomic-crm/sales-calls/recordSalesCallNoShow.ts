@@ -1,6 +1,7 @@
 import type { DataProvider, Identifier } from "ra-core";
 
 import type { Contact, Deal, SalesCall, Tag, Task } from "../types";
+import { completeResolveSalesCallTask } from "./resolveSalesCallTask";
 
 // Gate B — the dev/FakeRest half of the dual-implementation No-show path.
 // The production path is the Postgres function
@@ -132,6 +133,17 @@ export const recordSalesCallNoShow = async (
   //    pending by the previous behavior is superseded work, closed here
   //    rather than left behind as impossible work.
   await completePendingTasks(dataProvider, salesCall.contact_id, now);
+  // "No-show" is one of the three canonical answers to "what happened on
+  // this call?", so a resolve_sales_call ambiguity task for THIS call is
+  // answered by it. Scoped by sales_call_id rather than swept up by
+  // contact above, because a returning Contact can have an open question
+  // about a different call that this one does not answer.
+  await completeResolveSalesCallTask(
+    dataProvider,
+    salesCall.contact_id,
+    now,
+    salesCall.id,
+  );
 
   return { status: alreadyNoShow ? "already-no-show" : "completed" };
 };

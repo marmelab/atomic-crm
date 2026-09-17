@@ -76,6 +76,7 @@ const typeLabel = (
 const SELF_DESCRIBING_TASK_TYPES: ReadonlySet<string> = new Set([
   "onboarding_item",
   "offboarding_item",
+  "sales_call_needs_matching",
   "resolve_sales_call",
   "resolve_client_session_cadence",
 ]);
@@ -458,7 +459,8 @@ export const Task = ({
                 ("Sales call needs matching" / "Jane Doe · Offer · date").
                 Only this one type gets it — everything else keeps the
                 single-line title unchanged. */}
-            {(task.type === "resolve_sales_call" ||
+            {(task.type === "sales_call_needs_matching" ||
+              task.type === "resolve_sales_call" ||
               task.type === "resolve_client_session_cadence") && (
               <div className="text-xs uppercase tracking-wide text-muted-foreground">
                 {typeLabel(task, taskTypes)}
@@ -620,6 +622,7 @@ export const Task = ({
               className="cursor-pointer h-12 md:h-8 px-4 md:px-2 text-base md:text-sm"
               onClick={() => {
                 if (
+                  destination?.kind === "sales-call-needs-matching" ||
                   destination?.kind === "resolve-sales-call" ||
                   destination?.kind === "resolve-client-session-cadence"
                 ) {

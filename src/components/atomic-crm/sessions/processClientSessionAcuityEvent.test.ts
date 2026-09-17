@@ -128,7 +128,7 @@ describe("processClientSessionAcuityEvent", () => {
     expect(salesCallCount).toBe(0);
 
     const { total: resolveTaskCount } = await dataProvider.getList("tasks", {
-      filter: { type: "resolve_sales_call" },
+      filter: { type: "sales_call_needs_matching" },
       pagination: { page: 1, perPage: 10 },
       sort: { field: "id", order: "ASC" },
     });

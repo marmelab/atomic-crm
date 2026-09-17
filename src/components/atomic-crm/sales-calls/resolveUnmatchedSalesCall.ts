@@ -3,7 +3,7 @@ import type { DataProvider, Identifier } from "ra-core";
 import type { Contact, Deal, SalesCall } from "../types";
 import { advanceApprovedToCallBooked } from "./bookSalesCall";
 import { resolveOfferCohortForAppointmentType } from "./offerCohortAcuityMapping";
-import { completeResolveSalesCallTask } from "./resolveSalesCallTask";
+import { completeSalesCallNeedsMatchingTask } from "./salesCallNeedsMatchingTask";
 import { ensureSalesCallTask } from "./salesCallTask";
 import { resolveDefaultTaskSalesId } from "./resolveDefaultTaskSalesId";
 import { scheduleDate } from "./salesCallSchedule";
@@ -86,7 +86,7 @@ const finishAttaching = async (
       `${scheduleDate(salesCall) ?? ""}T12:00:00.000Z`,
     salesId,
   });
-  await completeResolveSalesCallTask(
+  await completeSalesCallNeedsMatchingTask(
     dataProvider,
     salesCall.contact_id,
     now,
@@ -217,7 +217,7 @@ export const dismissSalesCall = async (
       dismissal_reason: dismissalReason,
     },
   });
-  await completeResolveSalesCallTask(
+  await completeSalesCallNeedsMatchingTask(
     dataProvider,
     salesCall.contact_id,
     now,

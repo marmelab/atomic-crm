@@ -34,6 +34,7 @@ import { GroupProgramPage } from "../programs/GroupProgramPage";
 import { IndividualProgramPage } from "../programs/IndividualProgramPage";
 import { ProgramsPage } from "../programs/ProgramsPage";
 import { ResolveSalesCallPage } from "../sales-calls/ResolveSalesCallPage";
+import { SalesCallOutcomePage } from "../sales-calls/SalesCallOutcomePage";
 import { ResolveCadenceIssuePage } from "../sessions/ResolveCadenceIssuePage";
 import { LivingExampleApplicationPage } from "../public-application/LivingExampleApplicationPage";
 import { GrowingYourselfUpApplicationPage } from "../public-application/GrowingYourselfUpApplicationPage";
@@ -380,6 +381,10 @@ const DesktopAdmin = (
           element={<ResolveSalesCallPage />}
         />
         <Route
+          path={SalesCallOutcomePage.path}
+          element={<SalesCallOutcomePage />}
+        />
+        <Route
           path={ResolveCadenceIssuePage.path}
           element={<ResolveCadenceIssuePage />}
         />
@@ -494,6 +499,10 @@ const MobileAdmin = (
           <Route
             path={ResolveSalesCallPage.path}
             element={<ResolveSalesCallPage />}
+          />
+          <Route
+            path={SalesCallOutcomePage.path}
+            element={<SalesCallOutcomePage />}
           />
           <Route
             path={ResolveCadenceIssuePage.path}

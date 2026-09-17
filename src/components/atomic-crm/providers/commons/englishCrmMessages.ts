@@ -368,6 +368,15 @@ export const englishCrmMessages = {
       reviewed: "Reviewed Applications",
     },
     sales_calls: {
+      outcome: {
+        title: "Resolve sales call",
+        question: "What happened on this call?",
+        record: "Record what happened",
+        already_resolved: "This call is already resolved.",
+        not_attached:
+          "This booking isn't attached to an Opportunity yet, so there's no outcome to record.",
+        go_match: "Match it to an Opportunity first",
+      },
       resolve: {
         title: "Sales call needs matching",
         not_found: "This booking no longer exists.",

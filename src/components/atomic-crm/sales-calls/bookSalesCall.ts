@@ -7,7 +7,7 @@ import {
 } from "./salesCallTask";
 import { completeSalesCallCancelledTask } from "./salesCallCancelledTask";
 import { completeSalesCallNoShowTask } from "./salesCallNoShowTask";
-import { ensureResolveSalesCallTask } from "./resolveSalesCallTask";
+import { ensureSalesCallNeedsMatchingTask } from "./salesCallNeedsMatchingTask";
 import { resolveDefaultTaskSalesId } from "./resolveDefaultTaskSalesId";
 
 export type BookSalesCallInput = {
@@ -140,7 +140,7 @@ export const bookSalesCall = async (
     // such task is pending.
     await completeSalesCallNoShowTask(dataProvider, input.contactId, now);
   } else {
-    await ensureResolveSalesCallTask(dataProvider, {
+    await ensureSalesCallNeedsMatchingTask(dataProvider, {
       contactId: input.contactId,
       contactName: input.contactName,
       salesCallId: salesCall.id,

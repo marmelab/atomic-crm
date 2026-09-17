@@ -1,25 +1,23 @@
 import type { DataProvider, Identifier } from "ra-core";
 
-import { formatTimestampWithTimeString } from "../deals/dealUtils";
 import type { Task } from "../types";
+import { RESOLVE_SALES_CALL_TASK_TYPE } from "./salesCallTaskTypes";
+import { formatSalesCallSchedule } from "./salesCallSchedule";
+import type { SalesCall } from "../types";
 
-const RESOLVE_SALES_CALL_TASK_TYPE = "resolve_sales_call";
-
-// Surfaces a booking that couldn't be safely matched to exactly one active
-// Opportunity (Acuity/Sales Call Lifecycle slice, Decision 3: "must not
-// become an invisible database record"). Reuses the same Task
-// infrastructure every other task type already gets — but as of the
-// Unmatched Sales Call Resolution slice, a purpose-built page
-// (/sales-calls/:id/resolve, routed via taskActionDestination.ts) resolves
-// it, not the generic Task editor. Mirrors applications/
-// reviewApplicationTask.ts's find/ensure/complete shape.
+// "This call is attached to the right Opportunity, and nobody ever
+// recorded what happened on it."
 //
-// Deterministic by sales_call_id when known (a returning Contact can have
-// more than one unresolved booking at once — contact_id alone can't tell
-// them apart). Falls back to the old contact_id+type search only for a
-// legacy Task created before tasks.sales_call_id existed (migration
-// 20260904240000 backfills every real one that was unambiguous at the
-// time; this fallback is what still finds one that wasn't).
+// Distinct from salesCallNeedsMatchingTask.ts, which asks a completely
+// different question (WHICH Opportunity?). Clicking this one opens the
+// call's own resolution screen showing the three canonical actions — call
+// happened / no-show / cancelled — and never the matching screen.
+//
+// Only ever created deliberately, by whatever noticed the ambiguity. It is
+// NOT derived from "attendance is null": 109 attached historical calls in
+// production have no attendance because the import recorded their result
+// as pipeline stage instead, and turning those into alerts would bury the
+// handful of genuinely open questions.
 export const findPendingResolveSalesCallTask = async (
   dataProvider: DataProvider,
   contactId: Identifier,
@@ -40,47 +38,41 @@ export const findPendingResolveSalesCallTask = async (
   return pending.find((task) => task.sales_call_id == null) ?? null;
 };
 
-// The Task's own text is what the Dashboard/Contact page actually show
-// (Task.tsx treats resolve_sales_call as self-describing — see its own
-// SELF_DESCRIBING_TASK_TYPES comment) — "%{name} · %{offer} · %{when}" so
-// a returning Contact's several unresolved bookings read as genuinely
-// distinct rows, never identical ones needing a click to tell apart.
+// Reads as the question it is: "Megan Auron · Jul 7, 2026 — what
+// happened?". The schedule is formatted through the shared helper so a
+// date-only historical call shows its date rather than an invented time.
 export const ensureResolveSalesCallTask = async (
   dataProvider: DataProvider,
   {
     contactId,
     contactName,
-    salesCallId,
-    scheduledAt,
-    offerName,
-    cohortName,
+    salesCall,
     salesId,
   }: {
     contactId: Identifier;
     contactName: string;
-    salesCallId: Identifier;
-    scheduledAt: string;
-    offerName: string;
-    cohortName?: string | null;
+    salesCall: Pick<
+      SalesCall,
+      "id" | "scheduled_at" | "scheduled_on" | "schedule_precision"
+    >;
     salesId?: Identifier | null;
   },
 ): Promise<void> => {
   const existing = await findPendingResolveSalesCallTask(
     dataProvider,
     contactId,
-    salesCallId,
+    salesCall.id,
   );
   if (existing) return;
 
-  const offerLabel = cohortName ? `${offerName} — ${cohortName}` : offerName;
   await dataProvider.create("tasks", {
     data: {
       contact_id: contactId,
       type: RESOLVE_SALES_CALL_TASK_TYPE,
-      text: `${contactName} · ${offerLabel} · ${formatTimestampWithTimeString(scheduledAt)}`,
+      text: `${contactName} · ${formatSalesCallSchedule(salesCall)} — what happened?`,
       due_date: new Date().toISOString(),
       status: "pending",
-      sales_call_id: salesCallId,
+      sales_call_id: salesCall.id,
       ...(salesId != null ? { sales_id: salesId } : {}),
     },
   });

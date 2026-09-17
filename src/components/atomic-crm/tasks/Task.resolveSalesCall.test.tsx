@@ -30,7 +30,7 @@ describe("Task — resolve_sales_call human-facing rendering", () => {
     const resolveTask: Task = {
       id: 3000,
       contact_id: 1,
-      type: "resolve_sales_call",
+      type: "sales_call_needs_matching",
       text: "SalesId Verify · The Living Example · Sep 10, 2026, 6:00 PM",
       due_date: "2026-01-01T00:00:00.000Z",
       done_date: null,
@@ -83,7 +83,7 @@ describe("Task — resolve_sales_call human-facing rendering", () => {
     const resolveTask: Task = {
       id: 3001,
       contact_id: 1,
-      type: "resolve_sales_call",
+      type: "sales_call_needs_matching",
       text: "SalesId Verify · The Living Example · Sep 10, 2026, 6:00 PM",
       due_date: "2026-01-01T00:00:00.000Z",
       done_date: null,

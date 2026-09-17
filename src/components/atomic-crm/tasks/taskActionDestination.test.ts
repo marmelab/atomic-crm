@@ -24,9 +24,21 @@ describe("classifyTaskActionKind", () => {
     );
   });
 
-  it("routes resolve_sales_call to resolve-sales-call (Unmatched Sales Call Resolution slice — no longer falls back to the generic Task editor)", () => {
+  it("routes sales_call_needs_matching to the matching screen", () => {
+    expect(classifyTaskActionKind("sales_call_needs_matching")).toBe(
+      "sales-call-needs-matching",
+    );
+  });
+
+  // The two ask different questions, so they must not share a
+  // destination: production showed a "needs matching" task opening a page
+  // that replied "this booking is already attached to an Opportunity".
+  it("routes resolve_sales_call to the outcome screen, not the matching screen", () => {
     expect(classifyTaskActionKind("resolve_sales_call")).toBe(
       "resolve-sales-call",
+    );
+    expect(classifyTaskActionKind("resolve_sales_call")).not.toBe(
+      "sales-call-needs-matching",
     );
   });
 

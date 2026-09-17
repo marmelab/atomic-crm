@@ -81,7 +81,7 @@ const buildDeal = (overrides: Partial<Deal> = {}): Deal => ({
 const buildPendingResolveTask = (overrides: Partial<Task> = {}): Task => ({
   id: 1,
   contact_id: CONTACT_ID,
-  type: "resolve_sales_call",
+  type: "sales_call_needs_matching",
   text: "Ada Lovelace · The Living Example · Sep 10, 2026, 6:00 PM",
   due_date: "2026-01-01T00:00:00.000Z",
   status: "pending",
@@ -159,7 +159,9 @@ describe("attachSalesCallToOpportunity", () => {
       pagination: { page: 1, perPage: 10 },
       sort: { field: "id", order: "ASC" },
     });
-    const resolveTask = tasks.find((t) => t.type === "resolve_sales_call");
+    const resolveTask = tasks.find(
+      (t) => t.type === "sales_call_needs_matching",
+    );
     expect(resolveTask?.done_date).toBeTruthy();
     expect(tasks.some((t) => t.type === "sales_call")).toBe(true);
   });
@@ -235,7 +237,7 @@ describe("attachSalesCallToOpportunity", () => {
     expect(dealsTotal).toBe(1);
 
     const { data: tasks } = await dataProvider.getList<Task>("tasks", {
-      filter: { contact_id: CONTACT_ID, type: "resolve_sales_call" },
+      filter: { contact_id: CONTACT_ID, type: "sales_call_needs_matching" },
       pagination: { page: 1, perPage: 10 },
       sort: { field: "id", order: "ASC" },
     });
@@ -353,9 +355,9 @@ describe("dismissSalesCall", () => {
     expect(salesCall.dismissed_at).toBeTruthy();
     // The alert stays resolved (done_date set by the dismissal itself,
     // before the replay ever reached this code) — the replay creates
-    // nothing new, never a second/reopened resolve_sales_call Task.
+    // nothing new, never a second/reopened sales_call_needs_matching Task.
     const { data: tasks } = await dataProvider.getList<Task>("tasks", {
-      filter: { contact_id: CONTACT_ID, type: "resolve_sales_call" },
+      filter: { contact_id: CONTACT_ID, type: "sales_call_needs_matching" },
       pagination: { page: 1, perPage: 10 },
       sort: { field: "id", order: "ASC" },
     });

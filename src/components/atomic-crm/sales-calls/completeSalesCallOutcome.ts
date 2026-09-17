@@ -14,6 +14,7 @@ import type {
 } from "../types";
 import { DEFAULT_THINKING_FOLLOW_UP_DAYS } from "./salesCallConstants";
 import { completeSalesCallTask } from "./salesCallTask";
+import { completeResolveSalesCallTask } from "./resolveSalesCallTask";
 import { ensureFollowUpTask } from "./followUpTask";
 import { resolveDefaultTaskSalesId } from "./resolveDefaultTaskSalesId";
 import { ensureOfferPageToken } from "../deals/offerPageToken";
@@ -141,6 +142,15 @@ export const completeSalesCallOutcome = async (
   // mutate sales status (that already happened above; this only reflects
   // it on the Task).
   await completeSalesCallTask(dataProvider, salesCall.contact_id, now);
+  // Recording what happened is exactly the answer a resolve_sales_call
+  // ambiguity task was waiting for, so that task is answered too. A safe
+  // no-op when none is pending.
+  await completeResolveSalesCallTask(
+    dataProvider,
+    salesCall.contact_id,
+    now,
+    salesCall.id,
+  );
 
   const { data: deal } = await dataProvider.getOne<Deal>("deals", {
     id: salesCall.opportunity_id,

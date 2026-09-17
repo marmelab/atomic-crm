@@ -374,6 +374,15 @@ export const frenchCrmMessages = {
       reviewed: "Candidatures examinées",
     },
     sales_calls: {
+      outcome: {
+        title: "Résoudre l'appel commercial",
+        question: "Que s'est-il passé lors de cet appel ?",
+        record: "Enregistrer ce qui s'est passé",
+        already_resolved: "Cet appel est déjà résolu.",
+        not_attached:
+          "Cette réservation n'est pas encore rattachée à une opportunité, il n'y a donc pas de résultat à enregistrer.",
+        go_match: "Rattachez-la d'abord à une opportunité",
+      },
       resolve: {
         title: "Appel commercial à rattacher",
         not_found: "Cette réservation n'existe plus.",

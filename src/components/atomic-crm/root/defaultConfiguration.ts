@@ -75,7 +75,13 @@ export const defaultTaskTypes = [
   // Call" to plain, human-facing wording; also routes to a dedicated
   // resolution page now, never the generic Task editor (see
   // taskActionDestination.ts).
-  { value: "resolve_sales_call", label: "Sales call needs matching" },
+  { value: "sales_call_needs_matching", label: "Sales call needs matching" },
+  // Two task types, because they are two different questions. This one is
+  // asked when the booking IS attached correctly and nobody ever recorded
+  // what happened on it — production acceptance found one label serving
+  // both, so the Dashboard said "needs matching" about a call that was
+  // already matched. See sales-calls/salesCallTaskTypes.ts.
+  { value: "resolve_sales_call", label: "Resolve sales call" },
   // Contracts + Onboarding slice: auto-created by handle_deal_won() for
   // every REQUIRED onboarding checklist item (contract, access, curriculum,
   // etc.) — retires send_contract/complete_access (Aug-2026 vocabulary,

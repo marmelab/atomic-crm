@@ -7,6 +7,7 @@ export type TaskActionDestination =
   | { kind: "application-review"; to: string }
   | { kind: "opportunity-context"; to: string }
   | { kind: "enrollment-context"; to: string }
+  | { kind: "sales-call-needs-matching"; to: string }
   | { kind: "resolve-sales-call"; to: string }
   | { kind: "resolve-client-session-cadence"; to: string }
   // No real, resolvable destination for this Task — either its type has no
@@ -40,7 +41,10 @@ export const useTaskActionDestination = (
   task: Task,
 ): { destination: TaskActionDestination | null; isPending: boolean } => {
   const actionKind = classifyTaskActionKind(task.type);
-  const isResolveSalesCall = actionKind === "resolve-sales-call";
+  const isNeedsMatching = actionKind === "sales-call-needs-matching";
+  const isResolveOutcome = actionKind === "resolve-sales-call";
+  // Both resolve off the same FK; only the destination differs.
+  const isSalesCallTask = isNeedsMatching || isResolveOutcome;
 
   // Every hook below is called on EVERY render, unconditionally (Rules of
   // Hooks) — each one's own `enabled` flag is what actually gates it,
@@ -59,8 +63,11 @@ export const useTaskActionDestination = (
   // backfill couldn't disambiguate: the Contact's own single still-
   // unresolved sales_call, if there is exactly one — never guessed when
   // there's more than one candidate.
+  // Only the MATCHING task has a legacy fallback worth running: its
+  // fallback query looks for the Contact's unmatched booking, which is by
+  // definition never what an outcome task points at.
   const needsSalesCallLookup =
-    isResolveSalesCall && task.sales_call_id == null && task.contact_id != null;
+    isNeedsMatching && task.sales_call_id == null && task.contact_id != null;
   const { data: unresolvedSalesCalls, isPending: isPendingSalesCalls } =
     useGetList<SalesCall>(
       "sales_calls",
@@ -85,7 +92,7 @@ export const useTaskActionDestination = (
     actionKind !== "task-detail" &&
     actionKind !== "enrollment-context" &&
     actionKind !== "resolve-client-session-cadence" &&
-    !isResolveSalesCall &&
+    !isSalesCallTask &&
     task.contact_id != null;
 
   const { data: deals, isPending: isPendingDeals } = useGetList<Deal>(
@@ -150,11 +157,28 @@ export const useTaskActionDestination = (
     };
   }
 
-  if (isResolveSalesCall) {
+  // "What happened on this call?" — straight to the call's own outcome
+  // screen, never the matching screen. The call is already attached to the
+  // right Opportunity, so matching has nothing left to ask, and sending
+  // Leif there is what made the Dashboard contradict itself.
+  if (isResolveOutcome) {
+    if (task.sales_call_id == null) {
+      return { destination: { kind: "task-detail" }, isPending: false };
+    }
+    return {
+      destination: {
+        kind: "resolve-sales-call",
+        to: `/sales-calls/${task.sales_call_id}/outcome`,
+      },
+      isPending: false,
+    };
+  }
+
+  if (isNeedsMatching) {
     if (task.sales_call_id != null) {
       return {
         destination: {
-          kind: "resolve-sales-call",
+          kind: "sales-call-needs-matching",
           to: `/sales-calls/${task.sales_call_id}/resolve`,
         },
         isPending: false,
@@ -166,7 +190,7 @@ export const useTaskActionDestination = (
     if (unresolvedSalesCalls?.length === 1) {
       return {
         destination: {
-          kind: "resolve-sales-call",
+          kind: "sales-call-needs-matching",
           to: `/sales-calls/${unresolvedSalesCalls[0].id}/resolve`,
         },
         isPending: false,
