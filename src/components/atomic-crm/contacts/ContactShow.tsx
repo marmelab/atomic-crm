@@ -20,7 +20,7 @@ import { Link } from "react-router";
 import MobileHeader from "../layout/MobileHeader";
 import { MobileContent } from "../layout/MobileContent";
 import { CompanyAvatar } from "../companies/CompanyAvatar";
-import { NoteCreate, NotesIterator, NotesIteratorMobile } from "../notes";
+import { NotesIteratorMobile } from "../notes";
 import { NoteCreateSheet } from "../notes/NoteCreateSheet";
 import { TagsListEdit } from "./TagsListEdit";
 import { ContactEditSheet } from "./ContactEditSheet";
@@ -30,6 +30,7 @@ import { ContactBackgroundInfo } from "./ContactBackgroundInfo";
 import { ContactTasksList } from "./ContactTasksList";
 import { DoNotEngageBadge } from "./DoNotEngageBadge";
 import type { Contact } from "../types";
+import { ContactRelationship } from "./ContactRelationship";
 import { ContactSalesAction } from "../waitlist/ContactSalesAction";
 import { ContactWaitlists } from "../waitlist/ContactWaitlists";
 import { Avatar } from "./Avatar";
@@ -287,19 +288,13 @@ const ContactShowContent = () => {
                 </ReferenceField>
               </div>
             </div>
-            <InfiniteListBase
-              resource="contact_notes"
-              filter={{ contact_id: record.id }}
-              sort={{ field: "date", order: "DESC" }}
-              perPage={25}
-              disableSyncWithLocation
-              storeKey={false}
-              empty={
-                <NoteCreate reference="contacts" showStatus className="mt-4" />
-              }
-            >
-              <NotesIterator reference="contacts" showStatus />
-            </InfiniteListBase>
+            {/* The relationship — what this human has actually done with
+                the business — now owns the wide canvas. It used to be
+                squeezed into the right sidebar while an always-open note
+                composer took most of the page. */}
+            <div className="mt-6">
+              <ContactRelationship contactId={record.id} />
+            </div>
           </CardContent>
         </Card>
       </div>

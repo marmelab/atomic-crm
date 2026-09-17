@@ -490,6 +490,8 @@ export const englishCrmMessages = {
       search_placeholder: "Search name or email…",
       search_empty: "No one matches “%{query}”.",
       fields: {
+        offer_id: "Program",
+        cohort_id: "Cohort (optional)",
         joined_at: "Joined",
         desired_timing: "Desired timing",
         notes: "Notes",
@@ -530,6 +532,7 @@ export const englishCrmMessages = {
         preferred: "Preferred timing: %{timing}",
         converted: "Converted %{date}",
         removed: "Removed %{date}",
+        empty: "Not on any waitlist.",
       },
     },
     notes: {

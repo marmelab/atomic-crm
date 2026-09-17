@@ -44,8 +44,12 @@ export const computeContactRelationshipFields = (params: {
   const contactEnrollments = enrollments.filter((e) =>
     dealIds.has(e.opportunity_id),
   );
-  const contactApplications = applications.filter((a) =>
-    dealIds.has(a.opportunity_id),
+  // Applications resolve by their own canonical contact_id, not by routing
+  // through the Contact's Deals — an applicant who never became an
+  // Opportunity still has Applications, and routing through Deals is
+  // exactly what made them unreachable.
+  const contactApplications = applications.filter(
+    (a) => a.contact_id === contactId,
   );
   const contactWaitlistEntries = waitlistEntries.filter(
     (w) => w.contact_id === contactId,

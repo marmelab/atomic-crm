@@ -47,12 +47,26 @@ export const useApplicationsGrouped = (): {
 } => {
   const { data: applications, isPending: applicationsPending } =
     useGetList<Application>("applications", {
+      // Live submissions only. Imported historical Applications keep their
+      // true status ('pending', 'approved', ...) because that is what the
+      // source recorded, but a back-filled record of something that already
+      // happened is not present-day review work — without this filter the
+      // historical import would drop ~97 "pending" rows into the Needs
+      // Review queue. Distinguished by record origin rather than by
+      // falsifying status.
+      filter: { source: "public_form" },
       pagination: { page: 1, perPage: 1000 },
       sort: { field: "submitted_at", order: "DESC" },
     });
 
+  // opportunity_id is optional now, so only Applications that actually have
+  // an Opportunity contribute a Deal id to look up.
   const dealIds = [
-    ...new Set((applications ?? []).map((a) => a.opportunity_id)),
+    ...new Set(
+      (applications ?? [])
+        .map((a) => a.opportunity_id)
+        .filter((id): id is Identifier => id != null),
+    ),
   ];
   const { data: deals, isPending: dealsPending } = useGetMany<Deal>(
     "deals",

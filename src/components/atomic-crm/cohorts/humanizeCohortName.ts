@@ -17,6 +17,15 @@ export const humanizeCohortName = (
   cohortName: string,
   offerName: string,
 ): string => {
+  // Two naming conventions exist in real data. The canonical one embeds the
+  // Offer's FULL name ("Growing Yourself Up — Fall 2026"); an older habit
+  // embeds its initials ("September GYU Cohort"). Both are redundant under
+  // the Offer's own heading, and the full-name form is the one that
+  // produced "Growing Yourself Up — Growing Yourself Up — Fall 2026" where
+  // a caller prefixes the Offer itself.
+  const withoutOfferName = stripLeadingOfferName(cohortName, offerName);
+  if (withoutOfferName !== cohortName) return withoutOfferName;
+
   const initials = offerName
     .split(/\s+/)
     .map((word) => word[0])
@@ -32,4 +41,24 @@ export const humanizeCohortName = (
     .replace(/\s+/g, " ")
     .trim();
   return stripped || cohortName;
+};
+
+// "Growing Yourself Up — Fall 2026" under the "Growing Yourself Up" Offer
+// heading becomes "Fall 2026". Matches the canonical em-dash form and the
+// plainer hyphen/colon variants, and returns the name untouched when the
+// Offer name is not actually its prefix.
+const stripLeadingOfferName = (
+  cohortName: string,
+  offerName: string,
+): string => {
+  const trimmedOffer = offerName.trim();
+  if (!trimmedOffer) return cohortName;
+  if (!cohortName.toLowerCase().startsWith(trimmedOffer.toLowerCase())) {
+    return cohortName;
+  }
+  const remainder = cohortName
+    .slice(trimmedOffer.length)
+    .replace(/^\s*[—–\-:]\s*/, "")
+    .trim();
+  return remainder || cohortName;
 };

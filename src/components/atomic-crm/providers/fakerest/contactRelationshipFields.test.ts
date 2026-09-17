@@ -174,3 +174,63 @@ describe("contacts getList — derived relationship fields (FakeRest)", () => {
     expect(data[0]!.first_name).toBe("GYUOnly");
   });
 });
+
+describe("Applications reach their Contact without requiring a Deal", () => {
+  // Gate A found 88 legitimate historical Applications from people who
+  // never became a sales Opportunity. While an Application's only route to
+  // a person was opportunity_id -> deals.contact_id, those people's
+  // Applications were stored but unreachable. Proven here through
+  // has_applied, which is derived from the Contact's Applications.
+  it("marks a Contact as having applied when their only Application has no Deal at all", async () => {
+    const applicantWithNoDeal = buildContact({ id: 1, first_name: "Dealless" });
+
+    const dataProvider = createDataProvider({
+      db: createCrmDb({
+        contacts: [applicantWithNoDeal],
+        offers: [leOffer, gyuOffer],
+        offer_payment_options: [],
+        cohorts: [],
+        deals: [],
+        enrollments: [],
+        applications: [
+          {
+            id: 500,
+            contact_id: 1,
+            // No Opportunity: none existed, and none is fabricated.
+            opportunity_id: null,
+            offer_id: gyuOffer.id,
+            intended_cohort_id: null,
+            status: "pending",
+            source: "historical_import",
+            submitted_at: "2026-08-01T10:00:00.000Z",
+            reviewed_at: null,
+            raw_answers: {},
+            summary: null,
+            created_at: "2026-08-01T10:00:00.000Z",
+            updated_at: "2026-08-01T10:00:00.000Z",
+          },
+        ],
+        waitlist_entries: [],
+      } as any),
+      silent: true,
+      latency: 0,
+    });
+
+    const { data } = await dataProvider.getList<Contact>("contacts", {
+      pagination: { page: 1, perPage: 10 },
+      sort: { field: "id", order: "ASC" },
+      filter: {},
+    });
+
+    expect(data).toHaveLength(1);
+    expect(data[0]!.has_applied).toBe(true);
+
+    // And no Deal was conjured up to make that reachability work.
+    const { data: deals } = await dataProvider.getList<Deal>("deals", {
+      pagination: { page: 1, perPage: 10 },
+      sort: { field: "id", order: "ASC" },
+      filter: {},
+    });
+    expect(deals).toHaveLength(0);
+  });
+});

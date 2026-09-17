@@ -7,7 +7,7 @@ import type {
   SalesCallEvent,
 } from "../../../types";
 import type { Db } from "./types";
-import { SEPTEMBER_GYU_COHORT_ID } from "./cohorts";
+import { FALL_2026_GYU_COHORT_ID } from "./cohorts";
 import { GYU_OFFER_ID, LIVING_EXAMPLE_OFFER_ID } from "./offers";
 
 /**
@@ -234,7 +234,7 @@ export const addLeifProofSliceFixtures = (db: Db) => {
     offer_id: GYU_OFFER_ID,
     offer_name_snapshot: "Growing Yourself Up",
     offer_price_snapshot: 1400,
-    cohort_id: SEPTEMBER_GYU_COHORT_ID,
+    cohort_id: FALL_2026_GYU_COHORT_ID,
     stage: "application_received",
     amount: 1400,
     source: "podcast",
@@ -246,6 +246,8 @@ export const addLeifProofSliceFixtures = (db: Db) => {
   const priyaApplication: Application = {
     id: nextApplicationId(),
     opportunity_id: priyaOpportunity.id,
+    contact_id: priyaOpportunity.contact_id,
+    source: "public_form",
     status: "pending",
     submitted_at: now,
     reviewed_at: null,
@@ -275,7 +277,7 @@ export const addLeifProofSliceFixtures = (db: Db) => {
     offer_id: GYU_OFFER_ID,
     offer_name_snapshot: "Growing Yourself Up",
     offer_price_snapshot: 1400,
-    cohort_id: SEPTEMBER_GYU_COHORT_ID,
+    cohort_id: FALL_2026_GYU_COHORT_ID,
     stage: "decision",
     owner_decision: "would_work_with",
     prospect_decision: "thinking",
@@ -290,6 +292,8 @@ export const addLeifProofSliceFixtures = (db: Db) => {
   db.applications.push({
     id: nextApplicationId(),
     opportunity_id: alexOpportunity.id,
+    contact_id: alexOpportunity.contact_id,
+    source: "public_form",
     status: "approved",
     submitted_at: now,
     reviewed_at: now,
@@ -319,7 +323,7 @@ export const addLeifProofSliceFixtures = (db: Db) => {
     offer_id: GYU_OFFER_ID,
     offer_name_snapshot: "Growing Yourself Up",
     offer_price_snapshot: 1400,
-    cohort_id: SEPTEMBER_GYU_COHORT_ID,
+    cohort_id: FALL_2026_GYU_COHORT_ID,
     stage: "won",
     owner_decision: "would_work_with",
     prospect_decision: "yes",
@@ -333,6 +337,8 @@ export const addLeifProofSliceFixtures = (db: Db) => {
   db.applications.push({
     id: nextApplicationId(),
     opportunity_id: samOpportunity.id,
+    contact_id: samOpportunity.contact_id,
+    source: "public_form",
     status: "approved",
     submitted_at: now,
     reviewed_at: now,
@@ -345,7 +351,7 @@ export const addLeifProofSliceFixtures = (db: Db) => {
     updated_at: now,
   });
 
-  const september = db.cohorts.find((c) => c.id === SEPTEMBER_GYU_COHORT_ID);
+  const september = db.cohorts.find((c) => c.id === FALL_2026_GYU_COHORT_ID);
   db.enrollments.push({
     id: nextEnrollmentId(),
     opportunity_id: samOpportunity.id,
@@ -373,7 +379,7 @@ export const addLeifProofSliceFixtures = (db: Db) => {
     offer_id: GYU_OFFER_ID,
     offer_name_snapshot: "Growing Yourself Up",
     offer_price_snapshot: 1400,
-    cohort_id: SEPTEMBER_GYU_COHORT_ID,
+    cohort_id: FALL_2026_GYU_COHORT_ID,
     stage: "application_received",
     outcome: "not_fit",
     amount: 1400,
@@ -386,6 +392,8 @@ export const addLeifProofSliceFixtures = (db: Db) => {
   db.applications.push({
     id: nextApplicationId(),
     opportunity_id: jordanOpportunity.id,
+    contact_id: jordanOpportunity.contact_id,
+    source: "public_form",
     status: "not_fit",
     submitted_at: now,
     reviewed_at: now,
@@ -582,6 +590,8 @@ export const addLeifProofSliceFixtures = (db: Db) => {
   db.applications.push({
     id: nextApplicationId(),
     opportunity_id: rosalindOpportunity.id,
+    contact_id: rosalindOpportunity.contact_id,
+    source: "public_form",
     status: "pending",
     submitted_at: now,
     reviewed_at: null,
@@ -626,6 +636,8 @@ export const addLeifProofSliceFixtures = (db: Db) => {
   db.applications.push({
     id: nextApplicationId(),
     opportunity_id: naomiOpportunity.id,
+    contact_id: naomiOpportunity.contact_id,
+    source: "public_form",
     status: "approved",
     submitted_at: now,
     reviewed_at: now,
@@ -658,7 +670,7 @@ export const addLeifProofSliceFixtures = (db: Db) => {
     offer_id: GYU_OFFER_ID,
     offer_name_snapshot: "Growing Yourself Up",
     offer_price_snapshot: 1400,
-    cohort_id: SEPTEMBER_GYU_COHORT_ID,
+    cohort_id: FALL_2026_GYU_COHORT_ID,
     stage: "application_received",
     outcome: "needs_higher_care",
     amount: 1400,
@@ -672,6 +684,8 @@ export const addLeifProofSliceFixtures = (db: Db) => {
   db.applications.push({
     id: nextApplicationId(),
     opportunity_id: felixOpportunity.id,
+    contact_id: felixOpportunity.contact_id,
+    source: "public_form",
     status: "needs_higher_care",
     submitted_at: now,
     reviewed_at: now,
@@ -705,7 +719,7 @@ export const addLeifProofSliceFixtures = (db: Db) => {
     offer_id: GYU_OFFER_ID,
     offer_name_snapshot: "Growing Yourself Up",
     offer_price_snapshot: 1400,
-    cohort_id: SEPTEMBER_GYU_COHORT_ID,
+    cohort_id: FALL_2026_GYU_COHORT_ID,
     stage: "application_received",
     outcome: "lost",
     owner_decision: "do_not_engage",
@@ -719,6 +733,8 @@ export const addLeifProofSliceFixtures = (db: Db) => {
   db.applications.push({
     id: nextApplicationId(),
     opportunity_id: portiaOpportunity.id,
+    contact_id: portiaOpportunity.contact_id,
+    source: "public_form",
     status: "do_not_engage",
     submitted_at: now,
     reviewed_at: now,

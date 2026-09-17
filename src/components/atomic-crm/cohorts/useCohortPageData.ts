@@ -26,7 +26,9 @@ export type CohortDecidingPerson = {
 
 export type CohortApplicationRow = {
   applicationId: Identifier;
-  dealId: Identifier;
+  // Null when the applicant never became a sales Opportunity — the Deal is
+  // the optional relationship, so this row does not require one.
+  dealId: Identifier | null;
   contactId: Identifier;
   name: string;
   status: Application["status"];
@@ -63,7 +65,26 @@ export const useCohortPageData = (cohortId?: Identifier) => {
       { enabled: !dealsPending },
     );
 
-  const { data: applications, isPending: applicationsPending } =
+  // "Applications for this Cohort" has two sources, and both are real:
+  //   - intended_cohort_id — the canonical statement of what the applicant
+  //     applied FOR. It does not require a Deal, so this is the only way a
+  //     legitimate applicant who never entered the pipeline appears here.
+  //   - the Cohort's own Deals — legacy rows predating intended_cohort_id
+  //     carry no intent value and would otherwise vanish from this page.
+  // Queried separately and merged by id rather than choosing one and
+  // silently dropping the other population.
+  const { data: intendedApplications, isPending: intendedPending } =
+    useGetList<Application>(
+      "applications",
+      {
+        filter: { intended_cohort_id: cohortId },
+        pagination: { page: 1, perPage: 1000 },
+        sort: { field: "submitted_at", order: "DESC" },
+      },
+      { enabled: cohortId != null },
+    );
+
+  const { data: dealApplications, isPending: dealApplicationsPending } =
     useGetList<Application>(
       "applications",
       {
@@ -74,7 +95,23 @@ export const useCohortPageData = (cohortId?: Identifier) => {
       { enabled: !dealsPending },
     );
 
-  const contactIds = [...new Set((deals ?? []).map((deal) => deal.contact_id))];
+  const applicationsPending = intendedPending || dealApplicationsPending;
+  const applications = [
+    ...new Map(
+      [...(intendedApplications ?? []), ...(dealApplications ?? [])].map(
+        (application) => [String(application.id), application],
+      ),
+    ).values(),
+  ].sort((a, b) => b.submitted_at.localeCompare(a.submitted_at));
+
+  // Contacts must cover applicants who have no Deal, or their rows would
+  // render with an empty name.
+  const contactIds = [
+    ...new Set([
+      ...(deals ?? []).map((deal) => deal.contact_id),
+      ...applications.map((application) => application.contact_id),
+    ]),
+  ];
   const { data: contacts, isPending: contactsPending } = useGetMany<Contact>(
     "contacts",
     { ids: contactIds },
@@ -161,14 +198,14 @@ export const useCohortPageData = (cohortId?: Identifier) => {
 
   const applicationRows: CohortApplicationRow[] = (applications ?? []).map(
     (application) => {
-      const deal = deals.find(
-        (d) => String(d.id) === String(application.opportunity_id),
-      );
+      // The person comes from the Application's own canonical contact_id,
+      // not from the Deal — an applicant with no Opportunity still has a
+      // name to show here rather than rendering as an empty row.
       return {
         applicationId: application.id,
-        dealId: application.opportunity_id,
-        contactId: deal?.contact_id ?? "",
-        name: deal ? nameForContact(deal.contact_id) : "",
+        dealId: application.opportunity_id ?? null,
+        contactId: application.contact_id,
+        name: nameForContact(application.contact_id),
         status: application.status,
         submittedAt: application.submitted_at,
       };

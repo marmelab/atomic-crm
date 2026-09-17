@@ -58,6 +58,12 @@ node_modules/
 /playwright/.auth/
 
 *.lock
- 
+
 .vercel
 .env*
+
+# Historical Migration slice: real pulled source data (Notion/Acuity/Stripe
+# exports, the staging manifest, real rulings) must never be committed —
+# see scripts/historical-import/README.md. Only the *.example.json shape
+# references and the pure planning/writing code itself are tracked.
+/scripts/historical-import/data/

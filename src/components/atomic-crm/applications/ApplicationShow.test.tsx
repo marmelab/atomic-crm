@@ -113,7 +113,9 @@ const pendingLivingExampleDeal: Deal = {
 
 const pendingApplication: Application = {
   id: 1,
+  contact_id: 1,
   opportunity_id: 1,
+  source: "public_form",
   status: "pending",
   submitted_at: "2026-08-31T09:00:00.000Z",
   reviewed_at: null,

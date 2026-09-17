@@ -122,11 +122,21 @@ describe("submitApplication — Living Example (individual offer)", () => {
       { id: result.applicationId },
     );
     expect(application.opportunity_id).toBe(deals[0].id);
+    // The Application belongs to the Contact directly; the Deal is the
+    // optional Opportunity relationship, not the only route to a person.
+    expect(application.contact_id).toBe(deals[0].contact_id);
+    // A live submission, so it may legitimately become review work.
+    expect(application.source).toBe("public_form");
     expect(application.status).toBe("pending");
     expect(application.submitted_at).toBeTruthy();
     expect(application.raw_answers).toEqual({
       why_this_program: "Ready for a change.",
     });
+    // Phase 4J: offer_id always stamped; intended_cohort_id is naturally
+    // null for an individual Offer — no group Offer's cohort concept
+    // exists for The Living Example.
+    expect(application.offer_id).toBe(LE_OFFER_ID);
+    expect(application.intended_cohort_id).toBeNull();
 
     const { data: tasks } = await dataProvider.getList<Task>("tasks", {
       filter: { type: "review_application" },
@@ -459,7 +469,9 @@ describe("submitApplication — Living Example (individual offer)", () => {
     };
     const staleApplication: Application = {
       id: 77,
+      contact_id: staleDeal.contact_id,
       opportunity_id: staleDeal.id,
+      source: "public_form",
       status: "pending",
       submitted_at: "2026-01-01T00:00:00.000Z",
       reviewed_at: null,
@@ -544,7 +556,9 @@ describe("submitApplication — Living Example (individual offer)", () => {
     } as Deal;
     const pastApplication: Application = {
       id: 555,
+      contact_id: 999,
       opportunity_id: 999,
+      source: "public_form",
       status: "approved",
       submitted_at: "2026-01-01T00:00:00.000Z",
       reviewed_at: "2026-01-02T00:00:00.000Z",
@@ -839,6 +853,13 @@ describe("submitApplication — Growing Yourself Up (group offer + cohort)", () 
     expect(deal.offer_id).toBe(GYU_OFFER_ID);
     expect(deal.cohort_id).toBe(COHORT_ID);
     expect(deal.stage).toBe("application_received");
+    // Phase 4J: the Application's own offer_id/intended_cohort_id are
+    // stamped from the same validated offer/cohort, independent of the Deal.
+    expect(application.offer_id).toBe(GYU_OFFER_ID);
+    expect(application.intended_cohort_id).toBe(COHORT_ID);
+    // Canonical person relationship + live record origin, same as LE.
+    expect(application.contact_id).toBe(deal.contact_id);
+    expect(application.source).toBe("public_form");
   });
 
   it("rejects a group offer application with no cohort", async () => {

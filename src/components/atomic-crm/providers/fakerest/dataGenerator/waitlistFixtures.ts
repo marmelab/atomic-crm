@@ -1,6 +1,6 @@
 import type { Contact, Deal, WaitlistEntry } from "../../../types";
 import type { Db } from "./types";
-import { SEPTEMBER_GYU_COHORT_ID } from "./cohorts";
+import { FALL_2026_GYU_COHORT_ID } from "./cohorts";
 import { GYU_OFFER_ID, LIVING_EXAMPLE_OFFER_ID } from "./offers";
 
 /**
@@ -17,7 +17,7 @@ import { GYU_OFFER_ID, LIVING_EXAMPLE_OFFER_ID } from "./offers";
  * - Dana Cole, Theo Marsh: Growing Yourself Up, general Offer-level
  *   Waiting (cohort_id null) — "wants GYU generally", not tied to any one
  *   cohort.
- * - Nadia Osei, Malik Rowe: September GYU Cohort, cohort-specific Waiting.
+ * - Nadia Osei, Malik Rowe: Growing Yourself Up — Fall 2026, cohort-specific Waiting.
  *   Malik's entry carries a note.
  */
 export const addWaitlistFixtures = (db: Db) => {
@@ -233,7 +233,7 @@ export const addWaitlistFixtures = (db: Db) => {
   addEntry({
     contact_id: nadia.id,
     offer_id: GYU_OFFER_ID,
-    cohort_id: SEPTEMBER_GYU_COHORT_ID,
+    cohort_id: FALL_2026_GYU_COHORT_ID,
     status: "waiting",
     joined_at: daysAgo(11),
   });
@@ -248,13 +248,13 @@ export const addWaitlistFixtures = (db: Db) => {
   addEntry({
     contact_id: malik.id,
     offer_id: GYU_OFFER_ID,
-    cohort_id: SEPTEMBER_GYU_COHORT_ID,
+    cohort_id: FALL_2026_GYU_COHORT_ID,
     status: "waiting",
     joined_at: daysAgo(4),
     notes: "Prefers weekday evening sessions; already spoke with Leif once.",
   });
 
-  // November (NOVEMBER_GYU_COHORT_ID) stays deliberately untouched by
+  // January 2027 (JANUARY_2027_GYU_COHORT_ID) stays deliberately untouched by
   // fixtures — proves the Cohort page's Waitlist section shows a real,
   // sensible empty state rather than silently inheriting September's or
   // GYU's general entries (§8: "Do not place general Offer-level GYU

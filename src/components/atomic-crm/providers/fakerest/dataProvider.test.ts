@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, test } from "vitest";
 import type { Application, Deal, Enrollment, Offer } from "../../types";
 import { createDataProvider } from "./dataProvider";
 import generateData from "./dataGenerator";
-import { SEPTEMBER_GYU_COHORT_ID } from "./dataGenerator/cohorts";
+import { FALL_2026_GYU_COHORT_ID } from "./dataGenerator/cohorts";
 import { GYU_OFFER_ID, LIVING_EXAMPLE_OFFER_ID } from "./dataGenerator/offers";
 import type { Db } from "./dataGenerator/types";
 
@@ -43,16 +43,16 @@ describe("Offer <-> Cohort relationship", () => {
   test("a group Opportunity can reference its offer's Cohort", async () => {
     const { data } = await createOpportunity({
       offer_id: GYU_OFFER_ID,
-      cohort_id: SEPTEMBER_GYU_COHORT_ID,
+      cohort_id: FALL_2026_GYU_COHORT_ID,
     });
-    expect(data.cohort_id).toBe(SEPTEMBER_GYU_COHORT_ID);
+    expect(data.cohort_id).toBe(FALL_2026_GYU_COHORT_ID);
   });
 
   test("rejects a Cohort on an individual offer", async () => {
     await expect(
       createOpportunity({
         offer_id: LIVING_EXAMPLE_OFFER_ID,
-        cohort_id: SEPTEMBER_GYU_COHORT_ID,
+        cohort_id: FALL_2026_GYU_COHORT_ID,
       }),
     ).rejects.toThrow();
   });
@@ -150,7 +150,7 @@ describe("Won -> Enrollment lifecycle", () => {
   test("derives GYU Enrollment dates from the Cohort's program dates", async () => {
     const { data: opportunity } = await createOpportunity({
       offer_id: GYU_OFFER_ID,
-      cohort_id: SEPTEMBER_GYU_COHORT_ID,
+      cohort_id: FALL_2026_GYU_COHORT_ID,
     });
     await dataProvider.update("deals", {
       id: opportunity.id,
@@ -166,7 +166,7 @@ describe("Won -> Enrollment lifecycle", () => {
         sort: { field: "id", order: "ASC" },
       },
     );
-    const cohort = db.cohorts.find((c) => c.id === SEPTEMBER_GYU_COHORT_ID)!;
+    const cohort = db.cohorts.find((c) => c.id === FALL_2026_GYU_COHORT_ID)!;
     expect(enrollments[0]!.start_date).toBe(
       cohort.program_start_at!.split("T")[0],
     );

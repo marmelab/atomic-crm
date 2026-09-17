@@ -209,6 +209,23 @@ const getDataProviderWithCustomMethods = () => {
     async isInitialized() {
       return getIsInitialized();
     },
+    // Gate B: marking a sales call No-show changes the Sales Call, the
+    // Opportunity, the Contact's tags and the Task lifecycle together.
+    // Production runs it as ONE Postgres transaction so the CRM can never
+    // land in a half-state (call recorded no_show while the Opportunity
+    // stays in the active pipeline, or an exited Opportunity with no
+    // visible Contact history) because a second client write failed.
+    async recordSalesCallNoShow(salesCallId: Identifier) {
+      const { data, error } = await getSupabaseClient().rpc(
+        "record_sales_call_no_show",
+        { p_sales_call_id: salesCallId },
+      );
+      if (error) {
+        console.error("record_sales_call_no_show.error", error);
+        throw new Error("Failed to record the sales call as a no-show");
+      }
+      return data as { status: string };
+    },
     async mergeContacts(sourceId: Identifier, targetId: Identifier) {
       const { data, error } = await getSupabaseClient().functions.invoke(
         "merge_contacts",

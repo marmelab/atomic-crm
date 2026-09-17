@@ -23,14 +23,14 @@ import type { Task } from "@/components/atomic-crm/types";
 // Attention" section instead (DashboardTasks.tsx), backed by the exact
 // same Task record — no new domain/table.
 const FAR_PAST = "2020-01-01T00:00:00.000Z";
-const PORSCHE_TEXT =
-  "Porsche Brown · The Living Example · Sep 10, 2026, 6:00 PM";
+const UNRESOLVED_CALL_TEXT =
+  "Rowan Vance · The Living Example · Sep 10, 2026, 6:00 PM";
 
 const buildTestCrm = (tasks: Task[]) => {
   const dataProvider = createDataProvider({
     db: createCrmDb({
       contacts: [
-        buildContact({ id: 1, first_name: "Porsche", last_name: "Brown" }),
+        buildContact({ id: 1, first_name: "Rowan", last_name: "Vance" }),
       ],
       offers: [],
       cohorts: [],
@@ -64,7 +64,7 @@ const buildResolveTask = (overrides: Partial<Task> = {}): Task => ({
   id: 1,
   contact_id: 1,
   type: "resolve_sales_call",
-  text: PORSCHE_TEXT,
+  text: UNRESOLVED_CALL_TEXT,
   due_date: FAR_PAST,
   done_date: null,
   status: "pending",
@@ -82,13 +82,15 @@ describe("DashboardTasks — resolve_sales_call bucketing", () => {
     await expect
       .element(screen.getByText("Needs Attention"))
       .toBeInTheDocument();
-    await expect.element(screen.getByText(PORSCHE_TEXT)).toBeInTheDocument();
+    await expect
+      .element(screen.getByText(UNRESOLVED_CALL_TEXT))
+      .toBeInTheDocument();
 
     const needsAttentionCard = screen
       .getByText("Needs Attention")
       .element()
       .closest('[class*="rounded-xl"]');
-    expect(needsAttentionCard?.textContent).toContain(PORSCHE_TEXT);
+    expect(needsAttentionCard?.textContent).toContain(UNRESOLVED_CALL_TEXT);
     // No due date rendered for this type (Task.tsx's own exemption) —
     // confirmed by exact absence of the "Due " prefix anywhere on the row.
     expect(needsAttentionCard?.textContent).not.toContain("Due ");
@@ -99,7 +101,7 @@ describe("DashboardTasks — resolve_sales_call bucketing", () => {
         .element()
         .closest('[class*="rounded-xl"]');
       expect(bucketCard?.textContent).toContain("0");
-      expect(bucketCard?.textContent).not.toContain(PORSCHE_TEXT);
+      expect(bucketCard?.textContent).not.toContain(UNRESOLVED_CALL_TEXT);
     }
   });
 
@@ -120,9 +122,9 @@ describe("DashboardTasks — resolve_sales_call bucketing", () => {
 
     // "follow_up" isn't self-describing (Task.tsx), so the row shows the
     // configured type label + Contact name, not the raw task.text —
-    // "Porsche Brown" is what actually renders here.
+    // the Contact name is what actually renders here.
     await expect
-      .element(screen.getByText("Porsche Brown", { exact: true }))
+      .element(screen.getByText("Rowan Vance", { exact: true }))
       .toBeInTheDocument();
     await expect
       .element(screen.getByText("Needs Attention"))
@@ -132,7 +134,7 @@ describe("DashboardTasks — resolve_sales_call bucketing", () => {
       .getByText("Overdue")
       .element()
       .closest('[class*="rounded-xl"]');
-    expect(overdueCard?.textContent).toContain("Porsche Brown");
+    expect(overdueCard?.textContent).toContain("Rowan Vance");
   });
 
   it("disappears from Needs Attention once the underlying sales call is resolved (the Task is marked done)", async () => {

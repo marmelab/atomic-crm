@@ -1,13 +1,25 @@
 import type { DataProvider } from "ra-core";
 
-import type { Application, ApplicationStatus, Deal } from "../types";
+import type { Application, Deal } from "../types";
 import {
   applyDoNotEngageToContact,
   buildDoNotEngageDealUpdate,
 } from "../deals/dneOutcome";
 import { completeReviewApplicationTask } from "./reviewApplicationTask";
 
-export type ApplicationReviewOutcome = Exclude<ApplicationStatus, "pending">;
+// Deliberately an explicit literal union, NOT `Exclude<ApplicationStatus,
+// "pending">` — ApplicationStatus also carries 'denied'/'waitlist'
+// (historical-import-only values, Phase 4H). Deriving this type from
+// ApplicationStatus would silently let those two leak in here as if a live
+// review action could set them, and buildDealUpdate's switch below would
+// return undefined for them with no compiler error (no exhaustiveness
+// check on a switch without a `never` default). Neither value is ever a
+// choice Leif makes via a review action.
+export type ApplicationReviewOutcome =
+  | "approved"
+  | "needs_higher_care"
+  | "not_fit"
+  | "do_not_engage";
 
 export type ReviewApplicationResult =
   | { applied: true }

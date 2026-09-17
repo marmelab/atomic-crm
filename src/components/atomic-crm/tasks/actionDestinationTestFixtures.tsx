@@ -63,7 +63,9 @@ export const buildApplication = (
   overrides: Partial<Application> = {},
 ): Application => ({
   id: 100,
+  contact_id: 1,
   opportunity_id: 10,
+  source: "public_form",
   status: "pending",
   submitted_at: "2026-01-01T00:00:00.000Z",
   reviewed_at: null,

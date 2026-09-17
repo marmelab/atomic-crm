@@ -42,7 +42,12 @@ export const GroupProgramPage = () => {
         <AddToWaitlistButton offerId={offer.id} cohortId={null} />
       </div>
 
-      <WaitlistSection entries={generalWaitlist} />
+      <WaitlistSection
+        entries={generalWaitlist}
+        offerId={offer.id}
+        offerName={offer.name}
+        cohortId={null}
+      />
 
       <Section
         title={translate("crm.programs.cohorts_section", { _: "Cohorts" })}

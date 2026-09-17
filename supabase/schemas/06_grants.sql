@@ -281,12 +281,18 @@ revoke select, insert, update, delete on table public.scholarship_slot_events fr
 grant all on table public.waitlist_entries to anon;
 grant all on table public.waitlist_entries to authenticated;
 grant all on table public.waitlist_entries to service_role;
+grant all on table public.waitlist_invitation_batches to authenticated;
+grant all on table public.waitlist_invitation_batches to service_role;
+grant all on table public.waitlist_invitations to authenticated;
+grant all on table public.waitlist_invitations to service_role;
 
 -- Narrowed for anon: RLS already restricts all access to `authenticated`
 -- only (see 05_policies.sql) and nothing in the app -- including every
 -- public Edge Function -- reads or writes this table through the anon
 -- role, only through service_role. See 20260913230000_anon_table_grant_hardening.sql.
 revoke select, insert, update, delete on table public.waitlist_entries from anon;
+revoke select, insert, update, delete on table public.waitlist_invitation_batches from anon;
+revoke select, insert, update, delete on table public.waitlist_invitations from anon;
 
 grant all on table public.sales_calls to anon;
 grant all on table public.sales_calls to authenticated;
@@ -570,3 +576,20 @@ alter default privileges for role postgres in schema public grant all on functio
 alter default privileges for role postgres in schema public grant all on tables to postgres;
 alter default privileges for role postgres in schema public grant all on tables to authenticated;
 alter default privileges for role postgres in schema public grant all on tables to service_role;
+
+-- Historical Migration slice: historical_import_records is never meant to be
+-- reached by anon/authenticated at all (RLS above already enables it with
+-- zero policies, which alone denies every row to both) — these explicit
+-- revokes document that intent directly rather than relying on RLS silently.
+revoke select, insert, update, delete on table public.historical_import_records from anon;
+revoke select, insert, update, delete on table public.historical_import_records from authenticated;
+
+-- set_historical_migration_mode() is the one deliberately narrow entry
+-- point that may set app.migration_mode for the current transaction — see
+-- its own header. Same restriction pattern as the existing
+-- get_user_id_by_email() precedent above: revoke the ALTER DEFAULT
+-- PRIVILEGES grant this function would otherwise inherit, leave only
+-- service_role able to call it.
+revoke all on function public.set_historical_migration_mode(boolean) from public;
+revoke all on function public.set_historical_migration_mode(boolean) from authenticated;
+grant all on function public.set_historical_migration_mode(boolean) to service_role;

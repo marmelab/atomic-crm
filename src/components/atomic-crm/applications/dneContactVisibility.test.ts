@@ -48,7 +48,9 @@ const buildFixtures = () => {
 
   const application: Application = {
     id: APPLICATION_ID,
+    contact_id: CONTACT_ID,
     opportunity_id: DEAL_ID,
+    source: "public_form",
     status: "pending",
     submitted_at: "2026-01-01T00:00:00.000Z",
     reviewed_at: null,

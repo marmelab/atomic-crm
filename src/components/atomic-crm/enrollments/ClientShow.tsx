@@ -1226,6 +1226,8 @@ const AttentionRow = ({
 const clientSessionStatusLabels: Record<ClientSession["status"], string> = {
   booked: "Booked",
   cancelled: "Cancelled",
+  // Historical sessions are imported as already-delivered.
+  completed: "Completed",
 };
 
 const ClientSessionRow = ({

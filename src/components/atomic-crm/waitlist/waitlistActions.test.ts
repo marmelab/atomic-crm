@@ -98,21 +98,36 @@ describe("markInvited", () => {
     expect(total).toBe(0);
   });
 
-  it("is a no-op against an already-invited entry (re-fetches current state, never trusts a stale caller)", async () => {
+  it("records a REPEAT invitation for an already-invited entry without rewriting the first one", async () => {
+    // A membership can legitimately be invited more than once over its life
+    // (invited in August, never books; invited again in October). The
+    // repeat is captured as its own invitation record; the membership's
+    // original invited_at is first-invite history and must not be
+    // overwritten by it.
     const { dataProvider } = buildFixtures({
       status: "invited",
       invited_at: "2026-01-05T00:00:00.000Z",
     });
 
     const result = await markInvited(dataProvider, ENTRY_ID);
-    expect(result).toEqual({ applied: false, reason: "not-waiting" });
+    expect(result).toEqual({ applied: true });
 
     const { data: entry } = await dataProvider.getOne<WaitlistEntry>(
       "waitlist_entries",
       { id: ENTRY_ID },
     );
-    // The original invited_at stands — a second, stale call never rewrites it.
+    expect(entry.status).toBe("invited");
     expect(entry.invited_at).toBe("2026-01-05T00:00:00.000Z");
+
+    const { data: invitations } = await dataProvider.getList(
+      "waitlist_invitations",
+      {
+        filter: { waitlist_entry_id: ENTRY_ID },
+        pagination: { page: 1, perPage: 10 },
+        sort: { field: "id", order: "ASC" },
+      },
+    );
+    expect(invitations).toHaveLength(1);
   });
 
   it("is a no-op against a converted or removed entry", async () => {

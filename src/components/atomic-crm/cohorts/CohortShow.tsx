@@ -1,4 +1,4 @@
-import { ShowBase, useRecordContext, useTranslate } from "ra-core";
+import { ShowBase, useGetOne, useRecordContext, useTranslate } from "ra-core";
 import { EditButton } from "@/components/admin/edit-button";
 import { ReferenceField } from "@/components/admin/reference-field";
 import { Badge } from "@/components/ui/badge";
@@ -12,7 +12,7 @@ import {
   applicationStatusLabels,
 } from "../applications/applicationConstants";
 import { enrollmentStatusLabels } from "../enrollments/enrollmentConstants";
-import type { Cohort } from "../types";
+import type { Cohort, Offer } from "../types";
 import { CopyApplicationLinkButton } from "../public-application/CopyApplicationLinkButton";
 import { GrowingYourselfUpApplicationPage } from "../public-application/GrowingYourselfUpApplicationPage";
 import { AddToWaitlistButton } from "../waitlist/AddToWaitlistButton";
@@ -47,6 +47,13 @@ const CohortShowContent = () => {
   const record = useRecordContext<Cohort>();
   const translate = useTranslate();
   const { dealStages } = useConfigurationContext();
+  // The Offer name, for the batch-invite review dialog (the header renders
+  // it through a ReferenceField, which does not expose the value here).
+  const { data: offer } = useGetOne<Offer>(
+    "offers",
+    { id: record?.offer_id as number },
+    { enabled: record?.offer_id != null },
+  );
   const { isPending, enrolledClients, peopleDeciding, applications } =
     useCohortPageData(record?.id);
   const { isPending: waitlistPending, entries: waitlist } = useWaitlistEntries({
@@ -216,7 +223,13 @@ const CohortShowContent = () => {
       {/* Density pass, §1: Waitlist comes after Applications — Applications/
           People Deciding are active sales activity, Waitlist is passive/
           future intent. */}
-      <WaitlistSection entries={waitlist} />
+      <WaitlistSection
+        entries={waitlist}
+        offerId={record.offer_id}
+        offerName={offer?.name ?? ""}
+        cohortId={record.id}
+        cohortName={record.name}
+      />
 
       <Section
         title={translate("crm.programs.cohort_details", {

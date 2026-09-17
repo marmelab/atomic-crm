@@ -46,6 +46,14 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/waitlist/waitlistInviteFeature.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/waitlist/waitlistInvitations.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/waitlist/waitlistEntryValidation.ts",
           "type": "registry:component"
         },
@@ -82,7 +90,15 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/waitlist/InviteToBookDialog.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/waitlist/ContactWaitlists.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/waitlist/ContactWaitlistRemoveButton.tsx",
           "type": "registry:component"
         },
         {
@@ -91,6 +107,14 @@
         },
         {
           "path": "src/components/atomic-crm/waitlist/ContactSalesAction.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/waitlist/ContactAddToWaitlistSheet.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/waitlist/ContactAddToWaitlistButton.tsx",
           "type": "registry:component"
         },
         {
@@ -367,6 +391,10 @@
         },
         {
           "path": "src/components/atomic-crm/sales-calls/rescheduleSalesCall.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/sales-calls/recordSalesCallNoShow.ts",
           "type": "registry:component"
         },
         {
@@ -878,6 +906,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/misc/CreateDialog.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/misc/ContactOption.tsx",
           "type": "registry:component"
         },
@@ -1318,6 +1350,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/contacts/useContactHistory.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/contacts/index.tsx",
           "type": "registry:component"
         },
@@ -1351,6 +1387,10 @@
         },
         {
           "path": "src/components/atomic-crm/contacts/ContactShow.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/contacts/ContactRelationship.tsx",
           "type": "registry:component"
         },
         {

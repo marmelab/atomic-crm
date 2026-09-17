@@ -9,6 +9,7 @@ import type { DataProvider, Identifier } from "ra-core";
 
 import { isContactDoNotEngage } from "../contacts/doNotEngageGuard";
 import type { Deal, Offer, WaitlistEntry } from "../types";
+import { recordManualInvitation } from "./waitlistInvitations";
 import { syncWaitlistForActiveDeal } from "./waitlistSync";
 
 export type WaitlistTransitionResult =
@@ -22,19 +23,20 @@ export const markInvited = async (
   dataProvider: DataProvider,
   entryId: Identifier,
 ): Promise<WaitlistTransitionResult> => {
-  const { data: entry } = await dataProvider.getOne<WaitlistEntry>(
-    "waitlist_entries",
-    { id: entryId },
-  );
-  if (entry.status !== "waiting") {
+  // Routed through the canonical invitation model so a single-person
+  // invite produces the same durable history a batch does — otherwise bulk
+  // invites would build a record and individual ones would silently change
+  // a status. It records an invitation Leif sent himself
+  // (delivery_method 'manual'), which is what this action has always
+  // meant, and only then moves the membership.
+  //
+  // An already-invited membership is invitable again (the repeat-invite
+  // case): the new invitation row records the repeat, and the status is
+  // already correct.
+  const result = await recordManualInvitation(dataProvider, entryId);
+  if (!result.applied) {
     return { applied: false, reason: "not-waiting" };
   }
-
-  await dataProvider.update("waitlist_entries", {
-    id: entry.id,
-    data: { status: "invited", invited_at: new Date().toISOString() },
-    previousData: entry,
-  });
   return { applied: true };
 };
 

@@ -5,7 +5,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 import { formatTimestampString } from "../deals/dealUtils";
+import { humanizeCohortName } from "../cohorts/humanizeCohortName";
+import { ContactAddToWaitlistButton } from "./ContactAddToWaitlistButton";
 import { ContactWaitlistConvertButton } from "./ContactWaitlistConvertButton";
+import { ContactWaitlistRemoveButton } from "./ContactWaitlistRemoveButton";
 import {
   ACTIVE_WAITLIST_STATUSES,
   waitlistEntryStatusBadgeVariant,
@@ -30,16 +33,30 @@ export const ContactWaitlists = ({ contactId }: { contactId: Identifier }) => {
   const isMobile = useIsMobile();
   const { isPending, entries } = useContactWaitlists(contactId);
 
-  if (isPending || entries.length === 0) return null;
+  // Renders even with no entries now: the section header carries the
+  // Contact's "Add to Waitlist" action, which is the only entry point for
+  // putting THIS person on a waitlist — hiding the whole section when empty
+  // would hide the action exactly when it is most needed.
+  if (isPending) return null;
 
   return (
     <div className="flex flex-col gap-2 mb-6 text-sm">
-      <h3 className={isMobile ? "text-lg font-semibold" : "font-medium pb-1"}>
-        {translate("resources.waitlist_entries.name", {
-          _: "Waitlists",
-          smart_count: 2,
-        })}
-      </h3>
+      <div className="flex items-center justify-between gap-2">
+        <h3 className={isMobile ? "text-lg font-semibold" : "font-medium pb-1"}>
+          {translate("resources.waitlist_entries.name", {
+            _: "Waitlists",
+            smart_count: 2,
+          })}
+        </h3>
+        <ContactAddToWaitlistButton contactId={contactId} />
+      </div>
+      {entries.length === 0 && (
+        <p className="text-xs text-muted-foreground">
+          {translate("resources.waitlist_entries.contact_detail.empty", {
+            _: "Not on any waitlist.",
+          })}
+        </p>
+      )}
       <div className="flex flex-col gap-2">
         {entries.map((entry) => (
           <Card key={entry.entryId} className="p-0">
@@ -50,8 +67,16 @@ export const ContactWaitlists = ({ contactId }: { contactId: Identifier }) => {
                     to={entry.programPath}
                     className="text-sm font-medium hover:underline truncate"
                   >
+                    {/* A canonical cohort name already embeds its Offer
+                        ("Growing Yourself Up — Fall 2026"), so prefixing
+                        the Offer again read as "Growing Yourself Up —
+                        Growing Yourself Up — Fall 2026". humanizeCohortName
+                        strips whichever redundant form the name uses. */}
                     {entry.cohortName
-                      ? `${entry.offerName} — ${entry.cohortName}`
+                      ? `${entry.offerName} — ${humanizeCohortName(
+                          entry.cohortName,
+                          entry.offerName,
+                        )}`
                       : entry.offerName}
                   </Link>
                   <span className="text-xs text-muted-foreground truncate">
@@ -66,8 +91,11 @@ export const ContactWaitlists = ({ contactId }: { contactId: Identifier }) => {
                 </Badge>
               </div>
               {ACTIVE_WAITLIST_STATUSES.has(entry.status) && (
-                <div>
+                <div className="flex items-center gap-2">
                   <ContactWaitlistConvertButton entryId={entry.entryId} />
+                  {/* Remove is a lifecycle transition to Removed, never a
+                      delete — the row stays on this list as history. */}
+                  <ContactWaitlistRemoveButton entryId={entry.entryId} />
                 </div>
               )}
             </CardContent>

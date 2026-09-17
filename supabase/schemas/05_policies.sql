@@ -20,6 +20,8 @@ alter table public.cohorts enable row level security;
 alter table public.applications enable row level security;
 alter table public.enrollments enable row level security;
 alter table public.waitlist_entries enable row level security;
+alter table public.waitlist_invitation_batches enable row level security;
+alter table public.waitlist_invitations enable row level security;
 alter table public.sales_calls enable row level security;
 alter table public.sales_call_events enable row level security;
 alter table public.deal_stage_events enable row level security;
@@ -36,6 +38,11 @@ alter table public.expected_session_windows enable row level security;
 alter table public.enrollment_expected_sessions enable row level security;
 alter table public.client_session_cadence_issues enable row level security;
 alter table public.client_session_cadence_issue_events enable row level security;
+-- Historical Migration slice: RLS enabled, deliberately ZERO policies below
+-- for this table. Nobody using anon/authenticated ever needs to see or
+-- write this table — only a service_role connection (which bypasses RLS
+-- entirely) ever touches it, from the one-time historical importer.
+alter table public.historical_import_records enable row level security;
 
 -- Companies
 create policy "Enable read access for authenticated users" on public.companies for select to authenticated using (true);
@@ -174,6 +181,14 @@ create policy "Enable read access for authenticated users" on public.waitlist_en
 create policy "Enable insert for authenticated users only" on public.waitlist_entries for insert to authenticated with check (true);
 create policy "Enable update for authenticated users only" on public.waitlist_entries for update to authenticated using (true) with check (true);
 create policy "Waitlist Entries Delete Policy" on public.waitlist_entries for delete to authenticated using (true);
+
+create policy "Enable read access for authenticated users" on public.waitlist_invitation_batches for select to authenticated using (true);
+create policy "Enable insert for authenticated users only" on public.waitlist_invitation_batches for insert to authenticated with check (true);
+create policy "Enable update for authenticated users only" on public.waitlist_invitation_batches for update to authenticated using (true) with check (true);
+
+create policy "Enable read access for authenticated users" on public.waitlist_invitations for select to authenticated using (true);
+create policy "Enable insert for authenticated users only" on public.waitlist_invitations for insert to authenticated with check (true);
+create policy "Enable update for authenticated users only" on public.waitlist_invitations for update to authenticated using (true) with check (true);
 
 -- Sales Calls
 create policy "Enable read access for authenticated users" on public.sales_calls for select to authenticated using (true);

@@ -46,7 +46,7 @@ const gyuOffer: Offer = {
 const septemberCohort: Cohort = {
   id: 1,
   offer_id: 2,
-  name: "September GYU Cohort",
+  name: "Growing Yourself Up — Fall 2026",
   status: "applications_open",
   created_at: "2025-01-01T00:00:00.000Z",
   updated_at: "2025-01-01T00:00:00.000Z",
@@ -55,7 +55,7 @@ const septemberCohort: Cohort = {
 const novemberCohort: Cohort = {
   id: 2,
   offer_id: 2,
-  name: "November GYU Cohort",
+  name: "Growing Yourself Up — January 2027",
   status: "applications_open",
   created_at: "2025-01-01T00:00:00.000Z",
   updated_at: "2025-01-01T00:00:00.000Z",
@@ -285,7 +285,7 @@ describe("ContactShow — Waitlists section", () => {
       .element(screen.getByText("The Living Example"))
       .toBeInTheDocument();
     await expect
-      .element(screen.getByText("Growing Yourself Up — September GYU Cohort"))
+      .element(screen.getByText("Growing Yourself Up — Fall 2026"))
       .toBeInTheDocument();
     await expect
       .element(screen.getByText("Waiting", { exact: true }))

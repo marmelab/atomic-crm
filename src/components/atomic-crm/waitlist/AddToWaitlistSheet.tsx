@@ -2,16 +2,15 @@ import { useMemo } from "react";
 import type { Identifier } from "ra-core";
 import { useTranslate } from "ra-core";
 import { TextInput } from "@/components/admin/text-input";
-import { SelectInput } from "@/components/admin/select-input";
 
-import { CreateSheet } from "../misc/CreateSheet";
-import { opportunitySources } from "../deals/opportunityConstants";
+import { CreateDialog } from "../misc/CreateDialog";
 import { WaitlistPersonInput } from "./WaitlistPersonInput";
 
 // "+ Add to Waitlist" (Waitlists slice, §9). Offer is always implied by the
 // hosting page; Cohort is implied too when opened from a Cohort page
-// (cohortId: <id>) — never asked again here. Only desired timing/notes/
-// source are optional extras; nothing meaningless is required.
+// (cohortId: <id>) — never asked again here. Only desired timing and
+// notes are optional extras; nothing meaningless is required, and Source
+// is stamped "manual" rather than asked, since Leif is the one adding it.
 export const AddToWaitlistSheet = ({
   open,
   onOpenChange,
@@ -41,7 +40,7 @@ export const AddToWaitlistSheet = ({
   const joinedAt = useMemo(() => new Date().toISOString(), [open]);
 
   return (
-    <CreateSheet
+    <CreateDialog
       resource="waitlist_entries"
       title={translate("resources.waitlist_entries.sheet.add", {
         _: "Add to Waitlist",
@@ -53,6 +52,9 @@ export const AddToWaitlistSheet = ({
         offer_id: offerId,
         cohort_id: cohortId,
         status: "waiting",
+        // Leif is creating this by hand, so the origin is known: "manual",
+        // never the "Unknown" an empty attribution field rendered as.
+        source: "manual",
         joined_at: joinedAt,
       }}
     >
@@ -73,18 +75,7 @@ export const AddToWaitlistSheet = ({
           multiline
           helperText={false}
         />
-        <SelectInput
-          source="source"
-          label={translate("resources.waitlist_entries.fields.source", {
-            _: "Source",
-          })}
-          choices={opportunitySources}
-          optionText="label"
-          optionValue="value"
-          helperText={false}
-          emptyText="resources.deals.source_none"
-        />
       </div>
-    </CreateSheet>
+    </CreateDialog>
   );
 };

@@ -262,6 +262,8 @@ export const submitApplication = async (
       )
     : await findOrCreateApplication(dataProvider, {
         deal,
+        offer,
+        cohort,
         answers: input.answers,
         isDne,
       });
@@ -499,9 +501,17 @@ const findOrCreateApplication = async (
   dataProvider: DataProvider,
   {
     deal,
+    offer,
+    cohort,
     answers,
     isDne,
-  }: { deal: Deal; answers: Record<string, string>; isDne: boolean },
+  }: {
+    deal: Deal;
+    offer: Offer;
+    cohort: Cohort | null;
+    answers: Record<string, string>;
+    isDne: boolean;
+  },
 ): Promise<Application> => {
   const { data: existing } = await dataProvider.getList<Application>(
     "applications",
@@ -520,7 +530,23 @@ const findOrCreateApplication = async (
     "applications",
     {
       data: {
+        // The canonical person relationship, taken from the Deal this
+        // intake just resolved/created for them. opportunity_id remains the
+        // optional Opportunity relationship.
+        contact_id: deal.contact_id,
         opportunity_id: deal.id,
+        // A live submission: this one legitimately represents outstanding
+        // review work, unlike an imported historical record.
+        source: "public_form",
+        // Phase 4J: stamped directly from the same offer/cohort already
+        // resolved and validated earlier in submitApplication — never
+        // re-derived from the Deal. cohort is only ever non-null for a
+        // group Offer (GYU) whose applicant selected one; an individual
+        // Offer (The Living Example) always passes cohort: null here, so
+        // intended_cohort_id is naturally always null for LE with no
+        // special-casing needed.
+        offer_id: offer.id,
+        intended_cohort_id: cohort?.id ?? null,
         raw_answers: answers,
         submitted_at: submittedAt,
         status: isDne ? "do_not_engage" : "pending",

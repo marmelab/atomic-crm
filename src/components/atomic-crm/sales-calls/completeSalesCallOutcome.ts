@@ -17,7 +17,7 @@ import { completeSalesCallTask } from "./salesCallTask";
 import { ensureFollowUpTask } from "./followUpTask";
 import { resolveDefaultTaskSalesId } from "./resolveDefaultTaskSalesId";
 import { ensureOfferPageToken } from "../deals/offerPageToken";
-import { ensureSalesCallNoShowTask } from "./salesCallNoShowTask";
+import { recordSalesCallNoShow } from "./recordSalesCallNoShow";
 
 export type CompleteSalesCallOutcomeInput = {
   dataProvider: DataProvider;
@@ -62,6 +62,29 @@ export const completeSalesCallOutcome = async (
     .getOne<SalesCall>("sales_calls", { id: input.salesCallId })
     .catch(() => ({ data: null as SalesCall | null }));
   if (!salesCall) return { status: "not-found" };
+
+  // Gate B: a No-show is a single atomic domain operation, so it branches
+  // BEFORE any of the writes below. Routing it through the same
+  // sequential path as an attended call is what allowed the half-states
+  // this rule forbids (call recorded no_show, Opportunity still active).
+  // It is also allowed to run on an already-no-showed call, so the guard
+  // below deliberately does not short-circuit it — re-running converges
+  // rather than duplicating.
+  if (input.attendance === "no_show") {
+    const result = await recordSalesCallNoShow(dataProvider, salesCall.id);
+    switch (result.status) {
+      case "completed":
+      case "already-no-show":
+        return { status: "completed" };
+      case "already-completed":
+        return { status: "already-completed" };
+      case "no-opportunity":
+        return { status: "no-opportunity" };
+      default:
+        return { status: "not-found" };
+    }
+  }
+
   if (salesCall.attendance != null) return { status: "already-completed" };
   if (salesCall.opportunity_id == null) return { status: "no-opportunity" };
 
@@ -118,22 +141,6 @@ export const completeSalesCallOutcome = async (
   // mutate sales status (that already happened above; this only reflects
   // it on the Task).
   await completeSalesCallTask(dataProvider, salesCall.contact_id, now);
-
-  if (input.attendance === "no_show") {
-    // Explicitly no further Opportunity write: a no-show is not a
-    // decision about fit or interest, and this slice does not auto-guess
-    // what happens next (rebooking is a human call). What DOES change here
-    // (Go-Live Blocker: Sales-Call No-Show/Rebooking slice): a task now
-    // re-surfaces that decision, mirroring cancelSalesCall.ts's own
-    // "no active call + still Call Booked must always mean a visible task"
-    // invariant — a no-show is exactly that same stranding risk.
-    await ensureSalesCallNoShowTask(dataProvider, {
-      contactId: salesCall.contact_id,
-      contactName: input.contactName,
-      salesId: await resolveDefaultTaskSalesId(dataProvider),
-    });
-    return { status: "completed" };
-  }
 
   const { data: deal } = await dataProvider.getOne<Deal>("deals", {
     id: salesCall.opportunity_id,

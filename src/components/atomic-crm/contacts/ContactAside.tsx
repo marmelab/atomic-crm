@@ -6,15 +6,12 @@ import { ShowButton } from "@/components/admin/show-button";
 
 import { AddTask } from "../tasks/AddTask";
 import { TasksIterator } from "../tasks/TasksIterator";
-import { OpportunitiesIterator } from "../deals/OpportunitiesIterator";
 import { TagsListEdit } from "./TagsListEdit";
 import { ContactStatusSelector } from "./ContactInputs";
 import { ContactPersonalInfo } from "./ContactPersonalInfo";
 import { ContactBackgroundInfo } from "./ContactBackgroundInfo";
 import { AsideSection } from "../misc/AsideSection";
 import type { Contact } from "../types";
-import { ContactSalesAction } from "../waitlist/ContactSalesAction";
-import { ContactWaitlists } from "../waitlist/ContactWaitlists";
 import { ContactMergeButton } from "./ContactMergeButton";
 import { ExportVCardButton } from "./ExportVCardButton";
 
@@ -56,21 +53,10 @@ export const ContactAside = ({ link = "edit" }: { link?: "edit" | "show" }) => {
         <TagsListEdit />
       </AsideSection>
 
-      <AsideSection
-        title={translate("resources.deals.name", { smart_count: 2 })}
-      >
-        <ReferenceManyField
-          target="contact_id"
-          reference="deals"
-          sort={{ field: "created_at", order: "DESC" }}
-          perPage={100}
-        >
-          <OpportunitiesIterator />
-        </ReferenceManyField>
-      </AsideSection>
-
-      <ContactWaitlists contactId={record.id} />
-      <ContactSalesAction contactId={record.id} />
+      {/* Opportunities and Waitlists moved to the main canvas
+          (ContactRelationship.tsx): relationship history is the point of
+          the page, not a sidebar footnote. The sidebar keeps identity and
+          admin — status, personal info, background, tags, tasks. */}
 
       <AsideSection
         title={translate("resources.tasks.name", { smart_count: 2 })}

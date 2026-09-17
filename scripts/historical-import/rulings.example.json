@@ -1,0 +1,11 @@
+{
+  "_comment": "SYNTHETIC EXAMPLE ONLY — shape reference for the real rulings file. Copy this to a gitignored path (e.g. scripts/historical-import/data/rulings.json, already covered by scripts/historical-import/data/ in .gitignore) and fill it with the real, human-approved Phase 3 rulings before running plan.mjs for real. Never edit this example file to hold real client data.",
+  "canonicalStripeCustomerOverrides": {
+    "example.duplicate.customer@example.com": "cus_EXAMPLE_CANONICAL_ID"
+  },
+  "pcEmails": ["example.potential.client@example.com"],
+  "ccRepresentable": {
+    "example.completed.client@example.com": { "offerId": 2, "dealStage": "won" }
+  },
+  "ccContactOnly": ["example.legacy.client@example.com"]
+}

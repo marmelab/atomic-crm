@@ -24,8 +24,8 @@ alter table public.tasks
 create index tasks_sales_call_id_idx on public.tasks using btree (sales_call_id);
 
 -- Backfill: link each existing pending resolve_sales_call Task to its real
--- sales_calls row, wherever that's unambiguous today (Porsche Brown and
--- Sarah Henke's real, currently-unresolved bookings included) — read-only
+-- sales_calls row, wherever that's unambiguous today (including the real,
+-- currently-unresolved bookings that exist in production) — read-only
 -- from their perspective, this only completes a relationship the schema
 -- didn't have a column for yet, never touches their business data. Only
 -- backfills when exactly one candidate sales_call exists for that Contact

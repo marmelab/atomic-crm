@@ -322,6 +322,8 @@ describe("bookSalesCall", () => {
         attendance: "no_show",
       });
 
+      // Gate B: the no-show exits the Opportunity, so there is no stranded
+      // decision and therefore no follow-up Task to resolve later.
       const { data: pendingBefore } = await dataProvider.getList<Task>(
         "tasks",
         {
@@ -330,8 +332,12 @@ describe("bookSalesCall", () => {
           sort: { field: "id", order: "ASC" },
         },
       );
-      expect(pendingBefore).toHaveLength(1);
-      expect(pendingBefore[0].status).toBe("pending");
+      expect(pendingBefore).toHaveLength(0);
+
+      const { data: exitedDeal } = await dataProvider.getOne<Deal>("deals", {
+        id: deal.id,
+      });
+      expect(exitedDeal.outcome).toBe("lost");
 
       await bookSalesCall({
         dataProvider,
@@ -344,16 +350,22 @@ describe("bookSalesCall", () => {
         acuityAppointmentTypeId: "12345",
       });
 
-      const { data: afterRebooking } = await dataProvider.getList<Task>(
-        "tasks",
-        {
-          filter: { contact_id: CONTACT_ID, type: "sales_call_no_show" },
-          pagination: { page: 1, perPage: 10 },
-          sort: { field: "id", order: "ASC" },
-        },
+      // Booking again must NOT revive the exited Opportunity — historical
+      // no-show stays historical. A genuine re-entry into sales creates a
+      // new Opportunity through the ordinary rules instead.
+      const { data: afterRebooking } = await dataProvider.getOne<Deal>(
+        "deals",
+        { id: deal.id },
       );
-      expect(afterRebooking).toHaveLength(1);
-      expect(afterRebooking[0].status).toBe("completed");
+      expect(afterRebooking.outcome).toBe("lost");
+
+      // And still no follow-up Task was invented by the rebooking.
+      const { data: tasksAfter } = await dataProvider.getList<Task>("tasks", {
+        filter: { contact_id: CONTACT_ID, type: "sales_call_no_show" },
+        pagination: { page: 1, perPage: 10 },
+        sort: { field: "id", order: "ASC" },
+      });
+      expect(tasksAfter).toHaveLength(0);
     });
 
     it("does not create duplicate no-show follow-up Tasks across repeated processing", async () => {
@@ -386,12 +398,20 @@ describe("bookSalesCall", () => {
         attendance: "no_show",
       });
 
+      // Gate B: repeated processing creates no follow-up Tasks at all, and
+      // the Opportunity stays exactly once-exited.
       const { data: tasks } = await dataProvider.getList<Task>("tasks", {
         filter: { contact_id: CONTACT_ID, type: "sales_call_no_show" },
         pagination: { page: 1, perPage: 10 },
         sort: { field: "id", order: "ASC" },
       });
-      expect(tasks).toHaveLength(1);
+      expect(tasks).toHaveLength(0);
+
+      const { data: exited } = await dataProvider.getOne<Deal>("deals", {
+        id: deal.id,
+      });
+      expect(exited.outcome).toBe("lost");
+      expect(exited.stage).toBe("call_booked");
     });
   });
 });

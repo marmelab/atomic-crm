@@ -167,7 +167,12 @@ export const IndividualProgramPage = () => {
         )}
       </Section>
 
-      <WaitlistSection entries={waitlist} />
+      <WaitlistSection
+        entries={waitlist}
+        offerId={offer.id}
+        offerName={offer.name}
+        cohortId={null}
+      />
     </div>
   );
 };

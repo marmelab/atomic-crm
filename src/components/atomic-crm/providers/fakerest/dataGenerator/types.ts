@@ -29,6 +29,8 @@ import type {
   Tag,
   Task,
   WaitlistEntry,
+  WaitlistInvitation,
+  WaitlistInvitationBatch,
 } from "../../../types";
 import type { ConfigurationContextValue } from "../../../root/ConfigurationContext";
 
@@ -52,6 +54,8 @@ export interface Db {
   scholarship_slots: ScholarshipSlot[];
   scholarship_slot_events: ScholarshipSlotEvent[];
   waitlist_entries: WaitlistEntry[];
+  waitlist_invitation_batches: WaitlistInvitationBatch[];
+  waitlist_invitations: WaitlistInvitation[];
   sales_calls: SalesCall[];
   sales_call_events: SalesCallEvent[];
   client_sessions: ClientSession[];

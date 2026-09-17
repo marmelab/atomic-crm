@@ -19,7 +19,7 @@ const offers = [
 
 const cohorts = [
   { id: 10, offer_id: 2, name: "September GYU Cohort" },
-  { id: 11, offer_id: 2, name: "November GYU Cohort" },
+  { id: 11, offer_id: 2, name: "Spring GYU Cohort" },
 ];
 
 const contacts = [
@@ -27,6 +27,7 @@ const contacts = [
   { id: 101, first_name: "Priya", last_name: "Nair" },
   { id: 102, first_name: "Jordan", last_name: "Lee" },
   { id: 103, first_name: "Naomi", last_name: "Ellison" },
+  { id: 104, first_name: "Historic", last_name: "Applicant" },
 ];
 
 const deals = [
@@ -34,24 +35,42 @@ const deals = [
   { id: 201, contact_id: 101, offer_id: 2, cohort_id: 10, name: "Priya" },
   { id: 202, contact_id: 102, offer_id: 2, cohort_id: 11, name: "Jordan" },
   { id: 203, contact_id: 103, offer_id: 1, cohort_id: null, name: "Naomi" },
+  { id: 204, contact_id: 104, offer_id: 1, cohort_id: null, name: "Historic" },
 ];
 
 const applications = [
+  // Gate A: an imported historical record. It keeps its true source status
+  // ("pending" is what the Notion source said) but must never become
+  // present-day review work just because it is now reachable.
+  {
+    id: 399,
+    contact_id: 104,
+    opportunity_id: 204,
+    source: "historical_import",
+    status: "pending",
+    submitted_at: "2024-01-01T10:00:00.000Z",
+  },
   {
     id: 300,
+    contact_id: 100,
     opportunity_id: 200,
+    source: "public_form",
     status: "pending",
     submitted_at: "2026-08-01T10:00:00.000Z",
   },
   {
     id: 301,
+    contact_id: 101,
     opportunity_id: 201,
+    source: "public_form",
     status: "pending",
     submitted_at: "2026-08-02T10:00:00.000Z",
   },
   {
     id: 302,
+    contact_id: 102,
     opportunity_id: 202,
+    source: "public_form",
     status: "pending",
     submitted_at: "2026-08-03T10:00:00.000Z",
   },
@@ -59,7 +78,9 @@ const applications = [
   // Needs Review.
   {
     id: 303,
+    contact_id: 103,
     opportunity_id: 203,
+    source: "public_form",
     status: "approved",
     submitted_at: "2026-07-01T10:00:00.000Z",
     reviewed_at: "2026-07-02T10:00:00.000Z",
@@ -105,29 +126,35 @@ describe("ApplicationList", () => {
     await expect.element(screen.getByText("Rosalind Park")).toBeInTheDocument();
   });
 
+  it("keeps an imported historical Application out of Needs Review without falsifying its status", async () => {
+    const screen = await render(<ApplicationList />, { wrapper: Wrapper });
+    // The live 1:1 applicant is present...
+    await expect.element(screen.getByText("Rosalind Park")).toBeInTheDocument();
+    // ...but the historical record — still truthfully status "pending" in
+    // the database — is not present-day review work and must not appear,
+    // in Needs Review or in the Reviewed history section.
+    expect(screen.container.textContent).not.toContain("Historic Applicant");
+  });
+
   it("groups group-offer applications under their own Cohort with the redundant Offer initials dropped", async () => {
     const screen = await render(<ApplicationList />, { wrapper: Wrapper });
-    // "September/November GYU Cohort" -> "September/November Cohort".
+    // "September/Spring GYU Cohort" -> "September/Spring Cohort".
     await expect
       .element(screen.getByText("September Cohort"))
       .toBeInTheDocument();
-    await expect
-      .element(screen.getByText("November Cohort"))
-      .toBeInTheDocument();
+    await expect.element(screen.getByText("Spring Cohort")).toBeInTheDocument();
     await expect.element(screen.getByText("Priya Nair")).toBeInTheDocument();
     await expect.element(screen.getByText("Jordan Lee")).toBeInTheDocument();
   });
 
-  it("does not show a September Cohort applicant under November Cohort", async () => {
+  it("does not show a September Cohort applicant under Spring Cohort", async () => {
     const screen = await render(<ApplicationList />, { wrapper: Wrapper });
     const { container } = screen;
-    await expect
-      .element(screen.getByText("November Cohort"))
-      .toBeInTheDocument();
+    await expect.element(screen.getByText("Spring Cohort")).toBeInTheDocument();
 
     const sections = [...container.querySelectorAll("h2")];
     const novemberSection = sections
-      .find((el) => el.textContent === "November Cohort")
+      .find((el) => el.textContent === "Spring Cohort")
       ?.closest("div");
     expect(novemberSection?.textContent).not.toContain("Priya Nair");
 

@@ -202,6 +202,21 @@ begin
         return new;
     end if;
 
+    -- Historical Migration slice: everything below this point is OUTBOUND
+    -- HTTP enrichment — get_avatar_for_email() calls gravatar.com and then
+    -- the email domain's favicon service. A bulk historical import fires
+    -- one lookup per imported Contact, transmitting a hash of each real
+    -- person's email address to third parties purely to decorate
+    -- back-filled records (Gate A measured 271 such lookups). Migration
+    -- mode skips the network enrichment ONLY: avatar is simply left null,
+    -- to be filled by any later ordinary save. Every database-local
+    -- contact invariant is untouched — sales_id defaulting and email
+    -- lowercasing are their own separate triggers and still run. See
+    -- set_historical_migration_mode()'s header for why this GUC is safe.
+    if current_setting('app.migration_mode', true) = 'true' then
+        return new;
+    end if;
+
     select coalesce(jsonb_array_length(new.email_jsonb), 0) into emails_length;
 
     if emails_length = 0 then
@@ -429,6 +444,41 @@ begin
 end;
 $$;
 
+-- Historical Migration slice: the one deliberately narrow entry point that
+-- may enable app.migration_mode for the CURRENT transaction only (the
+-- is_local=true third argument to set_config is what makes it reset
+-- automatically on COMMIT or ROLLBACK — never a session-wide or database-
+-- wide setting, never persists past the transaction that set it).
+--
+-- SECURITY DEFINER + a pinned search_path so this can't be tricked by a
+-- caller-controlled search_path into resolving set_config from anywhere
+-- but pg_catalog. The internal auth.role() check mirrors handle_deal_saved()'s
+-- own Won-authority guard exactly: NULL (a direct database/migration
+-- connection that never went through PostgREST) is the trusted admin
+-- context this whole historical-import mechanism is built for; a real
+-- 'authenticated' PostgREST caller is explicitly rejected even if grants
+-- were ever accidentally widened later — defense in depth on top of the
+-- REVOKE in 06_grants.sql, not instead of it.
+--
+-- This function does nothing else — it does not itself write any business
+-- data. The historical importer calls this to turn migration mode on,
+-- performs its own plain INSERT/UPDATE statements (still running as
+-- service_role) inside the same transaction, then calls this again to turn
+-- it off before COMMIT (belt-and-suspenders: COMMIT already resets it on
+-- its own).
+CREATE OR REPLACE FUNCTION "public"."set_historical_migration_mode"("enable" boolean) RETURNS "void"
+    LANGUAGE "plpgsql"
+    SECURITY DEFINER
+    SET "search_path" TO 'public', 'pg_temp'
+    AS $$
+begin
+  if auth.role() is not null and auth.role() <> 'service_role' then
+    raise exception 'set_historical_migration_mode() is restricted to a service_role/direct-connection context';
+  end if;
+  perform set_config('app.migration_mode', case when enable then 'true' else 'false' end, true);
+end;
+$$;
+
 CREATE OR REPLACE FUNCTION "public"."handle_deal_won"() RETURNS "trigger"
     LANGUAGE "plpgsql"
     SET "search_path" TO 'public'
@@ -439,6 +489,17 @@ declare
   v_contact_name text;
   v_item record;
 begin
+  -- Historical Migration slice: a historical Won Deal must never fire live
+  -- onboarding (a real Enrollment at 'onboarding' status, checklist items,
+  -- and Tasks due in 3 days from NOW) — the importer inserts the correct,
+  -- truthful final-state Enrollment itself. See
+  -- set_historical_migration_mode()'s own header for why this GUC check is
+  -- safe: only that narrowly-restricted function can ever set it, and it is
+  -- transaction-local by construction.
+  if current_setting('app.migration_mode', true) = 'true' then
+    return new;
+  end if;
+
   if new.stage = 'won' and (tg_op = 'INSERT' or old.stage is distinct from 'won') then
     if new.cohort_id is not null then
       select * into v_cohort from cohorts where id = new.cohort_id;
@@ -865,6 +926,16 @@ CREATE OR REPLACE FUNCTION "public"."record_enrollment_status_event"() RETURNS "
     SET "search_path" TO 'public'
     AS $$
 begin
+  -- Historical Migration slice: enrollments has no per-status timestamp
+  -- column of its own to source a truthful entered_at from (unlike deals'
+  -- stage_entered_at), so there is nothing safe to substitute here — the
+  -- importer inserts the correct, truthful enrollment_status_events row(s)
+  -- itself, directly, with the real historical date(s). See
+  -- set_historical_migration_mode()'s own header.
+  if current_setting('app.migration_mode', true) = 'true' then
+    return new;
+  end if;
+
   if tg_op = 'INSERT' or new.status is distinct from old.status then
     insert into enrollment_status_events (enrollment_id, status, entered_at)
     values (new.id, new.status, now());
@@ -917,6 +988,13 @@ CREATE OR REPLACE FUNCTION "public"."set_deal_stage_entered_at"() RETURNS "trigg
     SET "search_path" TO 'public'
     AS $$
 begin
+  -- Historical Migration slice: preserve the caller-supplied historical
+  -- stage_entered_at verbatim instead of overwriting it with now() — see
+  -- set_historical_migration_mode()'s own header.
+  if current_setting('app.migration_mode', true) = 'true' then
+    return new;
+  end if;
+
   if tg_op = 'INSERT' or new.stage is distinct from old.stage then
     new.stage_entered_at := now();
   end if;
@@ -1432,11 +1510,22 @@ BEGIN
     IF v_existing_application_id IS NOT NULL THEN
       v_application_id := v_existing_application_id;
     ELSE
-      INSERT INTO applications (opportunity_id, raw_answers, submitted_at, status, reviewed_at)
+      -- Phase 4J: offer_id/intended_cohort_id stamped directly from the
+      -- already-validated p_offer_id/p_cohort_id parameters — never
+      -- re-derived from v_deal. p_cohort_id is NULL for an individual
+      -- Offer (The Living Example) by construction (the Edge Function
+      -- only ever passes a cohort for a group Offer), so
+      -- intended_cohort_id is naturally always NULL for LE with no
+      -- special-casing here.
+      -- contact_id is the Application's canonical person relationship; the
+      -- Deal stays the optional Opportunity relationship. source marks a
+      -- live submission, which may legitimately become review work.
+      INSERT INTO applications (contact_id, opportunity_id, offer_id, intended_cohort_id, raw_answers, submitted_at, status, reviewed_at, source)
       VALUES (
-        v_deal.id, p_answers, now(),
+        v_contact.id, v_deal.id, p_offer_id, p_cohort_id, p_answers, now(),
         CASE WHEN v_is_dne THEN 'do_not_engage' ELSE 'pending' END,
-        CASE WHEN v_is_dne THEN now() ELSE NULL END
+        CASE WHEN v_is_dne THEN now() ELSE NULL END,
+        'public_form'
       ) RETURNING id INTO v_application_id;
     END IF;
   END IF;
@@ -1470,3 +1559,126 @@ BEGIN
   );
 END;
 $$;
+
+CREATE OR REPLACE FUNCTION "public"."record_sales_call_no_show"("p_sales_call_id" bigint) RETURNS "jsonb"
+    LANGUAGE "plpgsql"
+    SECURITY DEFINER
+    SET "search_path" TO 'public'
+    AS $$
+declare
+  v_call sales_calls%ROWTYPE;
+  v_tag_id bigint;
+  v_now timestamptz := now();
+  v_deal_exited boolean := false;
+begin
+  -- Gate B: marking a sales call No-show is ONE human action, so it is one
+  -- transaction. Every related state change below either all lands or none
+  -- does: the CRM can never persist "Sales Call = no_show" while the
+  -- Opportunity stays in the active pipeline, or exit the Opportunity
+  -- without the Contact carrying the visible history — which is exactly
+  -- what a sequence of independent UI writes could do if one failed.
+  --
+  -- Narrow by construction: this fires only when this function is called,
+  -- never on arbitrary sales_calls UPDATEs, so ordinary edits/reschedules
+  -- keep their existing behavior.
+  select * into v_call from sales_calls where id = p_sales_call_id for update;
+  if not found then
+    return jsonb_build_object('status', 'not-found');
+  end if;
+  if v_call.opportunity_id is null then
+    -- An unmatched booking has no Opportunity to exit yet.
+    return jsonb_build_object('status', 'no-opportunity');
+  end if;
+  if v_call.attendance = 'attended' then
+    -- Never silently overwrite a recorded attended outcome.
+    return jsonb_build_object('status', 'already-completed');
+  end if;
+
+  -- 1. The Sales Call is the CANONICAL historical record of the no-show.
+  --    status leaves 'booked' so the partial unique index
+  --    (sales_calls_one_booked_per_opportunity_idx) does not block a later
+  --    genuine rebooking.
+  if v_call.attendance is distinct from 'no_show' then
+    update sales_calls
+       set attendance = 'no_show',
+           attendance_recorded_at = v_now,
+           status = 'completed',
+           updated_at = v_now
+     where id = v_call.id;
+
+    insert into sales_call_events (sales_call_id, kind, occurred_at, attendance)
+    values (v_call.id, 'attendance_recorded', v_now, 'no_show');
+  elsif v_call.status <> 'completed' then
+    -- Already recorded as a no-show but never concluded: a row written
+    -- before a concluded call was required to leave 'booked'. Converge the
+    -- status WITHOUT inventing a second attendance timestamp or a
+    -- duplicate history event — the original attendance_recorded_at is the
+    -- truth about when it was observed. Leaving it at 'booked' would keep
+    -- blocking a genuine rebooking via the partial unique index.
+    update sales_calls
+       set status = 'completed',
+           updated_at = v_now
+     where id = v_call.id;
+  end if;
+
+  -- 2. The Opportunity exits the ACTIVE pipeline. "Active" is canonically
+  --    archived_at is null AND stage <> 'won' AND outcome is null (see
+  --    DealList.tsx's own filter), so setting outcome is the existing exit
+  --    mechanism — no new stage, no new column, no Nurture. 'lost' is the
+  --    same exit the Do-Not-Engage path already uses (deals/dneOutcome.ts);
+  --    the REASON stays durable on the Sales Call itself (attendance =
+  --    'no_show'), which is why no reason column is invented here.
+  --    stage is deliberately NOT rewritten: the Deal genuinely reached
+  --    Call Booked, and falsifying stage history to mark an exit would
+  --    destroy that truth.
+  update deals
+     set outcome = 'lost',
+         updated_at = v_now
+   where id = v_call.opportunity_id
+     and outcome is null
+     and archived_at is null
+     and stage <> 'won';
+  v_deal_exited := found;
+
+  -- 3. The Contact carries a durable, visible No-show tag — reusing the
+  --    existing tags table + contacts.tags array, not a bespoke boolean.
+  --    It is a SUMMARY for at-a-glance history, never the source of truth
+  --    (that stays the Sales Call), and it is attached at most once.
+  select id into v_tag_id from tags where lower(name) = 'no-show' limit 1;
+  if v_tag_id is null then
+    insert into tags (name, color) values ('No-show', '#fde2e4')
+    returning id into v_tag_id;
+  end if;
+
+  update contacts
+     set tags = coalesce(tags, '{}'::bigint[]) || v_tag_id
+   where id = v_call.contact_id
+     and not (coalesce(tags, '{}'::bigint[]) @> array[v_tag_id]);
+
+  -- 4. Task lifecycle. The call concluded, so its "Sales Call" task is
+  --    done. NO ordinary follow-up task is created: the Opportunity has
+  --    left the pipeline, so there is no stranded work to re-surface —
+  --    that visibility gap was the only reason the old
+  --    'sales_call_no_show' task existed. Any such task still pending from
+  --    before this rule is superseded work, so it is closed rather than
+  --    left behind as impossible work.
+  update tasks
+     set done_date = v_now, status = 'completed'
+   where contact_id = v_call.contact_id
+     and type in ('sales_call', 'sales_call_no_show')
+     and done_date is null;
+
+  return jsonb_build_object(
+    'status', case when v_call.attendance = 'no_show' then 'already-no-show' else 'completed' end,
+    'sales_call_id', v_call.id,
+    'opportunity_id', v_call.opportunity_id,
+    'contact_id', v_call.contact_id,
+    'deal_exited', v_deal_exited,
+    'tag_id', v_tag_id
+  );
+end;
+$$;
+
+revoke all on function public.record_sales_call_no_show(bigint) from public;
+grant execute on function public.record_sales_call_no_show(bigint) to authenticated;
+grant execute on function public.record_sales_call_no_show(bigint) to service_role;

@@ -60,7 +60,9 @@ describe("manual task completion vs. Application status", () => {
   it("completing a Review Application task by hand never changes Application status", async () => {
     const application: Application = {
       id: 1,
+      contact_id: 1,
       opportunity_id: 1,
+      source: "public_form",
       status: "pending",
       submitted_at: "2026-01-01T00:00:00.000Z",
       reviewed_at: null,

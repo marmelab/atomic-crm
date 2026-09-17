@@ -102,14 +102,17 @@ export const useTaskActionDestination = (
     { enabled: needsDeals, retry: false },
   );
 
-  const dealIds = deals?.map((deal) => deal.id) ?? [];
-  const wantsApplications =
-    actionKind === "application-review" && dealIds.length > 0;
+  // A review Task points at a Contact, and an Application now belongs to a
+  // Contact directly — so resolve by contact_id rather than by routing
+  // through that Contact's Deals. Scoped to live submissions because this
+  // resolves the destination for a REVIEW action; an imported historical
+  // record is never the thing a review Task is about.
+  const wantsApplications = actionKind === "application-review";
   const { data: applications, isPending: isPendingApplications } =
     useGetList<Application>(
       "applications",
       {
-        filter: { "opportunity_id@in": `(${dealIds.join(",")})` },
+        filter: { contact_id: task.contact_id, source: "public_form" },
         pagination: { page: 1, perPage: 100 },
         sort: { field: "id", order: "DESC" },
       },
@@ -181,9 +184,9 @@ export const useTaskActionDestination = (
   }
 
   if (actionKind === "application-review") {
-    if (dealIds.length === 0) {
-      return { destination: { kind: "task-detail" }, isPending: false };
-    }
+    // No longer gated on the Contact having Deals: the Application is
+    // reached through its own contact_id, so a review destination resolves
+    // even for an applicant with no Opportunity.
     if (isPendingApplications) {
       return { destination: null, isPending: true };
     }

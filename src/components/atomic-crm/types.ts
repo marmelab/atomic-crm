@@ -228,23 +228,55 @@ export type Cohort = {
 // collapsed into a generic Approve/Reject. "approved" means "qualified
 // enough for a sales call", not "Leif wants to work with them"; that call
 // is still made later, independent of the Opportunity's owner_decision.
+// 'denied' and 'waitlist' (Phase 4H) are HISTORICAL-IMPORT-ONLY values — a
+// live review action (reviewApplication.ts's ApplicationReviewOutcome,
+// deliberately its own narrower type, not derived from this one) can never
+// set either. 'denied' preserves a historical "the application was
+// declined" fact without asserting a specific modern reason (not the same
+// claim as 'not_fit'). 'waitlist' preserves a historical "still on the
+// waitlist, no decision made" disposition — deliberately NOT 'pending',
+// which drives the live Needs Review queue (useApplicationsGrouped.ts) and
+// would wrongly resurface a months-old historical row as needing review
+// today.
 export type ApplicationStatus =
   | "pending"
   | "approved"
   | "needs_higher_care"
   | "not_fit"
-  | "do_not_engage";
+  | "do_not_engage"
+  | "denied"
+  | "waitlist";
 
 // A submitted program/coaching application. Approval means "qualified
 // enough for a sales call" — it is intentionally independent from the
 // Opportunity's owner_decision (whether the owner wants to work with them).
+// Record origin. 'public_form' is a live submission and can represent real
+// outstanding work; 'historical_import' is a back-filled record of what
+// already happened and must never become present-day work, whatever its
+// status says.
+export type ApplicationSource = "public_form" | "historical_import";
+
 export type Application = {
-  opportunity_id: Identifier;
+  // The canonical person relationship — an Application belongs to a
+  // Contact. opportunity_id is the OPTIONAL sales-Opportunity relationship:
+  // a legitimate applicant who never entered the pipeline has no Deal, and
+  // one is never fabricated to give them a route back to a person.
+  contact_id: Identifier;
+  opportunity_id?: Identifier | null;
+  // Phase 4J, NOT YET deployed: which Offer/Cohort this Application was
+  // for/intended, independent of whether a Deal exists — see
+  // 01_tables.sql's own column comments on applications.offer_id /
+  // intended_cohort_id for the full architecture rationale. Optional here
+  // because pre-Phase-4J rows (and the current live schema) don't have
+  // these columns yet.
+  offer_id?: Identifier | null;
+  intended_cohort_id?: Identifier | null;
   status: ApplicationStatus;
   submitted_at: string;
   reviewed_at?: string | null;
   raw_answers: Record<string, unknown>;
   summary?: string | null;
+  source: ApplicationSource;
   created_at: string;
   updated_at: string;
 } & Pick<RaRecord, "id">;
@@ -406,6 +438,59 @@ export type ScholarshipSlotEvent = {
   created_at: string;
 } & Pick<RaRecord, "id">;
 
+// Everything OpportunitySource carries, plus "manual": an entry Leif
+// created by hand in the CRM, which is a truthful origin rather than an
+// unknown one.
+export type WaitlistEntrySource = OpportunitySource | "manual";
+
+// One Leif action: "my calendar is open again, this group should book".
+// A durable business event, not an email feature — Gmail later becomes a
+// DELIVERY MECHANISM attached to these records.
+export type WaitlistInvitationBatchStatus =
+  | "prepared"
+  | "sending"
+  | "completed"
+  | "cancelled";
+
+export type WaitlistInvitationBatch = {
+  offer_id: Identifier;
+  cohort_id?: Identifier | null;
+  label?: string | null;
+  status: WaitlistInvitationBatchStatus;
+  created_at: string;
+  updated_at: string;
+} & Pick<RaRecord, "id">;
+
+// Per-person, because delivery and booking outcomes differ person by
+// person: one failed send must never mark anyone else invited.
+export type WaitlistInvitationStatus =
+  | "prepared"
+  | "sent"
+  | "failed"
+  | "cancelled";
+
+// "manual" = Leif sent it himself and is recording that; "gmail" = the
+// future integration delivered it. Never guessed.
+export type WaitlistInvitationDeliveryMethod = "manual" | "gmail";
+
+export type WaitlistInvitation = {
+  batch_id: Identifier;
+  waitlist_entry_id: Identifier;
+  contact_id: Identifier;
+  status: WaitlistInvitationStatus;
+  delivery_method?: WaitlistInvitationDeliveryMethod | null;
+  prepared_at: string;
+  sent_at?: string | null;
+  failed_at?: string | null;
+  failure_reason?: string | null;
+  // What makes "has this person booked since we asked?" — and therefore
+  // "is a no-booking follow-up still eligible?" — answerable.
+  booked_sales_call_id?: Identifier | null;
+  booked_at?: string | null;
+  created_at: string;
+  updated_at: string;
+} & Pick<RaRecord, "id">;
+
 export type WaitlistEntryStatus =
   | "waiting"
   | "invited"
@@ -427,7 +512,10 @@ export type WaitlistEntry = {
   notes?: string | null;
   // Leif's manual ordering signal, not a strict FIFO queue (§14).
   priority?: number | null;
-  source?: OpportunitySource | null;
+  // Marketing attribution (how they found Leif), plus "manual" for an entry
+  // Leif created by hand in the CRM — the same record-origin meaning
+  // sales_calls.source and client_sessions.source already give that value.
+  source?: WaitlistEntrySource | null;
   invited_at?: string | null;
   converted_at?: string | null;
   // The Opportunity this entry became, once converted (§12).
@@ -525,7 +613,7 @@ export type SalesCallEvent = {
   created_at: string;
 } & Pick<RaRecord, "id">;
 
-export type ClientSessionStatus = "booked" | "cancelled";
+export type ClientSessionStatus = "booked" | "cancelled" | "completed";
 export type ClientSessionSource = "acuity" | "manual";
 
 // Client + Session Operations slice: one row per real paid-client

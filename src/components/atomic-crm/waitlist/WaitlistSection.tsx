@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useTranslate } from "ra-core";
+import { useTranslate, type Identifier } from "ra-core";
 import { Link } from "react-router";
 import { Search, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +15,10 @@ import {
   waitlistEntryStatusLabels,
 } from "./waitlistConstants";
 import { WaitlistEntryActions } from "./WaitlistEntryActions";
+import { Checkbox } from "@/components/ui/checkbox";
+import { InviteToBookDialog } from "./InviteToBookDialog";
+import { isInvitable } from "./waitlistInvitations";
+import { isBulkInviteDeliveryEnabled } from "./waitlistInviteFeature";
 
 // The "Waitlist" section shared by the Living Example, Group Program, and
 // Cohort pages (Waitlists slice, §7/§8/§21). A real waitlist can run into
@@ -36,12 +40,60 @@ const VISIBLE_COUNT = 8;
 // enough that the collapse (and thus a search) matters.
 export const WaitlistSection = ({
   entries,
+  offerId,
+  offerName,
+  cohortId = null,
+  cohortName = null,
+  // Defaults to the feature flag; an explicit value lets tests exercise
+  // both the production (hidden) and post-Gmail (visible) states.
+  enableBulkInvite = isBulkInviteDeliveryEnabled(),
 }: {
   entries: WaitlistEntryRow[];
+  // Optional so a caller that has not been given batch-invite context yet
+  // simply renders the list exactly as before.
+  offerId?: Identifier;
+  offerName?: string;
+  cohortId?: Identifier | null;
+  cohortName?: string | null;
+  enableBulkInvite?: boolean;
 }) => {
   const translate = useTranslate();
   const [expanded, setExpanded] = useState(false);
   const [search, setSearch] = useState("");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [inviteOpen, setInviteOpen] = useState(false);
+
+  // Hidden in production until Gmail delivery exists — a "prepared" batch
+  // must never be presented as though people were actually invited.
+  const canInvite = enableBulkInvite && offerId != null && offerName != null;
+  // Only a membership that has not converted or been removed can be
+  // invited. A previously invited one stays selectable on purpose — that
+  // is the legitimate re-invite case.
+  const invitableEntries = entries.filter(isInvitable);
+  const selectedEntries = entries.filter((entry) =>
+    selectedIds.has(String(entry.entryId)),
+  );
+  const allInvitableSelected =
+    invitableEntries.length > 0 &&
+    invitableEntries.every((entry) => selectedIds.has(String(entry.entryId)));
+
+  const toggleOne = (entryId: Identifier) =>
+    setSelectedIds((current) => {
+      const next = new Set(current);
+      const key = String(entryId);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+
+  // Select all covers only invitable rows — converted/removed people are
+  // never silently swept into a batch.
+  const toggleAll = () =>
+    setSelectedIds(
+      allInvitableSelected
+        ? new Set()
+        : new Set(invitableEntries.map((entry) => String(entry.entryId))),
+    );
 
   const query = search.trim().toLowerCase();
   const isSearching = query !== "";
@@ -71,6 +123,45 @@ export const WaitlistSection = ({
 
   return (
     <Section title={title}>
+      {canInvite && invitableEntries.length > 0 && (
+        <div className="mb-2 flex items-center justify-between gap-3">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="px-0 text-xs text-muted-foreground"
+            onClick={toggleAll}
+          >
+            {allInvitableSelected
+              ? translate("resources.waitlist_entries.invite.clear", {
+                  _: "Clear",
+                })
+              : translate("resources.waitlist_entries.invite.select_all", {
+                  _: "Select all",
+                })}
+          </Button>
+          {selectedEntries.length > 0 && (
+            <Button type="button" size="sm" onClick={() => setInviteOpen(true)}>
+              {translate("resources.waitlist_entries.invite.action", {
+                _: "Invite to Book",
+              })}{" "}
+              · {selectedEntries.length}
+            </Button>
+          )}
+        </div>
+      )}
+      {canInvite && (
+        <InviteToBookDialog
+          open={inviteOpen}
+          onOpenChange={setInviteOpen}
+          offerId={offerId!}
+          offerName={offerName!}
+          cohortId={cohortId}
+          cohortName={cohortName}
+          selected={selectedEntries}
+          onConfirmed={() => setSelectedIds(new Set())}
+        />
+      )}
       {entries.length === 0 ? (
         <p className="text-sm text-muted-foreground">
           {translate("resources.waitlist_entries.empty", {
@@ -122,6 +213,15 @@ export const WaitlistSection = ({
                     key={entry.entryId}
                     className="flex items-center justify-between gap-3 px-4 py-2.5"
                   >
+                    {canInvite && (
+                      <Checkbox
+                        className="shrink-0"
+                        aria-label={entry.name}
+                        disabled={!isInvitable(entry)}
+                        checked={selectedIds.has(String(entry.entryId))}
+                        onCheckedChange={() => toggleOne(entry.entryId)}
+                      />
+                    )}
                     <div className="flex min-w-0 flex-1 items-baseline gap-2">
                       <Link
                         to={`/contacts/${entry.contactId}/show`}

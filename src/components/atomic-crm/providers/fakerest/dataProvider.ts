@@ -46,6 +46,7 @@ import { getActivityLog } from "../commons/activity";
 import { getCompanyAvatar } from "../commons/getCompanyAvatar";
 import { getContactAvatar } from "../commons/getContactAvatar";
 import { mergeContacts } from "../commons/mergeContacts";
+import { recordSalesCallNoShow as recordSalesCallNoShowMirror } from "../../sales-calls/recordSalesCallNoShow";
 import { assertNoDuplicateActiveWaitlistEntry } from "../../waitlist/waitlistEntryValidation";
 import { ACTIVE_WAITLIST_STATUSES } from "../../waitlist/waitlistConstants";
 import { syncWaitlistForActiveDeal } from "../../waitlist/waitlistSync";
@@ -793,6 +794,13 @@ export const createDataProvider = ({
     },
     mergeContacts: async (sourceId: Identifier, targetId: Identifier) => {
       return mergeContacts(sourceId, targetId, baseDataProvider);
+    },
+    // Gate B dev/demo mirror of the record_sales_call_no_show() Postgres
+    // function. FakeRest has no transactions, so this runs the same
+    // sequence against the in-browser database — the production
+    // atomicity guarantee comes from the real function.
+    recordSalesCallNoShow: async (salesCallId: Identifier) => {
+      return recordSalesCallNoShowMirror(baseDataProvider, salesCallId);
     },
     getConfiguration: async (): Promise<ConfigurationContextValue> => {
       const { data } = await baseDataProvider.getOne("configuration", {

@@ -13,7 +13,7 @@ import {
 // Unmatched Sales Call Resolution slice: the three human decisions the
 // dedicated resolution page offers. Real disposable fixtures only —
 // mirrors this app's own Contact/Offer/Deal fixture conventions
-// (bookSalesCall.test.ts), never Porsche Brown or Sarah Henke.
+// (bookSalesCall.test.ts), never a real client identity.
 const CONTACT_ID = 1;
 const LE_OFFER_ID = 1;
 const GYU_OFFER_ID = 2;

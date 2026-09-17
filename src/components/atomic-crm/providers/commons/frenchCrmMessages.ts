@@ -496,6 +496,8 @@ export const frenchCrmMessages = {
       search_placeholder: "Rechercher un nom ou un e-mail…",
       search_empty: "Personne ne correspond à « %{query} ».",
       fields: {
+        offer_id: "Programme",
+        cohort_id: "Cohorte (facultatif)",
         joined_at: "Inscrit le",
         desired_timing: "Moment souhaité",
         notes: "Notes",
@@ -538,6 +540,7 @@ export const frenchCrmMessages = {
         preferred: "Moment préféré : %{timing}",
         converted: "Converti le %{date}",
         removed: "Retiré le %{date}",
+        empty: "Sur aucune liste d’attente.",
       },
     },
     notes: {
