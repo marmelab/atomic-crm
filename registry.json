@@ -370,6 +370,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/sales-calls/salesCallSchedule.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/sales-calls/salesCallNoShowTask.ts",
           "type": "registry:component"
         },
@@ -1371,6 +1375,10 @@
         },
         {
           "path": "src/components/atomic-crm/contacts/doNotEngageGuard.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/contacts/contactSortOptions.ts",
           "type": "registry:component"
         },
         {
