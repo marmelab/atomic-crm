@@ -182,7 +182,7 @@ export const addLeifProofSliceFixtures = (db: Db) => {
     gender: "male",
     email_jsonb: [{ email: "marcus.bennett@example.com", type: "Home" }],
     background: "Signed up after a workshop.",
-    status: "in-contract",
+    status: "hot",
   });
   db.contacts.push(marcus);
 
@@ -313,7 +313,7 @@ export const addLeifProofSliceFixtures = (db: Db) => {
     gender: "male",
     email_jsonb: [{ email: "sam.okafor@example.com", type: "Home" }],
     background: "Enrolled in the September Growing Yourself Up cohort.",
-    status: "in-contract",
+    status: "hot",
   });
   db.contacts.push(sam);
 
@@ -496,7 +496,7 @@ export const addLeifProofSliceFixtures = (db: Db) => {
       last_name: "Reyes",
       email_jsonb: [{ email: "kathy.reyes@example.com", type: "Home" }],
       background: "Living Example client, completing soon.",
-      status: "in-contract",
+      status: "hot",
     }),
     soonDate,
   );
@@ -507,7 +507,7 @@ export const addLeifProofSliceFixtures = (db: Db) => {
       gender: "male",
       email_jsonb: [{ email: "dave.kim@example.com", type: "Home" }],
       background: "Living Example client.",
-      status: "in-contract",
+      status: "hot",
     }),
     laterDate,
   );
@@ -517,7 +517,7 @@ export const addLeifProofSliceFixtures = (db: Db) => {
       last_name: "Chen",
       email_jsonb: [{ email: "julia.chen@example.com", type: "Home" }],
       background: "Living Example client, same completion date as Dave.",
-      status: "in-contract",
+      status: "hot",
     }),
     laterDate,
   );

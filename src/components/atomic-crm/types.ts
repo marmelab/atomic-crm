@@ -81,8 +81,8 @@ export type PhoneNumberAndType = {
   type: "Work" | "Home" | "Other";
 };
 
-// Independent of `status` (Cold/Warm/Hot/In Contract, a note-driven
-// temperature label). 'do_not_engage' is a durable future-sales gate set
+// Independent of `status` (None/Cold/Warm/Hot — the relationship
+// temperature). 'do_not_engage' is a durable future-sales gate set
 // by Application review (Native Applications slice, §7) — the anchor a
 // future Kit suppression sync would read from.
 export type ContactSalesEligibility = "normal" | "do_not_engage";
@@ -102,6 +102,10 @@ export type Contact = {
   gender: string;
   sales_id?: Identifier;
   status: string;
+  // Free-text human memory cues ("nurse · Florida · 50s · anxious").
+  // Never computed on, never required, never inferred — see
+  // contacts/ContactIdentifiers.tsx.
+  identifiers?: string | null;
   sales_eligibility: ContactSalesEligibility;
   // Stripe test-mode integration slice: one Stripe Customer per Contact,
   // reused across every Deal/Checkout for them. Never raw card/bank data.

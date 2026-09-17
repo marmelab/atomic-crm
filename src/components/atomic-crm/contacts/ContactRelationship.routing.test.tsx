@@ -117,7 +117,9 @@ describe("Contact page relationship canvas", () => {
     const { element } = buildTestCrm({ deals: [deal] } as any);
     await page.viewport(1280, 900);
     const screen = await render(element);
-    await expect.element(screen.getByText("Relationship")).toBeInTheDocument();
+    await expect
+      .element(screen.getByText("Relationship", { exact: true }))
+      .toBeInTheDocument();
     expect(screen.container.textContent).toContain("Opportunities");
     expect(screen.container.textContent).toContain("The Living Example");
     expect(screen.container.textContent).toContain("call booked");
@@ -355,7 +357,9 @@ describe("Contact page relationship canvas", () => {
     await page.viewport(1280, 900);
     const screen = await render(element);
     // One Relationship container and one History container.
-    await expect.element(screen.getByText("Relationship")).toBeInTheDocument();
+    await expect
+      .element(screen.getByText("Relationship", { exact: true }))
+      .toBeInTheDocument();
     await expect.element(screen.getByText("History")).toBeInTheDocument();
   });
 });

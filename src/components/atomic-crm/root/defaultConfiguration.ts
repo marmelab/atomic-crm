@@ -52,11 +52,17 @@ export const defaultDealPipelineStatuses = ["won"];
 // category manager still renders without dangling agency vocabulary.
 export const defaultDealCategories: { value: string; label: string }[] = [];
 
+// Relationship temperature: how warm this person is toward working with
+// Leif, and nothing else. "In Contract" used to sit in this list and did
+// not belong — whether somebody is a client is not a temperature, it is a
+// structured fact owned by the Opportunity and the Enrollment, and having
+// it here meant one field mixed "how warm are they" with "are they
+// paying". The empty value renders as None, so the vocabulary is
+// None / Cold / Warm / Hot.
 export const defaultNoteStatuses = [
   { value: "cold", label: "Cold", color: "#7dbde8" },
   { value: "warm", label: "Warm", color: "#e8cb7d" },
   { value: "hot", label: "Hot", color: "#e88b7d" },
-  { value: "in-contract", label: "In Contract", color: "#a4e87d" },
 ];
 
 // Leif's task vocabulary — what the CRM (eventually mostly automatically)

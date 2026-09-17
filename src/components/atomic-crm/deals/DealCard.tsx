@@ -1,11 +1,9 @@
 import { Draggable } from "@hello-pangea/dnd";
 import { useGetList, useRedirect, RecordContextProvider } from "ra-core";
 import { ReferenceField } from "@/components/admin/reference-field";
-import { NumberField } from "@/components/admin/number-field";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 
-import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal, SalesCall } from "../types";
 
 export const DealCard = ({ deal, index }: { deal: Deal; index: number }) => {
@@ -29,7 +27,6 @@ export const DealCardContent = ({
   snapshot?: any;
   deal: Deal;
 }) => {
-  const { currency } = useConfigurationContext();
   const redirect = useRedirect();
   const handleClick = () => {
     redirect(`/deals/${deal.id}/show`, undefined, undefined, undefined, {
@@ -67,32 +64,17 @@ export const DealCardContent = ({
               )}
             </div>
             <p className="text-xs text-muted-foreground mt-1 truncate">
-              {/* What they're applying for, alongside the value (Native
-                  Application Intake acceptance-repair pass, round 2): the
-                  card previously showed only name + amount, with no way to
-                  tell a Living Example card from a Growing Yourself Up one
-                  at a glance. offers' own recordRepresentation is "name"
-                  (offers/index.ts), so this renders the real offer display
-                  name — never an internal code. Cohort identity isn't
-                  added here for GYU (out of scope for this small pass —
-                  the offer name alone already answers "what are they
-                  applying for"); DealShow.tsx remains the place for full
-                  Offer + Cohort detail. */}
+              {/* What they are applying for. Money deliberately does NOT
+                  appear here: the Pipeline is an operational workflow —
+                  who needs what done next — not a revenue forecast, and a
+                  "$4.00K" on every card read as a running total Leif was
+                  meant to act on. The commercial terms still live in the
+                  Opportunity drawer, where they answer a real question.
+                  Nothing stored is removed. */}
               <ReferenceField
                 source="offer_id"
                 reference="offers"
                 link={false}
-              />
-              {" · "}
-              <NumberField
-                source="amount"
-                options={{
-                  notation: "compact",
-                  style: "currency",
-                  currency,
-                  currencyDisplay: "narrowSymbol",
-                  minimumSignificantDigits: 3,
-                }}
               />
             </p>
           </CardContent>

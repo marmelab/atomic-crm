@@ -213,12 +213,17 @@ describe("Opportunities pipeline (DealList) route", () => {
     // `name` field — see DealCard.tsx.
     await expect.element(screen.getByText("Ada Lovelace")).toBeInTheDocument();
     await expect.element(screen.getByText("Geralyn Marsh")).toBeInTheDocument();
+    // The card names the Offer and deliberately shows no money: the
+    // Pipeline is an operational board, not a revenue forecast.
     await expect
-      .element(screen.getByText("The Living Example · $4.00K"))
+      .element(screen.getByText("The Living Example"))
       .toBeInTheDocument();
     await expect
-      .element(screen.getByText("Growing Yourself Up · $1.40K"))
+      .element(screen.getByText("Growing Yourself Up"))
       .toBeInTheDocument();
+    expect(screen.container.textContent).not.toContain("$4.00K");
+    expect(screen.container.textContent).not.toContain("$1.40K");
+    expect(screen.container.textContent).not.toContain("$0.00");
     // Column heading shows the visible Opportunity count alongside the
     // stage name (UX cleanup pass, §2) — both seeded deals are in "Call
     // Booked", an empty column ("Interested") shows 0.

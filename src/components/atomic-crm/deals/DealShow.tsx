@@ -15,6 +15,7 @@ import { DeleteButton } from "@/components/admin/delete-button";
 import { EditButton } from "@/components/admin/edit-button";
 import { NumberField } from "@/components/admin/number-field";
 import { ReferenceField } from "@/components/admin/reference-field";
+import { OpportunityContactIdentifiers } from "../contacts/ContactIdentifiers";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
@@ -23,6 +24,7 @@ import { NoteCreate } from "../notes/NoteCreate";
 import { NotesIterator } from "../notes/NotesIterator";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { DealSalesCallSection } from "../sales-calls/DealSalesCallSection";
+import { OpportunityDecisionActions } from "./OpportunityDecisionActions";
 import type { Deal } from "../types";
 import { DealApplicationAndEnrollment } from "./DealApplicationAndEnrollment";
 import { OpenOfferPageAction } from "./OpenOfferPageAction";
@@ -70,7 +72,7 @@ const DealShowContent = () => {
         {record.archived_at ? <ArchivedTitle /> : null}
         <div className="flex-1">
           <div className="flex justify-between items-start mb-8">
-            <div className="flex items-center gap-4">
+            <div className="flex flex-col">
               <h2 className="text-2xl font-semibold">
                 <ReferenceField
                   source="contact_id"
@@ -78,6 +80,10 @@ const DealShowContent = () => {
                   link="show"
                 />
               </h2>
+              {/* The memory cue sits with the name, which is where Leif is
+                  deciding what to do about this person. Renders nothing
+                  when the Contact has none. */}
+              <OpportunityContactIdentifiers contactId={record.contact_id} />
             </div>
             <div className={`flex gap-2 ${record.archived_at ? "" : "pr-12"}`}>
               {record.archived_at ? (
@@ -187,6 +193,12 @@ const DealShowContent = () => {
               metadata and well before Description/Notes, so its length
               (Judy Holloway's fixture Notes run very long) can never bury
               the action. */}
+          {/* The answer the Opportunity is waiting for, immediately after
+              the sales-call context it depends on: at Decision, what did
+              they decide; at Approved with no booking, is this still
+              alive. Renders nothing at any other stage. */}
+          <OpportunityDecisionActions deal={record} />
+
           <DealSalesCallSection />
 
           <div className="flex flex-wrap gap-8 m-4">

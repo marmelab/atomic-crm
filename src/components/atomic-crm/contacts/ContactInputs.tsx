@@ -211,6 +211,15 @@ const ContactMiscInputs = () => {
       <h6 className="text-lg font-semibold">
         {translate("resources.contacts.field_categories.misc")}
       </h6>
+      {/* Whatever brings this person back to mind, in Leif's own words
+          and his own order. Single free-text line rather than structured
+          profession/location/age fields: the examples are cues, not a
+          schema, and columns would both lose the ones that fit nothing
+          and demand values he does not have. */}
+      <TextInput
+        source="identifiers"
+        helperText="Memory cues, e.g. nurse · Florida · 50s · anxious"
+      />
       <TextInput source="background" multiline helperText={false} />
       <BooleanInput source="has_newsletter" helperText={false} />
       <ReferenceInput

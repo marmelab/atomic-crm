@@ -1,5 +1,9 @@
 import { useState } from "react";
 import { useGetList, useRecordContext, useTranslate } from "ra-core";
+import {
+  describeSalesCallState,
+  selectCurrentSalesCall,
+} from "./selectCurrentSalesCall";
 import { CheckCircle2, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -78,12 +82,16 @@ export const DealSalesCallSection = () => {
     "sales_calls",
     {
       filter: { opportunity_id: record?.id },
-      pagination: { page: 1, perPage: 1 },
+      // Every call, not just the most recently created one: which call is
+      // CURRENT is a question about schedules and statuses, not insertion
+      // order, and the prior ones are the history shown beneath it.
+      pagination: { page: 1, perPage: 50 },
       sort: { field: "id", order: "DESC" },
     },
     { enabled: !!record },
   );
-  const salesCall = salesCalls?.[0];
+  const { current: salesCall, history: priorSalesCalls } =
+    selectCurrentSalesCall(salesCalls);
 
   if (!record || isPending) return null;
 
@@ -147,8 +155,8 @@ export const DealSalesCallSection = () => {
       {salesCall.status === "cancelled" ? (
         <div className="flex flex-col gap-1">
           <span className="text-sm font-medium">
-            {translate("resources.deals.sales_call.name", {
-              _: "Sales Call",
+            {translate("resources.deals.sales_call.latest_heading", {
+              _: "Latest Sales Call",
             })}
           </span>
           <Badge variant="outline" className="self-start">
@@ -156,6 +164,9 @@ export const DealSalesCallSection = () => {
               _: "Cancelled",
             })}
           </Badge>
+          <span className="text-sm text-muted-foreground">
+            {formatSalesCallScheduleWithPrecision(salesCall)}
+          </span>
         </div>
       ) : isPendingOutcome ? (
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -244,12 +255,42 @@ export const DealSalesCallSection = () => {
         </>
       )}
 
+      <PriorSalesCalls calls={priorSalesCalls} />
+
       <CompleteSalesCallDialog
         open={completeDialogOpen}
         onOpenChange={setCompleteDialogOpen}
         salesCallId={salesCall.id}
         contactName={contactName}
       />
+    </div>
+  );
+};
+
+// The calls that came before the current one, most recent first.
+//
+// Mihaela Petrova is why this exists: her relationship reads "cancelled in
+// September, after a no-show in July", and showing only one of those two
+// facts — whichever one happened to win the sort — described a different
+// person each time. Compact on purpose: this is context for the decision
+// above it, not a second screen.
+const PriorSalesCalls = ({ calls }: { calls: SalesCall[] }) => {
+  const translate = useTranslate();
+  if (!calls.length) return null;
+
+  return (
+    <div className="flex flex-col gap-1 border-t pt-3">
+      <span className="text-xs uppercase tracking-wide text-muted-foreground">
+        {translate("resources.deals.sales_call.previous_heading", {
+          _: "Previously",
+        })}
+      </span>
+      {calls.map((call) => (
+        <span key={call.id} className="text-sm text-muted-foreground">
+          {formatSalesCallScheduleWithPrecision(call)} ·{" "}
+          {describeSalesCallState(call)}
+        </span>
+      ))}
     </div>
   );
 };

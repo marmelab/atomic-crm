@@ -12,33 +12,23 @@ export const DealColumn = ({
   stage: string;
   deals: Deal[];
 }) => {
-  const totalAmount = deals.reduce((sum, deal) => sum + deal.amount, 0);
-  const { dealStages, currency } = useConfigurationContext();
+  const { dealStages } = useConfigurationContext();
   return (
     <div className="flex-1 pb-8">
       <div className="flex flex-col items-center">
         <h3 className="text-base font-medium">
           {findDealLabel(dealStages, stage)}
-          {/* Opportunity count alongside the stage name (UX cleanup pass,
-              §2) — funnel volume next to dollar value, without a bulky
-              badge; deals.length is exactly the visible/current
-              Opportunities in this column (the same array DealCard.tsx
-              already renders below, and totalAmount below is already
-              derived from). Card dimensions/content are untouched. */}
+          {/* Opportunity count alongside the stage name: funnel volume,
+              which is what a pipeline column is actually measuring. The
+              stage-total dollar figure that used to sit under it is gone
+              for the same reason money left the cards — it turned an
+              operational board into a forecast, and "$0.00" under an
+              empty column was noise pretending to be information. */}
           <span className="text-muted-foreground font-normal">
             {" "}
             · {deals.length}
           </span>
         </h3>
-        <p className="text-sm text-muted-foreground">
-          {totalAmount.toLocaleString("en-US", {
-            notation: "compact",
-            style: "currency",
-            currency,
-            currencyDisplay: "narrowSymbol",
-            minimumSignificantDigits: 3,
-          })}
-        </p>
       </div>
       <Droppable droppableId={stage}>
         {(droppableProvided, snapshot) => (
