@@ -2,44 +2,60 @@
 
 # Agent Workflow
 
-Code-change requests can run through the **agent harness**: subagents (planner, developer, quality-reviewer, merger, documentator) implementing the change via a deterministic foreground pipeline in git worktrees. **Opt-in, off by default;** otherwise the main thread implements the change itself.
+Code-change requests can run through the **agent harness**: subagents (planner, developer,
+quality-reviewer, merger, documentator) implementing the change via a deterministic
+foreground pipeline in git worktrees, under hook enforcement. **Opt-in, off by default;**
+otherwise the main thread implements the change itself.
 
-**Dispatch rule (top-level session only).** Only on an opt-in (see "Opting in") does the top-level session dispatch the `orchestrator` and relay its result; never route or implement it yourself then. Pass your `<session_dir>` in the prompt (it namespaces worktrees/branches). A subagent NEVER dispatches an orchestrator (`block-nested-orchestrator` enforces it). The orchestrator owns all routing (SIMPLE/COMPLEX, plus SETUP/MEMORY/ROLLBACK-CONFLICT/RECOVERY, dispatch templates, waves, promotion, migration round) and drives the team to a terminal point. Each agent's last line is an output contract (`.claude/rules/agent-output-format.md`).
+The harness is **not in this repo**. It ships as the `aiharness` Claude Code plugin
+(<https://github.com/marmelab/AIHarness>), declared in `.claude/settings.json`
+(`extraKnownMarketplaces` + `enabledPlugins`). Its hooks, agents, rules, commands and
+generic skills come from there; this repo supplies only the project layer:
 
-**"Launched" is NOT "done".** The dispatch is meant to block, but some runtimes (interactive Claude Code / the VS Code extension) return immediately with `Async agent launched … agentId: <id>` and deliver the result later as a `task-notification`. That ack means dispatched, not finished: do NOT fill the silence by implementing the feature yourself or re-dispatching (that duplicates the developer's work). While it runs, only surface progress, then relay the final report. On completion, before relaying, check `<session_dir>/needs-recovery` (written by `completion-invariant` when the orchestrator stopped with APPROVED-but-unmerged work): if present, dispatch a FRESH `orchestrator` with `<intent>recovery</intent>` and the same `<session_dir>` (never `SendMessage` the old one), wait, then relay.
+- **`harness.config.json`** — the contract the plugin reads: validation steps, roles,
+  allowed containers, the Supabase deploy adapter, the app smoke command, the launcher
+  extension points, and the developer skill menu.
+- **`.claude/skills/`** — the domain skills (`frontend-dev`, `backend-dev`,
+  `shadcn-customization`, `delete-initial-resource`, `update-branding`).
+- **`.claude/settings.json`** — permissions, env, plugin declarations.
 
-**Resuming after a restart.** Closing the VS Code window / editor (or rebooting) between two harness steps kills the orchestrator's background process, but Claude Code reuses the SAME session id when you reopen the conversation, so the harness namespace (`<session_dir>`, `session/<short>` branch, worktrees) is unchanged. The gate pauses (plan gate, migration gate) are the exposed windows: the orchestrator has ended its turn and this thread is idle awaiting you, so a `task-notification` for the old (now dead) process will never arrive. Two things make resume work: (1) `cleanup-session` no longer deletes an in-flight session's state on a clean close, and (2) the `session-bootstrap` SessionStart hook detects in-flight state for the current session and injects a `<harness_resume>` banner naming the phase. When you see that banner (or the user asks to continue an interrupted harness), dispatch a FRESH `orchestrator` with `<intent>recovery</intent>` and the same `<session_dir>` (from the banner / the earlier turns), wait, then relay. NEVER `SendMessage` the previous orchestrator (it is dead) and never re-implement the work yourself. This is keyed on the current session id only, so a second concurrent window (its own session id) is never offered another session's work.
-
-**PD-ASK round-trip (migration confirmation).** The orchestrator may end its turn asking *"apply the database migration now?"* (it does not under `gate=none`, which auto-applies; see "Gate level"). Relay it to the user; do NOT `SendMessage` the old orchestrator to relay the answer (relayed approvals carry no user authority, so it loops re-asking). On the reply:
-- **Approved**: FIRST write `<session_dir>/migration-approval.json` = `{"kind":"migration-approval","session_id":"<id>","question":"<asked>","answer":"<user's verbatim reply>","approved_at":"<ISO-8601>","via":"AskUserQuestion"}` (the durable audit trail). THEN dispatch a FRESH `orchestrator` whose prompt begins `<intent>apply-migration</intent>`, states the approval, references that record, and passes the same `<session_dir>`. The built-in security warning on a relayed approval is expected.
-- **Wants changes**: dispatch a fresh `orchestrator` with the new request.
-
-While a fresh dispatch runs, don't start a parallel plan B; wait, then relay.
-
-**Gate level.** A request may carry `gate=none|migration|plan|waves` (default **`plan`**); ALWAYS pass an explicit `GATE: <level>` line (the orchestrator also fails closed to `plan` on a missing/unknown value). There are two independent pause points: the **plan gate** (after planning) and the **migration gate** (before applying the deploy-time migration).
-- `none`: fully autonomous. No plan pause, and it applies the migration itself with no confirmation.
-- `migration`: pauses after planning for ticket review, and stops to confirm before the migration (same stops as `plan`; a named alias that states the migration stop explicitly).
-- `plan` (default): pauses after planning for ticket review, and stops at the migration.
-- `waves`: pauses after planning, after each wave, and at the migration.
-
-On the web-chat surface (CRM Builder, `<mode>` tag present) the "save to your data?" confirmation is surface-owned and always shown regardless of gate; `none` auto-apply is a developer-surface behavior. On a plan pause, so the user reviews the REAL tickets (not just your prose summary) on ANY surface (desktop app, CLI, editor), **read the ticket JSONs from `<session_dir>/tickets/` and present each ticket's key fields inline** in the chat: id, title, `acceptance_criteria`, `files_to_modify`, `dependencies`. This inline rendering is the part that must ALWAYS be present (it does not depend on any editor layout). Additionally, offer an openable reference when you can: if a `.harness-session` symlink exists at the workspace root (the `link-session-workspace` hook maintains it in a VS Code multi-root workspace), link `[tickets](.harness-session/tickets/)`; otherwise just give the absolute `<session_dir>/tickets/` path. On approval dispatch a FRESH `orchestrator` with `<intent>execute-plan</intent>` and the same `<session_dir>` (never `SendMessage`); on "wants changes" dispatch a fresh one. CRM Builder's launcher sets `gate=none`.
+The plugin's `HARNESS-SPLIT.md` documents which layer owns what, and why.
 
 ## Opting in
 
-Off by default. `#harness` (or "use the agent team" / "with the harness") routes through the orchestrator; "harness for this session" keeps it on all session.
+`#harness` (or "use the agent team" / "with the harness") routes a request through the
+orchestrator; "harness for this session" keeps it on all session. `#technical-harness` is
+the same opt-in with the full technical register, and it stops at the session branch
+without promoting.
 
-**Grill vague requests first.** For a vague or broad `#harness` request, run `Skill({skill: "grill-me"})` in the main thread BEFORE dispatching (the planner never questions; `gate=plan` only reacts after a plan). Fold the answers into the dispatch prompt. Skip when the request is already precise.
+A request may carry `gate=none|migration|plan|waves`, default **`plan`**: it pauses after
+planning so you review the real tickets, and stops before applying a database migration.
 
-`#technical-harness` is the same opt-in for a real developer: it appends a `PERSONA: technical` line (see `orchestrator.md` -> "`PERSONA: technical`"), which (1) uses the full technical register (file paths, `TASK-XXX`, git terms, `database`/`migration`/`Supabase`), (2) reports the mechanical truth (per-ticket status, branches, SHAs, verdicts, ADR paths), (3) stops at `session/<id>` (no promotion, no migration round; you promote and migrate yourself), and (4) appends every step to `<session_dir>/harness-progress.log`.
+On **every** `#harness` request, run `Skill({skill: "grill-me"})` first and fold its
+answers into the dispatch. Do not judge beforehand whether the request is vague enough:
+the skill's own Step 0 makes that call and exits in one line when the scope is already
+precise, so a run with no questions still tells you why. Judging first is what made this
+fire inconsistently.
 
-**Live progress (technical runs).** The report lands only at the end (possibly as a `task-notification`), so surface a live view WITHOUT flooding the chat with a raw log tail. The `render-status` SubagentStop hook renders `.harness/<SESSION_SHORT_ID>/{STATUS.md,TICKETS.md,status.json,session.diff}` (gitignored, per-session, cleaned at SessionEnd) from the live session state after every agent stop. **It does not exist until the first agent stops**, so during initial planning there is no board yet: do NOT present its path at dispatch (a link then is dead: "Couldn't read this file"). Relay it only from the plan-gate pause onward, once the files exist; at dispatch, just say the board will be available once planning completes. `STATUS.md` lists tickets (status + review verdict), live worktrees, a changed-files summary, and recent activity, updating itself as agents finish; `TICKETS.md` is the readable plan; `session.diff` is the actual code the harness changed (the extension does not surface the `/tmp` worktree diffs, so this file is how the user reads them). **Give a path that resolves in the user's client - always the ABSOLUTE path.** The board lives at `<repo>/.harness/<SESSION_SHORT_ID>/`. A bare relative `.harness/...` fails with "outside the working directory" on both the desktop app and a multi-root VS Code workspace, because the client resolves it from the workspace root, not the repo subfolder. So ALWAYS give the absolute path (`<repo>/.harness/<SESSION_SHORT_ID>/STATUS.md`): the desktop app's file pane opens arbitrary absolute paths, and it is the universal fallback. Markdown relative links to `.harness/...` (and to the `.harness-session/` symlink) are unreliable in the VS Code extension - observed: clicking does nothing - so do NOT rely on them. Give the ABSOLUTE path (the desktop file pane opens it, and it copy-pastes cleanly everywhere), and to put openable ticket CONTENT in the chat, `Read` the JSON: a `Read` renders a clickable file card that actually opens, which the plan-gate inline render already does. An opt-in compact statusline is available (`.claude/scripts/harness-statusline.mjs`; wire it in your own `settings.local.json`, see its header) - not committed, since it would override a personal statusline. It is **CLI-only** (the terminal statusline); it does NOT render in the VS Code extension or the desktop app, so on those surfaces use the board or the Monitor feed below. Dispatch the orchestrator with `run_in_background: true`. Prefer the board; for a live in-chat feed on ANY surface (extension / desktop / CLI), a `Monitor({command: "tail -n +1 -F <session_dir>/harness-progress.log", ...})` streams each NEW log line as a chat notification the moment it is written - now including the `[validate:TASK-XXX] typecheck…` / `… checks passed` step lines the `validate-on-stop` hook appends, so the minutes-long silent stretches between milestones (a developer's typecheck / lint / vitest / e2e) are visible instead of going dark. It is a line feed, not a rendered board, and is auto-rate-limited if the log is too chatty, so keep the log at milestone/step granularity. The authoritative end signal is the `task-notification`, not the log: on it, `TaskStop` any monitor, relay the report, and run `/harness-diff` on the session branch it stopped on.
+Waiting for the pipeline to ask instead does not work. The planner stops for **one**
+question, and only when a request is too vague to decompose at all, by which point the
+dispatch prompt is already written; `gate=plan` only reacts after a plan exists.
 
-## Agents
+**"Launched" is not "done".** Some runtimes return `Async agent launched … agentId: <id>`
+immediately and deliver the result later as a `task-notification`. That ack means
+dispatched, not finished: do not fill the silence by implementing the feature yourself or
+re-dispatching. Surface progress, then relay the final report.
 
-orchestrator (routes the harness, dispatched by the main thread), planner, developer, quality-reviewer, merger, documentator. Models: **planner** and **quality-reviewer** on opus, the rest on sonnet/haiku (see each `.claude/agents/*.md`). The web-chat variant is this orchestrator with a non-technical persona injected via `--append-system-prompt` (CRM Builder).
+## Where things are
 
-The **developer** is one agent, no modes: it implements a `TICKET_FILE` (COMPLEX wave, peer-reviewed, ADRs for structural decisions, never SQL during tickets) or an inline `CHANGE_REQUEST` (SIMPLE, on the shared `<base>/simple` worktree; refuses `FAILED: out of scope, needs COMPLEX flow` if it needs a breakdown). Two session ops reach it as dispatch-loaded skills on `<base>/simple`: `writing-migrations` and `resolving-rollback-conflicts`. It applies the **Ponytail** ladder (full mode) on every change (baked into `developer.md`; the quality-reviewer enforces it on the diff). Ponytail is also in-repo as `.claude/skills/ponytail*` / `/ponytail*` for interactive use (these do not affect the dev agents). An optional `test-writer` runs only when a ticket sets `separate_test_writer: true`.
+| What | Where |
+|---|---|
+| Hooks, agents, rules, commands, generic skills | the `aiharness` plugin |
+| Project contract | `harness.config.json` |
+| Domain skills | `.claude/skills/` |
+| Deploy adapter (Supabase migrations, isolated e2e) | the plugin's `adapters/supabase` |
+| Live board for a `#technical-harness` run | `<repo>/.harness/<SESSION_SHORT_ID>/` |
 
-## Rules & hooks
-
-Mechanics live in `.claude/rules/` (worktree-scope, agent-output-format, validation-commands, lsp-usage, security-triggers, dependency-safety, launcher-interface). Project facts (validation steps, roles, deploy adapter, app smoke, launcher extension points) live in `harness.config.json`. Hooks in `.claude/settings.json` / `.claude/hooks/` are `.mjs` ES modules.
+To upgrade the harness, bump the plugin. To change what validation runs, or which
+containers the agents may start, edit `harness.config.json` — never a command string in a
+hook.
