@@ -311,57 +311,6 @@ export const handleRescheduled = async (
 // stage) never lets a lead silently strand. See that file's own comment
 // for the full rationale; this is the hand-mirrored production copy
 // (Deno Edge Functions can't import from src/).
-const ensureSalesCallCancelledFollowUp = async (params: {
-  opportunityId: number | null;
-  contactId: number;
-}): Promise<void> => {
-  if (params.opportunityId == null) return;
-
-  const { data: deal } = await supabaseAdmin
-    .from("deals")
-    .select("id, stage")
-    .eq("id", params.opportunityId)
-    .maybeSingle();
-  if (!deal || deal.stage !== "call_booked") return;
-
-  const { data: otherBooked } = await supabaseAdmin
-    .from("sales_calls")
-    .select("id")
-    .eq("opportunity_id", params.opportunityId)
-    .eq("status", "booked")
-    .limit(1);
-  if (otherBooked && otherBooked.length > 0) return;
-
-  const { data: existingTask } = await supabaseAdmin
-    .from("tasks")
-    .select("id, done_date")
-    .eq("contact_id", params.contactId)
-    .eq("type", "sales_call_cancelled");
-  const pending = (
-    (existingTask ?? []) as { id: number; done_date: string | null }[]
-  ).find((task) => !task.done_date);
-  if (pending) return;
-
-  const { data: contact } = await supabaseAdmin
-    .from("contacts")
-    .select("first_name, last_name")
-    .eq("id", params.contactId)
-    .maybeSingle();
-  const contactName = contact
-    ? `${contact.first_name ?? ""} ${contact.last_name ?? ""}`.trim()
-    : "This contact";
-
-  const salesId = await resolveDefaultTaskSalesId();
-  await supabaseAdmin.from("tasks").insert({
-    contact_id: params.contactId,
-    type: "sales_call_cancelled",
-    text: `${contactName}'s sales call was cancelled — decide next steps`,
-    due_date: new Date().toISOString(),
-    status: "pending",
-    ...(salesId != null ? { sales_id: salesId } : {}),
-  });
-};
-
 export const handleCanceled = async (
   acuityAppointmentId: string,
 ): Promise<Response> => {
@@ -381,36 +330,41 @@ export const handleCanceled = async (
     return jsonResponse({ status: "already-cancelled" });
   }
 
-  const now = new Date().toISOString();
-  await supabaseAdmin
-    .from("sales_calls")
-    .update({ status: "cancelled", cancelled_at: now })
-    .eq("id", row.id);
-  await supabaseAdmin.from("sales_call_events").insert({
-    sales_call_id: row.id,
-    kind: "cancelled",
-    occurred_at: now,
-  });
-
-  const { data: pendingTask } = await supabaseAdmin
-    .from("tasks")
-    .select("id, done_date")
-    .eq("contact_id", row.contact_id)
-    .eq("type", "sales_call");
-  const pending = (
-    (pendingTask ?? []) as { id: number; done_date: string | null }[]
-  ).find((task) => !task.done_date);
-  if (pending) {
-    await supabaseAdmin
-      .from("tasks")
-      .update({ status: "cancelled" })
-      .eq("id", pending.id);
+  // The canonical cancellation, not a second implementation of it.
+  //
+  // This used to cancel the call and close the task by hand, and silently
+  // omitted the one step that matters most: returning the Opportunity to
+  // Approved. Call Booked asserts that a call is booked, so a cancelled
+  // call left the Opportunity claiming a booking that no longer existed.
+  // It produced exactly that in production — Susan Hendriks sat in Call
+  // Booked with a cancelled call and nothing in the calendar — while the
+  // manual path and the app mirror both handled it correctly. Three
+  // implementations of "cancel a sales call", and the one reached by
+  // Acuity was the incomplete one.
+  //
+  // record_sales_call_cancelled() is the single transactional definition
+  // (supabase/schemas/02_functions.sql): it refuses to overwrite an
+  // attended call, cancels the call, appends the history event, cancels
+  // the tasks for it, and returns the Opportunity to Approved only while
+  // it is still active. Calling it here is what makes "manual and Acuity
+  // cancellation converge" true rather than merely intended.
+  const { error: cancelError } = await supabaseAdmin.rpc(
+    "record_sales_call_cancelled",
+    { p_sales_call_id: row.id },
+  );
+  if (cancelError) {
+    return jsonResponse(
+      { status: "cancel-failed", reason: cancelError.message },
+      500,
+    );
   }
 
-  await ensureSalesCallCancelledFollowUp({
-    opportunityId: row.opportunity_id,
-    contactId: row.contact_id,
-  });
-
+  // No "decide what happens next" task is created any more. That task
+  // existed because a cancellation used to STRAND the Opportunity in Call
+  // Booked with no call, and something had to flag it. It does not strand
+  // any more — the Opportunity returns to Approved, where the Approved
+  // actions (keep waiting / nurture / lost) are the real answer. The app
+  // path and the RPC retired this task in the Pipeline Truth Pass; the
+  // webhook was the last place still creating it.
   return jsonResponse({ status: "cancelled" });
 };

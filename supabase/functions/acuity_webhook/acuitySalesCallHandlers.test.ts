@@ -75,7 +75,79 @@ function createFakeDb(seed: Record<string, Row[]>) {
     return builder;
   };
 
-  return { from, tables };
+  // A faithful stand-in for record_sales_call_cancelled()
+  // (supabase/schemas/02_functions.sql) — the single transactional
+  // definition of cancelling a sales call. Mirrored here rather than
+  // reimplemented differently, because a fake that behaved differently
+  // from the real function would hide exactly the class of bug this
+  // convergence exists to prevent.
+  const rpc = (name: string, args: Record<string, unknown>) => {
+    if (name !== "record_sales_call_cancelled") {
+      return Promise.resolve({
+        data: null,
+        error: { message: "unknown rpc " + name },
+      });
+    }
+    const call = (tables.sales_calls ?? []).find(
+      (r) => r.id === args.p_sales_call_id,
+    );
+    if (!call)
+      return Promise.resolve({ data: { status: "not-found" }, error: null });
+    if (call.attendance === "attended") {
+      return Promise.resolve({
+        data: { status: "already-attended" },
+        error: null,
+      });
+    }
+
+    const now = new Date().toISOString();
+    const alreadyCancelled = call.status === "cancelled";
+    if (!alreadyCancelled) {
+      call.status = "cancelled";
+      call.cancelled_at = call.cancelled_at ?? now;
+      (tables.sales_call_events ??= []).push({
+        id: nextId++,
+        sales_call_id: call.id,
+        kind: "cancelled",
+        occurred_at: now,
+      });
+    }
+
+    for (const task of tables.tasks ?? []) {
+      if (
+        task.sales_call_id === call.id &&
+        (task.status === "pending" || task.status === "waiting")
+      ) {
+        task.status = "cancelled";
+      }
+    }
+
+    let returned = false;
+    if (call.opportunity_id != null) {
+      for (const deal of tables.deals ?? []) {
+        if (
+          deal.id === call.opportunity_id &&
+          deal.stage === "call_booked" &&
+          deal.outcome == null &&
+          deal.archived_at == null
+        ) {
+          deal.stage = "approved";
+          deal.stage_entered_at = now;
+          returned = true;
+        }
+      }
+    }
+
+    return Promise.resolve({
+      data: {
+        status: alreadyCancelled ? "already-cancelled" : "cancelled",
+        deal_returned_to_approved: returned,
+      },
+      error: null,
+    });
+  };
+
+  return { from, rpc, tables };
 }
 
 const fakeDb = vi.hoisted(() => ({
@@ -85,6 +157,8 @@ const fakeDb = vi.hoisted(() => ({
 vi.mock("../_shared/supabaseAdmin.ts", () => ({
   supabaseAdmin: {
     from: (table: string) => fakeDb.current!.from(table),
+    rpc: (name: string, args: Record<string, unknown>) =>
+      fakeDb.current!.rpc(name, args),
   },
 }));
 
@@ -442,7 +516,7 @@ describe("acuitySalesCallHandlers", () => {
         ],
       });
 
-    it("marks the call cancelled and cancels the pending task, without touching Opportunity stage", async () => {
+    it("returns the Opportunity to Approved, converging with the manual path", async () => {
       fakeDb.current = bookedFixture();
       fakeDb.current.tables.deals = [
         {
@@ -466,17 +540,23 @@ describe("acuitySalesCallHandlers", () => {
       expect(fakeDb.current.tables.sales_call_events[0]).toMatchObject({
         kind: "cancelled",
       });
-      expect(fakeDb.current.tables.tasks[0].status).toBe("cancelled");
-      // Never attendance, never a stage change.
-      expect(fakeDb.current.tables.deals[0].stage).toBe("call_booked");
-      // GYU real-infrastructure slice, human-acceptance repair pass: the
-      // Opportunity is still Call Booked with no active call — a new
-      // "decide what happens next" task must exist, not silently strand.
+      // Call Booked asserts that a call is booked. A cancelled call left
+      // the Opportunity claiming a booking that no longer existed —
+      // production drift this produced for real (Susan Hendriks sat in
+      // Call Booked with nothing in the calendar) while the manual path
+      // and the app mirror both handled it correctly. All three now go
+      // through record_sales_call_cancelled().
+      expect(fakeDb.current.tables.deals[0].stage).toBe("approved");
+      // Attendance is still never invented: nobody showed up or failed to.
+      expect(fakeDb.current.tables.sales_calls[0].attendance).toBeUndefined();
+      // The "decide what happens next" task is NOT created any more, and
+      // must not be: it existed only because a cancellation used to strand
+      // the Opportunity in Call Booked with no call. It no longer strands,
+      // and the Approved actions are where that decision is made.
       const followUpTasks = fakeDb.current.tables.tasks.filter(
         (task) => task.type === "sales_call_cancelled",
       );
-      expect(followUpTasks).toHaveLength(1);
-      expect(followUpTasks[0].status).toBe("pending");
+      expect(followUpTasks).toHaveLength(0);
     });
 
     it("a duplicate cancellation webhook is a safe no-op", async () => {
