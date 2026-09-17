@@ -875,7 +875,17 @@ create table public.sales_calls (
     -- unique-violation. See completeSalesCallOutcome.ts's own comment.
     constraint sales_calls_status_check check (status in ('booked', 'completed', 'cancelled')),
     constraint sales_calls_attendance_check check (attendance in ('attended', 'no_show')),
-    constraint sales_calls_source_check check (source in ('acuity', 'manual'))
+    constraint sales_calls_source_check check (source in ('acuity', 'manual')),
+    constraint sales_calls_schedule_precision_check check (schedule_precision in ('exact', 'date_only')),
+    -- No row may claim a time it does not have, and no real appointment may
+    -- lose the time it does.
+    constraint sales_calls_schedule_shape_check check (
+        (schedule_precision = 'exact' and original_scheduled_at is not null and scheduled_at is not null)
+        or (schedule_precision = 'date_only' and original_scheduled_at is null and scheduled_at is null)
+    ),
+    -- A date-only call is history: there is no time to show up at, so it can
+    -- never be a live booking.
+    constraint sales_calls_date_only_not_booked_check check (schedule_precision = 'exact' or status <> 'booked')
 );
 
 -- Defense-in-depth alongside the domain-layer duplicate-booking check

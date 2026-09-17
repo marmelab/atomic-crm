@@ -6,10 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 
-import { formatTimestampWithTimeString } from "../deals/dealUtils";
 import type { Deal } from "../types";
 import type { SalesCallResolutionContext } from "./loadSalesCallResolutionContext";
 import { loadSalesCallResolutionContext } from "./loadSalesCallResolutionContext";
+import { formatSalesCallScheduleWithPrecision } from "./salesCallSchedule";
 import {
   attachSalesCallToOpportunity,
   createOpportunityAndAttachSalesCall,
@@ -236,7 +236,7 @@ export const ResolveSalesCallPage = () => {
                 ` · ${context.offer.name}${context.cohort ? ` — ${context.cohort.name}` : ""}`}
             </span>
             <span className="text-sm text-muted-foreground">
-              {formatTimestampWithTimeString(salesCall.scheduled_at)}
+              {formatSalesCallScheduleWithPrecision(salesCall)}
             </span>
           </div>
 

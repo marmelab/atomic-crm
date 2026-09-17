@@ -973,20 +973,25 @@ CREATE OR REPLACE FUNCTION "public"."sync_deal_sales_call_at"() RETURNS "trigger
     AS $$
 declare
   v_opportunity_id bigint;
-  v_latest timestamp with time zone;
+  v_latest timestamptz;
 begin
   v_opportunity_id := coalesce(new.opportunity_id, old.opportunity_id);
   if v_opportunity_id is null then
     return coalesce(new, old);
   end if;
 
-  select scheduled_at into v_latest
-    from sales_calls
-    where opportunity_id = v_opportunity_id and status = 'booked'
-    order by scheduled_at desc
-    limit 1;
+  select sc.scheduled_at into v_latest
+    from sales_calls sc
+   where sc.opportunity_id = v_opportunity_id
+     and sc.status = 'booked'
+     and sc.schedule_precision = 'exact'
+   order by sc.scheduled_at desc
+   limit 1;
 
-  update deals set sales_call_at = v_latest where id = v_opportunity_id;
+  update deals
+     set sales_call_at = v_latest
+   where id = v_opportunity_id
+     and sales_call_at is distinct from v_latest;
 
   return coalesce(new, old);
 end;

@@ -19,7 +19,15 @@ export const PeopleDeciding = () => {
   // Pipeline — that field is set on one Opportunity out of 120, so the
   // Dashboard reported nobody deciding while 8 people were.
   const { data: deals, isPending: isPendingDeals } = useGetList<Deal>("deals", {
-    filter: { stage: DECIDING_STAGE, "archived_at@is": null },
+    // Stage only. The archived/outcome half of "active" is applied by
+    // isPersonDeciding below rather than in the query: an "is null"
+    // operator has to survive the provider's filter translation, and when
+    // it does not the whole list comes back empty — which is exactly how
+    // this said "Nobody is currently deciding" while the Pipeline showed
+    // eight people. Decision-stage Opportunities number in the single
+    // digits, so filtering the rest in memory costs nothing and cannot
+    // silently return zero.
+    filter: { stage: DECIDING_STAGE },
     pagination: { page: 1, perPage: 50 },
     sort: { field: "follow_up_date", order: "ASC" },
   });

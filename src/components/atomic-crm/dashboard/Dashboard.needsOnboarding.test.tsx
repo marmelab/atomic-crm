@@ -136,18 +136,113 @@ describe("Dashboard — Needs Onboarding", () => {
     const screen = await render(buildTestCrm());
 
     await expect
-      .element(
-        screen.getByText("Ada Lovelace paid $1,400 USD — Growing Yourself Up"),
-      )
+      .element(screen.getByText(/Ada Lovelace — Growing Yourself Up/))
       .toBeInTheDocument();
+    // This client has a simple Deal snapshot and NO payment schedule, so
+    // there is no record of money being collected. The card states the
+    // agreed figure and stops there — saying "paid $1,400" off a contract
+    // value is what announced a $400 deposit as a full payment.
+    await expect
+      .element(screen.getByText(/\$1,400 USD agreed/))
+      .toBeInTheDocument();
+    await expect
+      .element(screen.getByText(/paid \$1,400/))
+      .not.toBeInTheDocument();
     await expect
       .element(screen.getByText("onboarding 1/2 complete"))
       .toBeInTheDocument();
 
     const link = screen.getByRole("link", {
-      name: /Ada Lovelace paid/,
+      name: /Ada Lovelace/,
     });
     await expect.element(link).toHaveAttribute("href", "/enrollments/1/show");
+  });
+
+  // Lara Spagnola's real shape: $1,400 agreed, $400 deposit paid, $1,000
+  // due on a future date. Production announced her as "paid $1,400 USD".
+  it("states a deposit client's ACTUAL paid amount, and keeps her in Needs Onboarding", async () => {
+    await page.viewport(1280, 900);
+    const dataProvider = createDataProvider({
+      db: createCrmDb({
+        contacts: [
+          buildContact({ id: 1, first_name: "Ada", last_name: "Lovelace" }),
+        ],
+        offers: [gyuOffer],
+        deals: [wonDeal],
+        enrollments: [enrollment],
+        enrollment_onboarding_items: items,
+        deal_payment_schedule_items: [
+          {
+            id: 1,
+            deal_id: wonDeal.id,
+            amount: 400,
+            sequence: 1,
+            due_date: null,
+            status: "paid",
+            paid_on: null,
+            source: "owner_stated",
+            stripe_payment_intent_id: null,
+            notes: null,
+            created_at: "2026-09-17T00:00:00.000Z",
+            updated_at: "2026-09-17T00:00:00.000Z",
+          },
+          {
+            id: 2,
+            deal_id: wonDeal.id,
+            amount: 1000,
+            sequence: 2,
+            due_date: "2027-01-01",
+            status: "scheduled",
+            paid_on: null,
+            source: "owner_stated",
+            stripe_payment_intent_id: null,
+            notes: null,
+            created_at: "2026-09-17T00:00:00.000Z",
+            updated_at: "2026-09-17T00:00:00.000Z",
+          },
+        ],
+      }),
+      silent: true,
+    });
+
+    const screen = await render(
+      <MemoryRouter initialEntries={["/"]}>
+        <CRM
+          dataProvider={dataProvider}
+          authProvider={createTestAuthProvider()}
+          i18nProvider={testI18nProvider}
+          store={memoryStore()}
+          disableTelemetry
+          layout={({ children }) => (
+            <>
+              {children}
+              <Notification />
+            </>
+          )}
+        />
+      </MemoryRouter>,
+    );
+
+    // Still needs onboarding: eligibility is Enrollment state, never
+    // whether the balance is settled.
+    await expect
+      .element(screen.getByText(/Ada Lovelace — Growing Yourself Up/))
+      .toBeInTheDocument();
+    await expect
+      .element(screen.getByText("onboarding 1/2 complete"))
+      .toBeInTheDocument();
+
+    // The actual money: what was collected, and what is still scheduled.
+    await expect
+      .element(screen.getByText(/\$400 USD paid · \$1,000 USD scheduled/))
+      .toBeInTheDocument();
+    // The contract value must never be presented as paid.
+    await expect
+      .element(screen.getByText(/paid \$1,400/))
+      .not.toBeInTheDocument();
+    await expect
+      .element(screen.getByText(/\$1,400 USD paid/))
+      .not.toBeInTheDocument();
   });
 
   it("never shows an Active (already onboarded) Enrollment in this section", async () => {

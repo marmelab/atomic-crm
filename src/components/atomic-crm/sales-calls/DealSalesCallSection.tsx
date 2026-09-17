@@ -8,9 +8,10 @@ import {
   ownerDecisions,
   prospectDecisions,
 } from "../deals/opportunityConstants";
-import { formatISODateString, formatTimestampString } from "../deals/dealUtils";
+import { formatISODateString } from "../deals/dealUtils";
 import type { Deal, SalesCall } from "../types";
 import { salesCallAttendances } from "./salesCallConstants";
+import { formatSalesCallScheduleWithPrecision } from "./salesCallSchedule";
 import { CompleteSalesCallDialog } from "./CompleteSalesCallDialog";
 import { LogSalesCallDialog } from "./LogSalesCallDialog";
 
@@ -165,7 +166,8 @@ export const DealSalesCallSection = () => {
               })}
             </span>
             <span className="text-base">
-              {formatTimestampString(salesCall.scheduled_at)}
+              {/* A historical date-only call has no clock time to show. */}
+              {formatSalesCallScheduleWithPrecision(salesCall)}
             </span>
             {salesCall.reschedule_count > 0 && (
               <span className="text-xs text-muted-foreground">

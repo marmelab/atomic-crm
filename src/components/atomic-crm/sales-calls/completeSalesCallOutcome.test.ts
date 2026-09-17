@@ -69,7 +69,9 @@ const buildFixtures = ({
     contact_id: CONTACT_ID,
     type: "sales_call",
     text: "Sales call with Ada Lovelace",
-    due_date: salesCall.scheduled_at,
+    // The fixture is always an exact-time call; the fallback only satisfies
+    // the now-nullable column type.
+    due_date: salesCall.scheduled_at ?? "2026-09-10T15:00:00.000Z",
     done_date: null,
     status: "pending",
     sales_id: 0,

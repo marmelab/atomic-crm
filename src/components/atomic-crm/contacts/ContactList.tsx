@@ -14,6 +14,10 @@ import { ExportButton } from "@/components/admin/export-button";
 import { List } from "@/components/admin/list";
 import { SelectAllButton } from "@/components/admin/select-all-button";
 import { SortButton } from "@/components/admin/sort-button";
+import {
+  CONTACT_DEFAULT_SORT,
+  CONTACT_SORT_OPTIONS,
+} from "./contactSortOptions";
 import { Card } from "@/components/ui/card";
 
 import type { Company, Contact, Sale, Tag } from "../types";
@@ -43,11 +47,10 @@ export const ContactList = () => {
       title={false}
       actions={<ContactListActions />}
       perPage={25}
-      // "Last seen" isn't a meaningful concept for this CRM (Contacts UX
-      // cleanup pass) — alphabetical by name is the simple, truthful
-      // default until a real business-specific "recent activity" concept
-      // exists.
-      sort={{ field: "last_name", order: "ASC" }}
+      // Newest-first, now that first_seen carries a real date for every
+      // Contact. The previous alphabetical default was correct while it
+      // did not — see contactSortOptions.ts.
+      sort={CONTACT_DEFAULT_SORT}
       exporter={exporter}
     >
       <ContactListLayoutDesktop />
@@ -90,13 +93,9 @@ const ContactBulkActionButtons = () => (
 
 const ContactListActions = () => (
   <TopToolbar>
-    {/* SortButton toggles ASC/DESC on the field you pick, so these four
-        fields are the eight orderings Leif asked for: date added and last
-        activity newest/oldest, and both names A-Z/Z-A. first_seen is when
-        the Contact was added; last_seen is their most recent activity. */}
-    <SortButton
-      fields={["last_name", "first_name", "first_seen", "last_seen"]}
-    />
+    {/* Every ordering named explicitly — see contactSortOptions.ts for why
+        the toggling `fields` API cannot express "oldest first". */}
+    <SortButton options={CONTACT_SORT_OPTIONS} />
     <ContactImportButton />
     <ExportButton exporter={exporter} />
     <CreateButton />
@@ -110,11 +109,10 @@ export const ContactListMobile = () => {
   return (
     <InfiniteListBase
       perPage={25}
-      // "Last seen" isn't a meaningful concept for this CRM (Contacts UX
-      // cleanup pass) — alphabetical by name is the simple, truthful
-      // default until a real business-specific "recent activity" concept
-      // exists.
-      sort={{ field: "last_name", order: "ASC" }}
+      // Newest-first, now that first_seen carries a real date for every
+      // Contact. The previous alphabetical default was correct while it
+      // did not — see contactSortOptions.ts.
+      sort={CONTACT_DEFAULT_SORT}
       exporter={exporter}
       queryOptions={{
         onError: () => {

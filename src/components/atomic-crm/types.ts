@@ -590,19 +590,32 @@ export type SalesCallStatus = "booked" | "completed" | "cancelled";
 export type SalesCallAttendance = "attended" | "no_show";
 export type SalesCallSource = "acuity" | "manual";
 
+export type SalesCallSchedulePrecision = "exact" | "date_only";
+
 export type SalesCall = {
   opportunity_id?: Identifier | null;
   contact_id: Identifier;
   status: SalesCallStatus;
+  // The DAY, always present in the database (NOT NULL there). Optional here
+  // only so the many existing fixtures predating it still typecheck; read it
+  // as `scheduled_on ?? scheduled_at` and the precision as
+  // `schedule_precision ?? "exact"`, which is what every pre-existing row is.
+  scheduled_on?: string;
+  // "exact" — a real appointment, both timestamps below are set.
+  // "date_only" — a historical call whose clock time no source ever
+  // recorded. Both timestamps are null, because midnight, noon or any
+  // other placeholder would state a time that never existed. Nothing may
+  // render a time for such a call.
+  schedule_precision?: SalesCallSchedulePrecision;
   // Set once at creation, never updated — the very first time this was
   // scheduled, independent of any later reschedule.
-  original_scheduled_at: string;
+  original_scheduled_at: string | null;
   // The current/latest scheduled time. Mirrored onto the owning
   // Opportunity's `sales_call_at` (a denormalized convenience field) by
   // the sales_calls "afterSave" sync — see providers/fakerest/
   // dataProvider.ts and, for production, the sync_deal_sales_call_at()
   // trigger.
-  scheduled_at: string;
+  scheduled_at: string | null;
   reschedule_count: number;
   last_rescheduled_at?: string | null;
   cancelled_at?: string | null;

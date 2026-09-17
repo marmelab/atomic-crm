@@ -51,6 +51,7 @@ type ButtonProps = React.ComponentProps<typeof Button>;
 const SortButtonComponent = (props: SortButtonProps) => {
   const {
     fields,
+    options,
     label = "ra.sort.sort_by",
     icon = defaultIcon,
     resource: _resource,
@@ -62,6 +63,14 @@ const SortButtonComponent = (props: SortButtonProps) => {
   const translateLabel = useTranslateLabel();
   const isMobile = useIsMobile();
   const [open, setOpen] = React.useState(false);
+
+  // An explicit ordering sets exactly what it says, with no toggling —
+  // picking "Date added — oldest first" must give ascending even when the
+  // list is already sorted by that field.
+  const handleChooseOption = (option: SortOption) => {
+    setSort({ field: option.field, order: option.order });
+    setOpen(false);
+  };
 
   const handleChangeSort = (field: string) => {
     setSort({
@@ -120,19 +129,34 @@ const SortButtonComponent = (props: SortButtonProps) => {
         </DropdownMenuTrigger>
       )}
       <DropdownMenuContent align="start">
-        {fields.map((field) => (
-          <DropdownMenuItem key={field} onClick={() => handleChangeSort(field)}>
-            {translateLabel({
-              resource,
-              source: field,
-            })}{" "}
-            {translate(
-              `ra.sort.${
-                sort.field === field ? inverseOrder(sort.order) : "ASC"
-              }`,
-            )}
-          </DropdownMenuItem>
-        ))}
+        {options
+          ? options.map((option) => (
+              <DropdownMenuItem
+                key={`${option.field}-${option.order}`}
+                onClick={() => handleChooseOption(option)}
+              >
+                {option.label ??
+                  `${translateLabel({ resource, source: option.field })} ${translate(
+                    `ra.sort.${option.order}`,
+                  )}`}
+              </DropdownMenuItem>
+            ))
+          : (fields ?? []).map((field) => (
+              <DropdownMenuItem
+                key={field}
+                onClick={() => handleChangeSort(field)}
+              >
+                {translateLabel({
+                  resource,
+                  source: field,
+                })}{" "}
+                {translate(
+                  `ra.sort.${
+                    sort.field === field ? inverseOrder(sort.order) : "ASC"
+                  }`,
+                )}
+              </DropdownMenuItem>
+            ))}
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -144,10 +168,27 @@ const inverseOrder = (sort: string) => (sort === "ASC" ? "DESC" : "ASC");
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const arePropsEqual = (prevProps: any, nextProps: any) =>
-  shallowEqual(prevProps.fields, nextProps.fields);
+  shallowEqual(prevProps.fields, nextProps.fields) &&
+  shallowEqual(prevProps.options, nextProps.options);
+
+// An explicit ordering, shown as its own menu entry. The `fields` API
+// below offers one entry per field and toggles direction on re-click, which
+// cannot express "oldest first" for a field you are not already sorting by
+// (a fresh field always starts ASC). For a date column that is exactly the
+// ordering somebody wants, so a list may instead name every ordering it
+// supports and label it in business language.
+export type SortOption = {
+  field: string;
+  order: "ASC" | "DESC";
+  // Business-language label, e.g. "Date added — newest first". Falls back
+  // to the field label plus direction when omitted.
+  label?: string;
+};
 
 export interface SortButtonProps extends ButtonProps {
-  fields: string[];
+  // Exactly one of these. `options` wins when both are given.
+  fields?: string[];
+  options?: SortOption[];
   icon?: React.ReactNode;
   label?: string;
   resource?: string;

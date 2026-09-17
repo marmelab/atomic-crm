@@ -6,17 +6,24 @@ import type {
   Contact,
   Enrollment,
   EnrollmentOnboardingItem,
+  DealPaymentScheduleItem,
 } from "../types";
+import {
+  resolveCommercialTerms,
+  type CommercialTerms,
+} from "../enrollments/resolveCommercialTerms";
 
 export type NeedsOnboardingRow = {
   enrollmentId: Identifier;
   contactName: string;
   offerName: string;
   // The amount actually charged so far — the first installment for a
-  // multi-payment plan, the full price for Pay-in-Full — never the plan's
-  // total. Same "first payment received, not plan paid in full" principle
-  // as the Offer Page / Enrollment page's own payment context.
-  amountReceived: number;
+  // What this person actually agreed to and has actually paid, resolved by
+  // the one shared resolver. Deliberately NOT a single "amountReceived"
+  // number: the old field fell back through selected_payment_total to
+  // offer_price_snapshot and the card called the result "paid", so a client
+  // who had paid a $400 deposit was announced as having paid $1,400.
+  terms: CommercialTerms;
   requiredDone: number;
   requiredTotal: number;
 };
@@ -60,6 +67,19 @@ export const useNeedsOnboardingItems = (): {
     { enabled: contactIds.length > 0 },
   );
 
+  // Paid-to-date lives in the payment schedule, never in the Deal snapshot
+  // (which records what was AGREED).
+  const { data: scheduleItems, isPending: schedulePending } =
+    useGetList<DealPaymentScheduleItem>(
+      "deal_payment_schedule_items",
+      {
+        filter: { "deal_id@in": `(${dealIds.join(",")})` },
+        pagination: { page: 1, perPage: 1000 },
+        sort: { field: "sequence", order: "ASC" },
+      },
+      { enabled: dealIds.length > 0 },
+    );
+
   const enrollmentIds = (enrollments ?? []).map((e) => e.id);
   const { data: items, isPending: itemsPending } =
     useGetList<EnrollmentOnboardingItem>(
@@ -76,7 +96,8 @@ export const useNeedsOnboardingItems = (): {
     enrollmentsPending ||
     (dealIds.length > 0 && dealsPending) ||
     (contactIds.length > 0 && contactsPending) ||
-    (enrollmentIds.length > 0 && itemsPending);
+    (enrollmentIds.length > 0 && itemsPending) ||
+    (dealIds.length > 0 && schedulePending);
 
   if (isPending) return { isPending: true, rows: [] };
 
@@ -98,11 +119,14 @@ export const useNeedsOnboardingItems = (): {
         ? `${contact.first_name ?? ""} ${contact.last_name ?? ""}`.trim()
         : (deal?.name ?? ""),
       offerName: deal?.offer_name_snapshot ?? "",
-      amountReceived:
-        deal?.selected_installment_amount ??
-        deal?.selected_payment_total ??
-        deal?.offer_price_snapshot ??
-        0,
+      terms: deal
+        ? resolveCommercialTerms(
+            deal,
+            (scheduleItems ?? []).filter(
+              (item) => String(item.deal_id) === String(deal.id),
+            ),
+          )
+        : { kind: "unknown" },
       requiredDone: requiredItems.filter((item) => item.status === "done")
         .length,
       requiredTotal: requiredItems.length,

@@ -1,4 +1,5 @@
 import type {
+  DealPaymentScheduleItem,
   Application,
   ClientSession,
   ClientSessionCadenceIssue,
@@ -56,6 +57,7 @@ export interface Db {
   waitlist_entries: WaitlistEntry[];
   waitlist_invitation_batches: WaitlistInvitationBatch[];
   waitlist_invitations: WaitlistInvitation[];
+  deal_payment_schedule_items: DealPaymentScheduleItem[];
   sales_calls: SalesCall[];
   sales_call_events: SalesCallEvent[];
   client_sessions: ClientSession[];

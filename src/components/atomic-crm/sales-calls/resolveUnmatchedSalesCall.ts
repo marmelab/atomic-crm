@@ -6,6 +6,7 @@ import { resolveOfferCohortForAppointmentType } from "./offerCohortAcuityMapping
 import { completeResolveSalesCallTask } from "./resolveSalesCallTask";
 import { ensureSalesCallTask } from "./salesCallTask";
 import { resolveDefaultTaskSalesId } from "./resolveDefaultTaskSalesId";
+import { scheduleDate } from "./salesCallSchedule";
 
 // Unmatched Sales Call Resolution slice: the three human decisions the
 // dedicated resolution page (/sales-calls/:id/resolve) offers for a
@@ -78,7 +79,11 @@ const finishAttaching = async (
   await ensureSalesCallTask(dataProvider, {
     contactId: salesCall.contact_id,
     contactName,
-    scheduledAt: salesCall.scheduled_at,
+    // A date-only historical call has no timestamp; its date is still a
+    // real fact, so the task carries that rather than nothing.
+    scheduledAt:
+      salesCall.scheduled_at ??
+      `${scheduleDate(salesCall) ?? ""}T12:00:00.000Z`,
     salesId,
   });
   await completeResolveSalesCallTask(
