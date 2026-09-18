@@ -846,7 +846,10 @@ export type OpportunityOwnerDecision =
   | "do_not_engage";
 
 // Only meaningful when owner_decision = "would_work_with".
-export type OpportunityProspectDecision = "yes" | "thinking" | "no";
+// "ghosted" is a decision the prospect made by not making one: they did
+// not say no, they said nothing, and that difference decides whether Leif
+// ever writes to them again. Matches deals_prospect_decision_check.
+export type OpportunityProspectDecision = "yes" | "thinking" | "no" | "ghosted";
 
 export type OpportunitySource =
   | "instagram"
@@ -895,6 +898,10 @@ export type Deal = {
   pricing_mode?: PricingMode;
   stage: string;
   outcome?: OpportunityOutcome | null;
+  // Why this Opportunity left the active pipeline. Complements outcome
+  // rather than replacing it — see deals/pipelineExit.ts.
+  exit_reason?: string | null;
+  exit_note?: string | null;
   owner_decision?: OpportunityOwnerDecision | null;
   prospect_decision?: OpportunityProspectDecision | null;
   follow_up_date?: string | null;

@@ -18,6 +18,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
 import { Avatar } from "../contacts/Avatar";
+import { PersonEmail } from "../contacts/PersonEmail";
 import {
   formatISODateString,
   formatMonthDayString,
@@ -173,6 +174,16 @@ const EnrollmentOperationalHome = () => {
             {offer.name}
             {cohort ? ` — ${cohort.name}` : ""}
           </span>
+          {contact && <PersonEmail contactId={contact.id} />}
+          {/* Container dates are the first thing Leif needs from a client
+              page, and an unset one says so rather than disappearing:
+              several real clients have no end date recorded and inventing
+              one would be worse than admitting it. */}
+          {!enrollment.start_date && (
+            <span className="text-xs text-muted-foreground">
+              Start date not set · End date not set
+            </span>
+          )}
           {enrollment.start_date && (
             <span className="text-xs text-muted-foreground">
               {formatISODateString(enrollment.start_date)}

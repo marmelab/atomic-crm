@@ -16,6 +16,7 @@ import { EditButton } from "@/components/admin/edit-button";
 import { NumberField } from "@/components/admin/number-field";
 import { ReferenceField } from "@/components/admin/reference-field";
 import { OpportunityContactIdentifiers } from "../contacts/ContactIdentifiers";
+import { PersonEmail } from "../contacts/PersonEmail";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
@@ -84,6 +85,9 @@ const DealShowContent = () => {
                   deciding what to do about this person. Renders nothing
                   when the Contact has none. */}
               <OpportunityContactIdentifiers contactId={record.contact_id} />
+              {/* Leif should never have to leave the Opportunity he is
+                  working to find the address he wants to write to. */}
+              <PersonEmail contactId={record.contact_id} className="mt-1" />
             </div>
             <div className={`flex gap-2 ${record.archived_at ? "" : "pr-12"}`}>
               {record.archived_at ? (
