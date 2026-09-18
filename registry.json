@@ -1118,7 +1118,15 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/deals/removeFromPipeline.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/deals/releaseScholarshipReservation.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/deals/recordSalesDecision.ts",
           "type": "registry:component"
         },
         {
@@ -1146,11 +1154,19 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/deals/pipelineExit.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/deals/personContext.ts",
           "type": "registry:component"
         },
         {
           "path": "src/components/atomic-crm/deals/peopleDeciding.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/deals/paymentStatus.ts",
           "type": "registry:component"
         },
         {
@@ -1195,6 +1211,10 @@
         },
         {
           "path": "src/components/atomic-crm/deals/dealAmount.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/deals/closeSalesTasks.ts",
           "type": "registry:component"
         },
         {
@@ -1435,6 +1455,10 @@
         },
         {
           "path": "src/components/atomic-crm/contacts/TagsList.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/contacts/PersonEmail.tsx",
           "type": "registry:component"
         },
         {
