@@ -1,6 +1,8 @@
 import type Stripe from "npm:stripe@18.5.0";
 
 import { supabaseAdmin } from "../_shared/supabaseAdmin.ts";
+import { ingestStripePayments } from "./stripePayments.ts";
+import { recordPlanObjects } from "./stripePlanObjects.ts";
 
 // Periodic Stripe reconciliation: the half the webhook cannot do.
 //
@@ -36,10 +38,16 @@ export type StripeReconcileDelta = {
   schedulesLinked: number;
   subscriptionsLinked: number;
   paymentStatesUpdated: number;
+  paymentsIngested: number;
+  paymentsAlreadyRecorded: number;
+  planObjectsRecorded: number;
+  planObjectsUpdated: number;
+  needsReview: { contactId: number; reason: string }[];
   alreadyLinked: number;
   noStripePlan: number;
   ambiguous: { contactId: number; candidates: string[] }[];
   errors: string[];
+  capabilityWarnings: string[];
 };
 
 const emptyDelta = (): StripeReconcileDelta => ({
@@ -47,42 +55,62 @@ const emptyDelta = (): StripeReconcileDelta => ({
   schedulesLinked: 0,
   subscriptionsLinked: 0,
   paymentStatesUpdated: 0,
+  paymentsIngested: 0,
+  paymentsAlreadyRecorded: 0,
+  planObjectsRecorded: 0,
+  planObjectsUpdated: 0,
+  needsReview: [],
   alreadyLinked: 0,
   noStripePlan: 0,
   ambiguous: [],
   errors: [],
+  capabilityWarnings: [],
 });
 
 type Candidate = {
   contactId: number;
-  customerId: string;
+  // Every Stripe Customer verified as this person's. Mia Cosme has five;
+  // most people have one. Reading only the primary is what hid three of
+  // her four payments.
+  customerIds: string[];
   dealId: number;
   currentSubscriptionId: string | null;
   currentScheduleId: string | null;
+  agreedTotal: number | null;
+  reviewReason: string | null;
 };
 
-// Only people the CRM already knows a Stripe customer for. Email matching
-// is deliberately NOT used here: a stripe_customer_id is a deterministic
-// identity, and guessing from an address is exactly the kind of match that
-// attaches somebody else's money to the wrong person.
+// Only people whose Stripe Customers have been VERIFIED as theirs — the
+// contact_stripe_customers relation. Email matching is deliberately not an
+// authority here: an address is a discovery hint, and guessing from one is
+// exactly the kind of match that attaches somebody else's money to the
+// wrong person. Every row in that relation got there through a checkout,
+// a webhook, an import, or Leif saying so.
 const loadCandidates = async (contactId?: number): Promise<Candidate[]> => {
-  let query = supabaseAdmin
-    .from("contacts")
-    .select("id, stripe_customer_id")
-    .not("stripe_customer_id", "is", null);
-  if (contactId != null) query = query.eq("id", contactId);
+  let identityQuery = supabaseAdmin
+    .from("contact_stripe_customers")
+    .select("contact_id, stripe_customer_id");
+  if (contactId != null)
+    identityQuery = identityQuery.eq("contact_id", contactId);
 
-  const { data: contacts } = await query;
-  const rows = (contacts ?? []) as {
-    id: number;
-    stripe_customer_id: string | null;
-  }[];
+  const { data: identities } = await identityQuery;
+  const byContact = new Map<number, string[]>();
+  for (const row of (identities ?? []) as {
+    contact_id: number;
+    stripe_customer_id: string;
+  }[]) {
+    const list = byContact.get(row.contact_id) ?? [];
+    list.push(row.stripe_customer_id);
+    byContact.set(row.contact_id, list);
+  }
+
+  const rows = [...byContact.keys()].map((id) => ({ id }));
   if (rows.length === 0) return [];
 
   const { data: deals } = await supabaseAdmin
     .from("deals")
     .select(
-      "id, contact_id, stage, outcome, archived_at, stripe_subscription_id, stripe_subscription_schedule_id",
+      "id, contact_id, stage, outcome, archived_at, stripe_subscription_id, stripe_subscription_schedule_id, selected_payment_total, offer_price_snapshot, payment_review_reason",
     )
     .in(
       "contact_id",
@@ -91,7 +119,8 @@ const loadCandidates = async (contactId?: number): Promise<Candidate[]> => {
 
   const candidates: Candidate[] = [];
   for (const contact of rows) {
-    if (!contact.stripe_customer_id) continue;
+    const customerIds = byContact.get(contact.id) ?? [];
+    if (customerIds.length === 0) continue;
     // The Opportunity a payment plan belongs to is the one that was sold:
     // Won, or still live. An exited Opportunity is not given somebody's
     // active subscription.
@@ -105,10 +134,12 @@ const loadCandidates = async (contactId?: number): Promise<Candidate[]> => {
       if (owned.length > 1) {
         candidates.push({
           contactId: contact.id,
-          customerId: contact.stripe_customer_id,
+          customerIds,
           dealId: -1,
           currentSubscriptionId: null,
           currentScheduleId: null,
+          agreedTotal: null,
+          reviewReason: null,
         });
       }
       continue;
@@ -116,11 +147,20 @@ const loadCandidates = async (contactId?: number): Promise<Candidate[]> => {
     const deal = owned[0];
     candidates.push({
       contactId: contact.id,
-      customerId: contact.stripe_customer_id,
+      customerIds,
       dealId: deal.id as number,
       currentSubscriptionId: (deal.stripe_subscription_id as string) ?? null,
       currentScheduleId:
         (deal.stripe_subscription_schedule_id as string) ?? null,
+      // The agreed total is what "paid in full" is measured against, and
+      // it is not always the offer list price.
+      agreedTotal:
+        deal.selected_payment_total != null
+          ? Number(deal.selected_payment_total)
+          : deal.offer_price_snapshot != null
+            ? Number(deal.offer_price_snapshot)
+            : null,
+      reviewReason: (deal.payment_review_reason as string) ?? null,
     });
   }
   return candidates;
@@ -129,10 +169,13 @@ const loadCandidates = async (contactId?: number): Promise<Candidate[]> => {
 // A Subscription Schedule exists — and has a real start date — BEFORE its
 // first payment. Representing it only once it activates is the defect this
 // whole module exists to remove, so "not_started" counts as found.
-const isLiveSchedule = (schedule: Stripe.SubscriptionSchedule): boolean =>
-  schedule.status === "not_started" || schedule.status === "active";
+export const isLiveSchedule = (
+  schedule: Stripe.SubscriptionSchedule,
+): boolean => schedule.status === "not_started" || schedule.status === "active";
 
-const isLiveSubscription = (subscription: Stripe.Subscription): boolean =>
+export const isLiveSubscription = (
+  subscription: Stripe.Subscription,
+): boolean =>
   subscription.status !== "canceled" &&
   subscription.status !== "incomplete_expired";
 
@@ -156,62 +199,128 @@ export const reconcileStripe = async (
       continue;
     }
 
-    let schedules: Stripe.SubscriptionSchedule[];
-    let subscriptions: Stripe.Subscription[];
-    try {
-      const [scheduleList, subscriptionList] = await Promise.all([
-        stripe.subscriptionSchedules.list({
-          customer: candidate.customerId,
-          limit: 10,
-        }),
-        stripe.subscriptions.list({
-          customer: candidate.customerId,
-          status: "all",
-          limit: 10,
-        }),
-      ]);
-      schedules = scheduleList.data.filter(isLiveSchedule);
-      subscriptions = subscriptionList.data.filter(isLiveSubscription);
-    } catch (error) {
-      delta.errors.push(
-        `customer ${candidate.customerId}: ${error instanceof Error ? error.message : String(error)}`,
-      );
-      continue;
+    // MONEY FIRST, and independently of any arrangement. Whether a
+    // subscription exists has no bearing on whether money was collected,
+    // and reversing that order is what made three paid clients read as
+    // "payment setup pending".
+    const ingest = await ingestStripePayments(stripe, {
+      customerIds: candidate.customerIds,
+      dealId: candidate.dealId,
+      agreedTotal: candidate.agreedTotal,
+      existingReviewReason: candidate.reviewReason,
+    });
+    delta.paymentsIngested += ingest.ingested;
+    delta.paymentsAlreadyRecorded += ingest.alreadyRecorded;
+    delta.errors.push(...ingest.errors);
+    for (const warning of ingest.capabilityWarnings) {
+      if (!delta.capabilityWarnings.includes(warning)) {
+        delta.capabilityWarnings.push(warning);
+      }
     }
 
-    if (schedules.length === 0 && subscriptions.length === 0) {
-      // No plan in Stripe. Critically, this does NOT clear anything the
-      // CRM already holds — an owner-stated paid-in-full stays true.
+    if (ingest.reviewReason !== candidate.reviewReason) {
+      const { error: reviewError } = await supabaseAdmin
+        .from("deals")
+        .update({ payment_review_reason: ingest.reviewReason })
+        .eq("id", candidate.dealId);
+      if (reviewError) {
+        delta.errors.push(`deal ${candidate.dealId}: ${reviewError.message}`);
+      }
+    }
+    if (ingest.reviewReason) {
+      delta.needsReview.push({
+        contactId: candidate.contactId,
+        reason: ingest.reviewReason,
+      });
+    }
+
+    // Every Stripe plan object across every verified customer, LIVE AND
+    // HISTORICAL. A subscription that ended is where earlier payments came
+    // from; discarding it loses that, and Jules's plan would look finished
+    // at four of six.
+    const allSchedules: Stripe.SubscriptionSchedule[] = [];
+    const allSubscriptions: Stripe.Subscription[] = [];
+    let arrangementFailed = false;
+
+    for (const customerId of candidate.customerIds) {
+      try {
+        const [scheduleList, subscriptionList] = await Promise.all([
+          stripe.subscriptionSchedules.list({
+            customer: customerId,
+            limit: 50,
+          }),
+          stripe.subscriptions.list({
+            customer: customerId,
+            status: "all",
+            limit: 50,
+          }),
+        ]);
+        allSchedules.push(...scheduleList.data);
+        allSubscriptions.push(...subscriptionList.data);
+      } catch (error) {
+        delta.errors.push(
+          `customer ${customerId}: ${error instanceof Error ? error.message : String(error)}`,
+        );
+        arrangementFailed = true;
+      }
+    }
+    if (arrangementFailed) continue;
+
+    if (allSchedules.length === 0 && allSubscriptions.length === 0) {
+      // No arrangement of any kind — which is not the same as no payment,
+      // and is the distinction this module was missing. Money found above
+      // is already recorded, and nothing the CRM holds is cleared.
       delta.noStripePlan += 1;
       continue;
     }
 
-    if (schedules.length > 1 || subscriptions.length > 1) {
+    const planDelta = await recordPlanObjects({
+      dealId: candidate.dealId,
+      subscriptions: allSubscriptions,
+      schedules: allSchedules,
+    });
+    delta.planObjectsRecorded += planDelta.recorded;
+    delta.planObjectsUpdated += planDelta.updated;
+    delta.errors.push(...planDelta.errors);
+
+    const liveSchedules = allSchedules.filter(isLiveSchedule);
+    const liveSubscriptions = allSubscriptions.filter(isLiveSubscription);
+
+    // More than one live plan is still ambiguous: a replacement arrives
+    // only once its predecessor has ended, so two at once means a human
+    // should say which is the real one. A schedule and its own
+    // subscription are one plan, not two.
+    const distinctLiveSubscriptions = liveSubscriptions.filter(
+      (s) =>
+        !liveSchedules.some(
+          (sched) => scheduleSubscriptionId(sched) === s.id,
+        ) || liveSchedules.length === 0,
+    );
+    if (liveSchedules.length > 1 || distinctLiveSubscriptions.length > 1) {
       delta.ambiguous.push({
         contactId: candidate.contactId,
         candidates: [
-          ...schedules.map((s) => s.id),
-          ...subscriptions.map((s) => s.id),
+          ...liveSchedules.map((s) => s.id),
+          ...distinctLiveSubscriptions.map((s) => s.id),
         ],
       });
       continue;
     }
 
-    const schedule = schedules[0] ?? null;
-    // A schedule's own subscription is the same plan, not a second one.
-    const subscription =
-      subscriptions.find(
-        (s) => !schedule || s.id === scheduleSubscriptionId(schedule),
-      ) ??
-      subscriptions[0] ??
-      null;
-
+    // The single-id columns keep meaning "the object carrying this plan
+    // now". The history lives in deal_stripe_plan_objects beside them.
     const patch: Record<string, string> = {};
-    if (schedule && candidate.currentScheduleId !== schedule.id) {
-      patch.stripe_subscription_schedule_id = schedule.id;
+    if (
+      planDelta.currentScheduleId &&
+      candidate.currentScheduleId !== planDelta.currentScheduleId
+    ) {
+      patch.stripe_subscription_schedule_id = planDelta.currentScheduleId;
     }
-    if (subscription && candidate.currentSubscriptionId !== subscription.id) {
-      patch.stripe_subscription_id = subscription.id;
+    if (
+      planDelta.currentSubscriptionId &&
+      candidate.currentSubscriptionId !== planDelta.currentSubscriptionId
+    ) {
+      patch.stripe_subscription_id = planDelta.currentSubscriptionId;
     }
 
     if (Object.keys(patch).length === 0) {

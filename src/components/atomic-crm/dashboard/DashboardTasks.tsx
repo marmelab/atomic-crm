@@ -11,6 +11,7 @@ import {
   TASK_TYPES_WITHOUT_MEANINGFUL_DUE_DATE,
 } from "../tasks/tasksPredicate";
 import { byOperationalUrgency } from "../tasks/needsAttentionInventory";
+import { NeedsAttentionRow } from "../tasks/NeedsAttentionRow";
 import { useRecentlyCompletedTasks } from "../tasks/useRecentlyCompletedTasks";
 import type { Task as TaskType } from "../types";
 
@@ -108,6 +109,7 @@ export const DashboardTasks = () => {
           tasks={needsAttention}
           onTaskCompleted={handleTaskCompleted}
           emphasize
+          asQuestions
         />
       )}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
@@ -141,11 +143,16 @@ const TaskBucket = ({
   tasks,
   onTaskCompleted,
   emphasize,
+  // Needs Attention rows ask a question and offer the one control that
+  // answers it. The date-bucketed lists below stay as they are: those are
+  // things with a due date, and the normal Task row is right for them.
+  asQuestions,
 }: {
   title: string;
   tasks: TaskType[];
   onTaskCompleted: (task: TaskType) => void;
   emphasize?: boolean;
+  asQuestions?: boolean;
 }) => {
   const translate = useTranslate();
   const [expanded, setExpanded] = useState(false);
@@ -175,14 +182,18 @@ const TaskBucket = ({
           </p>
         ) : (
           <div className="flex flex-col gap-3">
-            {visibleTasks.map((task) => (
-              <Task
-                task={task}
-                showContact
-                onCompleted={onTaskCompleted}
-                key={task.id}
-              />
-            ))}
+            {visibleTasks.map((task) =>
+              asQuestions ? (
+                <NeedsAttentionRow task={task} key={task.id} />
+              ) : (
+                <Task
+                  task={task}
+                  showContact
+                  onCompleted={onTaskCompleted}
+                  key={task.id}
+                />
+              ),
+            )}
             {remaining > 0 && (
               <button
                 type="button"

@@ -40,6 +40,9 @@ export type NeedsAttentionKind = {
   // Where the date on the row comes from, or null when the task's own
   // due_date is an internal artefact rather than a commitment.
   dueDateMeans: string | null;
+  // The verb on the row's button. One or two words, what Leif is about to
+  // do — never the internal type, and never "Open".
+  actionLabel: string;
 };
 
 export const NEEDS_ATTENTION_KINDS: readonly NeedsAttentionKind[] = [
@@ -56,6 +59,7 @@ export const NEEDS_ATTENTION_KINDS: readonly NeedsAttentionKind[] = [
     manuallyCompletable: false,
     urgency: 0,
     dueDateMeans: null,
+    actionLabel: "Match",
   },
   {
     type: "resolve_sales_call",
@@ -70,6 +74,7 @@ export const NEEDS_ATTENTION_KINDS: readonly NeedsAttentionKind[] = [
     manuallyCompletable: false,
     urgency: 1,
     dueDateMeans: null,
+    actionLabel: "Resolve",
   },
   {
     type: "sales_call",
@@ -83,6 +88,7 @@ export const NEEDS_ATTENTION_KINDS: readonly NeedsAttentionKind[] = [
     manuallyCompletable: true,
     urgency: 3,
     dueDateMeans: "When the call is scheduled",
+    actionLabel: "Open",
   },
   {
     type: "follow_up",
@@ -96,6 +102,7 @@ export const NEEDS_ATTENTION_KINDS: readonly NeedsAttentionKind[] = [
     manuallyCompletable: true,
     urgency: 2,
     dueDateMeans: "The follow-up date you promised yourself",
+    actionLabel: "Follow up",
   },
   {
     type: "nurture_follow_up",
@@ -108,6 +115,7 @@ export const NEEDS_ATTENTION_KINDS: readonly NeedsAttentionKind[] = [
     manuallyCompletable: true,
     urgency: 5,
     dueDateMeans: "When to revisit",
+    actionLabel: "Revisit",
   },
   {
     type: "sales_call_cancelled",
@@ -121,6 +129,7 @@ export const NEEDS_ATTENTION_KINDS: readonly NeedsAttentionKind[] = [
     manuallyCompletable: true,
     urgency: 4,
     dueDateMeans: null,
+    actionLabel: "Resolve",
   },
   {
     type: "sales_call_no_show",
@@ -135,6 +144,7 @@ export const NEEDS_ATTENTION_KINDS: readonly NeedsAttentionKind[] = [
     manuallyCompletable: true,
     urgency: 4,
     dueDateMeans: null,
+    actionLabel: "Resolve",
   },
   {
     type: "resolve_client_session_cadence",
@@ -151,6 +161,7 @@ export const NEEDS_ATTENTION_KINDS: readonly NeedsAttentionKind[] = [
     manuallyCompletable: false,
     urgency: 6,
     dueDateMeans: "The week in question",
+    actionLabel: "Resolve",
   },
   {
     type: "onboarding_item",
@@ -164,6 +175,7 @@ export const NEEDS_ATTENTION_KINDS: readonly NeedsAttentionKind[] = [
     manuallyCompletable: true,
     urgency: 7,
     dueDateMeans: "When the step is due",
+    actionLabel: "Open",
   },
   {
     type: "offboarding_item",
@@ -176,6 +188,7 @@ export const NEEDS_ATTENTION_KINDS: readonly NeedsAttentionKind[] = [
     manuallyCompletable: true,
     urgency: 8,
     dueDateMeans: "When the step is due",
+    actionLabel: "Open",
   },
   {
     type: "review_application",
@@ -188,6 +201,7 @@ export const NEEDS_ATTENTION_KINDS: readonly NeedsAttentionKind[] = [
     manuallyCompletable: false,
     urgency: 2,
     dueDateMeans: "When it was submitted",
+    actionLabel: "Review",
   },
   {
     type: "check_payment",
@@ -201,6 +215,7 @@ export const NEEDS_ATTENTION_KINDS: readonly NeedsAttentionKind[] = [
     manuallyCompletable: true,
     urgency: 4,
     dueDateMeans: "When the payment was expected",
+    actionLabel: "Check",
   },
   {
     type: "other",
@@ -213,6 +228,7 @@ export const NEEDS_ATTENTION_KINDS: readonly NeedsAttentionKind[] = [
     manuallyCompletable: true,
     urgency: 9,
     dueDateMeans: "Whatever date you set",
+    actionLabel: "Open",
   },
 ];
 

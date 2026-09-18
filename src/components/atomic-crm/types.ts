@@ -302,6 +302,48 @@ export type PaymentScheduleItemSource =
   | "stripe"
   | "historical_import";
 
+// One Contact may own several Stripe Customer objects. Mia Cosme paid
+// $3,700 as four $925 payments through four different ones, because a new
+// Customer was created each time. Email is a discovery hint and never a
+// value on this list: every row got here through a checkout, a webhook, an
+// import, or Leif confirming it.
+export type ContactStripeCustomerVerification =
+  | "owner_confirmed"
+  | "checkout_session"
+  | "webhook"
+  | "historical_import";
+
+export type ContactStripeCustomer = {
+  contact_id: Identifier;
+  stripe_customer_id: string;
+  is_primary: boolean;
+  verified_by: ContactStripeCustomerVerification;
+  note?: string | null;
+  linked_at: string;
+  created_at: string;
+  updated_at: string;
+} & Pick<RaRecord, "id">;
+
+// Every Stripe subscription/schedule that has carried one Deal's payment
+// plan. Jules Litman-Cleper's first subscription was built with four
+// cycles against a six-payment agreement, so it ended early and a
+// replacement now carries the last two. One agreement, several objects:
+// the ended one is kept because four payments came from it.
+export type DealStripePlanObject = {
+  deal_id: Identifier;
+  stripe_object_id: string;
+  object_type: "subscription" | "schedule";
+  status?: string | null;
+  started_at?: string | null;
+  ended_at?: string | null;
+  is_current: boolean;
+  linked_at: string;
+  link_source: string;
+  note?: string | null;
+  created_at: string;
+  updated_at: string;
+} & Pick<RaRecord, "id">;
+
 export type DealPaymentScheduleItem = {
   deal_id: Identifier;
   amount: number;
@@ -935,6 +977,12 @@ export type Deal = {
   stripe_checkout_session_id?: string | null;
   stripe_subscription_id?: string | null;
   stripe_subscription_schedule_id?: string | null;
+  // Non-null when payment truth is uncertain and a human must look. Never
+  // set by inference alone: it means the evidence conflicts, is
+  // incomplete, or was found on a Stripe Customer this Contact is not
+  // linked to. Deliberately NOT the same as "no payment found" — see
+  // deals/paymentStatus.ts.
+  payment_review_reason?: string | null;
   created_at: string;
   updated_at: string;
   archived_at?: string | null;

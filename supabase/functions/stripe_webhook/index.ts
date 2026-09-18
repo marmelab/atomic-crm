@@ -4,6 +4,11 @@ import Stripe from "npm:stripe@17.4.0";
 import { corsHeaders } from "../_shared/cors.ts";
 import { createErrorResponse } from "../_shared/utils.ts";
 import { supabaseAdmin } from "../_shared/supabaseAdmin.ts";
+import {
+  discoverStripeCustomers,
+  linkStripeCustomer,
+} from "./stripeDiscovery.ts";
+import { investigateStripe } from "./stripeInvestigate.ts";
 import { reconcileStripe } from "./stripeReconcile.ts";
 import { getAuthToken, verifySupabaseJWT } from "../_shared/authentication.ts";
 
@@ -293,6 +298,56 @@ Deno.serve(async (req: Request) => {
   //   ?action=reconcile              every known Stripe customer
   //   ?action=reconcile&contactId=N  one person, for the Sync Stripe button
   const url = new URL(req.url);
+
+  // Read-only. Writes nothing, so it is safe to point at anybody while
+  // working out what Stripe actually holds for them.
+  if (url.searchParams.get("action") === "investigate") {
+    const cronSecret = Deno.env.get("CRON_INVOKE_SECRET");
+    if (!cronSecret || req.headers.get("x-cron-secret") !== cronSecret) {
+      return createErrorResponse(401, "Invalid cron invocation secret.");
+    }
+    const contactId = Number(url.searchParams.get("contactId"));
+    if (!Number.isInteger(contactId) || contactId <= 0) {
+      return createErrorResponse(400, "Invalid contact id.");
+    }
+    return jsonResponse(await investigateStripe(stripe, { contactId }));
+  }
+
+  // Discovery and linking. Both need a signed-in CRM user; neither is
+  // reachable by the cron sweep, because proposing and confirming a
+  // financial identity is a human act by design.
+  const discoveryAction = url.searchParams.get("action");
+  if (discoveryAction === "discover" || discoveryAction === "link_customer") {
+    if (!Deno.env.get("STRIPE_SECRET_KEY")) {
+      return createErrorResponse(503, "Stripe API key is not configured.");
+    }
+    const contactId = Number(url.searchParams.get("contactId"));
+    if (!Number.isInteger(contactId) || contactId <= 0) {
+      return createErrorResponse(400, "Invalid contact id.");
+    }
+    try {
+      const isValidJWT = await verifySupabaseJWT(getAuthToken(req));
+      if (!isValidJWT)
+        return createErrorResponse(401, "Invalid authentication");
+    } catch (e) {
+      return createErrorResponse(401, e?.toString() || "Unauthorized");
+    }
+
+    if (discoveryAction === "discover") {
+      return jsonResponse(await discoverStripeCustomers(stripe, { contactId }));
+    }
+
+    const stripeCustomerId = url.searchParams.get("customerId");
+    // Stripe customer ids are "cus_" plus an opaque token; anything else
+    // is not a customer and is refused rather than sent to Stripe.
+    if (!stripeCustomerId || !/^cus_[A-Za-z0-9]+$/.test(stripeCustomerId)) {
+      return createErrorResponse(400, "Invalid Stripe customer id.");
+    }
+    return jsonResponse(
+      await linkStripeCustomer(stripe, { contactId, stripeCustomerId }),
+    );
+  }
+
   if (url.searchParams.get("action") === "reconcile") {
     if (!Deno.env.get("STRIPE_SECRET_KEY")) {
       return createErrorResponse(503, "Stripe API key is not configured.");
@@ -307,9 +362,10 @@ Deno.serve(async (req: Request) => {
     //     signed in from a browser gets to walk every Stripe customer.
     //   one person       -> a signed-in CRM user, verified by their own
     //     Supabase JWT. The browser never holds a Stripe key, and the only
-    //     Stripe customer this can reach is the stripe_customer_id already
-    //     stored on that Contact — so it cannot be used to enumerate
-    //     anything in the Stripe account.
+    //     Stripe customers this can reach are the ones already verified as
+    //     that Contact's in contact_stripe_customers — so it cannot be
+    //     used to enumerate anything in the Stripe account, and a customer
+    //     matched only by email address is not reachable at all.
     if (contactParam == null) {
       const cronSecret = Deno.env.get("CRON_INVOKE_SECRET");
       if (!cronSecret) {

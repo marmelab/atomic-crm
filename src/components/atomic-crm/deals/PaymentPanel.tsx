@@ -6,7 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
 import { assessPaymentStatus, type PaymentStatus } from "./paymentStatus";
-import { syncStripeForContact } from "./syncStripe";
+import {
+  discoverStripeCustomers,
+  linkStripeCustomer,
+  syncStripeForContact,
+  type DiscoveredStripeCustomer,
+} from "./syncStripe";
 
 // Payment, stated plainly and kept distinct from everything else.
 //
@@ -28,6 +33,9 @@ export const PaymentPanel = ({
   const notify = useNotify();
   const [status, setStatus] = useState<PaymentStatus | null>(null);
   const [syncing, setSyncing] = useState(false);
+  const [clearing, setClearing] = useState(false);
+  const [candidates, setCandidates] = useState<DiscoveredStripeCustomer[]>([]);
+  const [linking, setLinking] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setStatus(await assessPaymentStatus(dataProvider, opportunityId));
@@ -46,10 +54,55 @@ export const PaymentPanel = ({
         type: result.status === "error" ? "warning" : "info",
       });
       await load();
+
+      // Nothing found can mean two different things: this person has no
+      // Stripe arrangement, or the CRM has never been told which Stripe
+      // customer is theirs. Leif creating a subscription by hand produces
+      // the second. Candidates are proposed, never linked automatically.
+      if (result.status === "none-found") {
+        setCandidates(await discoverStripeCustomers(contactId));
+      } else {
+        setCandidates([]);
+      }
     } catch {
       notify("Could not reach Stripe just now.", { type: "warning" });
     } finally {
       setSyncing(false);
+    }
+  };
+
+  // A review must be liftable by the person who did the reviewing, or
+  // "needs review" becomes a state nobody can ever leave. Nothing else
+  // clears it: the reconciler deliberately never does.
+  const markReviewed = async () => {
+    setClearing(true);
+    try {
+      await dataProvider.update("deals", {
+        id: opportunityId,
+        data: { payment_review_reason: null },
+        previousData: { id: opportunityId },
+      });
+      notify("Payment reviewed.", { type: "info" });
+      await load();
+    } catch {
+      notify("ra.notification.http_error", { type: "error" });
+    } finally {
+      setClearing(false);
+    }
+  };
+
+  const link = async (stripeCustomerId: string) => {
+    if (contactId == null) return;
+    setLinking(stripeCustomerId);
+    try {
+      const result = await linkStripeCustomer(contactId, stripeCustomerId);
+      notify(result.message, {
+        type: result.status === "error" ? "warning" : "info",
+      });
+      if (result.status === "linked") setCandidates([]);
+      await load();
+    } finally {
+      setLinking(null);
     }
   };
 
@@ -75,6 +128,23 @@ export const PaymentPanel = ({
           </p>
         )}
 
+        {status.reviewReason && (
+          <div className="rounded-md border border-amber-500/40 bg-amber-500/10 p-2 flex flex-col gap-2">
+            <p className="text-sm">{status.reviewReason}</p>
+            <div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={markReviewed}
+                disabled={clearing}
+              >
+                {clearing ? "Saving…" : "Mark reviewed"}
+              </Button>
+            </div>
+          </div>
+        )}
+
         {status.outstanding && (
           <p className="text-sm">
             <span className="text-xs uppercase tracking-wide text-muted-foreground mr-2">
@@ -82,6 +152,48 @@ export const PaymentPanel = ({
             </span>
             {status.outstanding}
           </p>
+        )}
+
+        {candidates.length > 0 && (
+          <div className="rounded-md border p-2 flex flex-col gap-2">
+            <p className="text-sm">
+              Stripe has {candidates.length === 1 ? "an account" : "accounts"}{" "}
+              under this person's email address. The CRM will not assume{" "}
+              {candidates.length === 1 ? "it is" : "they are"} theirs.
+            </p>
+            {candidates.map((candidate) => (
+              <div
+                key={candidate.stripeCustomerId}
+                className="flex flex-wrap items-center justify-between gap-2"
+              >
+                <div className="min-w-0">
+                  <p className="text-sm font-medium truncate">
+                    {candidate.name ?? candidate.email ?? "Stripe customer"}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {candidate.liveSubscriptions > 0
+                      ? "Live subscription"
+                      : candidate.liveSchedules > 0
+                        ? "Scheduled plan"
+                        : "No live plan"}
+                    {candidate.succeededPayments > 0 &&
+                      ` · ${candidate.succeededPayments} payment${candidate.succeededPayments === 1 ? "" : "s"}`}
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => link(candidate.stripeCustomerId)}
+                  disabled={linking != null}
+                >
+                  {linking === candidate.stripeCustomerId
+                    ? "Linking…"
+                    : "This is them"}
+                </Button>
+              </div>
+            ))}
+          </div>
         )}
 
         {contactId != null && (

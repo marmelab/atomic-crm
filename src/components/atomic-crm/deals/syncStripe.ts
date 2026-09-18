@@ -5,9 +5,10 @@ import { getSupabaseClient } from "../providers/supabase/supabase";
 // The browser never holds a Stripe key. supabase.functions.invoke sends
 // the signed-in user's own JWT, and the Edge Function — which is where the
 // Stripe credentials live — verifies it before doing anything. The only
-// customer it can ever touch is the stripe_customer_id already stored on
-// the Contact whose id is passed, so this cannot be used to walk somebody
-// else's Stripe account.
+// customers it can ever touch are the ones already VERIFIED as belonging
+// to the Contact whose id is passed, so this cannot be used to walk
+// somebody else's Stripe account, and an unverified customer found by
+// matching an email address is never reachable this way at all.
 export type SyncStripeResult = {
   status: "linked" | "already-linked" | "none-found" | "needs-review" | "error";
   message: string;
@@ -28,6 +29,10 @@ export const syncStripeForContact = async (
       subscriptionsLinked: number;
       alreadyLinked: number;
       noStripePlan: number;
+      paymentsIngested: number;
+      planObjectsRecorded: number;
+      planObjectsUpdated: number;
+      needsReview: { contactId: number; reason: string }[];
       ambiguous: { contactId: number; candidates: string[] }[];
       errors: string[];
     };
@@ -56,17 +61,116 @@ export const syncStripeForContact = async (
         "Stripe match needs review — more than one plan or Opportunity could be the right one.",
     };
   }
-  if (delta.schedulesLinked > 0 || delta.subscriptionsLinked > 0) {
-    return { status: "linked", message: "Stripe synced — plan linked." };
+  // A review raised by the sweep outranks the good news, because it is
+  // the thing a human has to act on.
+  if (delta.needsReview?.length > 0) {
+    return { status: "needs-review", message: delta.needsReview[0].reason };
+  }
+
+  // Said in the order a person cares about: a new plan is the headline, new
+  // money next, and "nothing changed" is a real, useful answer.
+  if (delta.subscriptionsLinked > 0 || delta.schedulesLinked > 0) {
+    return {
+      status: "linked",
+      message: "Stripe synced — new subscription found.",
+    };
+  }
+  if (delta.paymentsIngested > 0) {
+    const count = delta.paymentsIngested;
+    return {
+      status: "linked",
+      message: `Stripe synced — ${count} payment${count === 1 ? "" : "s"} recorded.`,
+    };
+  }
+  if (delta.planObjectsRecorded > 0 || delta.planObjectsUpdated > 0) {
+    return { status: "linked", message: "Stripe synced — payments updated." };
   }
   if (delta.alreadyLinked > 0) {
     return {
       status: "already-linked",
-      message: "Stripe synced — already up to date.",
+      message: "Stripe synced — no new Stripe records.",
     };
   }
   return {
     status: "none-found",
-    message: "No Stripe subscription or schedule found for this person.",
+    message: "Stripe synced — no Stripe records found for this person.",
   };
+};
+
+// Finding a Stripe Customer the CRM has never seen, for somebody who has
+// none verified at all.
+//
+// Reconciliation only ever reads verified customers, which is what stops
+// it attaching the wrong person's money — and which leaves a real gap when
+// Leif creates a subscription by hand in the Stripe dashboard against a
+// customer the CRM has no record of. Sam Milz is that case. Nothing fires,
+// nothing matches, and the plan stays invisible forever.
+//
+// So the CRM proposes and the human decides. These two calls are that
+// split, and an email match never links anything on its own.
+export type DiscoveredStripeCustomer = {
+  stripeCustomerId: string;
+  name: string | null;
+  email: string | null;
+  created: string;
+  liveSubscriptions: number;
+  liveSchedules: number;
+  succeededPayments: number;
+  collectedMinor: number;
+};
+
+export const discoverStripeCustomers = async (
+  contactId: number | string,
+): Promise<DiscoveredStripeCustomer[]> => {
+  const numericId = Number(contactId);
+  if (!Number.isInteger(numericId) || numericId <= 0) return [];
+
+  const { data, error } = await getSupabaseClient().functions.invoke<{
+    candidates?: DiscoveredStripeCustomer[];
+  }>(`stripe_webhook?action=discover&contactId=${numericId}`, {
+    method: "POST",
+    body: {},
+  });
+  if (error || !data?.candidates) return [];
+  return data.candidates;
+};
+
+export const linkStripeCustomer = async (
+  contactId: number | string,
+  stripeCustomerId: string,
+): Promise<SyncStripeResult> => {
+  const numericId = Number(contactId);
+  if (!Number.isInteger(numericId) || numericId <= 0) {
+    return { status: "error", message: "That person has no usable id." };
+  }
+
+  const { data, error } = await getSupabaseClient().functions.invoke<{
+    status?: string;
+    contactId?: number;
+  }>(
+    `stripe_webhook?action=link_customer&contactId=${numericId}&customerId=${encodeURIComponent(stripeCustomerId)}`,
+    { method: "POST", body: {} },
+  );
+
+  if (error || !data?.status) {
+    return {
+      status: "error",
+      message: "Could not reach Stripe just now — nothing was changed.",
+    };
+  }
+  if (data.status === "claimed-by-another-contact") {
+    // Refused rather than moved. Two people cannot own one customer.
+    return {
+      status: "needs-review",
+      message:
+        "That Stripe customer is already linked to somebody else. Nothing was changed.",
+    };
+  }
+  if (data.status === "already-linked") {
+    return { status: "already-linked", message: "Already linked." };
+  }
+  if (data.status === "error") {
+    return { status: "error", message: "Could not link that Stripe customer." };
+  }
+  return { status: "linked", message: "Stripe customer linked and synced." };
 };

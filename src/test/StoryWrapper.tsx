@@ -57,6 +57,8 @@ export const createCrmDb = (overrides: Partial<Db> = {}): Db =>
     offboarding_requirement_templates: [],
     enrollment_status_events: [],
     deal_payment_schedule_items: [],
+    contact_stripe_customers: [],
+    deal_stripe_plan_objects: [],
     scholarship_slots: [],
     scholarship_slot_events: [],
     waitlist_entries: [],

@@ -152,3 +152,60 @@ describe("ordering", () => {
     ).toEqual([9, 5]);
   });
 });
+
+// Adriano Castro disappeared from Living Example → Current while he was
+// still a current client with two sessions left. The rule below was never
+// wrong; his Enrollment had been stamped 'completed' by the historical
+// import on the day his Opportunity was created, and 76 sessions across 12
+// clients had been stamped 'completed' while scheduled in the future.
+//
+// The data is repaired and the database now refuses both (see
+// 20260918260000_a_session_in_the_future_has_not_happened.sql). These
+// cases hold the classification end of it: a client who has started and
+// not finished is Current, and only a terminal status takes him out.
+describe("a client who has started and not finished stays Current", () => {
+  test("an active enrollment that began months ago is current, not past", () => {
+    // Arrange — Adriano: started 2026-06-14, sessions still to come.
+    const enrollment = {
+      status: "active" as const,
+      start_date: "2026-06-14",
+      end_date: null,
+    };
+
+    // Act
+    const phase = classifyEnrollment(enrollment, "2026-09-18");
+
+    // Assert
+    expect(phase).toBe("current");
+  });
+
+  test("no end date does not make a started client past", () => {
+    // Arrange — his Enrollment carries no end_date at all, which must
+    // never be read as "finished".
+    const enrollment = {
+      status: "active" as const,
+      start_date: "2026-06-14",
+      end_date: null,
+    };
+
+    // Act & Assert
+    expect(classifyEnrollment(enrollment, "2027-01-01")).toBe("current");
+  });
+
+  test("only a terminal status removes a started client from Current", () => {
+    // Arrange — the single thing that moved him, and the reason the fix
+    // belongs in the data rather than here.
+    const base = { start_date: "2026-06-14", end_date: null };
+
+    // Act & Assert
+    expect(
+      classifyEnrollment({ ...base, status: "active" as const }, "2026-09-18"),
+    ).toBe("current");
+    expect(
+      classifyEnrollment(
+        { ...base, status: "completed" as const },
+        "2026-09-18",
+      ),
+    ).toBe("past");
+  });
+});

@@ -10,8 +10,13 @@ import type { SalesCall, Task } from "../types";
 // routes to the dedicated resolution page instead, shows self-describing
 // context inline, and never presents its internal-only due_date as a
 // dated to-do Leif failed to do.
+//
+// The row's presentation changed with the Needs Attention pass: it now
+// leads with the person and the question rather than the shouted internal
+// type, and offers one button. The invariants above are unchanged and are
+// what these tests still hold to.
 describe("Task — resolve_sales_call human-facing rendering", () => {
-  it("shows the 'Sales call needs matching' header and self-describing context, with no Due date or Postpone offered", async () => {
+  it("asks the question in plain language, with no Due date offered for an internal timestamp", async () => {
     await page.viewport(1280, 900);
     const salesCall: SalesCall = {
       id: 1,
@@ -44,9 +49,13 @@ describe("Task — resolve_sales_call human-facing rendering", () => {
     });
     const screen = await render(element);
 
+    // The question, not the enum.
     await expect
-      .element(screen.getByText("Sales call needs matching"))
+      .element(
+        screen.getByText("Which Opportunity does this booking belong to?"),
+      )
       .toBeInTheDocument();
+    // The booking's own context is still there, as supporting detail.
     await expect
       .element(
         screen.getByText(
@@ -54,17 +63,15 @@ describe("Task — resolve_sales_call human-facing rendering", () => {
         ),
       )
       .toBeInTheDocument();
+    // due_date on this type is an internal artefact, never a commitment.
     await expect.element(screen.getByText(/^Due /)).not.toBeInTheDocument();
-
-    const link = screen.getByRole("link", {
-      name: "SalesId Verify · The Living Example · Sep 10, 2026, 6:00 PM",
-    });
+    // The internal type is not shouted at him.
     await expect
-      .element(link)
-      .toHaveAttribute("href", "/sales-calls/1/resolve");
+      .element(screen.getByText("SALES CALL NEEDS MATCHING"))
+      .not.toBeInTheDocument();
   });
 
-  it("the dropdown's Edit action navigates to the resolution page too, never the generic Task editor", async () => {
+  it("its one button opens the resolution page, never the generic Task editor", async () => {
     await page.viewport(1280, 900);
     const salesCall: SalesCall = {
       id: 1,
@@ -97,10 +104,7 @@ describe("Task — resolve_sales_call human-facing rendering", () => {
     });
     const screen = await render(element);
 
-    const menuButton = screen.getByRole("button", { name: "task actions" });
-    await menuButton.click();
-    const editItem = screen.getByText("Edit");
-    await editItem.click();
+    await screen.getByRole("button", { name: "Match" }).click();
 
     // Navigated to the dedicated resolution page — proven by its own
     // distinctive explanation, never the generic Edit sheet (which would

@@ -55,6 +55,13 @@ export default (): Db => {
   db.client_session_cadence_issues = [];
   db.client_session_cadence_issue_events = [];
   db.deal_stage_events = [];
+  // Declared on Db but never created, so FakeRest threw "Undefined
+  // collection" the moment anything asked what had been paid — which meant
+  // the demo could not show payment truth at all, and no provider-level
+  // test could reach it.
+  db.deal_payment_schedule_items = [];
+  db.contact_stripe_customers = [];
+  db.deal_stripe_plan_objects = [];
   db.deals = generateDeals(db);
   const { pendingReviewApplicants } = addLeifProofSliceFixtures(db);
   addWaitlistFixtures(db);
