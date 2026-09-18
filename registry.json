@@ -158,6 +158,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/tasks/needsAttentionInventory.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/tasks/actionDestinationTestFixtures.tsx",
           "type": "registry:component"
         },
@@ -891,6 +895,10 @@
         },
         {
           "path": "src/components/atomic-crm/misc/dateOnlyToTimestamp.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/misc/buildIdentifier.ts",
           "type": "registry:component"
         },
         {
