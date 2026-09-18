@@ -124,7 +124,7 @@ export const comparatorForStage = (
       return nextCallFirst(context.nextCallAt, context.now ?? Date.now());
     case "decision":
       return soonestFollowUpFirst;
-    case "committed":
+    case "onboarding":
       return longestWaitingFirst;
     default:
       // An unrecognized or custom stage keeps the previous behaviour
@@ -141,5 +141,5 @@ export const ORDERING_RULE_LABELS: Record<string, string> = {
   approved: "Newest first",
   call_booked: "Next call first",
   decision: "Follow-up soonest first",
-  committed: "Waiting longest first",
+  onboarding: "Waiting longest first",
 };

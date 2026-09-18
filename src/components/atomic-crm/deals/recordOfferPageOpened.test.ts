@@ -25,7 +25,7 @@ const buildDeal = (overrides: Partial<Deal> = {}): Deal => ({
   name: "Ada Lovelace — The Living Example",
   contact_id: CONTACT_ID,
   offer_id: OFFER_ID,
-  stage: "committed",
+  stage: "onboarding",
   outcome: null,
   amount: 4000,
   offer_page_token: "a-real-token",

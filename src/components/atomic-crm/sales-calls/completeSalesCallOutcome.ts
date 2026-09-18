@@ -186,7 +186,7 @@ export const completeSalesCallOutcome = async (
   // the personalized Offer Page's access token — see offerPageToken.ts's
   // own comment for why it's idempotent and never rotates an
   // already-issued link.
-  if (dealUpdate.stage === "committed") {
+  if (dealUpdate.stage === "onboarding") {
     await ensureOfferPageToken(dataProvider, deal.id);
   }
 
@@ -219,7 +219,7 @@ const buildAttendedDealUpdate = ({
       owner_decision: "would_work_with",
       prospect_decision: "yes",
       follow_up_date: null,
-      stage: "committed",
+      stage: "onboarding",
     };
   }
   if (prospectDecision === "no") {

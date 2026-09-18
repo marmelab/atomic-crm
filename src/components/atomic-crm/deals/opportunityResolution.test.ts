@@ -79,12 +79,12 @@ describe("recording a decision", () => {
     const dataProvider = makeProvider([buildDeal()]);
     const result = await recordOpportunityDecision(dataProvider, {
       opportunityId: 10,
-      decision: "committed",
+      decision: "onboarding",
     });
 
     expect(result.status).toBe("recorded");
     const deal = await readDeal(dataProvider, 10);
-    expect(deal.stage).toBe("committed");
+    expect(deal.stage).toBe("onboarding");
     // Won is payment authority. Nobody has paid because somebody said yes.
     expect(deal.stage).not.toBe("won");
     expect(deal.outcome).toBeNull();
@@ -167,7 +167,7 @@ describe("recording a decision", () => {
     const dataProvider = makeProvider([buildDeal({ outcome: "lost" })]);
     const result = await recordOpportunityDecision(dataProvider, {
       opportunityId: 10,
-      decision: "committed",
+      decision: "onboarding",
     });
 
     expect(result.status).toBe("already-resolved");

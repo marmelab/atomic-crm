@@ -25,7 +25,7 @@ const baseDeal: Deal = {
   contact_id: 1,
   offer_id: 1,
   offer_name_snapshot: "The Living Example",
-  stage: "committed",
+  stage: "onboarding",
   amount: 4000,
   created_at: "2026-01-01T00:00:00.000Z",
   updated_at: "2026-01-01T00:00:00.000Z",

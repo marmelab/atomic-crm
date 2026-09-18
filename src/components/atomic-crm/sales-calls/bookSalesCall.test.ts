@@ -135,7 +135,7 @@ describe("bookSalesCall", () => {
   });
 
   it("does not regress an Opportunity already past Approved", async () => {
-    const { dataProvider, deal } = buildFixtures({ stage: "committed" });
+    const { dataProvider, deal } = buildFixtures({ stage: "onboarding" });
 
     await bookSalesCall({
       dataProvider,
@@ -149,7 +149,7 @@ describe("bookSalesCall", () => {
     const { data: updatedDeal } = await dataProvider.getOne<Deal>("deals", {
       id: DEAL_ID,
     });
-    expect(updatedDeal.stage).toBe("committed");
+    expect(updatedDeal.stage).toBe("onboarding");
   });
 
   it("a duplicate webhook delivery for the same Acuity appointment id is a safe no-op", async () => {
@@ -297,7 +297,7 @@ describe("bookSalesCall", () => {
       const { data: updatedDeal } = await dataProvider.getOne<Deal>("deals", {
         id: DEAL_ID,
       });
-      expect(updatedDeal.stage).toBe("committed");
+      expect(updatedDeal.stage).toBe("onboarding");
     });
 
     it("a rebooking auto-resolves the outstanding no-show follow-up Task", async () => {

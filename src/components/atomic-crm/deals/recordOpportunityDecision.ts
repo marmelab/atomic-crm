@@ -17,7 +17,7 @@ const GHOSTED_TAG_COLOR = "#c9ccd2";
 export type OpportunityDecision =
   // They said yes. Stage advances; this is NOT Won — Won is payment
   // authority, and nobody has paid because somebody said yes.
-  | "committed"
+  | "onboarding"
   // They considered the offer and said no.
   | "declined"
   // They stopped replying. Commercially the same as declined, humanly not
@@ -58,14 +58,14 @@ export const recordOpportunityDecision = async (
 
   const now = new Date().toISOString();
 
-  if (decision === "committed") {
-    if (deal.stage === "committed") {
+  if (decision === "onboarding") {
+    if (deal.stage === "onboarding") {
       return { status: "already-resolved" };
     }
     await dataProvider.update<Deal>("deals", {
       id: deal.id,
       data: {
-        stage: "committed",
+        stage: "onboarding",
         stage_entered_at: now,
         prospect_decision: "yes",
       },

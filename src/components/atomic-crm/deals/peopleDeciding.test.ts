@@ -34,7 +34,7 @@ describe("isPersonDeciding", () => {
       "interested",
       "application_received",
       "call_booked",
-      "committed",
+      "onboarding",
       "won",
     ]) {
       expect(isPersonDeciding({ ...base, stage })).toBe(false);

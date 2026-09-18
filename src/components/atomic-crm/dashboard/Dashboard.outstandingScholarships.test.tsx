@@ -39,7 +39,7 @@ const scholarshipDeal: Deal = {
   contact_id: 1,
   offer_id: 1,
   pricing_mode: "scholarship",
-  stage: "committed",
+  stage: "onboarding",
   outcome: null,
   amount: 3000,
   offer_name_snapshot: "The Living Example",

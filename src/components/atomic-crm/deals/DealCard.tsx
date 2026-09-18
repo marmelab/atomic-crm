@@ -5,16 +5,38 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 
 import type { Deal, SalesCall } from "../types";
+import { usePostSaleSetup } from "./postSaleSetupContext";
 
 export const DealCard = ({ deal, index }: { deal: Deal; index: number }) => {
   if (!deal) return null;
 
   return (
-    <Draggable draggableId={String(deal.id)} index={index}>
+    // A sold Opportunity sitting in Onboarding is not dragged anywhere: it
+    // leaves the board by having its setup finished. Dragging one would
+    // silently rewrite the sale.
+    <Draggable
+      draggableId={String(deal.id)}
+      index={index}
+      isDragDisabled={deal.stage === "won"}
+    >
       {(provided, snapshot) => (
         <DealCardContent provided={provided} snapshot={snapshot} deal={deal} />
       )}
     </Draggable>
+  );
+};
+
+// The one thing still standing between this sale and the client being set
+// up — "Payment setup pending", "Contract pending". One line, because the
+// card has to be readable at a glance; the full checklist is in the drawer.
+const PostSaleBlockerLine = ({ deal }: { deal: Deal }) => {
+  const setup = usePostSaleSetup(deal.id);
+  if (!setup?.headline) return null;
+  return (
+    <p className="text-xs text-amber-700 dark:text-amber-500 mt-1 truncate">
+      {setup.headline}
+      {setup.blockers.length > 1 && ` +${setup.blockers.length - 1} more`}
+    </p>
   );
 };
 
@@ -77,6 +99,7 @@ export const DealCardContent = ({
                 link={false}
               />
             </p>
+            <PostSaleBlockerLine deal={deal} />
           </CardContent>
         </Card>
       </RecordContextProvider>

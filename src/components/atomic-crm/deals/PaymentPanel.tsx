@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
-import { useDataProvider, useNotify } from "ra-core";
+import { useDataProvider, useGetOne, useNotify } from "ra-core";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
+import type { Deal } from "../types";
 import { assessPaymentStatus, type PaymentStatus } from "./paymentStatus";
 import {
   discoverStripeCustomers,
@@ -26,10 +27,22 @@ export const PaymentPanel = ({
   title = "Payment",
 }: {
   opportunityId: number | string;
-  contactId: number | string | undefined;
+  contactId?: number | string | undefined;
   title?: string;
 }) => {
   const dataProvider = useDataProvider();
+
+  // Sync Stripe is how a person WITHOUT a verified Stripe customer gets
+  // one, so it must never be hidden for lack of one — Sam Milz is exactly
+  // that case. It was also hidden whenever the caller's own contact lookup
+  // had not resolved, which is why it was missing from his Client page, so
+  // the Opportunity's own contact_id is used as the fallback.
+  const { data: deal } = useGetOne<Deal>(
+    "deals",
+    { id: opportunityId },
+    { enabled: contactId == null },
+  );
+  const resolvedContactId = contactId ?? deal?.contact_id;
   const notify = useNotify();
   const [status, setStatus] = useState<PaymentStatus | null>(null);
   const [syncing, setSyncing] = useState(false);
@@ -46,10 +59,10 @@ export const PaymentPanel = ({
   }, [load]);
 
   const sync = async () => {
-    if (contactId == null) return;
+    if (resolvedContactId == null) return;
     setSyncing(true);
     try {
-      const result = await syncStripeForContact(contactId);
+      const result = await syncStripeForContact(resolvedContactId);
       notify(result.message, {
         type: result.status === "error" ? "warning" : "info",
       });
@@ -60,7 +73,7 @@ export const PaymentPanel = ({
       // customer is theirs. Leif creating a subscription by hand produces
       // the second. Candidates are proposed, never linked automatically.
       if (result.status === "none-found") {
-        setCandidates(await discoverStripeCustomers(contactId));
+        setCandidates(await discoverStripeCustomers(resolvedContactId));
       } else {
         setCandidates([]);
       }
@@ -92,10 +105,13 @@ export const PaymentPanel = ({
   };
 
   const link = async (stripeCustomerId: string) => {
-    if (contactId == null) return;
+    if (resolvedContactId == null) return;
     setLinking(stripeCustomerId);
     try {
-      const result = await linkStripeCustomer(contactId, stripeCustomerId);
+      const result = await linkStripeCustomer(
+        resolvedContactId,
+        stripeCustomerId,
+      );
       notify(result.message, {
         type: result.status === "error" ? "warning" : "info",
       });
@@ -196,7 +212,7 @@ export const PaymentPanel = ({
           </div>
         )}
 
-        {contactId != null && (
+        {resolvedContactId != null && (
           <div>
             {/* Reconciles this person only. The browser never sees a Stripe
                 key — it calls the authenticated server path, which holds

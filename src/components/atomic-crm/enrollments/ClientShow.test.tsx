@@ -304,3 +304,49 @@ describe("ClientShow (Enrollment operational home)", () => {
     await expect.element(nameLink).toHaveAttribute("href", "/contacts/1/show");
   });
 });
+
+// Production rendered "Client #63" in 24px bold above the person's own
+// name in 18px. The internal id of a join record is not somebody's
+// identity, and nobody has ever gone looking for client sixty-three.
+describe("ClientShow — whose page this is", () => {
+  it("leads with the person's name, never the internal Client id", async () => {
+    await page.viewport(1280, 900);
+    const { element } = buildTestCrm({ items: [buildItem({})] });
+
+    const screen = await render(element);
+
+    // The page's own heading names the person, and the id-based heading
+    // is gone entirely.
+    await expect
+      .element(screen.getByRole("heading", { name: "Ada Lovelace" }))
+      .toBeVisible();
+    await expect
+      .element(screen.getByText(/^Client #\d+$/))
+      .not.toBeInTheDocument();
+  });
+
+  it("keeps the programme as context under the name", async () => {
+    await page.viewport(1280, 900);
+    const { element } = buildTestCrm({ items: [buildItem({})] });
+
+    const screen = await render(element);
+
+    await expect
+      .element(screen.getByText("Growing Yourself Up").first())
+      .toBeInTheDocument();
+  });
+
+  it("offers Sync Stripe even when no Stripe customer is verified yet", async () => {
+    // Sam Milz's case: syncing is how somebody with no verified Stripe
+    // customer gets one, so hiding the button for lack of one makes the
+    // gap permanent.
+    await page.viewport(1280, 900);
+    const { element } = buildTestCrm({ items: [buildItem({})] });
+
+    const screen = await render(element);
+
+    await expect
+      .element(screen.getByRole("button", { name: "Sync Stripe" }))
+      .toBeVisible();
+  });
+});

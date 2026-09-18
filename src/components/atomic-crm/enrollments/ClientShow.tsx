@@ -73,10 +73,28 @@ import { resolveCommercialTerms } from "./resolveCommercialTerms";
 // showing five indistinguishable rows. The underlying Tasks still exist
 // and still surface normally on the Dashboard/Contact page/etc.
 export const ClientShow = () => (
-  <Show actions={<EditButton />}>
+  <Show actions={<EditButton />} title={<ClientTitle />}>
     <EnrollmentOperationalHome />
   </Show>
 );
+
+// Who this page is about, as its heading.
+//
+// The framework's default is the record representation, which for an
+// Enrollment is its id: production showed "Client #63" in 24px bold above
+// Sam Milz's own name in 18px. The internal id of a join record is not a
+// person's identity, and nobody has ever gone looking for client sixty-three.
+const ClientTitle = () => {
+  const enrollment = useRecordContext<Enrollment>();
+  const { deal, contact } = useEnrollmentOperationalData(enrollment);
+
+  if (!enrollment) return null;
+  const name = contact
+    ? `${contact.first_name ?? ""} ${contact.last_name ?? ""}`.trim()
+    : (deal?.name ?? "");
+  // Never fall back to the id: an empty heading is better than a wrong one.
+  return <>{name}</>;
+};
 
 const EnrollmentOperationalHome = () => {
   const enrollment = useRecordContext<Enrollment>();
@@ -159,7 +177,7 @@ const EnrollmentOperationalHome = () => {
               the direct relationship already on the Deal, never a
               heuristic guess. Visibly a link (underline-on-hover) but
               styled like the plain name it replaces, not a loud CTA. */}
-          <span className="text-lg font-semibold">
+          <span className="text-2xl font-bold tracking-tight">
             {contact ? (
               <Link
                 to={`/contacts/${contact.id}/show`}
@@ -171,7 +189,9 @@ const EnrollmentOperationalHome = () => {
               contactName
             )}
           </span>
-          <span className="text-sm text-muted-foreground">
+          {/* The programme is context for the person, not the other way
+              round. */}
+          <span className="text-base text-muted-foreground">
             {offer.name}
             {cohort ? ` — ${cohort.name}` : ""}
           </span>

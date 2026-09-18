@@ -53,7 +53,7 @@ const buildDeal = (
   name: "Test Person",
   contact_id: contactId,
   offer_id: LE_OFFER_ID,
-  stage: "committed",
+  stage: "onboarding",
   outcome: null,
   amount: 4000,
   offer_name_snapshot: "The Living Example",

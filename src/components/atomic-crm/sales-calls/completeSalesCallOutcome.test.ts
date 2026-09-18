@@ -107,7 +107,7 @@ describe("completeSalesCallOutcome", () => {
     const { data: deal } = await dataProvider.getOne<Deal>("deals", {
       id: DEAL_ID,
     });
-    expect(deal.stage).toBe("committed");
+    expect(deal.stage).toBe("onboarding");
     expect(deal.owner_decision).toBe("would_work_with");
     expect(deal.prospect_decision).toBe("yes");
     expect(deal.outcome).toBeNull();
@@ -446,7 +446,7 @@ describe("completeSalesCallOutcome", () => {
     });
     // Still reflects the FIRST (real) outcome, not the second call's data.
     expect(deal.prospect_decision).toBe("yes");
-    expect(deal.stage).toBe("committed");
+    expect(deal.stage).toBe("onboarding");
   });
 
   it("refuses to complete a call with no matched Opportunity", async () => {

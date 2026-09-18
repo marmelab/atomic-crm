@@ -160,7 +160,7 @@ describe("DealInputs (generic Edit) — Won payment authority", () => {
       contact_id: 1,
       offer_id: 1,
       offer_name_snapshot: "The Living Example",
-      stage: "committed",
+      stage: "onboarding",
       owner_decision: "would_work_with",
       prospect_decision: "yes",
       amount: 4000,
@@ -190,7 +190,7 @@ describe("DealInputs (generic Edit) — Won payment authority", () => {
 
     // Every other real stage is still offered...
     await expect
-      .element(screen.getByRole("option", { name: "Committed" }))
+      .element(screen.getByRole("option", { name: "Onboarding" }))
       .toBeInTheDocument();
     await expect
       .element(screen.getByRole("option", { name: "Call Booked" }))

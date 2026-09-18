@@ -202,6 +202,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/tasks/NeedsAttentionRow.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/tasks/MobileTasksList.tsx",
           "type": "registry:component"
         },
@@ -1106,6 +1110,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/deals/useOnboardingPipeline.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/deals/syncStripe.ts",
           "type": "registry:component"
         },
@@ -1159,6 +1167,14 @@
         },
         {
           "path": "src/components/atomic-crm/deals/publicOfferPageContext.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/deals/postSaleSetupContext.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/deals/postSaleSetup.ts",
           "type": "registry:component"
         },
         {

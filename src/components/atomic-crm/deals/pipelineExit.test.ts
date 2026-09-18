@@ -77,7 +77,7 @@ describe("remove from pipeline", () => {
       "approved",
       "call_booked",
       "decision",
-      "committed",
+      "onboarding",
     ]) {
       expect(
         canRemoveFromPipeline({ stage, outcome: null, archived_at: null }),

@@ -24,7 +24,7 @@ import { randomDate } from "./utils";
 const CALL_LIFECYCLE_STAGES = new Set([
   "call_booked",
   "decision",
-  "committed",
+  "onboarding",
   "won",
 ]);
 

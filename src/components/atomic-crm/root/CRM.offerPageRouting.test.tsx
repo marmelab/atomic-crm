@@ -75,7 +75,7 @@ const buildDeal = (overrides: Partial<Deal> = {}): Deal => ({
   name: "Ada Lovelace — Growing Yourself Up",
   contact_id: 1,
   offer_id: 2,
-  stage: "committed",
+  stage: "onboarding",
   outcome: null,
   amount: 1400,
   offer_name_snapshot: "Growing Yourself Up",

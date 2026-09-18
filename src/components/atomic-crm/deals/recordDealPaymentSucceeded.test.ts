@@ -57,7 +57,7 @@ const buildDeal = (overrides: Partial<Deal> = {}): Deal => ({
   contact_id: CONTACT_ID,
   offer_id: OFFER_ID,
   cohort_id: COHORT_ID,
-  stage: "committed",
+  stage: "onboarding",
   outcome: null,
   owner_decision: "would_work_with",
   prospect_decision: "yes",

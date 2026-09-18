@@ -16,7 +16,7 @@ const multiplier: Record<string, number> = {
   approved: 0.3,
   call_booked: 0.4,
   decision: 0.6,
-  committed: 0.8,
+  onboarding: 0.8,
 };
 
 const threeMonthsAgo = new Date(

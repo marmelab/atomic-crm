@@ -176,17 +176,17 @@ describe("Committed — waiting longest first", () => {
     const deals = [
       deal({
         id: 1,
-        stage: "committed",
+        stage: "onboarding",
         stage_entered_at: "2026-09-01T00:00:00.000Z",
       }),
       deal({
         id: 2,
-        stage: "committed",
+        stage: "onboarding",
         stage_entered_at: "2026-06-01T00:00:00.000Z",
       }),
     ];
 
-    expect(order("committed", deals)).toEqual([2, 1]);
+    expect(order("onboarding", deals)).toEqual([2, 1]);
   });
 });
 
@@ -228,7 +228,7 @@ describe("the board applies these rules", () => {
       "approved",
       "call_booked",
       "decision",
-      "committed",
+      "onboarding",
     ]) {
       expect(ORDERING_RULE_LABELS[stage]).toBeTruthy();
     }

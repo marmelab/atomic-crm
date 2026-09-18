@@ -80,7 +80,7 @@ const buildDeal = (overrides: Partial<Deal> = {}): Deal => ({
   name: "Ada Lovelace",
   contact_id: 1,
   offer_id: LE_OFFER_ID,
-  stage: "committed",
+  stage: "onboarding",
   outcome: null,
   amount: 4000,
   created_at: "2026-01-01T00:00:00.000Z",
@@ -231,7 +231,7 @@ describe("onboarding checklist seeding (handle_deal_won() FakeRest mirror)", () 
     // Postgres trigger's ON CONFLICT DO NOTHING guarantees.
     await dataProvider.update("deals", {
       id: deal.id,
-      data: { stage: "committed" },
+      data: { stage: "onboarding" },
       previousData: wonDeal,
     });
     const { data: committedDeal } = await dataProvider.getOne<Deal>("deals", {

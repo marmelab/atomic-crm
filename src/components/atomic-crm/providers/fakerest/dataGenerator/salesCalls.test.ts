@@ -45,7 +45,7 @@ describe("backfillSalesCallsForCallLifecycleDeals", () => {
   });
 
   it("gives a Committed deal an attended sales_calls record and backfills the missing decision", () => {
-    const deal = buildDeal({ id: 1, stage: "committed" });
+    const deal = buildDeal({ id: 1, stage: "onboarding" });
     const db = buildDb([deal]);
 
     backfillSalesCallsForCallLifecycleDeals(db);
@@ -69,7 +69,7 @@ describe("backfillSalesCallsForCallLifecycleDeals", () => {
   it("never overwrites a deal that already has its own owner_decision", () => {
     const deal = buildDeal({
       id: 1,
-      stage: "committed",
+      stage: "onboarding",
       owner_decision: "workshops_only",
       prospect_decision: null,
     });

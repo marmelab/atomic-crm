@@ -9,6 +9,8 @@ import { DealColumn } from "./DealColumn";
 import type { DealsByStage } from "./stages";
 import { getDealsByStage } from "./stages";
 import { applyDealStageDrop } from "./applyDealStageDrop";
+import { PostSaleSetupContext } from "./postSaleSetupContext";
+import { useOnboardingPipeline } from "./useOnboardingPipeline";
 
 export const DealListContent = () => {
   const { dealStages, dealPipelineStatuses } = useConfigurationContext();
@@ -20,6 +22,12 @@ export const DealListContent = () => {
   );
   const { data: unorderedDeals, isPending, refetch } = useListContext<Deal>();
   const dataProvider = useDataProvider();
+
+  // Won Opportunities whose setup is not finished. They are excluded from
+  // the board's own query (Won is a pipeline-exit status), so they are
+  // fetched separately and placed in the Onboarding column — the sale is
+  // done, the setup work is not.
+  const onboarding = useOnboardingPipeline();
 
   // Call Booked is ordered by the next genuine booked call, so the board
   // needs the calls themselves. Only booked ones matter for ordering.
@@ -40,12 +48,18 @@ export const DealListContent = () => {
         activeDealStages,
         salesCalls,
       );
+      // Onboarding holds both: anything still literally at that stage, and
+      // every Won Opportunity with setup outstanding.
+      newDealsByStage.onboarding = [
+        ...(newDealsByStage.onboarding ?? []),
+        ...onboarding.deals,
+      ];
       if (!isEqual(newDealsByStage, dealsByStage)) {
         setDealsByStage(newDealsByStage);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [unorderedDeals, salesCalls]);
+  }, [unorderedDeals, salesCalls, onboarding.deals]);
 
   if (isPending) return null;
 
@@ -79,17 +93,19 @@ export const DealListContent = () => {
   };
 
   return (
-    <DragDropContext onDragEnd={onDragEnd}>
-      <div className="flex gap-4 overflow-x-auto pb-2">
-        {activeDealStages.map((stage) => (
-          <DealColumn
-            stage={stage.value}
-            deals={dealsByStage[stage.value]}
-            key={stage.value}
-          />
-        ))}
-      </div>
-    </DragDropContext>
+    <PostSaleSetupContext.Provider value={onboarding.setupByDeal}>
+      <DragDropContext onDragEnd={onDragEnd}>
+        <div className="flex gap-4 overflow-x-auto pb-2">
+          {activeDealStages.map((stage) => (
+            <DealColumn
+              stage={stage.value}
+              deals={dealsByStage[stage.value]}
+              key={stage.value}
+            />
+          ))}
+        </div>
+      </DragDropContext>
+    </PostSaleSetupContext.Provider>
   );
 };
 

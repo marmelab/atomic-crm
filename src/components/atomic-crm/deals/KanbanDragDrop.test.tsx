@@ -151,11 +151,13 @@ describe("Kanban drop — Won is not a droppable place", () => {
   it("removes Won from the board's columns entirely", async () => {
     await page.viewport(1400, 900);
     const dataProvider = makeProvider([
-      buildDeal({ id: 1, stage: "committed" }),
+      buildDeal({ id: 1, stage: "onboarding" }),
     ]);
     const screen = await render(boardUi(dataProvider));
 
-    await expect.element(screen.getByText("Committed · 1")).toBeInTheDocument();
+    await expect
+      .element(screen.getByText("Onboarding · 1"))
+      .toBeInTheDocument();
 
     // Structural, not a runtime rejection. A guard that ran at drop time
     // could be bypassed by any other caller; a column that does not exist
@@ -199,7 +201,7 @@ describe("Kanban drop — what happens after the card lands", () => {
       "approved",
       "call_booked",
       "decision",
-      "committed",
+      "onboarding",
     ];
     for (const to of path) {
       const deal = await readDeal(dataProvider, 1);

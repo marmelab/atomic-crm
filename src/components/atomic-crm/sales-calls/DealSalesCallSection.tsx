@@ -28,7 +28,11 @@ const findLabel = (
 // advances Approved -> Call Booked) — a legacy/inconsistent record here
 // with no sales_calls row behind it is what makes "Complete Sales Call"
 // go missing (Human-acceptance repair pass, §Repair 2).
-const CALL_LIFECYCLE_STAGES = new Set(["call_booked", "decision", "committed"]);
+const CALL_LIFECYCLE_STAGES = new Set([
+  "call_booked",
+  "decision",
+  "onboarding",
+]);
 
 const describeNextStep = (
   deal: Pick<
@@ -44,8 +48,9 @@ const describeNextStep = (
     return findLabel(ownerDecisions, "workshops_only") ?? null;
   }
   if (deal.prospect_decision === "yes") {
+    // They said yes. The sale is won; what follows is setup.
     return translate("resources.deals.sales_call.next_step_committed", {
-      _: "Committed",
+      _: "Won — onboarding",
     });
   }
   if (deal.prospect_decision === "no") {

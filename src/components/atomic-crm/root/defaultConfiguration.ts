@@ -41,7 +41,11 @@ export const defaultDealStages = [
   { value: "approved", label: "Approved" },
   { value: "call_booked", label: "Call Booked" },
   { value: "decision", label: "Decision" },
-  { value: "committed", label: "Committed" },
+  // "Committed" described a promise to pay. The stage that actually
+  // follows a yes is the setup work: contract, access, and a payment
+  // arrangement that exists. An Opportunity leaves the board by finishing
+  // that, not by being dragged.
+  { value: "onboarding", label: "Onboarding" },
   { value: "won", label: "Won" },
 ];
 

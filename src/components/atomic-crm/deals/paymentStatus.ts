@@ -144,8 +144,21 @@ export const assessPaymentStatus = async (
       sort: { field: "id", order: "ASC" },
     })
     .catch(() => ({ data: [] as DealStripePlanObject[] }));
-  const planObjects = planRows ?? [];
 
+  return derivePaymentStatus(deal, items ?? [], planRows ?? []);
+};
+
+// The same answer, from rows already in hand.
+//
+// The Kanban has to know every Won client's payment state at once to draw
+// the Onboarding column, and asking per Opportunity would be sixty-odd
+// round trips. Both callers share this so the board and the drawer can
+// never disagree about the same person.
+export const derivePaymentStatus = (
+  deal: Deal,
+  items: DealPaymentScheduleItem[],
+  planObjects: DealStripePlanObject[],
+): PaymentStatus => {
   const scheduleItems = items ?? [];
   const paid = scheduleItems.filter((i) => i.status === "paid");
   const scheduled = scheduleItems.filter((i) => i.status === "scheduled");
