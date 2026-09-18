@@ -147,10 +147,10 @@ const DealShowContent = () => {
                   had no null guard and crashed the whole lightbox with an
                   uncaught TypeError the moment such a Deal was opened —
                   found via a real Committed Opportunity with no amount
-                  set. NumberField (already used identically on the
-                  Kanban DealCard) renders nothing for a null value
-                  instead of throwing — the same safe pattern, not a new
-                  one. */}
+                  set. NumberField renders nothing for a null value
+                  instead of throwing. This is the Opportunity drawer,
+                  which is deliberately where commercial terms live now —
+                  the Kanban itself carries no money at all. */}
               <NumberField
                 source="amount"
                 className="text-sm"

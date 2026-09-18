@@ -1,11 +1,23 @@
 import type { ConfigurationContextValue } from "../root/ConfigurationContext";
-import type { Deal } from "../types";
+import type { Deal, SalesCall } from "../types";
+import {
+  comparatorForStage,
+  nextBookedCallByOpportunity,
+} from "./pipelineOrdering";
 
 export type DealsByStage = Record<Deal["stage"], Deal[]>;
 
 export const getDealsByStage = (
   unorderedDeals: Deal[],
   dealStages: ConfigurationContextValue["dealStages"],
+  // Sales calls are what Call Booked is ordered by. Optional so every
+  // existing caller keeps working; without them that column falls back to
+  // "no booking known" for everyone and stays deterministic.
+  salesCalls?: readonly Pick<
+    SalesCall,
+    "opportunity_id" | "status" | "scheduled_at" | "scheduled_on"
+  >[],
+  now?: number,
 ) => {
   if (!dealStages) return {};
   const dealsByStage: Record<Deal["stage"], Deal[]> = unorderedDeals.reduce(
@@ -22,20 +34,16 @@ export const getDealsByStage = (
       {} as Record<Deal["stage"], Deal[]>,
     ),
   );
-  // Kanban queue-ordering slice: each column sorts by how long an
-  // Opportunity has been sitting in its CURRENT stage — oldest (longest
-  // waiting) at the top, most-recently-entered at the bottom — using the
-  // durable stage_entered_at set by every real stage-changing pathway
-  // (see providers/fakerest/dataProvider.ts's "deals" hooks /
-  // supabase/schemas/02_functions.sql's set_deal_stage_entered_at()).
-  // Replaces the old manual drag-and-drop `index` field, which never
-  // reflected genuine time-in-stage.
+  // Each column sorts by what that column is FOR — see
+  // pipelineOrdering.ts for the rule per stage and why. One shared
+  // "longest in stage first" rule used to apply everywhere, which put a
+  // stale unresolved call above a call happening in two hours.
+  const nextCallAt = nextBookedCallByOpportunity(salesCalls);
   dealStages.forEach((stage) => {
     dealsByStage[stage.value] = dealsByStage[stage.value].sort(
-      (recordA: Deal, recordB: Deal) =>
-        new Date(recordA.stage_entered_at).getTime() -
-        new Date(recordB.stage_entered_at).getTime(),
+      comparatorForStage(stage.value, { nextCallAt, now }),
     );
   });
+
   return dealsByStage;
 };

@@ -2,24 +2,45 @@ import { useGetList, useGetMany } from "ra-core";
 import type { Identifier } from "ra-core";
 
 import type { Cohort, Deal, Enrollment, Offer } from "../types";
+import {
+  byNewestStartFirst,
+  bySoonestStartFirst,
+  classifyEnrollment,
+  type EnrollmentPhase,
+} from "./classifyEnrollment";
 
 export type ClientRow = {
   enrollment: Enrollment;
   contactId: Identifier | undefined;
   offer: Offer | undefined;
   cohort: Cohort | undefined;
+  phase: EnrollmentPhase;
 };
 
-// Backs the Clients (/enrollments) list's Needs Onboarding / Active / Past
-// split (architecture review, §9) — same underlying `enrollments` resource,
-// purely a presentational regroup, mirroring the exact precedent
-// applications/useApplicationsGrouped.ts already established for
-// Applications' own Needs Review / Reviewed split.
+export type CohortGroup = {
+  key: string;
+  title: string;
+  rows: ClientRow[];
+};
+
+// Backs the Clients list.
+//
+// Two things were wrong with the old grouping. It split on enrollment
+// STATUS alone, so Daniel Alexander — agreed, set up, and starting on 8
+// November — appeared under current clients seven weeks early. And it
+// merged The Living Example and Growing Yourself Up into one undifferentiated
+// list, which hides the only distinction that matters operationally: LE is
+// a rolling 1:1 container with its own dates per person, GYU is a cohort
+// that runs as a group.
+//
+// So: LE splits by TIME (upcoming / current / past), GYU groups by cohort,
+// and each offer keeps its own shape.
 export const useClientsGrouped = (): {
   isPending: boolean;
-  needsOnboarding: ClientRow[];
-  active: ClientRow[];
-  past: ClientRow[];
+  livingExample: Record<EnrollmentPhase, ClientRow[]>;
+  gyuCohorts: CohortGroup[];
+  gyuPast: ClientRow[];
+  other: ClientRow[];
 } => {
   const { data: enrollments, isPending: enrollmentsPending } =
     useGetList<Enrollment>("enrollments", {
@@ -63,46 +84,93 @@ export const useClientsGrouped = (): {
         (offerIds.length > 0 && offersPending) ||
         (cohortIds.length > 0 && cohortsPending)));
 
-  if (isPending) {
-    return { isPending: true, needsOnboarding: [], active: [], past: [] };
-  }
+  const empty = {
+    livingExample: { upcoming: [], current: [], past: [] },
+    gyuCohorts: [],
+    gyuPast: [],
+    other: [],
+  };
+
+  if (isPending) return { isPending: true, ...empty };
 
   const dealById = new Map((deals ?? []).map((d) => [String(d.id), d]));
   const offerById = new Map((offers ?? []).map((o) => [String(o.id), o]));
   const cohortById = new Map((cohorts ?? []).map((c) => [String(c.id), c]));
 
-  const needsOnboarding: ClientRow[] = [];
-  const active: ClientRow[] = [];
-  const past: ClientRow[] = [];
+  const livingExample: Record<EnrollmentPhase, ClientRow[]> = {
+    upcoming: [],
+    current: [],
+    past: [],
+  };
+  const gyuByCohort = new Map<string, ClientRow[]>();
+  const gyuPast: ClientRow[] = [];
+  const other: ClientRow[] = [];
 
   for (const enrollment of enrollments ?? []) {
     const deal = dealById.get(String(enrollment.opportunity_id));
+    const offer = deal ? offerById.get(String(deal.offer_id)) : undefined;
     const row: ClientRow = {
       enrollment,
       contactId: deal?.contact_id ?? undefined,
-      offer: deal ? offerById.get(String(deal.offer_id)) : undefined,
+      offer,
       cohort:
         deal?.cohort_id != null
           ? cohortById.get(String(deal.cohort_id))
           : undefined,
+      phase: classifyEnrollment(enrollment),
     };
-    // Client Offboarding slice, §10: an offboarding Enrollment is still
-    // CURRENT operational work — Leif is actively winding it down, not
-    // done with it — so it belongs in Active (each row's own Badge
-    // already shows "Offboarding" distinctly, via ClientList.tsx's
-    // existing per-row status badge), never silently buried under Past
-    // before Complete client actually happens. Past is every TERMINAL
-    // status — "completed" and "withdrawn" alike: someone who left the
-    // programme is just as much not-current work as someone who finished
-    // it, and the per-row badge is what distinguishes the two.
-    if (enrollment.status === "onboarding") needsOnboarding.push(row);
-    else if (
-      enrollment.status === "active" ||
-      enrollment.status === "offboarding"
-    )
-      active.push(row);
-    else past.push(row);
+
+    if (offer?.type === "group") {
+      // A cohort that has finished for somebody is history regardless of
+      // which cohort it was, so terminal rows leave the cohort sections.
+      if (row.phase === "past") {
+        gyuPast.push(row);
+        continue;
+      }
+      const key = row.cohort ? String(row.cohort.id) : "no-cohort";
+      const bucket = gyuByCohort.get(key) ?? [];
+      bucket.push(row);
+      gyuByCohort.set(key, bucket);
+      continue;
+    }
+
+    if (offer?.type === "individual") {
+      livingExample[row.phase].push(row);
+      continue;
+    }
+
+    // An Enrollment whose Offer could not be resolved is shown rather
+    // than silently dropped.
+    other.push(row);
   }
 
-  return { isPending: false, needsOnboarding, active, past };
+  // Current: newest-starting at the top, Leif's stated order. Upcoming
+  // reads forwards — the next container to prepare for comes first. Past
+  // is most recently finished first.
+  livingExample.current.sort((a, b) =>
+    byNewestStartFirst(a.enrollment, b.enrollment),
+  );
+  livingExample.upcoming.sort((a, b) =>
+    bySoonestStartFirst(a.enrollment, b.enrollment),
+  );
+  livingExample.past.sort((a, b) =>
+    byNewestStartFirst(a.enrollment, b.enrollment),
+  );
+
+  const gyuCohorts: CohortGroup[] = [...gyuByCohort.entries()]
+    .map(([key, rows]) => ({
+      key,
+      title: rows[0]?.cohort?.name ?? "No cohort assigned",
+      rows: rows.sort((a, b) =>
+        (a.contactId ?? 0) > (b.contactId ?? 0) ? 1 : -1,
+      ),
+    }))
+    // Newest cohort first, by name descending — cohort names carry their
+    // own period ("Fall 2026", "January 2027"), so id order is the stable
+    // proxy for when Leif set them up.
+    .sort((a, b) => b.key.localeCompare(a.key, undefined, { numeric: true }));
+
+  gyuPast.sort((a, b) => byNewestStartFirst(a.enrollment, b.enrollment));
+
+  return { isPending: false, livingExample, gyuCohorts, gyuPast, other };
 };

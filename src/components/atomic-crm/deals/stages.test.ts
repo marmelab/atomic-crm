@@ -27,7 +27,7 @@ const buildDeal = (overrides: Partial<Deal> & Pick<Deal, "id">): Deal => ({
 });
 
 describe("getDealsByStage", () => {
-  it("sorts a column oldest stage_entered_at first, newest last", () => {
+  it("sorts an entry column newest stage_entered_at first, oldest last", () => {
     const newest = buildDeal({
       id: 1,
       stage_entered_at: "2026-06-03T00:00:00.000Z",
@@ -43,7 +43,7 @@ describe("getDealsByStage", () => {
 
     const result = getDealsByStage([newest, oldest, middle], dealStages);
 
-    expect(result.interested.map((d) => d.id)).toEqual([2, 3, 1]);
+    expect(result.interested.map((d) => d.id)).toEqual([1, 3, 2]);
   });
 
   it("ignores the legacy `index` field entirely — stage_entered_at is the only ordering signal", () => {
@@ -63,7 +63,7 @@ describe("getDealsByStage", () => {
 
     const result = getDealsByStage([second, first], dealStages);
 
-    expect(result.interested.map((d) => d.id)).toEqual([1, 2]);
+    expect(result.interested.map((d) => d.id)).toEqual([2, 1]);
   });
 
   it("sorts each stage column independently", () => {
@@ -95,11 +95,14 @@ describe("getDealsByStage", () => {
       dealStages,
     );
 
-    expect(result.interested.map((d) => d.id)).toEqual([1, 2]);
+    // interested: newest entered first. call_booked: no sales calls were
+    // supplied, so every card is "no booking known" and the deterministic
+    // id tie-break decides — never arrival order.
+    expect(result.interested.map((d) => d.id)).toEqual([2, 1]);
     expect(result.call_booked.map((d) => d.id)).toEqual([4, 3]);
   });
 
-  it("applies the same rule regardless of Offer — a Living Example and a Growing Yourself Up deal sort by the same stage_entered_at rule", () => {
+  it("applies the same rule regardless of Offer — a Living Example and a Growing Yourself Up deal sort by the same stage rule", () => {
     const gyuOlder = buildDeal({
       id: 1,
       offer_id: 2,
@@ -114,6 +117,6 @@ describe("getDealsByStage", () => {
 
     const result = getDealsByStage([leNewer, gyuOlder], dealStages);
 
-    expect(result.interested.map((d) => d.id)).toEqual([1, 2]);
+    expect(result.interested.map((d) => d.id)).toEqual([2, 1]);
   });
 });

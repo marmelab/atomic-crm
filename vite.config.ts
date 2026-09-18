@@ -27,11 +27,26 @@ export default defineConfig({
         },
       },
     }),
+    // A whole acceptance round was spent on fixes that were deployed and
+    // correct while the browser in front of Leif kept serving an older
+    // cached shell — the report said "fixed", the screen said otherwise,
+    // and neither of us could tell which build was on screen.
+    //
+    // autoUpdate alone installs the new service worker but lets an
+    // already-open tab keep the assets it started with. skipWaiting and
+    // clientsClaim make the new worker take over open clients as soon as
+    // it installs, so a deploy reaches an open tab on its next navigation
+    // instead of whenever every tab happens to close.
     VitePWA({
       registerType: "autoUpdate",
       workbox: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff,woff2}"],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MiB
+        skipWaiting: true,
+        clientsClaim: true,
+        // Never serve a stale index.html: the shell is what decides which
+        // hashed chunks load, so a stale one pins every other stale asset.
+        cleanupOutdatedCaches: true,
       },
       manifest: false, // Use existing manifest.json from public/
     }),

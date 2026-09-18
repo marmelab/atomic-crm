@@ -1,4 +1,5 @@
 import { Droppable } from "@hello-pangea/dnd";
+import { ORDERING_RULE_LABELS } from "./pipelineOrdering";
 
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal } from "../types";
@@ -29,6 +30,13 @@ export const DealColumn = ({
             · {deals.length}
           </span>
         </h3>
+        {/* Says how this column is ordered, because an order Leif cannot
+            see is an order he has to reverse-engineer from the cards. */}
+        {ORDERING_RULE_LABELS[stage] && (
+          <p className="text-xs text-muted-foreground">
+            {ORDERING_RULE_LABELS[stage]}
+          </p>
+        )}
       </div>
       <Droppable droppableId={stage}>
         {(droppableProvided, snapshot) => (

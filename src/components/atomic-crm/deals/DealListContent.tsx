@@ -1,10 +1,10 @@
 import { DragDropContext, type OnDragEndResponder } from "@hello-pangea/dnd";
 import isEqual from "lodash/isEqual";
-import { useDataProvider, useListContext } from "ra-core";
+import { useDataProvider, useGetList, useListContext } from "ra-core";
 import { useEffect, useState } from "react";
 
 import { useConfigurationContext } from "../root/ConfigurationContext";
-import type { Deal } from "../types";
+import type { Deal, SalesCall } from "../types";
 import { DealColumn } from "./DealColumn";
 import type { DealsByStage } from "./stages";
 import { getDealsByStage } from "./stages";
@@ -21,19 +21,31 @@ export const DealListContent = () => {
   const { data: unorderedDeals, isPending, refetch } = useListContext<Deal>();
   const dataProvider = useDataProvider();
 
+  // Call Booked is ordered by the next genuine booked call, so the board
+  // needs the calls themselves. Only booked ones matter for ordering.
+  const { data: salesCalls } = useGetList<SalesCall>("sales_calls", {
+    filter: { status: "booked" },
+    pagination: { page: 1, perPage: 500 },
+    sort: { field: "scheduled_at", order: "ASC" },
+  });
+
   const [dealsByStage, setDealsByStage] = useState<DealsByStage>(
     getDealsByStage([], activeDealStages),
   );
 
   useEffect(() => {
     if (unorderedDeals) {
-      const newDealsByStage = getDealsByStage(unorderedDeals, activeDealStages);
+      const newDealsByStage = getDealsByStage(
+        unorderedDeals,
+        activeDealStages,
+        salesCalls,
+      );
       if (!isEqual(newDealsByStage, dealsByStage)) {
         setDealsByStage(newDealsByStage);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [unorderedDeals]);
+  }, [unorderedDeals, salesCalls]);
 
   if (isPending) return null;
 

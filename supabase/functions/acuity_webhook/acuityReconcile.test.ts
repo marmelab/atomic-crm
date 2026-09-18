@@ -57,12 +57,38 @@ vi.mock("../_shared/supabaseAdmin.ts", () => {
     return builder;
   };
 
-  return {
-    supabaseAdmin: {
-      from,
-      rpc: () => Promise.resolve({ data: null, error: null }),
-    },
+  // Faithful stand-in for record_sales_call_reinstated(): refuses a
+  // concluded call and refuses a past one, exactly as the real function
+  // does, so the test cannot pass on a laxer fake than production runs.
+  const rpc = (name, args) => {
+    if (name !== "record_sales_call_reinstated") {
+      return Promise.resolve({ data: null, error: null });
+    }
+    const call = (state.tables.sales_calls ?? []).find(
+      (c) => c.id === args.p_sales_call_id,
+    );
+    if (!call)
+      return Promise.resolve({ data: { status: "not-found" }, error: null });
+    if (call.attendance != null) {
+      return Promise.resolve({
+        data: { status: "already-concluded" },
+        error: null,
+      });
+    }
+    if (new Date(String(call.scheduled_at)).getTime() <= Date.now()) {
+      return Promise.resolve({ data: { status: "in-the-past" }, error: null });
+    }
+    call.status = "booked";
+    call.cancelled_at = null;
+    for (const deal of state.tables.deals ?? []) {
+      if (deal.id === call.opportunity_id && deal.stage === "approved") {
+        deal.stage = "call_booked";
+      }
+    }
+    return Promise.resolve({ data: { status: "reinstated" }, error: null });
   };
+
+  return { supabaseAdmin: { from, rpc } };
 });
 
 // The handlers are the webhook's own, already covered by their own file.
@@ -230,10 +256,12 @@ describe("acuity reconciliation", () => {
     );
   });
 
-  // Mihaela Petrova. Leif cancelled her 18 September call in the CRM;
-  // Acuity still reports that booking live. Reconciliation must leave her
-  // alone — an owner's decision outranks stale upstream state.
-  it("never resurrects a call the owner cancelled, even while Acuity still lists it as live", async () => {
+  // Mihaela Petrova. Her Opportunity read Approved/No-show while Acuity
+  // held a live, uncancelled appointment for the next day — the same
+  // appointment id the CRM had marked cancelled. Acuity is authoritative
+  // for whether a call is booked, so a live FUTURE booking is reinstated.
+  it("reinstates a cancelled call that Acuity still holds live in the future", async () => {
+    const at = new Date(Date.now() + 36 * 3600 * 1000).toISOString();
     state.tables.sales_calls = [
       {
         id: 140,
@@ -242,45 +270,113 @@ describe("acuity reconciliation", () => {
         opportunity_id: 163,
         contact_id: 170,
         status: "cancelled",
-        scheduled_at: "2026-09-18T18:00:00.000Z",
-        scheduled_on: "2026-09-18",
+        attendance: null,
+        scheduled_at: at,
+        scheduled_on: at.slice(0, 10),
       },
     ];
+    state.tables.deals = [{ id: 163, contact_id: 170, stage: "approved" }];
     state.appointments = [
       appointment({
         id: 1747612375,
         firstName: "Mihaela",
         lastName: "Petrova",
-        datetime: "2026-09-18T18:00:00.000Z",
+        datetime: at,
         canceled: false,
       }),
     ];
 
     const delta = await reconcileAcuity({ credentials });
 
-    expect(delta.skippedOwnerOverride).toBe(1);
-    expect(delta.salesCallsCreated).toBe(0);
-    expect(delta.rescheduled).toBe(0);
-    expect(state.handled).toEqual([]);
-    expect(state.tables.sales_calls[0].status).toBe("cancelled");
+    expect(delta.reinstated).toBe(1);
+    expect(delta.skippedOwnerOverride).toBe(0);
+    expect(state.tables.sales_calls[0].status).toBe("booked");
+    expect(state.tables.sales_calls[0].cancelled_at).toBeNull();
+    // And the Opportunity follows back to Call Booked.
+    expect(state.tables.deals[0].stage).toBe("call_booked");
   });
 
-  it("a genuinely new booking for that same person is ingested normally", async () => {
+  // Aurelie Boleor. Her only appointment was two days ago and Leif
+  // cancelled it by agreement without touching Acuity, which still says
+  // it was never cancelled. The CRM owns what happened to a past call.
+  it("never resurrects a PAST cancelled call from stale upstream state", async () => {
+    const at = new Date(Date.now() - 12 * 3600 * 1000).toISOString();
     state.tables.sales_calls = [
       {
-        id: 140,
-        acuity_appointment_id: "1747612375",
-        acuity_appointment_type_id: GYU_TYPE,
-        opportunity_id: 163,
-        contact_id: 170,
+        id: 36,
+        acuity_appointment_id: "1742423187",
+        acuity_appointment_type_id: LE_TYPE,
+        opportunity_id: 68,
+        contact_id: 80,
         status: "cancelled",
-        scheduled_at: "2026-09-18T18:00:00.000Z",
-        scheduled_on: "2026-09-18",
+        attendance: null,
+        scheduled_at: at,
+        scheduled_on: at.slice(0, 10),
+      },
+    ];
+    state.tables.deals = [{ id: 68, contact_id: 80, stage: "approved" }];
+    state.appointments = [
+      appointment({
+        id: 1742423187,
+        appointmentTypeID: Number(LE_TYPE),
+        firstName: "Aurelie",
+        lastName: "Boleor",
+        datetime: at,
+        canceled: false,
+      }),
+    ];
+
+    const delta = await reconcileAcuity({ credentials });
+
+    expect(delta.reinstated).toBe(0);
+    expect(delta.skippedOwnerOverride).toBe(1);
+    expect(state.tables.sales_calls[0].status).toBe("cancelled");
+    expect(state.tables.deals[0].stage).toBe("approved");
+  });
+
+  it("never reopens a call whose attendance a human already recorded", async () => {
+    const at = new Date(Date.now() + 36 * 3600 * 1000).toISOString();
+    state.tables.sales_calls = [
+      {
+        id: 50,
+        acuity_appointment_id: "900500",
+        acuity_appointment_type_id: GYU_TYPE,
+        opportunity_id: 1,
+        contact_id: 1,
+        status: "cancelled",
+        attendance: "no_show",
+        scheduled_at: at,
+        scheduled_on: at.slice(0, 10),
+      },
+    ];
+    state.appointments = [appointment({ id: 900500, datetime: at })];
+
+    const delta = await reconcileAcuity({ credentials });
+
+    expect(delta.reinstated).toBe(0);
+    expect(delta.skippedOwnerOverride).toBe(1);
+    expect(state.tables.sales_calls[0].attendance).toBe("no_show");
+  });
+
+  it("a genuinely new booking is still ingested alongside a preserved past cancellation", async () => {
+    const past = new Date(Date.now() - 12 * 3600 * 1000).toISOString();
+    const soon = new Date(Date.now() + 72 * 3600 * 1000).toISOString();
+    state.tables.sales_calls = [
+      {
+        id: 36,
+        acuity_appointment_id: "1742423187",
+        acuity_appointment_type_id: GYU_TYPE,
+        opportunity_id: 68,
+        contact_id: 80,
+        status: "cancelled",
+        attendance: null,
+        scheduled_at: past,
+        scheduled_on: past.slice(0, 10),
       },
     ];
     state.appointments = [
-      appointment({ id: 1747612375, datetime: "2026-09-18T18:00:00.000Z" }),
-      appointment({ id: 1999999, datetime: "2026-11-02T18:00:00.000Z" }),
+      appointment({ id: 1742423187, datetime: past }),
+      appointment({ id: 1999999, datetime: soon }),
     ];
 
     const delta = await reconcileAcuity({ credentials });
@@ -291,7 +387,6 @@ describe("acuity reconciliation", () => {
       { handler: "scheduled", acuityId: "1999999" },
     ]);
   });
-
   it("cancels a booking only on a confirmed upstream cancellation, never on absence", async () => {
     state.tables.sales_calls = [
       {

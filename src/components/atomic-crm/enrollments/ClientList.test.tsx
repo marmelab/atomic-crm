@@ -118,12 +118,14 @@ describe("ClientList", () => {
     );
 
     await expect
-      .element(screen.getByRole("heading", { name: "Needs Onboarding" }))
+      .element(screen.getByRole("heading", { name: "Growing Yourself Up" }))
       .toBeInTheDocument();
     await expect
-      .element(screen.getByRole("heading", { name: "Active", exact: true }))
+      .element(screen.getByRole("heading", { name: "No cohort assigned" }))
       .toBeInTheDocument();
-    await expect.element(screen.getByText("Past Clients")).toBeInTheDocument();
+    await expect
+      .element(screen.getByText("Past & withdrawn"))
+      .toBeInTheDocument();
     await expect
       .element(screen.getByText("Onboarding Person"))
       .toBeInTheDocument();
@@ -203,7 +205,7 @@ describe("ClientList", () => {
     );
 
     await expect
-      .element(screen.getByRole("heading", { name: "Active", exact: true }))
+      .element(screen.getByRole("heading", { name: "No cohort assigned" }))
       .toBeInTheDocument();
     await expect
       .element(screen.getByText("Offboarding Person"))
@@ -279,7 +281,7 @@ describe("ClientList", () => {
     );
 
     await expect
-      .element(screen.getByRole("heading", { name: "Active", exact: true }))
+      .element(screen.getByRole("heading", { name: "No cohort assigned" }))
       .toBeInTheDocument();
     await expect.element(screen.getByText("Still Going")).toBeInTheDocument();
 
@@ -358,7 +360,7 @@ describe("ClientList", () => {
 
     // The genuinely current client is the only one shown as such.
     await expect
-      .element(screen.getByRole("heading", { name: "Active", exact: true }))
+      .element(screen.getByRole("heading", { name: "No cohort assigned" }))
       .toBeInTheDocument();
     await expect
       .element(screen.getByText("Current Person"))

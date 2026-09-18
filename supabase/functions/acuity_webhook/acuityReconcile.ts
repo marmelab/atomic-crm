@@ -30,12 +30,12 @@ import {
 //   no Contacts, no Opportunities, no Sales Calls, no Tasks, no stage
 //   events, not even a redundant UPDATE.
 //
-//   OWNER TRUTH WINS. A call Leif has cancelled in the CRM is never
-//   resurrected because Acuity still lists the booking as live. Mihaela
-//   Petrova is the standing case: her 18 September booking is still
-//   `canceled: false` upstream, and reconciliation must leave her
-//   Opportunity at Approved. A genuinely NEW booking (a new appointment
-//   id) is a new fact and is ingested normally.
+//   PRECEDENCE SPLITS ON TIME. Acuity is authoritative for whether a call
+//   is booked, so a FUTURE appointment still live upstream is reinstated —
+//   the client is holding that invite. A PAST cancelled call belongs to
+//   the CRM, which knows things Acuity cannot see, and stale upstream
+//   state never resurrects it. Recorded attendance is never overwritten
+//   in either direction.
 
 export type ReconcileDelta = {
   scanned: number;
@@ -44,6 +44,7 @@ export type ReconcileDelta = {
   salesCallsCreated: number;
   rescheduled: number;
   cancelled: number;
+  reinstated: number;
   skippedOwnerOverride: number;
   skippedUnresolvableType: number;
   skippedClientSession: number;
@@ -58,6 +59,7 @@ const emptyDelta = (): ReconcileDelta => ({
   salesCallsCreated: 0,
   rescheduled: 0,
   cancelled: 0,
+  reinstated: 0,
   skippedOwnerOverride: 0,
   skippedUnresolvableType: 0,
   skippedClientSession: 0,
@@ -166,11 +168,41 @@ const reconcileLiveAppointments = async (
       continue;
     }
 
-    // The owner-override rule, stated once and applied everywhere below:
-    // a cancellation recorded in the CRM is a decision, and stale upstream
-    // state does not overturn a decision.
+    // Precedence, split on TIME rather than on who wrote last.
+    //
+    // Acuity is authoritative for whether a call is BOOKED, so a future
+    // appointment still live upstream means a booking exists and the CRM
+    // follows — the client is holding that invite. Mihaela Petrova sat
+    // "Approved / No-show" while Acuity held her live appointment for the
+    // next day; reinstatement is what makes the CRM describe the
+    // relationship she is actually in.
+    //
+    // A PAST cancelled call is the opposite: the CRM owns what happened,
+    // and a stale upstream not-cancelled flag must never resurrect it.
+    // That is Aurelie Boleor, whose only appointment was two days ago and
+    // whom Leif cancelled by agreement without touching Acuity.
+    //
+    // record_sales_call_reinstated enforces both conditions itself and
+    // refuses a call with recorded attendance, so a concluded call can
+    // never be reopened from upstream.
     if (existing.status === "cancelled") {
-      delta.skippedOwnerOverride += 1;
+      const { data, error } = await supabaseAdmin.rpc(
+        "record_sales_call_reinstated",
+        { p_sales_call_id: existing.id },
+      );
+      if (error) {
+        delta.errors.push(
+          `could not reinstate sales call ${existing.id}: ${error.message}`,
+        );
+        continue;
+      }
+      const status = (data as { status?: string } | null)?.status;
+      if (status === "reinstated") {
+        delta.reinstated += 1;
+      } else {
+        // in-the-past / already-concluded: the CRM keeps its own truth.
+        delta.skippedOwnerOverride += 1;
+      }
       continue;
     }
 
