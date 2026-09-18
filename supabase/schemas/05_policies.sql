@@ -55,7 +55,10 @@ create policy "Company Delete Policy" on public.companies for delete to authenti
 create policy "Enable read access for authenticated users" on public.contacts for select to authenticated using (true);
 create policy "Enable insert for authenticated users only" on public.contacts for insert to authenticated with check (true);
 create policy "Enable update for authenticated users only" on public.contacts for update to authenticated using (true) with check (true);
-create policy "Contact Delete Policy" on public.contacts for delete to authenticated using (true);
+-- No delete policy for contacts. Removed by the Contact identity safety
+-- rails (20260918330000): a permissive `using (true)` delete let one
+-- request cascade away a person's opportunities, sales calls, client
+-- sessions, notes, Stripe identities, tasks and waitlist entries.
 
 -- Contact Notes
 create policy "Enable read access for authenticated users" on public.contact_notes for select to authenticated using (true);

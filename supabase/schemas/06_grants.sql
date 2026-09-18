@@ -65,9 +65,18 @@ grant all on function public.lowercase_email_jsonb() to anon;
 grant all on function public.lowercase_email_jsonb() to authenticated;
 grant all on function public.lowercase_email_jsonb() to service_role;
 
-grant all on function public.merge_contacts(bigint, bigint) to anon;
-grant all on function public.merge_contacts(bigint, bigint) to authenticated;
-grant all on function public.merge_contacts(bigint, bigint) to service_role;
+-- Contact identity safety rails, 20260918330000: callable by nobody but
+-- the owner. This function repoints only tasks, contact_notes and deals
+-- and then deletes the losing Contact, so calling it destroys client
+-- sessions, Stripe identities, sales calls and waitlist entries through
+-- the foreign keys. PUBLIC is revoked explicitly because a function with
+-- no ACL defaults to EXECUTE for PUBLIC — revoking anon and authenticated
+-- alone would change nothing. Every real merge to date was a deliberate
+-- SQL migration run as the owner, which is the access this leaves.
+revoke all on function public.merge_contacts(bigint, bigint) from public;
+revoke all on function public.merge_contacts(bigint, bigint) from anon;
+revoke all on function public.merge_contacts(bigint, bigint) from authenticated;
+revoke all on function public.merge_contacts(bigint, bigint) from service_role;
 
 grant all on function public.set_sales_id_default() to anon;
 grant all on function public.set_sales_id_default() to authenticated;
@@ -101,6 +110,12 @@ grant all on table public.contacts to service_role;
 -- 20260902020000_contacts_deals_tasks_anon_grant_drift.sql for why this
 -- exists as an explicit revoke rather than simply not granting "all".
 revoke select, insert, update, delete on table public.contacts from anon;
+-- Contact identity safety rails, 20260918330000: authenticated keeps read,
+-- insert and update, and loses DELETE. Deleting a Contact cascades into
+-- client_sessions, contact_notes, contact_stripe_customers, deals,
+-- sales_calls, tasks and waitlist_entries. service_role keeps it: that is
+-- the role the recovery and import tooling runs as.
+revoke delete on table public.contacts from authenticated;
 
 grant all on table public.contact_notes to anon;
 grant all on table public.contact_notes to authenticated;

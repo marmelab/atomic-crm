@@ -187,6 +187,30 @@ describe("the contact delete-rule map is what the schema actually says", () => {
     expect(disagreements).toEqual([]);
   });
 
+  it("declares no permissive delete policy or grant for contacts", () => {
+    // Arrange — the database rails from 20260918330000. Reintroducing
+    // either of these in the declarative schema would quietly reopen the
+    // cascade that Slice 0 closed.
+    const policies = SQL_SOURCES["/supabase/schemas/05_policies.sql"];
+    const grants = SQL_SOURCES["/supabase/schemas/06_grants.sql"];
+
+    // Assert — the parser read the right files.
+    expect(policies).toMatch(/create policy .* on public\.contacts for select/);
+    expect(grants).toMatch(/public\.contacts/);
+
+    // No delete policy on contacts.
+    expect(policies).not.toMatch(
+      /create policy[^\n]*on public\.contacts for delete/i,
+    );
+    // No route back to the merge primitive for a browser-reachable role.
+    expect(grants).not.toMatch(
+      /grant[^\n]*merge_contacts[^\n]*to (anon|authenticated|public)/i,
+    );
+    expect(grants).toMatch(
+      /revoke delete on table public\.contacts from authenticated/i,
+    );
+  });
+
   it("still names the tables a contact delete would destroy", () => {
     // Arrange — the live rules read from MAIN during the Slice 0 audit.
     // Assert
