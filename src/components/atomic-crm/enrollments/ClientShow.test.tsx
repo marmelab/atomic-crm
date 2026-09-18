@@ -144,18 +144,18 @@ const buildTestCrm = ({
 };
 
 describe("ClientShow (Enrollment operational home)", () => {
-  it("shows the authoritative payment context — first installment received, not the whole plan implied paid", async () => {
+  it("states what has actually been collected, never a receipt inferred from the plan", async () => {
+    // This card used to announce "First payment of $700 received" from the
+    // installment structure alone, with no payment row behind it. Nothing
+    // has been collected for this fixture, and the card has to say so.
     await page.viewport(1280, 900);
     const { element } = buildTestCrm({ items: [buildItem({})] });
     const screen = await render(element);
 
     await expect
-      .element(
-        screen.getByText(
-          "First payment of $700 USD received — 1 more payment of $700 USD remaining.",
-        ),
-      )
+      .element(screen.getByText("$0.00 collected", { exact: false }))
       .toBeInTheDocument();
+    await expect.element(screen.getByText(/received/)).not.toBeInTheDocument();
   });
 
   it("renders the checklist with required items and their progress count", async () => {

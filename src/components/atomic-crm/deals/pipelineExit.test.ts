@@ -305,7 +305,9 @@ describe("recording Yes", () => {
 
 describe("payment status is reported, never used as a gate", () => {
   it("says setup is pending for a Won client with nothing recorded", async () => {
-    const dataProvider = makeProvider([buildDeal({ stage: "won" })]);
+    const dataProvider = makeProvider([
+      buildDeal({ stage: "won", selected_payment_total: 4000 }),
+    ]);
 
     const status = await assessPaymentStatus(dataProvider, 10);
 
@@ -322,6 +324,7 @@ describe("payment status is reported, never used as a gate", () => {
     const dataProvider = makeProvider([
       buildDeal({
         stage: "won",
+        selected_payment_total: 4000,
         stripe_subscription_schedule_id: "sub_sched_123",
       }),
     ]);
@@ -363,35 +366,58 @@ describe("payment status is reported, never used as a gate", () => {
     expect(status.detail).toContain("Recorded outside Stripe");
   });
 
-  it("never calls owner-confirmed terms a Stripe-linked plan", async () => {
-    const dataProvider = makeProvider([buildDeal({ stage: "won" })], {
-      deal_payment_schedule_items: [
-        {
-          id: 1,
-          deal_id: 10,
-          amount: 1000,
-          sequence: 1,
-          due_date: "2027-01-01",
-          status: "scheduled",
-          paid_on: null,
-          source: "owner_stated",
-          created_at: "2026-01-01T00:00:00.000Z",
-          updated_at: "2026-01-01T00:00:00.000Z",
-        },
-      ],
-    });
+  it("treats a scheduled row as terms, not as a payment arrangement", async () => {
+    // Terms Leif wrote down are not a payment processor holding a plan, so
+    // this is still setup pending — and the scheduled money is reported as
+    // what it is, a future obligation.
+    const dataProvider = makeProvider(
+      [buildDeal({ stage: "won", selected_payment_total: 1000 })],
+      {
+        deal_payment_schedule_items: [
+          {
+            id: 1,
+            deal_id: 10,
+            amount: 1000,
+            sequence: 1,
+            due_date: "2027-01-01",
+            status: "scheduled",
+            paid_on: null,
+            source: "owner_stated",
+            created_at: "2026-01-01T00:00:00.000Z",
+            updated_at: "2026-01-01T00:00:00.000Z",
+          },
+        ],
+      },
+    );
 
     const status = await assessPaymentStatus(dataProvider, 10);
 
-    expect(status.state).toBe("owner_confirmed_plan");
+    expect(status.state).toBe("setup_pending");
     expect(status.stripeLinked).toBe(false);
-    expect(status.outstanding).toBe("Stripe link pending");
+    expect(status.truth.paymentSetupComplete).toBe(false);
+    expect(status.truth.futureScheduled).toBe(1000);
+  });
+
+  it("asks for a review when a sold Opportunity has no recorded terms", async () => {
+    // The Offer's current list price is a fact about the product, not
+    // about this person, so there is nothing to measure against.
+    const dataProvider = makeProvider([buildDeal({ stage: "won" })]);
+
+    const status = await assessPaymentStatus(dataProvider, 10);
+
+    expect(status.state).toBe("needs_review");
+    expect(status.truth.reviewCode).toBe("terms_unknown");
+    expect(status.truth.remaining).toBeNull();
   });
 
   it("keeps scheduled, active and paid distinct", async () => {
     const scheduled = await assessPaymentStatus(
       makeProvider([
-        buildDeal({ stage: "won", stripe_subscription_schedule_id: "s1" }),
+        buildDeal({
+          stage: "won",
+          selected_payment_total: 4000,
+          stripe_subscription_schedule_id: "s1",
+        }),
       ]),
       10,
     );

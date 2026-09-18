@@ -2,32 +2,29 @@ import { useTranslate } from "ra-core";
 import { Link } from "react-router";
 import { Card, CardContent } from "@/components/ui/card";
 
-import { formatOfferPageAmount } from "../deals/offerPageMoney";
-import { useConfigurationContext } from "../root/ConfigurationContext";
 import { useNeedsOnboardingItems } from "./useNeedsOnboardingItems";
-import type { CommercialTerms } from "../enrollments/resolveCommercialTerms";
+import { describeAgreedTerms, formatMoney } from "../deals/paymentPresentation";
+import type { PaymentTruth } from "../deals/paymentTruth";
 
 // Truthful, compact money for one client. Onboarding eligibility is
 // deliberately NOT tied to any of this — somebody on an installment plan or
 // a paid deposit needs onboarding exactly as much as somebody paid in full
 // (see useNeedsOnboardingItems, which reads Enrollment state only).
-const paymentSummary = (
-  terms: CommercialTerms,
-  currency: string,
-): string | null => {
-  if (terms.kind === "unknown") return null;
-  if (terms.kind === "simple") {
-    // No schedule means no record of anything being collected, so this
-    // states the agreed figure and stops short of claiming payment.
-    return `${formatOfferPageAmount(terms.total, currency)} agreed`;
+const paymentSummary = (payment: PaymentTruth): string | null => {
+  if (!payment.termsKnown) return null;
+  if (payment.paidInFull) {
+    return `${formatMoney(payment.collected)} paid in full`;
   }
-  if (terms.fullySettled) {
-    return `${formatOfferPageAmount(terms.paidTotal, currency)} paid in full`;
+  if (payment.collected > 0) {
+    return `${formatMoney(payment.collected)} paid${
+      payment.remaining != null && payment.remaining > 0
+        ? ` · ${formatMoney(payment.remaining)} remaining`
+        : ""
+    }`;
   }
-  return `${formatOfferPageAmount(terms.paidTotal, currency)} paid · ${formatOfferPageAmount(
-    terms.outstandingTotal,
-    currency,
-  )} scheduled`;
+  // Nothing collected says exactly that, and then the agreed structure.
+  // It never implies a first payment arrived.
+  return `${formatMoney(0)} paid · ${describeAgreedTerms(payment)} agreed`;
 };
 
 // Contracts + Onboarding slice: the Dashboard's primary post-payment
@@ -37,7 +34,6 @@ const paymentSummary = (
 // Tasks, so it's correct even before any Task exists for a new Enrollment.
 export const NeedsOnboarding = () => {
   const translate = useTranslate();
-  const { currency } = useConfigurationContext();
   const { isPending, rows } = useNeedsOnboardingItems();
 
   if (isPending || rows.length === 0) return null;
@@ -63,10 +59,10 @@ export const NeedsOnboarding = () => {
                 {/* Never "paid $X" derived from a contract value. "Paid"
                     means schedule items actually marked paid; anything else
                     states what was AGREED, or says nothing. */}
-                {paymentSummary(row.terms, currency) ? (
+                {paymentSummary(row.payment) ? (
                   <span className="text-muted-foreground">
                     {" · "}
-                    {paymentSummary(row.terms, currency)}
+                    {paymentSummary(row.payment)}
                   </span>
                 ) : null}
               </span>

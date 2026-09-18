@@ -25,9 +25,6 @@ import {
   formatMonthDayString,
   formatTimestampWithTimeString,
 } from "../deals/dealUtils";
-import { formatOfferPageAmount } from "../deals/offerPageMoney";
-import { formatRemainingInstallmentsCopy } from "../deals/paymentPlanRemainingCopy";
-import { useConfigurationContext } from "../root/ConfigurationContext";
 import { CadenceResolutionModal } from "../sessions/CadenceResolutionModal";
 import { formatWindowWeekLabel } from "../sessions/cadenceWeekLabel";
 import { findNoShowSessionInSlot } from "../sessions/findNoShowSessionInSlot";
@@ -37,6 +34,7 @@ import type { ExpectedWeekSummary } from "../sessions/computeClientSessionCadenc
 import { useClientSessionCadence } from "../sessions/useClientSessionCadence";
 import type {
   ClientSession,
+  DealStripePlanObject,
   Contact,
   Enrollment,
   EnrollmentOffboardingItem,
@@ -59,7 +57,8 @@ import { reopenOffboardingItem } from "./reopenOffboardingItem";
 import { reopenOnboardingItem } from "./reopenOnboardingItem";
 import { startOffboarding } from "./startOffboarding";
 import { useEnrollmentOperationalData } from "./useEnrollmentOperationalData";
-import { resolveCommercialTerms } from "./resolveCommercialTerms";
+import { assessPaymentTruth } from "../deals/paymentTruth";
+import { describeAgreedTerms, formatMoney } from "../deals/paymentPresentation";
 
 // Contracts + Onboarding slice: the Enrollment/Client page rebuilt as the
 // real operational home for onboarding (architecture review, §9) — Contact/
@@ -98,7 +97,6 @@ const ClientTitle = () => {
 
 const EnrollmentOperationalHome = () => {
   const enrollment = useRecordContext<Enrollment>();
-  const { currency } = useConfigurationContext();
   const {
     isPending,
     deal,
@@ -109,6 +107,7 @@ const EnrollmentOperationalHome = () => {
     offboardingItems,
     tasks,
     scheduleItems,
+    planObjects,
   } = useEnrollmentOperationalData(enrollment);
 
   if (isPending || !enrollment || !deal || !offer) return null;
@@ -253,7 +252,7 @@ const EnrollmentOperationalHome = () => {
       <PaymentContextCard
         deal={deal}
         scheduleItems={scheduleItems}
-        currency={currency}
+        planObjects={planObjects}
       />
 
       {/* Human-acceptance repair, offboarding hierarchy: while status is
@@ -332,22 +331,25 @@ const EnrollmentOperationalHome = () => {
 const PaymentContextCard = ({
   deal,
   scheduleItems,
-  currency,
+  planObjects,
 }: {
   deal: NonNullable<ReturnType<typeof useEnrollmentOperationalData>["deal"]>;
   scheduleItems: DealPaymentScheduleItem[];
-  currency: string;
+  planObjects: DealStripePlanObject[];
 }) => {
   const translate = useTranslate();
 
-  // One decision, made in resolveCommercialTerms: an explicit schedule wins,
-  // then the Deal's simple snapshot, then nothing. Crucially "nothing" is
-  // rendered as nothing — offer_price_snapshot is the OFFER's list price, a
-  // fact about the product rather than about this person, and standing it in
-  // (together with `selected_installment_count ?? 1`) is what displayed a
-  // scholarship client as the full list price followed by "Paid in full".
-  const terms = resolveCommercialTerms(deal, scheduleItems);
+  // The SAME truth the Payment panel above shows, worded as a ledger
+  // rather than as a status. Both call assessPaymentTruth; neither
+  // calculates anything of its own.
+  //
+  // This card used to run a second resolver that took a client's agreed
+  // total to be the sum of their ledger rows. On Jules Litman-Cleper — five
+  // of six installments paid — that read "settled, $0.00 outstanding"
+  // directly above a panel saying $666 remained.
+  const payment = assessPaymentTruth({ deal, scheduleItems, planObjects });
   const isScholarship = deal.pricing_mode === "scholarship";
+  const agreed = describeAgreedTerms(payment);
 
   return (
     <Card>
@@ -359,9 +361,7 @@ const PaymentContextCard = ({
         </span>
         <span className="text-lg font-semibold">
           {deal.offer_name_snapshot}
-          {terms.kind !== "unknown" ? (
-            <> — {formatOfferPageAmount(terms.total, currency)}</>
-          ) : null}
+          {agreed ? <> — {agreed}</> : null}
         </span>
 
         {isScholarship && (
@@ -372,8 +372,10 @@ const PaymentContextCard = ({
           </span>
         )}
 
-        {terms.kind === "unknown" && (
-          // Said plainly, because not knowing is the truth here.
+        {!payment.termsKnown && (
+          // Said plainly, because not knowing is the truth here — and the
+          // Offer's current list price is a fact about the product, not
+          // about this person.
           <span className="text-sm text-muted-foreground">
             {translate("resources.enrollments.terms_not_recorded", {
               _: "Commercial terms were not recorded for this historical client.",
@@ -381,64 +383,60 @@ const PaymentContextCard = ({
           </span>
         )}
 
-        {terms.kind === "simple" &&
-          (terms.installments > 1 && terms.installmentAmount != null ? (
-            <span className="text-sm text-muted-foreground">
-              {formatRemainingInstallmentsCopy(
-                terms.installments,
-                terms.installmentAmount,
-                currency,
-              )}
-            </span>
-          ) : (
-            // The agreed structure, never a receipt: nothing here verifies
-            // money changed hands, so "Paid in full" would be a claim the
-            // CRM cannot support.
-            <span className="text-sm text-muted-foreground">
-              {translate("resources.enrollments.single_payment_terms", {
-                _: "Agreed as a single payment.",
-              })}
-            </span>
-          ))}
+        {/* Money, stated as money. Never "first payment received" derived
+            from an installment plan. */}
+        <span className="text-sm text-muted-foreground">
+          {formatMoney(payment.collected)} collected
+          {payment.remaining != null && payment.remaining > 0
+            ? ` · ${formatMoney(payment.remaining)} remaining`
+            : ""}
+          {payment.futureScheduled > 0
+            ? ` · ${formatMoney(payment.futureScheduled)} scheduled`
+            : ""}
+        </span>
 
-        {terms.kind === "schedule" && (
-          <div className="flex flex-col gap-0.5">
-            <span className="text-sm text-muted-foreground">
-              {translate("resources.enrollments.schedule_summary", {
-                _: "%{paid} paid · %{outstanding} outstanding",
-                paid: formatOfferPageAmount(terms.paidTotal, currency),
-                outstanding: formatOfferPageAmount(
-                  terms.outstandingTotal,
-                  currency,
-                ),
-              })}
-            </span>
-            {terms.items.map((item) => (
-              <span
-                key={item.id}
-                className="text-sm text-muted-foreground tabular-nums"
-              >
-                {formatOfferPageAmount(Number(item.amount), currency)}
-                {" — "}
-                {item.status === "paid"
-                  ? // Deliberately not "confirmed": a schedule item marked
-                    // paid on Leif's word is a weaker claim than a verified
-                    // Stripe transaction, and the two must not read alike.
-                    item.source === "stripe"
+        {payment.installmentProgressKnown && (
+          <span className="text-sm text-muted-foreground">
+            {payment.installmentsSatisfied} of {payment.agreedInstallmentCount}{" "}
+            installments paid
+          </span>
+        )}
+
+        {scheduleItems
+          .filter((item) => item.status !== "void")
+          .map((item) => (
+            <span
+              key={item.id}
+              className="text-sm text-muted-foreground tabular-nums"
+            >
+              {formatMoney(Number(item.amount))}
+              {" — "}
+              {item.status === "paid"
+                ? item.stripe_payment_intent_id != null
+                  ? item.source === "stripe"
                     ? translate(
                         "resources.enrollments.schedule_paid_verified",
                         {
                           _: "paid (confirmed by Stripe)",
                         },
                       )
-                    : item.paid_on
-                      ? translate("resources.enrollments.schedule_paid_on", {
-                          _: "paid %{date}",
-                          date: formatISODateString(item.paid_on),
-                        })
-                      : translate("resources.enrollments.schedule_paid", {
-                          _: "paid",
-                        })
+                    : // One economic payment Leif recorded and Stripe later
+                      // evidenced. Both facts, one payment.
+                      translate("resources.enrollments.schedule_paid_both", {
+                        _: "paid (owner-recorded, confirmed by Stripe)",
+                      })
+                  : item.paid_on
+                    ? translate("resources.enrollments.schedule_paid_on", {
+                        _: "paid %{date}",
+                        date: formatISODateString(item.paid_on),
+                      })
+                    : translate("resources.enrollments.schedule_paid", {
+                        _: "paid",
+                      })
+                : item.satisfied_by_payment_intent_id != null
+                  ? translate("resources.enrollments.schedule_satisfied", {
+                      _: "settled by a Stripe payment",
+                    })
                   : item.due_date
                     ? translate("resources.enrollments.schedule_due_on", {
                         _: "due %{date}",
@@ -447,10 +445,8 @@ const PaymentContextCard = ({
                     : translate("resources.enrollments.schedule_due", {
                         _: "due (no date set)",
                       })}
-              </span>
-            ))}
-          </div>
-        )}
+            </span>
+          ))}
       </CardContent>
     </Card>
   );

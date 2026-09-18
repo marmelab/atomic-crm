@@ -189,7 +189,7 @@ describe("Public /offer/:token route — unauthenticated access + real wiring", 
       .toBeInTheDocument();
   });
 
-  it("a Deal already Won on an installment plan says the FIRST payment was received, never implying the whole plan is paid", async () => {
+  it("a Deal already Won shows the agreed plan as terms, never as a receipt", async () => {
     await page.viewport(1280, 900);
     const { screen } = await renderOfferPageRoute(
       buildDeal({
@@ -212,13 +212,14 @@ describe("Public /offer/:token route — unauthenticated access + real wiring", 
     await expect
       .element(screen.getByText("2 × $700 USD", { exact: true }))
       .toBeInTheDocument();
+    // The old copy here asserted a first payment had been received, built
+    // from the installment structure with nothing behind it — which is what
+    // told Sam Milz his first $175 had arrived days before his plan would
+    // charge anything. The Offer Page states what was agreed; what was
+    // actually collected is the CRM's business.
     await expect
-      .element(
-        screen.getByText(
-          "First payment of $700 USD received — 1 more payment of $700 USD remaining.",
-        ),
-      )
-      .toBeInTheDocument();
+      .element(screen.getByText(/First payment of/))
+      .not.toBeInTheDocument();
   });
 
   it("clicking Pay on a real payment option completes the Deal through the real fulfillment path, then shows the completed state", async () => {

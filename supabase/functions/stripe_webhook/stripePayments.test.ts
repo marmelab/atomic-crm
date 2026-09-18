@@ -22,6 +22,13 @@ vi.mock("../_shared/supabaseAdmin.ts", () => {
         error: null,
       }),
     }),
+    update: (patch: Row) => ({
+      eq: async (_column: string, value: unknown) => {
+        const row = state.rows.find((r) => r.id === value);
+        if (row) Object.assign(row, patch);
+        return { error: null };
+      },
+    }),
     insert: async (row: Row) => {
       const clash = state.rows.some(
         (existing) =>
@@ -396,11 +403,10 @@ describe("recording money against an Opportunity", () => {
     expect(result.reviewReason).toContain("no agreed total");
   });
 
-  it("catches the same money recorded twice under two different provenances", async () => {
-    // Arrange — Linda Turner: an owner-stated paid-in-full row for $4,000
-    // already on the ledger, and Stripe holding the real $4,000 payment
-    // behind it. Each half reconciles perfectly alone; only the sum shows
-    // that she is recorded as having paid $8,000 on a $4,000 contract.
+  it("attaches Stripe evidence to the payment Leif already recorded", async () => {
+    // Arrange — Linda Turner: an owner-stated $4,000 already on the
+    // ledger, and Stripe holding the real $4,000 payment behind it. These
+    // are two facts about ONE event.
     state.rows = [
       {
         id: 99,
@@ -409,6 +415,7 @@ describe("recording money against an Opportunity", () => {
         status: "paid",
         source: "owner_stated",
         stripe_payment_intent_id: null,
+        satisfied_by_payment_intent_id: null,
       },
     ];
     const stripe = makeStripe({
@@ -435,26 +442,38 @@ describe("recording money against an Opportunity", () => {
       existingReviewReason: null,
     });
 
-    // Assert — named by the signature that identifies it, which is the
-    // matching amounts rather than the overshoot: Lara Spagnola's
-    // duplicate sat well inside her agreed total and showed no overshoot
-    // at all.
-    expect(result.reviewReason).toContain("same money recorded twice");
-    expect(result.reviewReason).toContain("400");
+    // Assert — no second row, no second economic payment, and both
+    // provenances kept on the one that exists.
+    expect(result.merged).toBe(1);
+    expect(result.ingested).toBe(0);
+    expect(state.inserts).toHaveLength(0);
+    expect(state.rows).toHaveLength(1);
+    expect(state.rows[0].source).toBe("owner_stated");
+    expect(state.rows[0].stripe_payment_intent_id).toBe("pi_linda");
+    expect(result.reviewReason).toBeNull();
   });
 
-  it("catches a duplicate that stays inside the agreed total", async () => {
-    // Arrange — Lara Spagnola: an owner-stated $400 and a Stripe $400 for
-    // the same payment, inside a $1,400 agreement. Nothing is over budget,
-    // so only the matching amounts reveal it.
+  it("refuses to merge when more than one recorded payment could be the same money", async () => {
+    // Arrange — two owner-stated $400 payments. Either could be the one
+    // Stripe is describing, so nothing is merged.
     state.rows = [
       {
-        id: 98,
+        id: 1,
         sequence: 1,
         amount: 400,
         status: "paid",
         source: "owner_stated",
         stripe_payment_intent_id: null,
+        satisfied_by_payment_intent_id: null,
+      },
+      {
+        id: 2,
+        sequence: 2,
+        amount: 400,
+        status: "paid",
+        source: "owner_stated",
+        stripe_payment_intent_id: null,
+        satisfied_by_payment_intent_id: null,
       },
     ];
     const stripe = makeStripe({
@@ -462,9 +481,52 @@ describe("recording money against an Opportunity", () => {
         list: async () => ({
           data: [
             {
-              id: "pi_lara",
+              id: "pi_amb",
               status: "succeeded",
               amount_received: 40000,
+              currency: "usd",
+              created: SECONDS,
+            },
+          ],
+        }),
+      },
+    });
+
+    // Act
+    const result = await ingestStripePayments(stripe as never, {
+      customerIds: ["cus_example"],
+      dealId: 1,
+      agreedTotal: 4000,
+      existingReviewReason: null,
+    });
+
+    // Assert
+    expect(result.merged).toBe(0);
+    expect(result.reviewReason).toContain("more than one payment");
+  });
+
+  it("marks a scheduled obligation a payment has discharged", async () => {
+    // Arrange — Lara Spagnola's $1,000 due 2027-01-01, once Stripe
+    // collects it.
+    state.rows = [
+      {
+        id: 7,
+        sequence: 2,
+        amount: 1000,
+        status: "scheduled",
+        source: "owner_stated",
+        stripe_payment_intent_id: null,
+        satisfied_by_payment_intent_id: null,
+      },
+    ];
+    const stripe = makeStripe({
+      paymentIntents: {
+        list: async () => ({
+          data: [
+            {
+              id: "pi_future",
+              status: "succeeded",
+              amount_received: 100000,
               currency: "usd",
               created: SECONDS,
             },
@@ -481,8 +543,11 @@ describe("recording money against an Opportunity", () => {
       existingReviewReason: null,
     });
 
-    // Assert
-    expect(result.reviewReason).toContain("same money recorded twice");
+    // Assert — the receipt is its own row, and the obligation records what
+    // settled it rather than staying owed forever.
+    expect(result.ingested).toBe(1);
+    expect(result.obligationsSatisfied).toBe(1);
+    expect(state.rows[0].satisfied_by_payment_intent_id).toBe("pi_future");
   });
 
   it("raises no review when collected money reconciles against agreed terms", async () => {

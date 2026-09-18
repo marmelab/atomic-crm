@@ -48,12 +48,12 @@ export const DealListContent = () => {
         activeDealStages,
         salesCalls,
       );
-      // Onboarding holds both: anything still literally at that stage, and
-      // every Won Opportunity with setup outstanding.
-      newDealsByStage.onboarding = [
-        ...(newDealsByStage.onboarding ?? []),
-        ...onboarding.deals,
-      ];
+      // Onboarding is SYNTHETIC: every Won Opportunity whose post-sale
+      // setup is unfinished, and nothing else. Deliberately NOT the rows
+      // whose stage value happens to read "onboarding" — fourteen dormant
+      // records were mechanically renamed from "committed" and never made
+      // a sale, so the stage value alone is not eligibility.
+      newDealsByStage.onboarding = [...onboarding.deals];
       if (!isEqual(newDealsByStage, dealsByStage)) {
         setDealsByStage(newDealsByStage);
       }

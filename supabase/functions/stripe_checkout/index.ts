@@ -4,6 +4,7 @@ import Stripe from "npm:stripe@17.4.0";
 import { corsHeaders, OptionsMiddleware } from "../_shared/cors.ts";
 import { createErrorResponse } from "../_shared/utils.ts";
 import { supabaseAdmin } from "../_shared/supabaseAdmin.ts";
+import { recordStripeCustomerForContact } from "../_shared/linkStripeCustomer.ts";
 
 // Stripe test-mode integration slice: the production write path for
 // "create a real Checkout Session for this Offer Page". Deliberately NOT
@@ -133,10 +134,15 @@ const resolveOrCreateStripeCustomer = async (
     metadata: { contact_id: String(contact.id) },
   });
 
-  await supabaseAdmin
-    .from("contacts")
-    .update({ stripe_customer_id: customer.id })
-    .eq("id", contact.id);
+  // Through the one helper, so the canonical relation is written and the
+  // legacy pointer stays a mirror. Writing only the pointer is what would
+  // have made this customer invisible to reconciliation forever.
+  await recordStripeCustomerForContact({
+    contactId: contact.id,
+    stripeCustomerId: customer.id,
+    verifiedBy: "checkout_session",
+    note: "Created by the CRM's own checkout for this Contact.",
+  });
 
   return customer.id;
 };

@@ -25,6 +25,11 @@ import { supabaseAdmin } from "../_shared/supabaseAdmin.ts";
 export type PaymentIngestResult = {
   ingested: number;
   alreadyRecorded: number;
+  // Stripe evidence attached to a payment the CRM already knew about.
+  merged: number;
+  // More than one owner-stated payment could be the same money.
+  ambiguousMerge: number;
+  obligationsSatisfied: number;
   receivedMinor: number;
   currency: string | null;
   lastPaymentAt: string | null;
@@ -170,7 +175,6 @@ const describeLedger = (params: {
   recordedMajor: number;
   hasOwnerStated: boolean;
   hasStripeSourced: boolean;
-  duplicateAmount: number | null;
   errors: string[];
 }): string | null => {
   const {
@@ -179,7 +183,6 @@ const describeLedger = (params: {
     recordedMajor,
     hasOwnerStated,
     hasStripeSourced,
-    duplicateAmount,
     errors,
   } = params;
 
@@ -191,14 +194,11 @@ const describeLedger = (params: {
     if (stripePayments === 0) return null;
     return `Stripe holds ${stripePayments} successful payment(s), but no agreed total is recorded on this Opportunity.`;
   }
-  // The same money recorded twice does not always push the total over the
-  // agreed figure. Linda Turner's did; Lara Spagnola's did not — her
-  // owner-stated $400 and her Stripe $400 sat inside a $1,400 agreement and
-  // looked like ordinary progress. An owner-stated payment for the exact
-  // amount of a Stripe payment is the signature, whatever the total.
-  if (duplicateAmount != null) {
-    return `An owner-stated payment of ${duplicateAmount.toFixed(2)} and a Stripe payment of the same amount are recorded separately. These are likely the same money recorded twice.`;
-  }
+  // NOTE: the old "an owner-stated amount matching a Stripe amount" check
+  // lived here. It is gone because the ingester no longer creates that
+  // shape: a Stripe payment matching exactly one recorded payment is
+  // ATTACHED to it, and an ambiguous match raises its own review. Detecting
+  // a duplicate is a worse answer than not making one.
   if (recordedMajor > agreedTotal + 0.01) {
     // Both provenances present and the total too high is the duplicate
     // signature — said plainly, because the fix is to remove a record, and
@@ -249,6 +249,9 @@ export const ingestStripePayments = async (
   const result: PaymentIngestResult = {
     ingested: 0,
     alreadyRecorded: 0,
+    merged: 0,
+    ambiguousMerge: 0,
+    obligationsSatisfied: 0,
     receivedMinor: payments.reduce((sum, p) => sum + p.amountMinor, 0),
     currency: payments[0]?.currency ?? null,
     lastPaymentAt: payments[payments.length - 1]?.paidAt ?? null,
@@ -259,7 +262,9 @@ export const ingestStripePayments = async (
 
   const { data: existingRows, error: readError } = await supabaseAdmin
     .from("deal_payment_schedule_items")
-    .select("id, sequence, amount, status, source, stripe_payment_intent_id")
+    .select(
+      "id, sequence, amount, status, source, stripe_payment_intent_id, satisfied_by_payment_intent_id",
+    )
     .eq("deal_id", params.dealId);
   if (readError) {
     result.errors.push(`deal ${params.dealId}: ${readError.message}`);
@@ -267,11 +272,13 @@ export const ingestStripePayments = async (
   }
 
   const rows = (existingRows ?? []) as {
+    id: number;
     sequence: number;
     amount: number | string | null;
     status: string;
     source: string;
     stripe_payment_intent_id: string | null;
+    satisfied_by_payment_intent_id: string | null;
   }[];
   const recorded = new Set(
     rows
@@ -292,27 +299,53 @@ export const ingestStripePayments = async (
   const hadOwnerStated = paidRowsBefore.some((r) => r.source !== "stripe");
   const hadStripeSourced = paidRowsBefore.some((r) => r.source === "stripe");
 
-  // An owner-stated amount that exactly matches a Stripe amount. Reported,
-  // never resolved automatically: removing a payment record is a human's
-  // decision, and the two could legitimately be different payments.
-  const ownerStatedAmounts = paidRowsBefore
-    .filter((r) => r.source !== "stripe")
-    .map((r) => Number(r.amount ?? 0));
-  const stripeAmounts = [
-    ...paidRowsBefore
-      .filter((r) => r.source === "stripe")
-      .map((r) => Number(r.amount ?? 0)),
-    ...payments.map((p) => p.amountMinor / 100),
-  ];
-  const duplicateAmount =
-    ownerStatedAmounts.find((amount) =>
-      stripeAmounts.some((other) => Math.abs(other - amount) < 0.01),
-    ) ?? null;
-
   for (const payment of payments) {
     if (recorded.has(payment.paymentIntentId)) {
       result.alreadyRecorded += 1;
       continue;
+    }
+
+    // ONE ECONOMIC PAYMENT, ONE ROW.
+    //
+    // Leif recording a payment and Stripe evidencing the same payment are
+    // two facts about one event. Inserting a second row is what recorded
+    // Linda Turner as having paid $8,000 on a $4,000 contract. When
+    // exactly one unverified owner-stated payment of the same amount is
+    // already on this Deal, Stripe's evidence is ATTACHED to it — both
+    // provenances kept, the money counted once.
+    //
+    // More than one candidate is genuinely ambiguous, so nothing is
+    // merged and a human is asked instead.
+    const candidates = rows.filter(
+      (row) =>
+        row.status === "paid" &&
+        row.source !== "stripe" &&
+        row.stripe_payment_intent_id == null &&
+        Math.abs(Number(row.amount ?? 0) * 100 - payment.amountMinor) < 1,
+    );
+    if (candidates.length === 1) {
+      const { error } = await supabaseAdmin
+        .from("deal_payment_schedule_items")
+        .update({
+          stripe_payment_intent_id: payment.paymentIntentId,
+          verified_by_stripe_at: new Date().toISOString(),
+        })
+        .eq("id", candidates[0].id);
+      if (error) {
+        result.errors.push(
+          `payment ${payment.paymentIntentId}: ${error.message}`,
+        );
+        continue;
+      }
+      candidates[0].stripe_payment_intent_id = payment.paymentIntentId;
+      recorded.add(payment.paymentIntentId);
+      result.merged += 1;
+      continue;
+    }
+    if (candidates.length > 1) {
+      result.ambiguousMerge += 1;
+      // Falls through and records the payment on its own row; the caller
+      // raises a review rather than guessing which one it matches.
     }
     const { error } = await supabaseAdmin
       .from("deal_payment_schedule_items")
@@ -338,6 +371,27 @@ export const ingestStripePayments = async (
     }
     nextSequence += 1;
     result.ingested += 1;
+
+    // A future obligation this payment discharges is no longer future
+    // money. The receipt stays on its own row; the obligation records
+    // what settled it. One payment may settle several, so this is not a
+    // one-to-one link.
+    const obligation = rows.find(
+      (row) =>
+        row.status === "scheduled" &&
+        row.satisfied_by_payment_intent_id == null &&
+        Math.abs(Number(row.amount ?? 0) * 100 - payment.amountMinor) < 1,
+    );
+    if (obligation) {
+      const { error } = await supabaseAdmin
+        .from("deal_payment_schedule_items")
+        .update({ satisfied_by_payment_intent_id: payment.paymentIntentId })
+        .eq("id", obligation.id);
+      if (!error) {
+        obligation.satisfied_by_payment_intent_id = payment.paymentIntentId;
+        result.obligationsSatisfied += 1;
+      }
+    }
   }
 
   const ingestedMajor =
@@ -351,7 +405,6 @@ export const ingestStripePayments = async (
     recordedMajor: alreadyRecordedMajor + ingestedMajor,
     hasOwnerStated: hadOwnerStated,
     hasStripeSourced: hadStripeSourced || result.ingested > 0,
-    duplicateAmount,
     errors: result.errors,
   });
 
@@ -365,7 +418,14 @@ export const ingestStripePayments = async (
   // this sweep cannot see them. Quiet evidence is not an explanation.
   //
   // A human lifts a review, having actually looked.
-  result.reviewReason = params.existingReviewReason ?? computed;
+  // A Stripe payment that could be either of two recorded payments is the
+  // one case merging must not guess at.
+  const ambiguity =
+    result.ambiguousMerge > 0
+      ? "A Stripe payment matches more than one payment Leif recorded by hand. They may be the same money; nothing was merged."
+      : null;
+
+  result.reviewReason = params.existingReviewReason ?? ambiguity ?? computed;
 
   return result;
 };

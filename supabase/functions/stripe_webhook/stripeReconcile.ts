@@ -40,6 +40,8 @@ export type StripeReconcileDelta = {
   paymentStatesUpdated: number;
   paymentsIngested: number;
   paymentsAlreadyRecorded: number;
+  paymentsMerged: number;
+  obligationsSatisfied: number;
   planObjectsRecorded: number;
   planObjectsUpdated: number;
   needsReview: { contactId: number; reason: string }[];
@@ -57,6 +59,8 @@ const emptyDelta = (): StripeReconcileDelta => ({
   paymentStatesUpdated: 0,
   paymentsIngested: 0,
   paymentsAlreadyRecorded: 0,
+  paymentsMerged: 0,
+  obligationsSatisfied: 0,
   planObjectsRecorded: 0,
   planObjectsUpdated: 0,
   needsReview: [],
@@ -211,6 +215,8 @@ export const reconcileStripe = async (
     });
     delta.paymentsIngested += ingest.ingested;
     delta.paymentsAlreadyRecorded += ingest.alreadyRecorded;
+    delta.paymentsMerged += ingest.merged;
+    delta.obligationsSatisfied += ingest.obligationsSatisfied;
     delta.errors.push(...ingest.errors);
     for (const warning of ingest.capabilityWarnings) {
       if (!delta.capabilityWarnings.includes(warning)) {
@@ -364,87 +370,3 @@ const scheduleSubscriptionId = (
   typeof schedule.subscription === "string"
     ? schedule.subscription
     : (schedule.subscription?.id ?? null);
-
-// What Stripe says about this customer's plan, for the drawer to show.
-// Read-only: it never writes, so a Sync that finds nothing cannot damage
-// anything the CRM already knows.
-export type StripePlanSummary = {
-  state:
-    | "paid_in_full"
-    | "active_plan"
-    | "scheduled_plan"
-    | "setup_pending"
-    | "payment_issue"
-    | "unknown";
-  scheduleId: string | null;
-  subscriptionId: string | null;
-  startsAt: string | null;
-  amount: number | null;
-  currency: string | null;
-  interval: string | null;
-};
-
-export const summarizeStripePlan = async (
-  stripe: Stripe,
-  customerId: string,
-): Promise<StripePlanSummary> => {
-  const empty: StripePlanSummary = {
-    state: "unknown",
-    scheduleId: null,
-    subscriptionId: null,
-    startsAt: null,
-    amount: null,
-    currency: null,
-    interval: null,
-  };
-
-  const [scheduleList, subscriptionList] = await Promise.all([
-    stripe.subscriptionSchedules.list({ customer: customerId, limit: 10 }),
-    stripe.subscriptions.list({
-      customer: customerId,
-      status: "all",
-      limit: 10,
-    }),
-  ]);
-
-  const schedule = scheduleList.data.find(isLiveSchedule) ?? null;
-  const subscription = subscriptionList.data.find(isLiveSubscription) ?? null;
-
-  if (!schedule && !subscription) return { ...empty, state: "setup_pending" };
-
-  const phase = schedule?.phases?.[0] ?? null;
-  const item = phase?.items?.[0] ?? null;
-  const price = subscription?.items?.data?.[0]?.price ?? null;
-
-  // A schedule that has not begun is SCHEDULED, which is a real, knowable
-  // state — not "unknown" and not "no plan".
-  const state: StripePlanSummary["state"] =
-    subscription?.status === "past_due" || subscription?.status === "unpaid"
-      ? "payment_issue"
-      : schedule?.status === "not_started"
-        ? "scheduled_plan"
-        : subscription?.status === "active"
-          ? "active_plan"
-          : "setup_pending";
-
-  return {
-    state,
-    scheduleId: schedule?.id ?? null,
-    subscriptionId:
-      subscription?.id ?? scheduleSubscriptionId(schedule!) ?? null,
-    startsAt: schedule?.phases?.[0]?.start_date
-      ? new Date(schedule.phases[0].start_date * 1000).toISOString()
-      : subscription?.start_date
-        ? new Date(subscription.start_date * 1000).toISOString()
-        : null,
-    amount:
-      (typeof item?.price === "object" ? item.price?.unit_amount : null) ??
-      price?.unit_amount ??
-      null,
-    currency:
-      (typeof item?.price === "object" ? item.price?.currency : null) ??
-      price?.currency ??
-      null,
-    interval: price?.recurring?.interval ?? null,
-  };
-};

@@ -155,8 +155,12 @@ describe("Kanban drop — Won is not a droppable place", () => {
     ]);
     const screen = await render(boardUi(dataProvider));
 
+    // Onboarding is a SYNTHETIC column: Won Opportunities whose post-sale
+    // setup is unfinished. A row whose stage value merely reads
+    // "onboarding" is not eligible — fourteen dormant records were
+    // mechanically renamed from "committed" and never made a sale.
     await expect
-      .element(screen.getByText("Onboarding · 1"))
+      .element(screen.getByText("Onboarding · 0"))
       .toBeInTheDocument();
 
     // Structural, not a runtime rejection. A guard that ran at drop time

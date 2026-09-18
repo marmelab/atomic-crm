@@ -353,7 +353,16 @@ export type DealPaymentScheduleItem = {
   status: PaymentScheduleItemStatus;
   paid_on?: string | null;
   source: PaymentScheduleItemSource;
+  // The PaymentIntent that produced this money. Required when `source` is
+  // "stripe"; also carried by an owner-stated or imported payment once
+  // Stripe is found to be describing the SAME economic payment, so one
+  // payment keeps both provenances instead of becoming two rows.
   stripe_payment_intent_id?: string | null;
+  verified_by_stripe_at?: string | null;
+  // Set on a SCHEDULED obligation once a payment has discharged it. Not
+  // unique — one payment may satisfy several obligations — and a satisfied
+  // obligation stops counting as future money.
+  satisfied_by_payment_intent_id?: string | null;
   notes?: string | null;
   created_at: string;
   updated_at: string;
@@ -983,6 +992,15 @@ export type Deal = {
   // linked to. Deliberately NOT the same as "no payment found" — see
   // deals/paymentStatus.ts.
   payment_review_reason?: string | null;
+  // Machine-readable counterpart to payment_review_reason, so the UI can
+  // render the question against current figures rather than against
+  // amounts frozen into a sentence.
+  payment_review_code?: string | null;
+  // An explicit statement that a valid payment arrangement exists outside
+  // Stripe. Never inferred from a scheduled ledger row.
+  payment_setup_confirmed_at?: string | null;
+  payment_setup_source?: string | null;
+  selected_payment_total_source?: string | null;
   created_at: string;
   updated_at: string;
   archived_at?: string | null;

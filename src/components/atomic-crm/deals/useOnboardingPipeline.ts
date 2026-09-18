@@ -105,6 +105,13 @@ export const useOnboardingPipeline = (): OnboardingPipeline => {
       const key = String(deal.id);
       const enrollment = enrollmentByDeal.get(key);
 
+      // A synthetic view of REAL post-sale work: an actual Won sale with a
+      // live client relationship behind it. An Opportunity with no
+      // Enrollment never completed a sale, whatever its stage value says —
+      // which is what keeps the fourteen dormant records that were
+      // mechanically renamed from "committed" off the active board.
+      if (!enrollment) continue;
+
       const setup = assessPostSaleSetup({
         deal,
         enrollmentStatus: enrollment?.status ?? null,

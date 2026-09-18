@@ -8,22 +8,16 @@ import type {
   EnrollmentOnboardingItem,
   DealPaymentScheduleItem,
 } from "../types";
-import {
-  resolveCommercialTerms,
-  type CommercialTerms,
-} from "../enrollments/resolveCommercialTerms";
+import { assessPaymentTruth, type PaymentTruth } from "../deals/paymentTruth";
+import type { DealStripePlanObject } from "../types";
 
 export type NeedsOnboardingRow = {
   enrollmentId: Identifier;
   contactName: string;
   offerName: string;
-  // The amount actually charged so far — the first installment for a
-  // What this person actually agreed to and has actually paid, resolved by
-  // the one shared resolver. Deliberately NOT a single "amountReceived"
-  // number: the old field fell back through selected_payment_total to
-  // offer_price_snapshot and the card called the result "paid", so a client
-  // who had paid a $400 deposit was announced as having paid $1,400.
-  terms: CommercialTerms;
+  // What this person agreed to and what has actually been collected,
+  // from the one canonical model every other surface reads.
+  payment: PaymentTruth;
   requiredDone: number;
   requiredTotal: number;
 };
@@ -80,6 +74,18 @@ export const useNeedsOnboardingItems = (): {
       { enabled: dealIds.length > 0 },
     );
 
+  // The plan objects payment truth needs to tell a live arrangement from
+  // a finished one.
+  const { data: planObjects } = useGetList<DealStripePlanObject>(
+    "deal_stripe_plan_objects",
+    {
+      filter: { "deal_id@in": `(${dealIds.join(",")})` },
+      pagination: { page: 1, perPage: 1000 },
+      sort: { field: "id", order: "ASC" },
+    },
+    { enabled: dealIds.length > 0 },
+  );
+
   const enrollmentIds = (enrollments ?? []).map((e) => e.id);
   const { data: items, isPending: itemsPending } =
     useGetList<EnrollmentOnboardingItem>(
@@ -119,14 +125,15 @@ export const useNeedsOnboardingItems = (): {
         ? `${contact.first_name ?? ""} ${contact.last_name ?? ""}`.trim()
         : (deal?.name ?? ""),
       offerName: deal?.offer_name_snapshot ?? "",
-      terms: deal
-        ? resolveCommercialTerms(
-            deal,
-            (scheduleItems ?? []).filter(
-              (item) => String(item.deal_id) === String(deal.id),
-            ),
-          )
-        : { kind: "unknown" },
+      payment: assessPaymentTruth({
+        deal: deal ?? ({ id: enrollment.opportunity_id, stage: "" } as never),
+        scheduleItems: (scheduleItems ?? []).filter(
+          (item) => String(item.deal_id) === String(deal?.id),
+        ),
+        planObjects: (planObjects ?? []).filter(
+          (object) => String(object.deal_id) === String(deal?.id),
+        ),
+      }),
       requiredDone: requiredItems.filter((item) => item.status === "done")
         .length,
       requiredTotal: requiredItems.length,

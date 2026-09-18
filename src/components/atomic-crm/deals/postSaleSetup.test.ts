@@ -1,6 +1,7 @@
 import { describe, expect, test } from "vitest";
 
-import { assessPostSaleSetup, isPaymentSetUp } from "./postSaleSetup";
+import { assessPostSaleSetup } from "./postSaleSetup";
+import { assessPaymentTruth } from "./paymentTruth";
 import type {
   Deal,
   DealPaymentScheduleItem,
@@ -177,7 +178,7 @@ describe("what keeps a sold Opportunity on the board", () => {
   test("payment leads when both a checklist item and payment are outstanding", () => {
     // Arrange
     const status = assess({
-      deal: deal(),
+      deal: deal({ selected_payment_total: 700 }),
       enrollmentStatus: "onboarding",
       scheduleItems: [],
       planObjects: [],
@@ -223,17 +224,49 @@ describe("what keeps a sold Opportunity on the board", () => {
 });
 
 describe("payment setup is not payment collection", () => {
+  const setupFor = (args: Parameters<typeof assessPaymentTruth>[0]): boolean =>
+    assessPaymentTruth(args).paymentSetupComplete;
+
   test("an arrangement that exists counts as set up", () => {
-    expect(isPaymentSetUp("paid_in_full")).toBe(true);
-    expect(isPaymentSetUp("active_plan")).toBe(true);
-    expect(isPaymentSetUp("scheduled_plan")).toBe(true);
+    expect(
+      setupFor({
+        deal: deal({ selected_payment_total: 700 }),
+        scheduleItems: [paidItem({ amount: 700 })],
+        planObjects: [],
+      }),
+    ).toBe(true); // paid in full
+    expect(
+      setupFor({
+        deal: deal({ selected_payment_total: 700 }),
+        scheduleItems: [],
+        planObjects: [planObject({ status: "active" })],
+      }),
+    ).toBe(true); // live plan
   });
 
   test("terms with nothing behind them do not", () => {
-    // owner_confirmed_plan is exactly "still needs creating or linking".
-    expect(isPaymentSetUp("owner_confirmed_plan")).toBe(false);
-    expect(isPaymentSetUp("setup_pending")).toBe(false);
-    expect(isPaymentSetUp("needs_review")).toBe(false);
-    expect(isPaymentSetUp("unknown")).toBe(false);
+    // A scheduled row is what Leif wrote down, not an arrangement a
+    // payment processor is holding.
+    expect(
+      setupFor({
+        deal: deal({ selected_payment_total: 700 }),
+        scheduleItems: [
+          paidItem({
+            amount: 175,
+            status: "scheduled",
+            source: "owner_stated",
+            stripe_payment_intent_id: null,
+          }),
+        ],
+        planObjects: [],
+      }),
+    ).toBe(false);
+    expect(
+      setupFor({
+        deal: deal({ selected_payment_total: 700 }),
+        scheduleItems: [],
+        planObjects: [],
+      }),
+    ).toBe(false);
   });
 });

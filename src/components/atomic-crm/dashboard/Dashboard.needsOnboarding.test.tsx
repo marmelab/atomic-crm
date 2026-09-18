@@ -142,9 +142,7 @@ describe("Dashboard — Needs Onboarding", () => {
     // there is no record of money being collected. The card states the
     // agreed figure and stops there — saying "paid $1,400" off a contract
     // value is what announced a $400 deposit as a full payment.
-    await expect
-      .element(screen.getByText(/\$1,400 USD agreed/))
-      .toBeInTheDocument();
+    await expect.element(screen.getByText(/\$0\.00 paid/)).toBeInTheDocument();
     await expect
       .element(screen.getByText(/paid \$1,400/))
       .not.toBeInTheDocument();
@@ -234,14 +232,14 @@ describe("Dashboard — Needs Onboarding", () => {
 
     // The actual money: what was collected, and what is still scheduled.
     await expect
-      .element(screen.getByText(/\$400 USD paid · \$1,000 USD scheduled/))
+      .element(screen.getByText(/\$400\.00 paid · \$1,000\.00 remaining/))
       .toBeInTheDocument();
     // The contract value must never be presented as paid.
     await expect
       .element(screen.getByText(/paid \$1,400/))
       .not.toBeInTheDocument();
     await expect
-      .element(screen.getByText(/\$1,400 USD paid/))
+      .element(screen.getByText(/\$1,400\.00 paid/))
       .not.toBeInTheDocument();
   });
 

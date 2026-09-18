@@ -1,5 +1,6 @@
 import type Stripe from "npm:stripe@18.5.0";
 
+import { recordStripeCustomerForContact } from "../_shared/linkStripeCustomer.ts";
 import { supabaseAdmin } from "../_shared/supabaseAdmin.ts";
 import { resolvePhasePrice } from "./stripeInvestigate.ts";
 import { isLiveSchedule, isLiveSubscription } from "./stripeReconcile.ts";
@@ -221,30 +222,17 @@ export const linkStripeCustomer = async (
         };
   }
 
-  const { count } = await supabaseAdmin
-    .from("contact_stripe_customers")
-    .select("id", { count: "exact", head: true })
-    .eq("contact_id", params.contactId);
-
-  const { error } = await supabaseAdmin
-    .from("contact_stripe_customers")
-    .insert({
-      contact_id: params.contactId,
-      stripe_customer_id: params.stripeCustomerId,
-      // The first one verified becomes the primary pointer.
-      is_primary: (count ?? 0) === 0,
-      verified_by: "owner_confirmed",
-      note: "Confirmed in the CRM after being found by email in Stripe.",
-    });
-  if (error) return { status: "error", message: error.message };
-
-  // Mirror the primary onto the legacy single-id column so everything
-  // still reading that keeps working.
-  if ((count ?? 0) === 0) {
-    await supabaseAdmin
-      .from("contacts")
-      .update({ stripe_customer_id: params.stripeCustomerId })
-      .eq("id", params.contactId);
+  const linked = await recordStripeCustomerForContact({
+    contactId: params.contactId,
+    stripeCustomerId: params.stripeCustomerId,
+    verifiedBy: "owner_confirmed",
+    note: "Confirmed in the CRM after being found by email in Stripe.",
+  });
+  if (linked.status === "claimed-elsewhere") {
+    return {
+      status: "error",
+      message: "That Stripe customer is already linked.",
+    };
   }
 
   const delta = await reconcileStripe(stripe, { contactId: params.contactId });

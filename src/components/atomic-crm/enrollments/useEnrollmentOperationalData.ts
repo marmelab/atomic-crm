@@ -10,6 +10,7 @@ import type {
   Offer,
   Task,
   DealPaymentScheduleItem,
+  DealStripePlanObject,
 } from "../types";
 
 // Backs the Enrollment/Client page (Contracts + Onboarding slice, extended
@@ -66,6 +67,19 @@ export const useEnrollmentOperationalData = (enrollment?: Enrollment) => {
       { enabled: deal != null },
     );
 
+  // Payment truth needs the plan objects to tell a live arrangement from a
+  // finished one — a subscription that ended is where earlier payments
+  // came from, not proof that paying is over.
+  const { data: planObjects } = useGetList<DealStripePlanObject>(
+    "deal_stripe_plan_objects",
+    {
+      filter: { deal_id: deal?.id },
+      pagination: { page: 1, perPage: 100 },
+      sort: { field: "id", order: "ASC" },
+    },
+    { enabled: deal != null },
+  );
+
   const { data: items, isPending: itemsPending } =
     useGetList<EnrollmentOnboardingItem>(
       "enrollment_onboarding_items",
@@ -118,5 +132,6 @@ export const useEnrollmentOperationalData = (enrollment?: Enrollment) => {
     offboardingItems: isPending ? [] : (offboardingItems ?? []),
     tasks: isPending ? [] : (tasks ?? []),
     scheduleItems: schedulePending ? [] : (scheduleItems ?? []),
+    planObjects: planObjects ?? [],
   };
 };

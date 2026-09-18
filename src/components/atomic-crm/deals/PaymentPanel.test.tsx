@@ -80,6 +80,7 @@ describe("PaymentPanel", () => {
         deal({
           selected_payment_total: 3996,
           selected_installment_count: 6,
+          selected_installment_amount: 666,
         }),
       ],
       items,
@@ -118,7 +119,7 @@ describe("PaymentPanel", () => {
 
   it("asks for a payment plan only when there is genuinely nothing and no doubt", async () => {
     // Arrange — Emma Wijns.
-    const screen = await show([deal()], []);
+    const screen = await show([deal({ selected_payment_total: 4000 })], []);
 
     // Assert
     await expect

@@ -6,7 +6,6 @@ import { NotFoundNotice } from "../public-application/NotFoundNotice";
 import { PublicApplicationLayout } from "../public-application/PublicApplicationLayout";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { formatOfferPageAmount } from "./offerPageMoney";
-import { formatRemainingInstallmentsCopy } from "./paymentPlanRemainingCopy";
 import type { PublicOfferPageContext } from "./publicOfferPageContext";
 import type { PublicOfferPageDataSource } from "./publicOfferPageDataSource";
 
@@ -169,13 +168,17 @@ export const OfferPage = ({
                         ? `${formatOfferPageAmount(option.total, currency)} once`
                         : `${option.installments} × ${formatOfferPageAmount(option.installmentAmount, currency)}`}
                     </span>
-                    {context.alreadyWon && option.installments > 1 && (
+                    {/* Terms, never a receipt. This line used to say
+                        "First payment of $X received" for anybody already
+                        Won, generated from the installment structure with
+                        no payment behind it — which is what told Sam Milz
+                        his first $175 had arrived before his plan had
+                        charged anything. The Offer Page shows what was
+                        agreed; what has actually been collected is the
+                        CRM's business, not the buyer's landing page. */}
+                    {context.alreadyWon && (
                       <span className="text-sm text-muted-foreground">
-                        {formatRemainingInstallmentsCopy(
-                          option.installments,
-                          option.installmentAmount,
-                          currency,
-                        )}
+                        Agreed.
                       </span>
                     )}
                   </div>

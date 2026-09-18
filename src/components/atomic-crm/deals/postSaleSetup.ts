@@ -5,7 +5,7 @@ import type {
   EnrollmentOnboardingItem,
   EnrollmentStatus,
 } from "../types";
-import { derivePaymentStatus, type PaymentState } from "./paymentStatus";
+import { assessPaymentTruth, type PaymentTruth } from "./paymentTruth";
 
 // What still has to happen before a sold Opportunity leaves the board.
 //
@@ -31,24 +31,20 @@ export type PostSaleSetup = {
   blockers: PostSaleBlocker[];
   // The single line the Kanban card shows. Null once nothing is left.
   headline: string | null;
+  payment: PaymentTruth;
 };
 
-// Payment SETUP is not payment COLLECTION.
+// Payment SETUP is not payment COLLECTION, and it is not "some money once
+// arrived" either.
 //
-// A six-month plan that has been created and linked is set up, even though
-// five installments are still to come; a client must not sit in Onboarding
-// for six months waiting for money that is already arranged. What counts is
-// whether the arrangement exists.
+// Setup is complete when an ARRANGEMENT EXISTS: the whole amount is in, or
+// a live Stripe plan is carrying it, or Leif has confirmed an arrangement
+// outside Stripe. A single historical payment with no live plan is not a
+// payment arrangement, and neither is a Stripe customer, a saved card or a
+// succeeded SetupIntent.
 //
-// owner_confirmed_plan is deliberately absent: those are terms Leif has
-// stated with nothing in Stripe behind them yet, which is exactly the
-// "still needs creating or linking" case.
-export const PAYMENT_SETUP_COMPLETE_STATES: ReadonlySet<PaymentState> = new Set(
-  ["paid_in_full", "active_plan", "scheduled_plan"],
-);
-
-export const isPaymentSetUp = (state: PaymentState): boolean =>
-  PAYMENT_SETUP_COMPLETE_STATES.has(state);
+// That whole judgement lives in paymentTruth.paymentSetupComplete; this
+// module only asks.
 
 // An engagement that has ended is not setup work.
 //
@@ -81,7 +77,12 @@ export const assessPostSaleSetup = ({
     enrollmentStatus != null &&
     TERMINAL_ENROLLMENT_STATUSES.has(enrollmentStatus)
   ) {
-    return { complete: true, blockers: [], headline: null };
+    return {
+      complete: true,
+      blockers: [],
+      headline: null,
+      payment: assessPaymentTruth({ deal, scheduleItems, planObjects }),
+    };
   }
 
   const blockers: PostSaleBlocker[] = [];
@@ -100,8 +101,8 @@ export const assessPostSaleSetup = ({
     blockers.push({ kind: "onboarding", label: `${item.label} pending` });
   }
 
-  const payment = derivePaymentStatus(deal, scheduleItems, planObjects);
-  if (!isPaymentSetUp(payment.state)) {
+  const payment = assessPaymentTruth({ deal, scheduleItems, planObjects });
+  if (!payment.paymentSetupComplete) {
     blockers.push({
       kind: "payment",
       label:
@@ -114,6 +115,7 @@ export const assessPostSaleSetup = ({
   return {
     complete: blockers.length === 0,
     blockers,
+    payment,
     // Payment leads when it is outstanding: it is the one blocker that
     // stops money arriving, and in practice it is the last thing left.
     headline:
