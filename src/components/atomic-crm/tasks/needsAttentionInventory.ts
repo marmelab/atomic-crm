@@ -160,7 +160,12 @@ export const NEEDS_ATTENTION_KINDS: readonly NeedsAttentionKind[] = [
       "A session is found in that window, or the issue is resolved explicitly.",
     manuallyCompletable: false,
     urgency: 6,
-    dueDateMeans: "The week in question",
+    // The row carries a due_date because the column requires one, and its
+    // value is the moment the calendar sync created it — Jules Litman-Cleper
+    // and Pete Bassett both read 00:00:29 on the day of detection. The week
+    // in question is on the linked expected-session record, not here, so
+    // presenting this timestamp would invent a deadline.
+    dueDateMeans: null,
     actionLabel: "Resolve",
   },
   {

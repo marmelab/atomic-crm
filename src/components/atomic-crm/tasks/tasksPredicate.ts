@@ -1,3 +1,5 @@
+import { NEEDS_ATTENTION_KINDS } from "./needsAttentionInventory";
+
 import { startOfToday } from "date-fns/startOfToday";
 import { endOfToday } from "date-fns/endOfToday";
 import { endOfTomorrow } from "date-fns/endOfTomorrow";
@@ -16,12 +18,19 @@ export const isBeforeFriday = () => getDay(new Date()) < 5; // Friday is represe
 // (suppress "Due <date>"/Postpone) and DashboardTasks.tsx (never bucket it
 // as Overdue merely because its internal due_date rolled into the past —
 // it always shows in Today instead, for as long as it's unresolved).
+// Derived from the inventory, never listed twice.
+//
+// These two drifted: the inventory said a cadence task's due_date meant
+// "the week in question" while this set said it meant nothing, and neither
+// listed sales_call_cancelled or sales_call_no_show, whose dates are also
+// creation artefacts. A task presented as overdue on a timestamp nobody
+// chose is the defect; one list is how it stops recurring.
 export const TASK_TYPES_WITHOUT_MEANINGFUL_DUE_DATE: ReadonlySet<string> =
-  new Set([
-    "sales_call_needs_matching",
-    "resolve_sales_call",
-    "resolve_client_session_cadence",
-  ]);
+  new Set(
+    NEEDS_ATTENTION_KINDS.filter((kind) => kind.dueDateMeans == null).map(
+      (kind) => kind.type,
+    ),
+  );
 
 type Task = {
   due_date: string;

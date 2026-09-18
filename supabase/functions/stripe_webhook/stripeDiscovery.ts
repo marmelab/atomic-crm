@@ -1,6 +1,7 @@
 import type Stripe from "npm:stripe@18.5.0";
 
 import { supabaseAdmin } from "../_shared/supabaseAdmin.ts";
+import { resolvePhasePrice } from "./stripeInvestigate.ts";
 import { isLiveSchedule, isLiveSubscription } from "./stripeReconcile.ts";
 import { reconcileStripe } from "./stripeReconcile.ts";
 
@@ -31,6 +32,13 @@ export type DiscoveredCustomer = {
   liveSchedules: number;
   succeededPayments: number;
   collectedMinor: number;
+  // The shape of the arrangement, so "is this them?" can be answered from
+  // the card rather than by opening Stripe: "$175 monthly x 4 from Sep 22".
+  planAmountMinor: number | null;
+  planInterval: string | null;
+  planIterations: number | null;
+  planStartsAt: string | null;
+  planEndsAt: string | null;
   // Why this is only a candidate.
   matchedBy: "email_discovery";
 };
@@ -101,6 +109,14 @@ export const discoverStripeCustomers = async (
       let liveSchedules = 0;
       let succeededPayments = 0;
       let collectedMinor = 0;
+      let planAmountMinor: number | null = null;
+      let planInterval: string | null = null;
+      let planIterations: number | null = null;
+      let planStartsAt: string | null = null;
+      // The window a plan runs over. Derivable with no extra Stripe
+      // permission, and enough to recognise a plan when its amount cannot
+      // be read: "Sep 22 - Jan 22" is four monthly payments.
+      let planEndsAt: string | null = null;
       try {
         const [subs, scheds, intents] = await Promise.all([
           stripe.subscriptions.list({
@@ -114,8 +130,27 @@ export const discoverStripeCustomers = async (
           }),
           stripe.paymentIntents.list({ customer: customer.id, limit: 100 }),
         ]);
-        liveSubscriptions = subs.data.filter(isLiveSubscription).length;
-        liveSchedules = scheds.data.filter(isLiveSchedule).length;
+        const liveSubs = subs.data.filter(isLiveSubscription);
+        const liveScheds = scheds.data.filter(isLiveSchedule);
+        liveSubscriptions = liveSubs.length;
+        liveSchedules = liveScheds.length;
+
+        const phase = liveScheds[0]?.phases?.[0] ?? null;
+        const phasePrice = await resolvePhasePrice(stripe, phase);
+        const subPrice = liveSubs[0]?.items?.data?.[0]?.price ?? null;
+
+        planAmountMinor = phasePrice.amount ?? subPrice?.unit_amount ?? null;
+        planEndsAt = phase?.end_date
+          ? new Date(phase.end_date * 1000).toISOString()
+          : null;
+        planInterval =
+          phasePrice.interval ?? subPrice?.recurring?.interval ?? null;
+        planIterations = phase?.iterations ?? null;
+        planStartsAt = phase?.start_date
+          ? new Date(phase.start_date * 1000).toISOString()
+          : liveSubs[0]?.start_date
+            ? new Date(liveSubs[0].start_date * 1000).toISOString()
+            : null;
         for (const intent of intents.data) {
           const amount = intent.amount_received ?? 0;
           if (intent.status !== "succeeded" || amount <= 0) continue;
@@ -136,6 +171,11 @@ export const discoverStripeCustomers = async (
         liveSchedules,
         succeededPayments,
         collectedMinor,
+        planAmountMinor,
+        planInterval,
+        planIterations,
+        planStartsAt,
+        planEndsAt,
         matchedBy: "email_discovery",
       });
     }

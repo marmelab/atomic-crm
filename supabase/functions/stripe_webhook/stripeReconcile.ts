@@ -286,21 +286,29 @@ export const reconcileStripe = async (
     const liveSchedules = allSchedules.filter(isLiveSchedule);
     const liveSubscriptions = allSubscriptions.filter(isLiveSubscription);
 
-    // More than one live plan is still ambiguous: a replacement arrives
-    // only once its predecessor has ended, so two at once means a human
-    // should say which is the real one. A schedule and its own
-    // subscription are one plan, not two.
+    // A schedule that has not begun is the NEXT part of the arrangement,
+    // not a rival to the one running. Lara Spagnola is the case: her $400
+    // plan is active and the $1,000 due 2027-01-01 is scheduled behind it,
+    // and treating that as a conflict stopped the CRM linking either.
+    //
+    // Two plans RUNNING AT ONCE is the genuine ambiguity, because only one
+    // of them can be this agreement. A schedule and its own subscription
+    // are one plan, not two.
+    const runningSchedules = liveSchedules.filter((s) => s.status === "active");
+    const upcomingSchedules = liveSchedules.filter(
+      (s) => s.status === "not_started",
+    );
     const distinctLiveSubscriptions = liveSubscriptions.filter(
       (s) =>
         !liveSchedules.some(
           (sched) => scheduleSubscriptionId(sched) === s.id,
         ) || liveSchedules.length === 0,
     );
-    if (liveSchedules.length > 1 || distinctLiveSubscriptions.length > 1) {
+    if (runningSchedules.length > 1 || distinctLiveSubscriptions.length > 1) {
       delta.ambiguous.push({
         contactId: candidate.contactId,
         candidates: [
-          ...liveSchedules.map((s) => s.id),
+          ...runningSchedules.map((s) => s.id),
           ...distinctLiveSubscriptions.map((s) => s.id),
         ],
       });
@@ -309,12 +317,17 @@ export const reconcileStripe = async (
 
     // The single-id columns keep meaning "the object carrying this plan
     // now". The history lives in deal_stripe_plan_objects beside them.
+    // The single-id pointer names what is running now; when nothing is
+    // running yet it names what is about to.
+    const currentScheduleId =
+      runningSchedules[0]?.id ?? upcomingSchedules[0]?.id ?? null;
+
     const patch: Record<string, string> = {};
     if (
-      planDelta.currentScheduleId &&
-      candidate.currentScheduleId !== planDelta.currentScheduleId
+      currentScheduleId &&
+      candidate.currentScheduleId !== currentScheduleId
     ) {
-      patch.stripe_subscription_schedule_id = planDelta.currentScheduleId;
+      patch.stripe_subscription_schedule_id = currentScheduleId;
     }
     if (
       planDelta.currentSubscriptionId &&

@@ -46,6 +46,10 @@ export type StripeCustomerFindings = {
     status: string;
     start: string | null;
     phases: number;
+    amount: number | null;
+    interval: string | null;
+    iterations: number | null;
+    endsAt: string | null;
     live: boolean;
   }[];
   // Money received
@@ -103,6 +107,48 @@ export type StripeInvestigation = {
 
 const iso = (seconds: number | null | undefined): string | null =>
   seconds == null ? null : new Date(seconds * 1000).toISOString();
+
+// A schedule phase's price comes back as an ID string, not an object, so
+// the amount a plan actually charges is one more call away. Worth making:
+// "is this Sam?" is answerable from "$175 monthly x 4 from Sep 22" and not
+// from a bare customer id.
+export const resolvePhasePrice = async (
+  stripe: Stripe,
+  phase: Stripe.SubscriptionSchedule.Phase | null | undefined,
+): Promise<{
+  amount: number | null;
+  interval: string | null;
+  why: string | null;
+}> => {
+  const item = phase?.items?.[0] ?? null;
+  if (!item) return { amount: null, interval: null, why: "phase has no items" };
+  if (typeof item.price === "object" && item.price != null) {
+    return {
+      amount: item.price.unit_amount ?? null,
+      interval: item.price.recurring?.interval ?? null,
+      why: null,
+    };
+  }
+  if (typeof item.price !== "string") {
+    return { amount: null, interval: null, why: "phase item has no price" };
+  }
+  try {
+    const price = await stripe.prices.retrieve(item.price);
+    return {
+      amount: price.unit_amount ?? null,
+      interval: price.recurring?.interval ?? null,
+      why: null,
+    };
+  } catch (error) {
+    // Reported rather than swallowed: a plan whose amount cannot be read
+    // is a capability gap to name, not an amount of nothing.
+    return {
+      amount: null,
+      interval: null,
+      why: error instanceof Error ? error.message : String(error),
+    };
+  }
+};
 
 const subscriptionIdOf = (value: unknown): string | null =>
   typeof value === "string"
@@ -196,13 +242,32 @@ const investigateCustomer = async (
       customer: id,
       limit: 50,
     });
-    findings.schedules = list.data.map((s) => ({
-      id: s.id,
-      status: s.status,
-      start: iso(s.phases?.[0]?.start_date),
-      phases: s.phases?.length ?? 0,
-      live: isLiveSchedule(s),
-    }));
+    findings.schedules = await Promise.all(
+      list.data.map(async (s) => {
+        const phase = s.phases?.[0] ?? null;
+        const price = await resolvePhasePrice(stripe, phase);
+        if (
+          price.why &&
+          !findings.errors.includes(`schedule price: ${price.why}`)
+        ) {
+          findings.errors.push(`schedule price: ${price.why}`);
+        }
+        return {
+          id: s.id,
+          status: s.status,
+          start: iso(phase?.start_date),
+          phases: s.phases?.length ?? 0,
+          amount: price.amount,
+          interval: price.interval,
+          // Stripe records a phase's length either as a count of cycles or
+          // as an end date; both are reported rather than one guessed from
+          // the other.
+          iterations: phase?.iterations ?? null,
+          endsAt: iso(phase?.end_date),
+          live: isLiveSchedule(s),
+        };
+      }),
+    );
   });
 
   await attempt("invoices", async () => {

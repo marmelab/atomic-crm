@@ -6,6 +6,7 @@ import {
   hasMeaningfulDueDate,
   NEEDS_ATTENTION_KINDS,
 } from "./needsAttentionInventory";
+import { TASK_TYPES_WITHOUT_MEANINGFUL_DUE_DATE } from "./tasksPredicate";
 import { classifyTaskActionKind } from "./taskActionDestination";
 import { defaultTaskTypes } from "../root/defaultConfiguration";
 
@@ -130,5 +131,42 @@ describe("ordering by what a delay actually costs", () => {
     expect([...rows].sort(byOperationalUrgency).map((t) => t.id)).toEqual([
       1, 2,
     ]);
+  });
+});
+
+// The inventory and tasksPredicate used to each keep their own list of
+// which task types carry a meaningful due date, and they disagreed: the
+// inventory said a cadence task's date meant "the week in question" while
+// the predicate said it meant nothing. Jules Litman-Cleper's and Pete
+// Bassett's cadence tasks both carry 00:00:29 on the day the calendar sync
+// created them, so the predicate was right — and two lists that can
+// disagree is the defect, not which one happened to be correct.
+describe("one list of what a due date means", () => {
+  it("the predicate's set is exactly the inventory's dateless types", () => {
+    // Arrange
+    const fromInventory = NEEDS_ATTENTION_KINDS.filter(
+      (kind) => kind.dueDateMeans == null,
+    ).map((kind) => kind.type);
+
+    // Act & Assert
+    expect([...TASK_TYPES_WITHOUT_MEANINGFUL_DUE_DATE].sort()).toEqual(
+      fromInventory.sort(),
+    );
+  });
+
+  it("a cadence task's creation timestamp is never presented as a deadline", () => {
+    // Assert
+    expect(hasMeaningfulDueDate("resolve_client_session_cadence")).toBe(false);
+    expect(TASK_TYPES_WITHOUT_MEANINGFUL_DUE_DATE).toContain(
+      "resolve_client_session_cadence",
+    );
+  });
+
+  it("every kind offers a verb for its button", () => {
+    // A row with no action is a dead alert.
+    for (const kind of NEEDS_ATTENTION_KINDS) {
+      expect(kind.actionLabel.length).toBeGreaterThan(0);
+      expect(kind.actionLabel).not.toBe(kind.type);
+    }
   });
 });
