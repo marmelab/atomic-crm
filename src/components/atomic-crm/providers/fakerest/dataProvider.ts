@@ -45,7 +45,10 @@ import {
 import { getActivityLog } from "../commons/activity";
 import { getCompanyAvatar } from "../commons/getCompanyAvatar";
 import { getContactAvatar } from "../commons/getContactAvatar";
-import { mergeContacts } from "../commons/mergeContacts";
+import {
+  refuseContactDelete,
+  refuseContactMerge,
+} from "../../contacts/contactSafety";
 import { recordSalesCallNoShow as recordSalesCallNoShowMirror } from "../../sales-calls/recordSalesCallNoShow";
 import { cancelSalesCallMirror } from "../../sales-calls/cancelSalesCall";
 import { assertNoDuplicateActiveWaitlistEntry } from "../../waitlist/waitlistEntryValidation";
@@ -793,8 +796,18 @@ export const createDataProvider = ({
 
       return true;
     },
-    mergeContacts: async (sourceId: Identifier, targetId: Identifier) => {
-      return mergeContacts(sourceId, targetId, baseDataProvider);
+    // Refused in the demo too, so that what a developer can do locally
+    // matches what production allows. See contacts/contactSafety.ts.
+    mergeContacts: async (_sourceId: Identifier, _targetId: Identifier) => {
+      return refuseContactMerge();
+    },
+    delete: async (resource: string, params: any) => {
+      if (resource === "contacts") return refuseContactDelete();
+      return baseDataProvider.delete(resource, params);
+    },
+    deleteMany: async (resource: string, params: any) => {
+      if (resource === "contacts") return refuseContactDelete();
+      return baseDataProvider.deleteMany(resource, params);
     },
     // Gate B dev/demo mirror of the record_sales_call_no_show() Postgres
     // function. FakeRest has no transactions, so this runs the same

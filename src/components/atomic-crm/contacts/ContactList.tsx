@@ -7,7 +7,6 @@ import {
   type Exporter,
 } from "ra-core";
 import { BulkActionsToolbar } from "@/components/admin/bulk-actions-toolbar";
-import { BulkDeleteButton } from "@/components/admin/bulk-delete-button";
 import { BulkExportButton } from "@/components/admin/bulk-export-button";
 import { CreateButton } from "@/components/admin/create-button";
 import { ExportButton } from "@/components/admin/export-button";
@@ -82,12 +81,14 @@ const ContactListLayoutDesktop = () => {
   );
 };
 
+// No bulk delete. One selection here could cascade away the opportunities,
+// sales calls, client sessions and Stripe identities of everybody selected
+// — see contactSafety.ts.
 const ContactBulkActionButtons = () => (
   <>
     <SelectAllButton />
     <BulkTagButton />
     <BulkExportButton />
-    <BulkDeleteButton />
   </>
 );
 

@@ -1,9 +1,9 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import type { Selectable } from "https://esm.sh/kysely@0.27.2";
 import { db, type ContactsTable, CompiledQuery } from "../_shared/db.ts";
-import { corsHeaders, OptionsMiddleware } from "../_shared/cors.ts";
-import { createErrorResponse } from "../_shared/utils.ts";
+import { OptionsMiddleware } from "../_shared/cors.ts";
 import { AuthMiddleware, UserMiddleware } from "../_shared/authentication.ts";
+import { handleContactMergeRequest } from "./mergeDisabled.ts";
 
 type Contact = Selectable<ContactsTable>;
 
@@ -76,6 +76,10 @@ function mergeContactData(winner: Contact, loser: Contact) {
   };
 }
 
+// Retained, deliberately unreachable, as the record of what the merge used
+// to do — and as the starting point for the transactional merge that
+// replaces it. Nothing calls it; mergeDisabled.ts answers every request.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function mergeContacts(
   loserId: number,
   winnerId: number,
@@ -148,34 +152,13 @@ async function mergeContacts(
 Deno.serve(async (req: Request) =>
   OptionsMiddleware(req, async (req) =>
     AuthMiddleware(req, async (req) =>
-      UserMiddleware(req, async (req, user) => {
-        // Handle POST request
-        if (req.method === "POST") {
-          try {
-            const { loserId, winnerId } = await req.json();
-
-            if (!loserId || !winnerId) {
-              return createErrorResponse(400, "Missing loserId or winnerId");
-            }
-
-            const result = await mergeContacts(loserId, winnerId, user.id);
-
-            return new Response(JSON.stringify(result), {
-              headers: { "Content-Type": "application/json", ...corsHeaders },
-            });
-          } catch (error) {
-            console.error("Merge failed:", error);
-            return createErrorResponse(
-              500,
-              `Failed to merge contacts: ${
-                error instanceof Error ? error.message : "Unknown error"
-              }`,
-            );
-          }
-        }
-
-        return createErrorResponse(405, "Method Not Allowed");
-      }),
+      // Every authenticated request is answered by handleContactMergeRequest,
+      // which imports nothing that can reach the database. mergeContacts()
+      // below is retained, unreachable, until Slice 5 replaces it with a
+      // merge that moves every dependent table in one transaction.
+      UserMiddleware(req, (req, user) =>
+        Promise.resolve(handleContactMergeRequest(req, user.id)),
+      ),
     ),
   ),
 );

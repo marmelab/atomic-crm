@@ -16,6 +16,10 @@ import type {
   SignUpData,
 } from "../../types";
 import type { ConfigurationContextValue } from "../../root/ConfigurationContext";
+import {
+  refuseContactDelete,
+  refuseContactMerge,
+} from "../../contacts/contactSafety";
 import { ATTACHMENTS_BUCKET } from "../commons/attachments";
 import { getIsInitialized } from "./authProvider";
 import { getSupabaseClient } from "./supabase";
@@ -241,21 +245,23 @@ const getDataProviderWithCustomMethods = () => {
       }
       return data as { status: string };
     },
-    async mergeContacts(sourceId: Identifier, targetId: Identifier) {
-      const { data, error } = await getSupabaseClient().functions.invoke(
-        "merge_contacts",
-        {
-          method: "POST",
-          body: { loserId: sourceId, winnerId: targetId },
-        },
-      );
-
-      if (error) {
-        console.error("merge_contacts.error", error);
-        throw new Error("Failed to merge contacts");
-      }
-
-      return data;
+    // Refused here as well as in the Edge Function, so that a merge cannot
+    // leave this machine even if some future caller finds the method.
+    // See contacts/contactSafety.ts.
+    async mergeContacts(_sourceId: Identifier, _targetId: Identifier) {
+      return refuseContactMerge();
+    },
+    // Deleting a Contact cascades into its opportunities, sales calls,
+    // client sessions, notes, Stripe identities, tasks and waitlist
+    // entries. Removing the buttons is not enough on its own — any caller
+    // that reaches for delete gets the same answer.
+    async delete(resource: string, params: any) {
+      if (resource === "contacts") return refuseContactDelete();
+      return baseDataProvider.delete(resource, params);
+    },
+    async deleteMany(resource: string, params: any) {
+      if (resource === "contacts") return refuseContactDelete();
+      return baseDataProvider.deleteMany(resource, params);
     },
     async getConfiguration(): Promise<ConfigurationContextValue> {
       const { data } = await baseDataProvider.getOne("configuration", {

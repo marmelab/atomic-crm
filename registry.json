@@ -1046,10 +1046,6 @@
           "type": "registry:component"
         },
         {
-          "path": "src/components/atomic-crm/enrollments/resolveCommercialTerms.ts",
-          "type": "registry:component"
-        },
-        {
           "path": "src/components/atomic-crm/enrollments/reopenOnboardingItem.ts",
           "type": "registry:component"
         },
@@ -1194,11 +1190,19 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/deals/paymentTruth.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/deals/paymentTruth.fixtures.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/deals/paymentStatus.ts",
           "type": "registry:component"
         },
         {
-          "path": "src/components/atomic-crm/deals/paymentPlanRemainingCopy.ts",
+          "path": "src/components/atomic-crm/deals/paymentPresentation.ts",
           "type": "registry:component"
         },
         {
@@ -1475,6 +1479,10 @@
         },
         {
           "path": "src/components/atomic-crm/contacts/contactSortOptions.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/contacts/contactSafety.ts",
           "type": "registry:component"
         },
         {
