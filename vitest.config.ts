@@ -62,6 +62,11 @@ export default defineConfig({
             // Harness hook tests are Node-only (they import node:fs / node:path
             // and spawn subprocesses); they run under the "claude" project below.
             ".claude/**",
+            // Historical-import tests are Node-only too: they use node:test,
+            // which a browser cannot load. `npm run test:unit:scripts` runs
+            // them. Without this they are collected here and fail on import,
+            // which is how five of them sat red without running at all.
+            "scripts/**",
           ],
           server: {
             deps: {
