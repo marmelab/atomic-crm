@@ -10,6 +10,7 @@ import {
   isOverdue,
   TASK_TYPES_WITHOUT_MEANINGFUL_DUE_DATE,
 } from "../tasks/tasksPredicate";
+import { byOperationalUrgency } from "../tasks/needsAttentionInventory";
 import { useRecentlyCompletedTasks } from "../tasks/useRecentlyCompletedTasks";
 import type { Task as TaskType } from "../types";
 
@@ -61,7 +62,14 @@ export const DashboardTasks = () => {
     const hasNoMeaningfulDueDate = (task: TaskType) =>
       TASK_TYPES_WITHOUT_MEANINGFUL_DUE_DATE.has(task.type ?? "");
     return {
-      needsAttention: ongoing.filter(hasNoMeaningfulDueDate),
+      needsAttention: ongoing
+        .filter(hasNoMeaningfulDueDate)
+        // Most urgent first. A booking nobody can attribute and a call
+        // whose outcome is unknown both silently corrupt the pipeline; a
+        // cadence question about last week does not. See
+        // tasks/needsAttentionInventory.ts for the full inventory and why
+        // each type sits where it does.
+        .sort(byOperationalUrgency),
       overdue: ongoing.filter(
         (task) => !hasNoMeaningfulDueDate(task) && isOverdue(task.due_date),
       ),

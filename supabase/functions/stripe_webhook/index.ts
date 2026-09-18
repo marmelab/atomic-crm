@@ -4,6 +4,7 @@ import Stripe from "npm:stripe@17.4.0";
 import { corsHeaders } from "../_shared/cors.ts";
 import { createErrorResponse } from "../_shared/utils.ts";
 import { supabaseAdmin } from "../_shared/supabaseAdmin.ts";
+import { reconcileStripe } from "./stripeReconcile.ts";
 
 // Stripe test-mode integration slice: the real Stripe webhook endpoint.
 // Signature verified via Stripe's own official library (constructEventAsync
@@ -278,6 +279,39 @@ Deno.serve(async (req: Request) => {
   }
   if (req.method !== "POST") {
     return createErrorResponse(405, "Method Not Allowed");
+  }
+
+  // Reconciliation shares this function because the Stripe credentials
+  // already live here; a second Edge Function would mean two places to
+  // rotate the same secret. It is NOT a webhook — nothing Stripe signed
+  // sent it — so it authenticates with the same cron secret the Acuity
+  // reconciliation and the calendar sync already use, and is checked
+  // BEFORE the signature path so it is never mistaken for an unsigned
+  // webhook.
+  //
+  //   ?action=reconcile              every known Stripe customer
+  //   ?action=reconcile&contactId=N  one person, for the Sync Stripe button
+  const url = new URL(req.url);
+  if (url.searchParams.get("action") === "reconcile") {
+    const cronSecret = Deno.env.get("CRON_INVOKE_SECRET");
+    if (!cronSecret) {
+      return createErrorResponse(
+        503,
+        "Cron invocation secret is not configured.",
+      );
+    }
+    if (req.headers.get("x-cron-secret") !== cronSecret) {
+      return createErrorResponse(401, "Invalid cron invocation secret.");
+    }
+    if (!Deno.env.get("STRIPE_SECRET_KEY")) {
+      return createErrorResponse(503, "Stripe API key is not configured.");
+    }
+
+    const contactParam = url.searchParams.get("contactId");
+    const delta = await reconcileStripe(stripe, {
+      contactId: contactParam ? Number(contactParam) : undefined,
+    });
+    return jsonResponse({ status: "reconciled", delta });
   }
 
   const signature = req.headers.get("Stripe-Signature");

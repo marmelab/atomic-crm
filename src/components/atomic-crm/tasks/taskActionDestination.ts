@@ -58,6 +58,13 @@ const OPPORTUNITY_CONTEXT_TYPES: ReadonlySet<string> = new Set([
   "nurture_follow_up",
   "check_payment",
   "sales_call_cancelled",
+  // sales_call_no_show belongs here for the same reason: it is only ever
+  // created against a specific, already-matched Opportunity, so there is
+  // no ambiguity to fall back on. It was reaching the generic Task editor,
+  // which answers nothing about whether somebody wants to rebook — found
+  // by the Needs Attention inventory, which requires every type to have a
+  // real destination.
+  "sales_call_no_show",
 ]);
 
 // onboarding_item (Contracts + Onboarding slice): retires send_contract/

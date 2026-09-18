@@ -7,11 +7,19 @@ import { VitePWA } from "vite-plugin-pwa";
 import createHtmlPlugin from "vite-plugin-simple-html";
 
 // https://vitejs.dev/config/
+// Which build is the browser actually running? A whole acceptance round
+// was spent on fixes that were deployed and correct while a cached shell
+// showed otherwise, and neither side could tell. This stamps the build so
+// "stale assets" and "actually broken" stop being indistinguishable.
+// Derived from the build time only — no secrets, no git internals.
+const BUILD_ID = new Date().toISOString().replace(/[-:]/g, "").slice(0, 15);
+
 export default defineConfig({
   server: {
     port: 5173,
     host: true,
   },
+  // Available in dev and production alike.
   plugins: [
     react(),
     tailwindcss(),
@@ -51,8 +59,11 @@ export default defineConfig({
       manifest: false, // Use existing manifest.json from public/
     }),
   ],
-  define:
-    process.env.NODE_ENV === "production" && process.env.VITE_SUPABASE_URL
+  define: {
+    // Always present, in every mode: the build identifier is only useful
+    // if it is there when somebody needs to check it.
+    __BUILD_ID__: JSON.stringify(BUILD_ID),
+    ...(process.env.NODE_ENV === "production" && process.env.VITE_SUPABASE_URL
       ? {
           "import.meta.env.VITE_IS_DEMO": JSON.stringify(
             process.env.VITE_IS_DEMO,
@@ -70,7 +81,8 @@ export default defineConfig({
             process.env.VITE_ATTACHMENTS_BUCKET,
           ),
         }
-      : undefined,
+      : {}),
+  },
   base: "./",
   esbuild: {
     keepNames: true,
