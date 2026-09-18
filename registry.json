@@ -1106,6 +1106,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/deals/syncStripe.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/deals/stages.ts",
           "type": "registry:component"
         },
@@ -1239,6 +1243,10 @@
         },
         {
           "path": "src/components/atomic-crm/deals/PersonOption.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/deals/PaymentPanel.tsx",
           "type": "registry:component"
         },
         {
