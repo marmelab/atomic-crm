@@ -38,7 +38,9 @@ describe("Task Dashboard person link — routes to Client page when deterministi
       .getByRole("link", { name: "SalesId Verify", exact: true })
       .click();
 
-    await expect.element(screen.getByText("Payment")).not.toBeInTheDocument();
+    await expect
+      .element(screen.getByText("Payment", { exact: true }).first())
+      .not.toBeInTheDocument();
   });
 
   it("H: exactly one current operational Enrollment — routes straight to that Client page", async () => {
@@ -81,7 +83,9 @@ describe("Task Dashboard person link — routes to Client page when deterministi
       .getByRole("link", { name: "SalesId Verify", exact: true })
       .click();
 
-    await expect.element(screen.getByText("Payment")).toBeVisible();
+    await expect
+      .element(screen.getByText("Payment", { exact: true }).first())
+      .toBeVisible();
   });
 
   it("I: two or more current operational Enrollments — never guesses, routes to ContactShow", async () => {
@@ -120,7 +124,9 @@ describe("Task Dashboard person link — routes to Client page when deterministi
       .getByRole("link", { name: "SalesId Verify", exact: true })
       .click();
 
-    await expect.element(screen.getByText("Payment")).not.toBeInTheDocument();
+    await expect
+      .element(screen.getByText("Payment", { exact: true }).first())
+      .not.toBeInTheDocument();
   });
 
   it("J: routing does not mutate Task, Enrollment, Contact, or sales state", async () => {
@@ -152,7 +158,9 @@ describe("Task Dashboard person link — routes to Client page when deterministi
     await screen
       .getByRole("link", { name: "SalesId Verify", exact: true })
       .click();
-    await expect.element(screen.getByText("Payment")).toBeVisible();
+    await expect
+      .element(screen.getByText("Payment", { exact: true }).first())
+      .toBeVisible();
 
     const after = await Promise.all([
       dataProvider.getOne("tasks", { id: followUpTask.id }),

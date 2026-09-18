@@ -10,7 +10,10 @@ const SUPABASE_JWT_KEYS = jose.createRemoteJWKSet(
   new URL(Deno.env.get("SUPABASE_URL")! + "/auth/v1/.well-known/jwks.json"),
 );
 
-function getAuthToken(req: Request) {
+// Exported so a function that authenticates only part of its surface can
+// reuse the same check — stripe_webhook gates its per-contact Sync on a
+// real signed-in user while the full sweep stays cron-only.
+export function getAuthToken(req: Request) {
   const authHeader = req.headers.get("authorization");
   if (!authHeader) {
     throw new Error("Missing authorization header");
@@ -23,7 +26,7 @@ function getAuthToken(req: Request) {
   return token;
 }
 
-function verifySupabaseJWT(jwt: string) {
+export function verifySupabaseJWT(jwt: string) {
   return jose.jwtVerify(jwt, SUPABASE_JWT_KEYS, {
     issuer: SUPABASE_JWT_ISSUER,
   });

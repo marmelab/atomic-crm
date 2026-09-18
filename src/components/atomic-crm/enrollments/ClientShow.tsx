@@ -19,6 +19,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 import { Avatar } from "../contacts/Avatar";
 import { PersonEmail } from "../contacts/PersonEmail";
+import { PaymentPanel } from "../deals/PaymentPanel";
 import {
   formatISODateString,
   formatMonthDayString,
@@ -221,6 +222,13 @@ const EnrollmentOperationalHome = () => {
           </Badge>
         </div>
       </div>
+
+      {/* Payment is its own dimension — an onboarded client can still owe
+          a payment plan, and a scheduled plan is not "no payment". */}
+      <PaymentPanel
+        opportunityId={enrollment.opportunity_id}
+        contactId={contact?.id}
+      />
 
       <PaymentContextCard
         deal={deal}

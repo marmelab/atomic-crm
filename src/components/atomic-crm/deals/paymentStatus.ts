@@ -2,28 +2,53 @@ import type { DataProvider, Identifier } from "ra-core";
 
 import type { Deal, DealPaymentScheduleItem } from "../types";
 
-// Where the money stands — reported, never used as a gate.
+// Where the money stands, in the words Leif uses — reported, never a gate.
 //
-// This deliberately does NOT decide whether somebody is Won. An earlier
-// version did, and four live clients showed why that is wrong: Denise
-// Cormier, Ava Frotton, Linda Turner and Emma Wijns were all stuck at
-// Committed with no Enrollment — one PAID IN FULL, another already
-// onboarded — purely because the CRM had not created their Stripe plan
-// itself. Sales outcome, payment, enrollment and onboarding are four
-// independent dimensions, and none of them may overwrite another.
+// An earlier version of this decided whether somebody was Won. Four live
+// clients showed why that is wrong: Denise Cormier, Ava Frotton, Linda
+// Turner and Emma Wijns were all stuck at Committed with no Enrollment —
+// one PAID IN FULL, another already onboarded — purely because the CRM had
+// not created their Stripe plan itself.
 //
-// What this answers is the question the Opportunity and Client drawers
-// need: what is established, and what is still outstanding, so neither
-// screen is a dead end and "agreed" is never shown as "paid".
+// Sales outcome, payment, enrollment and onboarding are four independent
+// dimensions. This one describes payment and nothing else.
+//
+// The distinctions that matter, and that the old established/outstanding
+// lists blurred:
+//
+//   scheduled          is not  active
+//   active             is not  paid in full
+//   owner-confirmed    is not  Stripe-linked
+//   setup pending      is not  unknown
+//
+// A Subscription Schedule exists, with a real start date, BEFORE its first
+// payment — so a scheduled plan is a knowable state, not an absence.
+export type PaymentState =
+  | "paid_in_full"
+  | "active_plan"
+  | "scheduled_plan"
+  | "owner_confirmed_plan"
+  | "setup_pending"
+  | "unknown";
+
 export type PaymentStatus = {
-  // True when something external confirms money is arranged. Used to
-  // describe state and to decide whether to nudge, never to decide Won.
-  hasArrangement: boolean;
-  // What is actually established, in Leif's words, for the drawer to show.
-  established: string[];
-  // What is missing, so Committed can say what it is waiting for.
-  missing: string[];
+  state: PaymentState;
+  // The one-line headline, e.g. "Scheduled payment plan".
+  headline: string;
+  // Supporting facts, each already true — never a guess. e.g.
+  // "Starts Sep 30, 2026", "Stripe linked".
+  detail: string[];
+  // The single operational thing still to do, when there is one.
+  outstanding: string | null;
+  stripeLinked: boolean;
 };
+
+const formatDate = (iso: string): string =>
+  new Date(iso).toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
 
 export const assessPaymentStatus = async (
   dataProvider: DataProvider,
@@ -33,7 +58,13 @@ export const assessPaymentStatus = async (
     .getOne<Deal>("deals", { id: opportunityId })
     .catch(() => ({ data: null as Deal | null }));
   if (!deal) {
-    return { hasArrangement: false, established: [], missing: ["Opportunity"] };
+    return {
+      state: "unknown",
+      headline: "Payment status unknown",
+      detail: [],
+      outstanding: null,
+      stripeLinked: false,
+    };
   }
 
   const { data: items } = await dataProvider
@@ -44,45 +75,85 @@ export const assessPaymentStatus = async (
     })
     .catch(() => ({ data: [] as DealPaymentScheduleItem[] }));
 
-  const established: string[] = [];
-  const missing: string[] = [];
-
-  const hasSubscription = Boolean(deal.stripe_subscription_id);
-  const hasSchedule = Boolean(deal.stripe_subscription_schedule_id);
-  const paidItems = (items ?? []).filter((item) => item.status === "paid");
-  const scheduledItems = (items ?? []).filter(
-    (item) => item.status === "scheduled",
+  const scheduleItems = items ?? [];
+  const paid = scheduleItems.filter((i) => i.status === "paid");
+  const scheduled = scheduleItems.filter((i) => i.status === "scheduled");
+  const stripeLinked = Boolean(
+    deal.stripe_subscription_id || deal.stripe_subscription_schedule_id,
   );
 
-  if (hasSubscription) established.push("Stripe subscription linked");
-  if (hasSchedule) established.push("Stripe payment schedule linked");
-  if (paidItems.length > 0) {
-    established.push(
-      `${paidItems.length} payment${paidItems.length === 1 ? "" : "s"} recorded as paid`,
-    );
-  }
-  if (scheduledItems.length > 0) {
-    // Scheduled is explicitly NOT authority — it is a promise, and saying
-    // otherwise is the exact conflation Leif has corrected before
-    // (agreed / paid / scheduled are three different things).
-    established.push(
-      `${scheduledItems.length} payment${scheduledItems.length === 1 ? "" : "s"} scheduled`,
-    );
+  const paidTotal = paid.reduce((sum, i) => sum + Number(i.amount ?? 0), 0);
+  const agreed = Number(
+    deal.selected_payment_total ?? deal.offer_price_snapshot ?? 0,
+  );
+
+  // Paid in full outranks everything: the money is in, however it arrived.
+  if (paid.length > 0 && agreed > 0 && paidTotal >= agreed) {
+    return {
+      state: "paid_in_full",
+      headline: "Paid in full",
+      detail: stripeLinked ? ["Stripe linked"] : ["Recorded outside Stripe"],
+      outstanding: null,
+      stripeLinked,
+    };
   }
 
-  if (!hasSubscription && !hasSchedule) {
-    missing.push("No Stripe subscription or payment schedule linked");
+  if (stripeLinked) {
+    // A schedule with no payment taken yet is SCHEDULED. Saying "no
+    // payment plan" here is the defect this whole state machine exists to
+    // remove — Denise and Ava both read that way for weeks.
+    const startsFrom = scheduled.find((i) => i.due_date)?.due_date ?? null;
+    const isScheduledOnly = paid.length === 0;
+
+    return {
+      state: isScheduledOnly ? "scheduled_plan" : "active_plan",
+      headline: isScheduledOnly
+        ? "Scheduled payment plan"
+        : "Active payment plan",
+      detail: [
+        ...(startsFrom ? [`Starts ${formatDate(startsFrom)}`] : []),
+        ...(paid.length > 0
+          ? [`${paid.length} payment${paid.length === 1 ? "" : "s"} received`]
+          : []),
+        "Stripe linked",
+      ],
+      outstanding: null,
+      stripeLinked,
+    };
   }
-  if (paidItems.length === 0) {
-    missing.push("No payment recorded as received");
+
+  // Terms Leif has stated, with no Stripe record to back them yet. Real
+  // truth, explicitly not the same as a linked plan.
+  if (scheduled.length > 0 || paid.length > 0) {
+    return {
+      state: "owner_confirmed_plan",
+      headline: "Payment plan — owner confirmed",
+      detail: [
+        ...(paid.length > 0 ? [`${paid.length} paid`] : []),
+        ...(scheduled.length > 0 ? [`${scheduled.length} scheduled`] : []),
+      ],
+      outstanding: "Stripe link pending",
+      stripeLinked: false,
+    };
   }
-  if (!deal.offer_page_token) {
-    missing.push("Offer page not yet created");
+
+  // Nothing anywhere. For a Won Opportunity that is a real outstanding
+  // job — Emma Wijns is onboarded and this is the only thing left for her.
+  if (deal.stage === "won") {
+    return {
+      state: "setup_pending",
+      headline: "Payment setup pending",
+      detail: [],
+      outstanding: "Create payment plan",
+      stripeLinked: false,
+    };
   }
 
   return {
-    hasArrangement: hasSubscription || hasSchedule || paidItems.length > 0,
-    established,
-    missing,
+    state: "unknown",
+    headline: "No payment terms agreed yet",
+    detail: [],
+    outstanding: null,
+    stripeLinked: false,
   };
 };

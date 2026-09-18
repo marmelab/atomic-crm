@@ -5,6 +5,7 @@ import { corsHeaders } from "../_shared/cors.ts";
 import { createErrorResponse } from "../_shared/utils.ts";
 import { supabaseAdmin } from "../_shared/supabaseAdmin.ts";
 import { reconcileStripe } from "./stripeReconcile.ts";
+import { getAuthToken, verifySupabaseJWT } from "../_shared/authentication.ts";
 
 // Stripe test-mode integration slice: the real Stripe webhook endpoint.
 // Signature verified via Stripe's own official library (constructEventAsync
@@ -293,24 +294,58 @@ Deno.serve(async (req: Request) => {
   //   ?action=reconcile&contactId=N  one person, for the Sync Stripe button
   const url = new URL(req.url);
   if (url.searchParams.get("action") === "reconcile") {
-    const cronSecret = Deno.env.get("CRON_INVOKE_SECRET");
-    if (!cronSecret) {
-      return createErrorResponse(
-        503,
-        "Cron invocation secret is not configured.",
-      );
-    }
-    if (req.headers.get("x-cron-secret") !== cronSecret) {
-      return createErrorResponse(401, "Invalid cron invocation secret.");
-    }
     if (!Deno.env.get("STRIPE_SECRET_KEY")) {
       return createErrorResponse(503, "Stripe API key is not configured.");
     }
 
     const contactParam = url.searchParams.get("contactId");
-    const delta = await reconcileStripe(stripe, {
-      contactId: contactParam ? Number(contactParam) : undefined,
-    });
+
+    // Two callers, two different authorities, and the narrower one is not
+    // allowed to do the wider job.
+    //
+    //   the whole sweep  -> pg_cron only, with the cron secret. Nobody
+    //     signed in from a browser gets to walk every Stripe customer.
+    //   one person       -> a signed-in CRM user, verified by their own
+    //     Supabase JWT. The browser never holds a Stripe key, and the only
+    //     Stripe customer this can reach is the stripe_customer_id already
+    //     stored on that Contact — so it cannot be used to enumerate
+    //     anything in the Stripe account.
+    if (contactParam == null) {
+      const cronSecret = Deno.env.get("CRON_INVOKE_SECRET");
+      if (!cronSecret) {
+        return createErrorResponse(
+          503,
+          "Cron invocation secret is not configured.",
+        );
+      }
+      if (req.headers.get("x-cron-secret") !== cronSecret) {
+        return createErrorResponse(401, "Invalid cron invocation secret.");
+      }
+      const delta = await reconcileStripe(stripe);
+      return jsonResponse({ status: "reconciled", delta });
+    }
+
+    const contactId = Number(contactParam);
+    if (!Number.isInteger(contactId) || contactId <= 0) {
+      return createErrorResponse(400, "Invalid contact id.");
+    }
+
+    // A cron caller may also sync one person; otherwise a real signed-in
+    // user is required.
+    const cronSecret = Deno.env.get("CRON_INVOKE_SECRET");
+    const isCron =
+      Boolean(cronSecret) && req.headers.get("x-cron-secret") === cronSecret;
+    if (!isCron) {
+      try {
+        const isValidJWT = await verifySupabaseJWT(getAuthToken(req));
+        if (!isValidJWT)
+          return createErrorResponse(401, "Invalid authentication");
+      } catch (e) {
+        return createErrorResponse(401, e?.toString() || "Unauthorized");
+      }
+    }
+
+    const delta = await reconcileStripe(stripe, { contactId });
     return jsonResponse({ status: "reconciled", delta });
   }
 

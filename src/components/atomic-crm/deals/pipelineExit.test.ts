@@ -304,28 +304,66 @@ describe("recording Yes", () => {
 });
 
 describe("payment status is reported, never used as a gate", () => {
-  it("names what is outstanding when nothing is linked", async () => {
+  it("says setup is pending for a Won client with nothing recorded", async () => {
     const dataProvider = makeProvider([buildDeal({ stage: "won" })]);
 
     const status = await assessPaymentStatus(dataProvider, 10);
 
-    expect(status.hasArrangement).toBe(false);
-    expect(status.missing.join(" ")).toContain("No Stripe subscription");
-    expect(status.missing.join(" ")).toContain("No payment recorded");
+    // Emma Wijns's exact shape: onboarded, and this is the one thing left.
+    expect(status.state).toBe("setup_pending");
+    expect(status.headline).toBe("Payment setup pending");
+    expect(status.outstanding).toBe("Create payment plan");
+    expect(status.stripeLinked).toBe(false);
   });
 
-  it("reports a linked subscription as established", async () => {
+  it("calls a linked Stripe plan with no payment taken SCHEDULED, not unknown", async () => {
+    // Denise and Ava: a Subscription Schedule exists, with a real start
+    // date, before its first payment.
     const dataProvider = makeProvider([
-      buildDeal({ stage: "won", stripe_subscription_id: "sub_123" }),
+      buildDeal({
+        stage: "won",
+        stripe_subscription_schedule_id: "sub_sched_123",
+      }),
     ]);
 
     const status = await assessPaymentStatus(dataProvider, 10);
 
-    expect(status.hasArrangement).toBe(true);
-    expect(status.established.join(" ")).toContain("subscription linked");
+    expect(status.state).toBe("scheduled_plan");
+    expect(status.headline).toBe("Scheduled payment plan");
+    expect(status.stripeLinked).toBe(true);
+    expect(status.detail).toContain("Stripe linked");
   });
 
-  it("never reports a scheduled payment as paid", async () => {
+  it("reports paid in full when the money is all in", async () => {
+    // Linda Turner: paid outside Stripe entirely.
+    const dataProvider = makeProvider(
+      [buildDeal({ stage: "won", selected_payment_total: 4000 })],
+      {
+        deal_payment_schedule_items: [
+          {
+            id: 1,
+            deal_id: 10,
+            amount: 4000,
+            sequence: 1,
+            due_date: null,
+            status: "paid",
+            paid_on: null,
+            source: "owner_stated",
+            created_at: "2026-01-01T00:00:00.000Z",
+            updated_at: "2026-01-01T00:00:00.000Z",
+          },
+        ],
+      },
+    );
+
+    const status = await assessPaymentStatus(dataProvider, 10);
+
+    expect(status.state).toBe("paid_in_full");
+    expect(status.stripeLinked).toBe(false);
+    expect(status.detail).toContain("Recorded outside Stripe");
+  });
+
+  it("never calls owner-confirmed terms a Stripe-linked plan", async () => {
     const dataProvider = makeProvider([buildDeal({ stage: "won" })], {
       deal_payment_schedule_items: [
         {
@@ -345,8 +383,49 @@ describe("payment status is reported, never used as a gate", () => {
 
     const status = await assessPaymentStatus(dataProvider, 10);
 
-    expect(status.established.join(" ")).toContain("scheduled");
-    expect(status.established.join(" ")).not.toContain("paid");
-    expect(status.missing.join(" ")).toContain("No payment recorded");
+    expect(status.state).toBe("owner_confirmed_plan");
+    expect(status.stripeLinked).toBe(false);
+    expect(status.outstanding).toBe("Stripe link pending");
+  });
+
+  it("keeps scheduled, active and paid distinct", async () => {
+    const scheduled = await assessPaymentStatus(
+      makeProvider([
+        buildDeal({ stage: "won", stripe_subscription_schedule_id: "s1" }),
+      ]),
+      10,
+    );
+    const active = await assessPaymentStatus(
+      makeProvider(
+        [
+          buildDeal({
+            stage: "won",
+            stripe_subscription_id: "sub1",
+            selected_payment_total: 4000,
+          }),
+        ],
+        {
+          deal_payment_schedule_items: [
+            {
+              id: 1,
+              deal_id: 10,
+              amount: 1000,
+              sequence: 1,
+              due_date: null,
+              status: "paid",
+              paid_on: null,
+              source: "stripe",
+              created_at: "2026-01-01T00:00:00.000Z",
+              updated_at: "2026-01-01T00:00:00.000Z",
+            },
+          ],
+        },
+      ),
+      10,
+    );
+
+    expect(scheduled.state).toBe("scheduled_plan");
+    expect(active.state).toBe("active_plan");
+    expect(scheduled.state).not.toBe(active.state);
   });
 });

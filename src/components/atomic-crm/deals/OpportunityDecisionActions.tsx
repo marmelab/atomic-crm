@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useDataProvider, useNotify, useRefresh } from "ra-core";
 
 import { Button } from "@/components/ui/button";
@@ -24,7 +24,7 @@ import {
   PIPELINE_EXIT_REASONS,
   type PipelineExitReason,
 } from "./pipelineExit";
-import { assessPaymentStatus, type PaymentStatus } from "./paymentStatus";
+import { PaymentPanel } from "./PaymentPanel";
 
 // Every active Opportunity gets a way to finish, and a Decision-stage one
 // gets the two answers a sales conversation actually produces.
@@ -43,7 +43,15 @@ export const OpportunityDecisionActions = ({ deal }: { deal: Deal }) => {
   return (
     <div className="flex flex-col gap-3 mt-4">
       {isAtDecision(deal) && <YesNoActions deal={deal} />}
-      {deal.stage === "won" && <WonNextSteps deal={deal} />}
+      {/* Payment is its own dimension: Won never implies paid, and an
+          onboarded client can still owe a payment plan. */}
+      {deal.stage === "won" && (
+        <PaymentPanel
+          opportunityId={deal.id}
+          contactId={deal.contact_id}
+          title="Payment"
+        />
+      )}
 
       {removable && (
         <Card>
@@ -141,59 +149,6 @@ const YesNoActions = ({ deal }: { deal: Deal }) => {
         description="What happened? This removes them from the active pipeline and keeps their history."
       />
     </>
-  );
-};
-
-// Won does not mean paid, and it does not mean onboarded. The drawer says
-// where each of those actually stands so a Won Opportunity is never a dead
-// end — Denise Cormier sat at Committed for weeks with ten sessions booked
-// and nothing on screen telling Leif what was missing.
-const WonNextSteps = ({ deal }: { deal: Deal }) => {
-  const dataProvider = useDataProvider();
-  const [status, setStatus] = useState<PaymentStatus | null>(null);
-
-  useEffect(() => {
-    let active = true;
-    assessPaymentStatus(dataProvider, deal.id).then((result) => {
-      if (active) setStatus(result);
-    });
-    return () => {
-      active = false;
-    };
-  }, [dataProvider, deal.id]);
-
-  if (!status) return null;
-
-  return (
-    <Card>
-      <CardContent className="flex flex-col gap-2">
-        <p className="text-sm font-medium">Payment &amp; setup</p>
-        {status.established.length > 0 && (
-          <ul className="text-sm text-muted-foreground list-disc pl-5">
-            {status.established.map((line) => (
-              <li key={line}>{line}</li>
-            ))}
-          </ul>
-        )}
-        {status.missing.length > 0 && (
-          <>
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">
-              Still outstanding
-            </p>
-            <ul className="text-sm list-disc pl-5">
-              {status.missing.map((line) => (
-                <li key={line}>{line}</li>
-              ))}
-            </ul>
-          </>
-        )}
-        {status.established.length === 0 && status.missing.length === 0 && (
-          <p className="text-sm text-muted-foreground">
-            No payment details recorded yet.
-          </p>
-        )}
-      </CardContent>
-    </Card>
   );
 };
 
