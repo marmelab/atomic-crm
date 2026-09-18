@@ -220,10 +220,16 @@ const ClientRows = ({ rows }: { rows: ClientRow[] }) => (
             <span className="text-xs text-muted-foreground truncate">
               {containerDates(row)}
             </span>
-            <span className="text-xs text-muted-foreground truncate">
-              {row.offer?.name}
-              {row.cohort ? ` — ${row.cohort.name}` : ""}
-            </span>
+            {/* Inside a cohort section the heading already names the
+                cohort, and GYU cohort names contain the offer name, so
+                repeating both produced "Growing Yourself Up — Growing
+                Yourself Up — Fall 2026". Only shown when it adds
+                something the section heading does not. */}
+            {row.cohort == null && row.offer?.name && (
+              <span className="text-xs text-muted-foreground truncate">
+                {row.offer.name}
+              </span>
+            )}
           </div>
           <Badge
             variant={row.phase === "past" ? "secondary" : "outline"}
