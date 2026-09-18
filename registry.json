@@ -1074,6 +1074,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/enrollments/classifyEnrollment.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/enrollments/activateEnrollment.ts",
           "type": "registry:component"
         },
@@ -1135,6 +1139,10 @@
         },
         {
           "path": "src/components/atomic-crm/deals/publicOfferPageContext.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/deals/pipelineOrdering.ts",
           "type": "registry:component"
         },
         {
