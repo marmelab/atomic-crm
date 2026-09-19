@@ -67,26 +67,8 @@ END $$;
 -- CRM's own checkout, and six months from now "why is this subscription on
 -- this Opportunity?" needs an answer that is not archaeology. Two columns,
 -- not an audit subsystem: when, and on what basis.
-ALTER TABLE "public"."deals"
-  ADD COLUMN IF NOT EXISTS "stripe_linked_at" timestamptz,
-  ADD COLUMN IF NOT EXISTS "stripe_link_source" text;
 
-DO $$
-BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'deals_stripe_link_source_check') THEN
-    ALTER TABLE "public"."deals"
-      ADD CONSTRAINT "deals_stripe_link_source_check"
-      CHECK (stripe_link_source IS NULL OR stripe_link_source = ANY (ARRAY[
-        -- Created by the CRM's own checkout flow.
-        'crm_checkout'::text,
-        -- Discovered in Stripe and matched on stripe_customer_id.
-        'reconciliation_customer_id'::text
-      ]));
-  END IF;
-END $$;
 
-COMMENT ON COLUMN "public"."deals"."stripe_link_source" IS
-  'How this Opportunity came to be linked to its Stripe plan. Never a guess: reconciliation only ever matches on stripe_customer_id.';
 
 -- Backfill what reconciliation just linked. Everything currently carrying a
 -- Stripe id and no checkout session was found by reconciliation, because

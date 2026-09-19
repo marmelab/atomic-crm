@@ -62,64 +62,10 @@ where e.status = 'active'
     where ev.enrollment_id = e.id and ev.status = 'active'
   );
 
--- ---------------------------------------------------------------------
--- 3. Guards, so neither can be reintroduced
--- ---------------------------------------------------------------------
-create or replace function public.reject_completed_future_session()
-returns trigger
-language plpgsql
-security definer
-set search_path = public
-as $$
-begin
-  -- now() is not immutable, so this cannot be a CHECK constraint.
-  if new.status = 'completed' and new.scheduled_at > now() then
-    raise exception
-      'client session % is scheduled at % and cannot be completed before it happens',
-      new.id, new.scheduled_at;
-  end if;
-  return new;
-end;
-$$;
-
-drop trigger if exists reject_completed_future_session on public.client_sessions;
-create trigger reject_completed_future_session
-  before insert or update on public.client_sessions
-  for each row execute function public.reject_completed_future_session();
-
-create or replace function public.reject_completion_with_sessions_remaining()
-returns trigger
-language plpgsql
-security definer
-set search_path = public
-as $$
-declare
-  v_remaining int;
-begin
-  if new.status <> 'completed' then
-    return new;
-  end if;
-
-  select count(*) into v_remaining
-  from public.client_sessions s
-  where s.enrollment_id = new.id
-    and s.status <> 'cancelled'
-    and s.no_show_at is null
-    and s.scheduled_at > now();
-
-  if v_remaining > 0 then
-    raise exception
-      'enrollment % still has % session(s) scheduled and cannot be completed',
-      new.id, v_remaining;
-  end if;
-  return new;
-end;
-$$;
-
-drop trigger if exists reject_completion_with_sessions_remaining on public.enrollments;
-create trigger reject_completion_with_sessions_remaining
-  before insert or update on public.enrollments
-  for each row execute function public.reject_completion_with_sessions_remaining();
+-- The two guard functions and their triggers moved to 20260918155000_structure_owned_by_historical_repairs.sql.
+-- This migration repairs historical production data and is not replayed
+-- into an empty database, so it must not be the only thing that creates
+-- structure the finished CRM needs. Its assertions below are unchanged.
 
 -- ---------------------------------------------------------------------
 -- 4. Prove the repair

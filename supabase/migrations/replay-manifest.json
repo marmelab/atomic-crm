@@ -16,10 +16,32 @@
     "owns_durable_schema means the migration also creates structure or",
     "configuration the finished CRM needs. Such a migration CANNOT simply be",
     "skipped: the structure has to be reconstructible on its own first, or the",
-    "rebuilt database silently lacks it. Those are flagged unresolved below."
+    "rebuilt database silently lacks it. Those are flagged unresolved below.",
+    "",
+    "Seven of these once owned durable structure as well. It was extracted to",
+    "20260918155000 (columns, CHECKs, the payment-intent index, four functions,",
+    "two guard triggers, the reconcile-stripe schedule) and 20260919020000",
+    "(record_deal_outcome_event, which a deterministic migration would",
+    "otherwise overwrite). Their data repairs and assertions are unchanged."
   ],
   "version": 1,
-  "total_migration_versions": 101,
+  "total_migration_versions": 103,
+  "clean_room_prerequisites": {
+    "$comment": [
+      "Facts about the ENVIRONMENT that no migration can create for itself.",
+      "A rebuilt database needs these in place before the chain is replayed,",
+      "or migrations that schedule work fail closed — correctly, since an",
+      "unauthenticated scheduled call is worse than a missing one.",
+      "",
+      "Discovered by replaying into an empty project, not assumed."
+    ],
+    "extensions": ["pg_cron", "pg_net"],
+    "vault_secrets": ["cron_invoke_secret"],
+    "asserted_by": [
+      "20260906070000_sync_year_planning_calendar_cron.sql",
+      "20260918130000_schedule_acuity_reconciliation.sql"
+    ]
+  },
   "main_only_historical_data_repairs": [
     {
       "version": "20260918070000",
@@ -61,84 +83,56 @@
       "file": "20260918160000_reinstate_action_and_no_show_convergence.sql",
       "classification": "main_only_historical_data_repair",
       "reason": "Converges two historical no-show calls and asserts the exact live count.",
-      "owns_durable_schema": true,
-      "durable_objects": [
-        "function public.record_sales_call_reinstated(bigint)",
-        "function public.close_tasks_for_sales_call(bigint, timestamptz)",
-        "grant execute on record_sales_call_reinstated to authenticated, service_role"
-      ],
-      "boundary_status": "unresolved"
+      "owns_durable_schema": false,
+      "structure_extracted_to": "20260918155000_structure_owned_by_historical_repairs.sql"
     },
     {
       "version": "20260918190000",
       "file": "20260918190000_owner_truth_and_stripe_reconciliation_schedule.sql",
       "classification": "main_only_historical_data_repair",
       "reason": "Records Linda Turner's owner-stated payment and asserts live figures.",
-      "owns_durable_schema": true,
-      "durable_objects": ["cron job 'reconcile-stripe' (47 * * * *)"],
-      "boundary_status": "unresolved"
+      "owns_durable_schema": false,
+      "structure_extracted_to": "20260918155000_structure_owned_by_historical_repairs.sql"
     },
     {
       "version": "20260918200000",
       "file": "20260918200000_onboarding_complete_and_stripe_link_provenance.sql",
       "classification": "main_only_historical_data_repair",
       "reason": "Marks four named Enrollments onboarded and asserts exact counts, Emma's absent Stripe plan and Linda's paid-in-full record.",
-      "owns_durable_schema": true,
-      "durable_objects": [
-        "deals.stripe_linked_at",
-        "deals.stripe_link_source",
-        "constraint deals_stripe_link_source_check"
-      ],
-      "boundary_status": "unresolved"
+      "owns_durable_schema": false,
+      "structure_extracted_to": "20260918155000_structure_owned_by_historical_repairs.sql"
     },
     {
       "version": "20260918210000",
       "file": "20260918210000_payment_truth_is_broader_than_plan_truth.sql",
       "classification": "main_only_historical_data_repair",
       "reason": "Corrects payment truth for Emily, Jess, Jules and Mia.",
-      "owns_durable_schema": true,
-      "durable_objects": [
-        "deals.payment_review_reason",
-        "unique index deal_payment_schedule_items_stripe_pi_key"
-      ],
-      "boundary_status": "unresolved"
+      "owns_durable_schema": false,
+      "structure_extracted_to": "20260918155000_structure_owned_by_historical_repairs.sql"
     },
     {
       "version": "20260918260000",
       "file": "20260918260000_a_session_in_the_future_has_not_happened.sql",
       "classification": "main_only_historical_data_repair",
       "reason": "Repairs 76 client sessions marked completed while scheduled in the future, and Adriano Castro's Enrollment.",
-      "owns_durable_schema": true,
-      "durable_objects": [
-        "function public.reject_completed_future_session()",
-        "trigger reject_completed_future_session on client_sessions",
-        "function public.reject_completion_with_sessions_remaining()",
-        "trigger reject_completion_with_sessions_remaining on enrollments"
-      ],
-      "boundary_status": "unresolved"
+      "owns_durable_schema": false,
+      "structure_extracted_to": "20260918155000_structure_owned_by_historical_repairs.sql"
     },
     {
       "version": "20260918320000",
       "file": "20260918320000_canonical_payment_data.sql",
       "classification": "main_only_historical_data_repair",
       "reason": "Derives five agreed totals from Stripe, merges Linda's and Lara's duplicated payments, and records owner-confirmed onboarding items. Asserts exact collected totals.",
-      "owns_durable_schema": true,
-      "durable_objects": [
-        "enrollment_onboarding_items.completion_source",
-        "constraint enrollment_onboarding_items_completion_source_check"
-      ],
-      "boundary_status": "unresolved"
+      "owns_durable_schema": false,
+      "structure_extracted_to": "20260918155000_structure_owned_by_historical_repairs.sql"
     },
     {
       "version": "20260918390000",
       "file": "20260918390000_alva_winsa_no_show_was_not_a_decision.sql",
       "classification": "main_only_historical_data_repair",
       "reason": "Clears the mechanically-created 'lost' outcome from Alva Winsa's Opportunity 187. Refuses to run unless that Opportunity is in the exact proven state.",
-      "owns_durable_schema": true,
-      "durable_objects": [
-        "function public.record_deal_outcome_event() (the version honouring app.outcome_event_source)"
-      ],
-      "boundary_status": "unresolved"
+      "owns_durable_schema": false,
+      "structure_extracted_to": "20260919020000_final_outcome_event_behaviour.sql"
     }
   ]
 }

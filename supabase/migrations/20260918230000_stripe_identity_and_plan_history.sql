@@ -123,15 +123,42 @@ from public.deals d
 where d.stripe_subscription_schedule_id is not null
 on conflict (stripe_object_id) do nothing;
 
+-- The backfill is checked against its own source rather than against a
+-- row count. "At least one customer exists" only held because this
+-- database happened to have Stripe data; it says nothing about whether
+-- the copy was COMPLETE, and it fails in a rebuilt database that has no
+-- contacts yet — which would make the two relations unreconstructible.
+--
+-- Every single-id pointer must now have a counterpart in the relation
+-- beside it. That is the property actually worth guaranteeing, it is
+-- strictly stronger than the count it replaces (a half-copied backfill
+-- used to pass), and it holds in an empty database for the same reason
+-- it holds in a full one.
 do $$
 declare
-  v_customers int;
-  v_objects int;
+  v_missing_customers int;
+  v_missing_objects int;
 begin
-  select count(*) into v_customers from public.contact_stripe_customers;
-  select count(*) into v_objects from public.deal_stripe_plan_objects;
-  if v_customers = 0 or v_objects = 0 then
-    raise exception 'backfill produced no rows (customers=%, plan objects=%)', v_customers, v_objects;
+  select count(*) into v_missing_customers
+    from public.contacts c
+   where c.stripe_customer_id is not null
+     and not exists (select 1 from public.contact_stripe_customers x
+                      where x.stripe_customer_id = c.stripe_customer_id);
+
+  select count(*) into v_missing_objects
+    from (
+      select d.stripe_subscription_id as object_id from public.deals d
+       where d.stripe_subscription_id is not null
+      union all
+      select d.stripe_subscription_schedule_id from public.deals d
+       where d.stripe_subscription_schedule_id is not null
+    ) src
+   where not exists (select 1 from public.deal_stripe_plan_objects o
+                      where o.stripe_object_id = src.object_id);
+
+  if v_missing_customers <> 0 or v_missing_objects <> 0 then
+    raise exception 'backfill incomplete (% customer pointer(s), % plan pointer(s) not copied)',
+      v_missing_customers, v_missing_objects;
   end if;
 end $$;
 

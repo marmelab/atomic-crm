@@ -14,22 +14,20 @@
 
 begin;
 
+-- enrollment_onboarding_items.completion_source and its CHECK moved to 20260918155000_structure_owned_by_historical_repairs.sql.
+-- This migration repairs historical production data and is not replayed
+-- into an empty database, so it must not be the only thing that creates
+-- structure the finished CRM needs. Its assertions below are unchanged.
+
+
 -- ---------------------------------------------------------------------
 -- 0. Provenance for a checklist item somebody confirmed rather than did
 -- ---------------------------------------------------------------------
-alter table public.enrollment_onboarding_items
-  add column if not exists completion_source text;
 
-alter table public.enrollment_onboarding_items
-  drop constraint if exists enrollment_onboarding_items_completion_source_check;
-alter table public.enrollment_onboarding_items
-  add constraint enrollment_onboarding_items_completion_source_check check (
-    completion_source is null
-    or completion_source in ('app', 'owner_confirmed', 'historical_confirmed')
-  );
 
-comment on column public.enrollment_onboarding_items.completion_source is
-  'How this item came to be done. historical_confirmed means Leif confirmed it for a client who predates the checklist — completed_at stays null rather than inventing a date.';
+
+
+
 
 -- ---------------------------------------------------------------------
 -- 1. Agreed totals derived from Stripe

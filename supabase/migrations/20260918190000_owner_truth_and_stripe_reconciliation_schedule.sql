@@ -63,24 +63,10 @@ BEGIN
   END IF;
 END $$;
 
-SELECT cron.unschedule('reconcile-stripe')
- WHERE EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'reconcile-stripe');
-
-SELECT cron.schedule(
-  'reconcile-stripe',
-  '47 * * * *',
-  $job$
-  select net.http_post(
-    url := 'https://xlyywsguftyvomeretju.supabase.co/functions/v1/stripe_webhook?action=reconcile',
-    headers := jsonb_build_object(
-      'Content-Type', 'application/json',
-      'x-cron-secret', (select decrypted_secret from vault.decrypted_secrets where name = 'cron_invoke_secret')
-    ),
-    body := '{}'::jsonb,
-    timeout_milliseconds := 180000
-  );
-  $job$
-);
+-- The reconcile-stripe schedule moved to 20260918155000_structure_owned_by_historical_repairs.sql.
+-- This migration repairs historical production data and is not replayed
+-- into an empty database, so it must not be the only thing that creates
+-- structure the finished CRM needs. Its assertions below are unchanged.
 
 -- ---------------------------------------------------------------------------
 -- 4. Prove it.

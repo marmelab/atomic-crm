@@ -23,40 +23,10 @@
 
 begin;
 
--- ---------------------------------------------------------------------
--- 1. Let an outcome event say it was a repair
--- ---------------------------------------------------------------------
--- The trigger stamps source = 'app', which is true of a person clicking
--- something and false of a migration fixing the system's own mistake.
--- Rather than write the event by hand beside the trigger's (which would
--- produce two events for one change) or edit an append-only row after the
--- fact, the trigger now honours a transaction-local setting. Unset, it
--- behaves exactly as before.
-create or replace function public.record_deal_outcome_event()
-  returns trigger
-  language plpgsql
-  set search_path to 'public'
-as $$
-declare
-  v_source text := coalesce(
-    nullif(current_setting('app.outcome_event_source', true), ''), 'app');
-  v_note text := nullif(current_setting('app.outcome_event_note', true), '');
-begin
-  if tg_op = 'INSERT' then
-    if new.outcome is not null then
-      insert into public.deal_outcome_events
-        (opportunity_id, old_outcome, new_outcome, exit_reason, occurred_at, source, note)
-      values (new.id, null, new.outcome, new.exit_reason, now(), v_source, v_note);
-    end if;
-  elsif new.outcome is distinct from old.outcome
-     or (new.outcome is not null and new.exit_reason is distinct from old.exit_reason) then
-    insert into public.deal_outcome_events
-      (opportunity_id, old_outcome, new_outcome, exit_reason, occurred_at, source, note)
-    values (new.id, old.outcome, new.outcome, new.exit_reason, now(), v_source, v_note);
-  end if;
-  return new;
-end;
-$$;
+-- record_deal_outcome_event()'s repair-aware body moved to 20260919020000_final_outcome_event_behaviour.sql.
+-- This migration repairs historical production data and is not replayed
+-- into an empty database, so it must not be the only thing that creates
+-- structure the finished CRM needs. Its assertions below are unchanged.
 
 -- ---------------------------------------------------------------------
 -- 2. The correction, with its premises asserted rather than assumed

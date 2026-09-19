@@ -25,22 +25,24 @@
 
 begin;
 
+-- deal_payment_schedule_items_stripe_pi_key and deals.payment_review_reason moved to 20260918155000_structure_owned_by_historical_repairs.sql.
+-- This migration repairs historical production data and is not replayed
+-- into an empty database, so it must not be the only thing that creates
+-- structure the finished CRM needs. Its assertions below are unchanged.
+
+
 -- 1. Ingesting a Stripe payment twice must be impossible. The reconciler
 --    keys each row on the PaymentIntent that produced it, so a second sweep
 --    over unchanged Stripe data writes nothing.
-create unique index if not exists deal_payment_schedule_items_stripe_pi_key
-  on public.deal_payment_schedule_items (stripe_payment_intent_id)
-  where stripe_payment_intent_id is not null;
+
 
 -- 2. Uncertainty gets its own state. Before this, anything the CRM could
 --    not explain fell through to "Payment setup pending" — which reads as
 --    "this person owes you a payment plan" and is a lie when the truth is
 --    "we do not yet know". A non-null reason means a human must look.
-alter table public.deals
-  add column if not exists payment_review_reason text;
 
-comment on column public.deals.payment_review_reason is
-  'Non-null when payment truth is uncertain and needs a human. Never set by inference alone — set when evidence conflicts, is incomplete, or was found on a Stripe Customer this Contact is not linked to.';
+
+
 
 -- 3. Owner-stated commercial terms. These are the amounts actually agreed,
 --    which is not always the offer list price: Emily settled at $3,700 and
