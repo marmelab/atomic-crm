@@ -66,6 +66,71 @@ export const durableDdlIn = (sql) =>
   DURABLE_DDL.filter(([re]) => re.test(stripComments(sql))).map(([, n]) => n);
 
 /**
+ * Signals that a migration repairs THIS database rather than building any
+ * database. Weighted, because no single one is conclusive.
+ *
+ * The strongest is barely a heuristic at all: a migration that asserts an
+ * exact NONZERO number of rows WRITTEN cannot replay into an empty
+ * database, because in an empty database it writes none. Two things are
+ * deliberately not matched. Comparisons against zero are the opposite
+ * claim — "nothing was missed" holds everywhere. And counts of catalog
+ * objects a migration just created (its own triggers, policies, cron jobs)
+ * are self-assertions about structure, which is exactly what SHOULD
+ * rebuild, so the signal is anchored to `get diagnostics` on a write.
+ *
+ * These flag a migration for REVIEW. They never classify it.
+ */
+export const REPAIR_SIGNALS = [
+  [
+    /get\s+diagnostics[\s\S]{0,600}?(?:<>|!=)\s*(?!0\b)\d+/i,
+    "asserts an exact nonzero number of rows written",
+    2,
+  ],
+  [
+    /\bvalues\s*\(\s*\d{1,6}\s*,\s*\d{1,6}\s*\)/i,
+    "hardcoded business-record id pairs",
+    2,
+  ],
+  [
+    // Case-sensitive on purpose: the capitals ARE the signal. With /i this
+    // matched values ('attachments', 'attachments', true) in the upstream
+    // init migration and called a storage bucket a named client.
+    /\b[Vv][Aa][Ll][Uu][Ee][Ss]\s*\(\s*'[A-Z][\w'’-]*'\s*,\s*'[A-Z][\w'’ -]*'\s*,/,
+    "a table of named real clients",
+    2,
+  ],
+  [
+    /(?:update|delete\s+from)\s+(?:public\.)?\w+[\s\S]{0,400}?\bwhere\b[\s\S]{0,200}?\bid\s*=\s*\d{1,6}\b/i,
+    "writes a hardcoded business-record id",
+    1,
+  ],
+  [/\bset_historical_migration_mode\b/i, "runs in historical-import mode", 1],
+];
+
+/** Score and name the repair signals a migration's CODE carries. */
+export const repairSignalsIn = (sql) => {
+  const code = stripComments(sql);
+  const hits = REPAIR_SIGNALS.filter(([re]) => re.test(code));
+  return {
+    names: hits.map(([, name]) => name),
+    score: hits.reduce((total, [, , weight]) => total + weight, 0),
+  };
+};
+
+/** At or above this, a migration must be classified or explicitly reviewed. */
+export const REVIEW_THRESHOLD = 2;
+
+/**
+ * Deterministic migrations that legitimately match a signal, each with the
+ * reason somebody looked and concluded it rebuilds rather than repairs.
+ *
+ * This is the pressure valve, so it is kept honest: an entry names a
+ * migration that MUST replay into an empty database. Adding one to silence
+ * a replay failure is the exact mistake this module exists to catch.
+ */
+export const REVIEWED_DETERMINISTIC = {};
+
+/**
  * Whether the canonical Acuity mapping is built from production data.
  *
  * It was, once: the map was seeded by SELECTing
@@ -135,6 +200,47 @@ export const auditReplayBoundary = () => {
     problems.push(
       `manifest says ${manifest.total_migration_versions} migration versions, the directory has ${files.length}`,
     );
+  }
+
+  // The question the original audit could not ask: is anything left
+  // deterministic that should have been listed? Only a clean-room replay
+  // proves it, but a replay costs a branch and an hour, so the cheap
+  // version runs on every commit.
+  for (const f of files) {
+    const version = f.slice(0, f.indexOf("_"));
+    if (seen.has(version)) continue;
+
+    const sql = readFileSync(new URL(f, MIGRATIONS_DIR), "utf8");
+    const { names, score } = repairSignalsIn(sql);
+    if (score < REVIEW_THRESHOLD) continue;
+
+    if (!REVIEWED_DETERMINISTIC[version]) {
+      problems.push(
+        `${f}: REVIEW REQUIRED — reads as a historical repair (${names.join("; ")}). Either list it in replay-manifest.json or record why it rebuilds from empty in REVIEWED_DETERMINISTIC.`,
+      );
+    }
+  }
+
+  // An allowlist entry for a migration that is no longer deterministic, or
+  // no longer there, is stale and would hide the next violation.
+  for (const version of Object.keys(REVIEWED_DETERMINISTIC)) {
+    const file = files.find((f) => f.startsWith(version));
+    if (!file) {
+      problems.push(
+        `REVIEWED_DETERMINISTIC names a missing migration: ${version}`,
+      );
+    } else if (seen.has(version)) {
+      problems.push(
+        `${version} is both reviewed-deterministic and listed as a MAIN-only repair`,
+      );
+    } else if (
+      repairSignalsIn(readFileSync(new URL(file, MIGRATIONS_DIR), "utf8"))
+        .score < REVIEW_THRESHOLD
+    ) {
+      problems.push(
+        `${version} no longer trips any repair signal; remove its REVIEWED_DETERMINISTIC entry`,
+      );
+    }
   }
 
   // The Acuity map, for every migration that touches it.

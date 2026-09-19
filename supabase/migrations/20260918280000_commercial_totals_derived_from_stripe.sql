@@ -34,23 +34,11 @@
 
 begin;
 
-alter table public.deals
-  add column if not exists selected_payment_total_source text;
-
-alter table public.deals
-  drop constraint if exists deals_selected_payment_total_source_check;
-alter table public.deals
-  add constraint deals_selected_payment_total_source_check check (
-    selected_payment_total_source is null
-    or selected_payment_total_source in (
-      'owner_confirmed',
-      'stripe_derived',
-      'offer_snapshot'
-    )
-  );
-
-comment on column public.deals.selected_payment_total_source is
-  'Where selected_payment_total came from. stripe_derived = subscription amount x scheduled months, reconciled against collected money. Never the Offer list price, which is only ever a fallback for display.';
+-- deals.selected_payment_total_source and its CHECK moved to
+-- 20260918275000_commercial_total_source_structure.sql.
+-- This migration repairs historical production data and is not replayed
+-- into an empty database, so it must not be the only thing that creates
+-- structure the finished CRM needs. Its assertions below are unchanged.
 
 -- The five Leif stated directly, marked as such.
 update public.deals d

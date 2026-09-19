@@ -61,9 +61,28 @@ grant or canonical configuration. A migration that does both cannot be
 skipped — split the structural half out so it rebuilds on its own.
 
 `node scripts/historical-import/replayBoundary.mjs` audits this and exits
-non-zero on a violation. The one real prerequisite a clean environment
-needs before `20260906070000` is `create extension pg_cron` (it restarts
-Postgres, so the next `db push` needs one retry).
+non-zero on a violation. It asks two questions: whether anything listed
+still owns durable structure, and — since three named-client repairs once
+sat undetected in the deterministic set — whether anything left
+deterministic reads like a repair. The second is a heuristic: a match
+means REVIEW REQUIRED, never "reclassify it". The strongest signal is
+close to a proof, though: a migration asserting an exact nonzero number of
+rows WRITTEN cannot replay into an empty database.
+
+**Environment prerequisites.** Three things a clean environment must have
+before the chain is replayed, because no migration can create them for
+itself:
+
+- `create extension pg_cron` (restarts Postgres, so the next `db push`
+  needs one retry) — before `20260906070000`
+- `create extension pg_net`
+- a `cron_invoke_secret` in Vault — before `20260918130000`, which fails
+  closed rather than scheduling an unauthenticated call
+
+For a disposable clean room, generate a **throwaway random** secret. Never
+read, copy or reuse MAIN's. These are environment facts, not configuration
+the repository owns, and they are recorded under `clean_room_prerequisites`
+in the manifest.
 
 ### Registry (Shadcn Components)
 

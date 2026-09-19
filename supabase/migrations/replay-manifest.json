@@ -18,14 +18,24 @@
     "skipped: the structure has to be reconstructible on its own first, or the",
     "rebuilt database silently lacks it. Those are flagged unresolved below.",
     "",
-    "Seven of these once owned durable structure as well. It was extracted to",
+    "Eight of these once owned durable structure as well. It was extracted to",
     "20260918155000 (columns, CHECKs, the payment-intent index, four functions,",
-    "two guard triggers, the reconcile-stripe schedule) and 20260919020000",
+    "two guard triggers, the reconcile-stripe schedule), 20260919020000",
     "(record_deal_outcome_event, which a deterministic migration would",
-    "otherwise overwrite). Their data repairs and assertions are unchanged."
+    "otherwise overwrite) and 20260918275000 (the commercial-total provenance",
+    "column and its CHECK). Their data repairs and assertions are unchanged.",
+    "",
+    "Three entries were added only after a clean-room replay refused them:",
+    "20260918140000, 20260918280000 and 20260918290000 were left deterministic",
+    "by inspection and are in fact named-client repairs. Static review missed",
+    "them because the old audit could only ask whether a declared MAIN-only",
+    "migration was safe to skip, never whether an undeclared one should have",
+    "been listed. reviewedDeterministic() in replayBoundary.mjs now asks the",
+    "second question too."
   ],
   "version": 1,
-  "total_migration_versions": 103,
+  "total_migration_versions": 104,
+  "boundary_status": "resolved",
   "clean_room_prerequisites": {
     "$comment": [
       "Facts about the ENVIRONMENT that no migration can create for itself.",
@@ -125,6 +135,31 @@
       "reason": "Derives five agreed totals from Stripe, merges Linda's and Lara's duplicated payments, and records owner-confirmed onboarding items. Asserts exact collected totals.",
       "owns_durable_schema": false,
       "structure_extracted_to": "20260918155000_structure_owned_by_historical_repairs.sql"
+    },
+    {
+      "version": "20260918140000",
+      "file": "20260918140000_merge_group_a_identities.sql",
+      "classification": "main_only_historical_data_repair",
+      "reason": "Merges four owner-authorized identity pairs by hardcoded Contact id, repointing their Applications, Deals, calls and sessions and deleting the emailless orphan. Its subjects were created by the bulk historical import, which is not part of the migration chain, so it can never replay from empty.",
+      "owns_durable_schema": false,
+      "found_by": "clean_room_replay"
+    },
+    {
+      "version": "20260918280000",
+      "file": "20260918280000_commercial_totals_derived_from_stripe.sql",
+      "classification": "main_only_historical_data_repair",
+      "reason": "Writes the agreed commercial total for ten named Opportunities derived from Stripe, refusing each one whose collected money is not a whole number of installments, and asserts exactly one Opportunity per person.",
+      "owns_durable_schema": false,
+      "structure_extracted_to": "20260918275000_commercial_total_source_structure.sql",
+      "found_by": "clean_room_replay"
+    },
+    {
+      "version": "20260918290000",
+      "file": "20260918290000_close_the_reviews_stripe_now_answers.sql",
+      "classification": "main_only_historical_data_repair",
+      "reason": "Closes the two payment reviews that the derived totals now answer, for Libby Sloan-O'Brien and Mark Dickmann, and asserts that exactly two close.",
+      "owns_durable_schema": false,
+      "found_by": "clean_room_replay"
     },
     {
       "version": "20260918390000",
