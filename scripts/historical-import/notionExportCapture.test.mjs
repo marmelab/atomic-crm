@@ -477,3 +477,111 @@ test("reconciliation_state accepts only what has actually been decided", () => {
     /reconciliation_state\s*=\s*'evidence_only_identity_insufficient'/i,
   );
 });
+
+// Integration configuration must be reconstructible from the repository.
+//
+// The clean-room replay stopped at 56 of 101 migrations because
+// 20260918010000 seeded the Acuity appointment-type map by SELECTing
+// offers.acuity_appointment_type_id — and NO migration ever sets those
+// columns. They were configured out of band, so a database rebuilt from
+// this repo had them null, the seed produced almost nothing, and a later
+// migration then asserted configuration that only existed because
+// production data happened to exist.
+//
+// Which Acuity type means which Offer is configuration, not business data.
+// These read the migration source, so the dependency cannot come back.
+
+const ACUITY_MAP_MIGRATION = readFileSync(
+  new URL(
+    "../../supabase/migrations/20260918010000_acuity_appointment_type_map.sql",
+    import.meta.url,
+  ),
+  "utf8",
+);
+
+const FAIL_CLOSED_MIGRATION = readFileSync(
+  new URL(
+    "../../supabase/migrations/20260918110000_temporal_map_fails_closed.sql",
+    import.meta.url,
+  ),
+  "utf8",
+);
+
+test("the canonical Acuity types are stated, not derived from Offer columns", () => {
+  // Assert — each canonical type appears as a literal in the migration.
+  for (const type of ["91345095", "90522599", "64654501", "78497441"]) {
+    assert.ok(
+      ACUITY_MAP_MIGRATION.includes(`'${type}'`),
+      `appointment type ${type} is not stated in the migration`,
+    );
+  }
+});
+
+test("Offers are matched by name, because ids are not stable across databases", () => {
+  // Assert — a sequence-assigned id means something different in every
+  // environment; the names are what the migration chain itself creates.
+  for (const name of ["The Living Example", "Growing Yourself Up"]) {
+    assert.ok(ACUITY_MAP_MIGRATION.includes(`name = '${name}'`));
+  }
+});
+
+test("a missing Offer fails closed instead of mapping to nothing", () => {
+  // Assert — never a mapping row with a null business target.
+  assert.match(
+    ACUITY_MAP_MIGRATION,
+    /RAISE EXCEPTION 'expected Offers are missing/i,
+  );
+});
+
+test("the canonical rows do not depend on whichever Offer carries an Acuity id", () => {
+  // Arrange — the derived pass may still exist for future configuration,
+  // but it must come AFTER the stated rows so it can only fill gaps.
+  const stated = ACUITY_MAP_MIGRATION.indexOf("'91345095'");
+  const derived = ACUITY_MAP_MIGRATION.indexOf(
+    "WHERE o.acuity_appointment_type_id IS NOT NULL",
+  );
+
+  // Assert
+  assert.ok(stated > -1, "canonical rows are missing");
+  assert.ok(
+    derived === -1 || stated < derived,
+    "the data-derived seed runs before the stated configuration",
+  );
+});
+
+test("the current-era boundary is stated and only CHECKED against evidence", () => {
+  // Assert — it used to be read from min(applications.submitted_at) and to
+  // raise when none existed, which made a clean rebuild impossible.
+  assert.match(
+    FAIL_CLOSED_MIGRATION,
+    /v_first_gyu_application := DATE '2026-07-26'/,
+  );
+  // The evidence still has to agree where it exists, so the date cannot
+  // drift away from what actually happened.
+  assert.match(
+    FAIL_CLOSED_MIGRATION,
+    /v_evidence_date IS NOT NULL AND v_evidence_date <> v_first_gyu_application/,
+  );
+  assert.ok(
+    !/RAISE EXCEPTION 'no Growing Yourself Up Application exists/.test(
+      FAIL_CLOSED_MIGRATION,
+    ),
+  );
+});
+
+test("the undetermined interval is still explicitly unknown", () => {
+  // Assert — the fail-closed window is configuration too, and collapsing
+  // it would let the resolver guess where it should say nothing.
+  assert.match(FAIL_CLOSED_MIGRATION, /'unknown'/);
+  assert.match(
+    FAIL_CLOSED_MIGRATION,
+    /DATE '2026-01-01', v_first_gyu_application/,
+  );
+});
+
+test("client-session and sales-call classifications stay distinct", () => {
+  // Assert — 90522599 is the paid session type and must never be read as
+  // a sales call.
+  assert.match(ACUITY_MAP_MIGRATION, /\('90522599', v_le,\s+'client_session'/);
+  assert.match(ACUITY_MAP_MIGRATION, /\('91345095', v_le,\s+'sales_call'/);
+});

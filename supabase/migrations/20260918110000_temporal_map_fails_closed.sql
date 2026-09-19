@@ -112,18 +112,32 @@ DECLARE
   v_legacy bigint;
   v_gyu    bigint;
   v_first_gyu_application date;
+  v_evidence_date date;
 BEGIN
   SELECT id INTO v_legacy FROM offers WHERE name = '1:1 Coaching (Legacy)';
   SELECT id INTO v_gyu    FROM offers WHERE name = 'Growing Yourself Up';
 
-  -- Read from the data rather than typed in, so the boundary is the
-  -- evidence itself and cannot drift away from it.
-  SELECT min(a.submitted_at)::date INTO v_first_gyu_application
+  -- REPRODUCIBILITY REPAIR (2026-09-18). This boundary used to be read
+  -- from min(applications.submitted_at) and to RAISE when no GYU
+  -- Application existed, which made a clean rebuild impossible: the date
+  -- of a period in the integration configuration cannot depend on whether
+  -- somebody has applied yet.
+  --
+  -- The canonical date is stated, and the evidence CHECKS it rather than
+  -- supplying it. Where GYU Applications exist the two must agree, so the
+  -- boundary still cannot drift away from the evidence — it just no
+  -- longer requires it. On a database with no Applications at all the
+  -- comparison is skipped and the configuration is still correct.
+  v_first_gyu_application := DATE '2026-07-26';
+
+  SELECT min(a.submitted_at)::date INTO v_evidence_date
     FROM applications a JOIN offers o ON o.id = a.offer_id
    WHERE o.name = 'Growing Yourself Up';
 
-  IF v_first_gyu_application IS NULL THEN
-    RAISE EXCEPTION 'no Growing Yourself Up Application exists to date the current era from';
+  IF v_evidence_date IS NOT NULL AND v_evidence_date <> v_first_gyu_application THEN
+    RAISE EXCEPTION
+      'the earliest Growing Yourself Up Application is % but the canonical current-era boundary is % — the evidence and the configuration disagree',
+      v_evidence_date, v_first_gyu_application;
   END IF;
 
   DELETE FROM acuity_appointment_type_map WHERE acuity_appointment_type_id = '64654501';

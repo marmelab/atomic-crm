@@ -58,8 +58,54 @@ END $$;
 CREATE INDEX IF NOT EXISTS "acuity_appointment_type_map_offer_id_idx"
   ON "public"."acuity_appointment_type_map" USING btree ("offer_id", "kind");
 
--- Seeded from what the Offers already declare, so this table starts out
--- agreeing with current behaviour exactly.
+-- The canonical appointment-type configuration, stated outright.
+--
+-- REPRODUCIBILITY REPAIR (2026-09-18). This block used to seed the table
+-- by SELECTing offers.acuity_appointment_type_id — "from what the Offers
+-- already declare". On MAIN those columns hold real Acuity ids and the
+-- seed produced the right rows. Nothing in the migration chain ever SETS
+-- them: they were configured out of band, so on a database rebuilt from
+-- this repository they are null and the seed produced almost nothing. A
+-- later migration then asserted configuration that only existed because
+-- production data happened to exist, and a clean replay stopped there.
+--
+-- Which Acuity appointment type means which Offer is integration
+-- configuration, not business data. It belongs in the repository, so the
+-- rows below are stated rather than derived. Offers are matched by NAME
+-- because names are what the migration chain itself creates
+-- (20260830130000, 20260917190000); ids are assigned by a sequence and
+-- are not stable across environments.
+--
+-- Fail-closed: a missing Offer raises rather than writing a mapping with
+-- no business target.
+DO $$
+DECLARE
+  v_le  bigint;
+  v_gyu bigint;
+BEGIN
+  SELECT id INTO v_le  FROM "public"."offers" WHERE name = 'The Living Example';
+  SELECT id INTO v_gyu FROM "public"."offers" WHERE name = 'Growing Yourself Up';
+  IF v_le IS NULL OR v_gyu IS NULL THEN
+    RAISE EXCEPTION 'expected Offers are missing: le=% gyu=%', v_le, v_gyu;
+  END IF;
+
+  INSERT INTO "public"."acuity_appointment_type_map"
+    ("acuity_appointment_type_id", "offer_id", "kind", "label")
+  VALUES
+    -- Mini Deep Dive, booked at leifariel.as.me/chat2.
+    ('91345095', v_le,  'sales_call',     'The Living Example sales call'),
+    -- Zoom 1:1, the paid client session type.
+    ('90522599', v_le,  'client_session', 'The Living Example client session'),
+    -- Named "Growing Yourself Up" in Acuity today. Its meaning is
+    -- effective-dated by 20260918050000 and 20260918110000: it did not
+    -- mean GYU before GYU existed.
+    ('64654501', v_gyu, 'sales_call',     'Growing Yourself Up sales call')
+  ON CONFLICT ("acuity_appointment_type_id") DO NOTHING;
+END $$;
+
+-- Anything else an Offer declares still maps, so configuring a new type on
+-- an Offer keeps working. It runs AFTER the canonical rows above and
+-- conflicts away against them rather than competing with them.
 INSERT INTO "public"."acuity_appointment_type_map"
   ("acuity_appointment_type_id", "offer_id", "kind", "label")
 SELECT o.acuity_appointment_type_id, o.id, 'sales_call', o.name || ' sales call'
