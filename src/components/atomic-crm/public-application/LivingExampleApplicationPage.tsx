@@ -94,13 +94,22 @@ export const LivingExampleApplicationPage = ({
 
   return (
     <PublicApplicationLayout
-      title="The Living Example Application"
+      // What this page is FOR, from the applicant's side: a conversation,
+      // not a purchase. It deliberately names no programme, no duration
+      // and no offer — somebody applying has not chosen one yet, and
+      // saying otherwise up front asks them to commit before the chat
+      // that decides whether there is anything to commit to.
+      title="Apply to Chat with Leif"
       orientation={
         <>
-          Take your time and answer as honestly as you can.
-          <br />
-          This helps me get a sense of where you’re needing support and whether
-          working together could be a good fit.
+          Take your time and answer as honestly as you can.{" "}
+          {/* Only this sentence is italicised: it is the promise about
+              what happens next, and it reads as an aside to the
+              instruction before it. */}
+          <em>
+            If it looks like I can help, I’ll invite you to book a free
+            30-minute chat so we can explore working together.
+          </em>
         </>
       }
       cover

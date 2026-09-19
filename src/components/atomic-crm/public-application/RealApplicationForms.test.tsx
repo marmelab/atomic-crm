@@ -74,7 +74,7 @@ const buildDataSource = () => {
   return createDataProviderPublicApplicationDataSource(dataProvider);
 };
 
-describe("LivingExampleApplicationPage — The Living Example Application content", () => {
+describe("LivingExampleApplicationPage — Apply to Chat with Leif content", () => {
   it("shows the real title/intro and exactly the five real questions, each required, with no Phone field", async () => {
     const dataSource = buildDataSource();
     const screen = await render(
@@ -84,26 +84,27 @@ describe("LivingExampleApplicationPage — The Living Example Application conten
     );
 
     await expect
-      .element(
-        screen.getByRole("heading", { name: "The Living Example Application" }),
-      )
+      .element(screen.getByRole("heading", { name: "Apply to Chat with Leif" }))
       .toBeInTheDocument();
-    // Final visual-polish round: the two intro sentences are split across
-    // a <br /> (PublicApplicationLayout.tsx) for cleaner line grouping, so
-    // each is its own text node — asserted separately rather than as one
-    // concatenated string.
+    // The intro is one paragraph: a plain instruction, then an italicised
+    // promise about what happens next. Asserted as separate nodes because
+    // only the second is wrapped in <em>.
     await expect
       .element(
         screen.getByText("Take your time and answer as honestly as you can."),
       )
       .toBeInTheDocument();
-    await expect
-      .element(
-        screen.getByText(
-          "This helps me get a sense of where you’re needing support and whether working together could be a good fit.",
-        ),
-      )
-      .toBeInTheDocument();
+    const promise = screen.getByText(
+      "If it looks like I can help, I’ll invite you to book a free 30-minute chat so we can explore working together.",
+    );
+    await expect.element(promise).toBeInTheDocument();
+    // Italic, and only here.
+    expect(promise.element().tagName).toBe("EM");
+
+    // An applicant has not chosen a programme yet, so the page names none.
+    const intro = screen.container.textContent ?? "";
+    expect(intro).not.toContain("The Living Example");
+    expect(intro).not.toContain("4-month");
 
     // Identity fields: structured, required, and no Phone field anywhere
     // (round 1: "Leif does not want a phone-number field on either
