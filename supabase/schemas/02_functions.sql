@@ -1510,11 +1510,12 @@ END;
 $function$
 ;
 
-CREATE OR REPLACE FUNCTION "public"."record_sales_call_cancelled"("p_sales_call_id" bigint) RETURNS "jsonb"
-    LANGUAGE "plpgsql"
-    SECURITY DEFINER
-    SET "search_path" TO 'public'
-    AS $$
+CREATE OR REPLACE FUNCTION public.record_sales_call_cancelled(p_sales_call_id bigint)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
 declare
   v_call sales_calls%ROWTYPE;
   v_now timestamptz := now();
@@ -1556,7 +1557,7 @@ begin
   --    the status vocabulary tasks already has. done_date is deliberately
   --    left alone: a cancelled task was never done.
   update tasks
-     set status = 'cancelled'
+     set status = 'cancelled', done_date = v_now
    where sales_call_id = v_call.id
      and status in ('pending', 'waiting');
   get diagnostics v_tasks_closed = row_count;
@@ -1589,35 +1590,26 @@ begin
     'outcome_left_undecided', true
   );
 end;
-$$;
+$function$
+;
 
-CREATE OR REPLACE FUNCTION "public"."record_sales_call_no_show"("p_sales_call_id" bigint) RETURNS "jsonb"
-    LANGUAGE "plpgsql"
-    SECURITY DEFINER
-    SET "search_path" TO 'public'
-    AS $$
+CREATE OR REPLACE FUNCTION public.record_sales_call_no_show(p_sales_call_id bigint)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SET search_path TO 'public'
+AS $function$
 declare
-  v_call sales_calls%ROWTYPE;
-  v_tag_id bigint;
+  v_call sales_calls%rowtype;
   v_now timestamptz := now();
-  v_deal_exited boolean := false;
+  v_already_no_show boolean;
+  v_tag_id bigint;
+  v_stage_returned boolean := false;
 begin
-  -- Gate B: marking a sales call No-show is ONE human action, so it is one
-  -- transaction. Every related state change below either all lands or none
-  -- does: the CRM can never persist "Sales Call = no_show" while the
-  -- Opportunity stays in the active pipeline, or exit the Opportunity
-  -- without the Contact carrying the visible history — which is exactly
-  -- what a sequence of independent UI writes could do if one failed.
-  --
-  -- Narrow by construction: this fires only when this function is called,
-  -- never on arbitrary sales_calls UPDATEs, so ordinary edits/reschedules
-  -- keep their existing behavior.
   select * into v_call from sales_calls where id = p_sales_call_id for update;
   if not found then
     return jsonb_build_object('status', 'not-found');
   end if;
   if v_call.opportunity_id is null then
-    -- An unmatched booking has no Opportunity to exit yet.
     return jsonb_build_object('status', 'no-opportunity');
   end if;
   if v_call.attendance = 'attended' then
@@ -1625,11 +1617,12 @@ begin
     return jsonb_build_object('status', 'already-completed');
   end if;
 
+  v_already_no_show := v_call.attendance is not distinct from 'no_show';
+
   -- 1. The Sales Call is the CANONICAL historical record of the no-show.
-  --    status leaves 'booked' so the partial unique index
-  --    (sales_calls_one_booked_per_opportunity_idx) does not block a later
-  --    genuine rebooking.
-  if v_call.attendance is distinct from 'no_show' then
+  --    status leaves 'booked' so the partial unique index does not block a
+  --    later genuine rebooking.
+  if not v_already_no_show then
     update sales_calls
        set attendance = 'no_show',
            attendance_recorded_at = v_now,
@@ -1639,42 +1632,34 @@ begin
 
     insert into sales_call_events (sales_call_id, kind, occurred_at, attendance)
     values (v_call.id, 'attendance_recorded', v_now, 'no_show');
-  elsif v_call.status <> 'completed' then
-    -- Already recorded as a no-show but never concluded: a row written
-    -- before a concluded call was required to leave 'booked'. Converge the
-    -- status WITHOUT inventing a second attendance timestamp or a
-    -- duplicate history event — the original attendance_recorded_at is the
-    -- truth about when it was observed. Leaving it at 'booked' would keep
-    -- blocking a genuine rebooking via the partial unique index.
-    update sales_calls
-       set status = 'completed',
-           updated_at = v_now
+  elsif v_call.status is distinct from 'completed' then
+    -- Recorded as a no-show before concluded calls had to leave 'booked'.
+    -- Converge the status without inventing a second attendance timestamp
+    -- or a duplicate history event.
+    update sales_calls set status = 'completed', updated_at = v_now
      where id = v_call.id;
   end if;
 
-  -- 2. The Opportunity exits the ACTIVE pipeline. "Active" is canonically
-  --    archived_at is null AND stage <> 'won' AND outcome is null (see
-  --    DealList.tsx's own filter), so setting outcome is the existing exit
-  --    mechanism — no new stage, no new column, no Nurture. 'lost' is the
-  --    same exit the Do-Not-Engage path already uses (deals/dneOutcome.ts);
-  --    the REASON stays durable on the Sales Call itself (attendance =
-  --    'no_show'), which is why no reason column is invented here.
-  --    stage is deliberately NOT rewritten: the Deal genuinely reached
-  --    Call Booked, and falsifying stage history to mark an exit would
-  --    destroy that truth.
+  -- 2. The Opportunity REMAINS an active sales attempt. Only the stage
+  --    moves, and only when nothing else is booked: Call Booked has to
+  --    mean there is a call booked.
   update deals
-     set outcome = 'lost',
+     set stage = 'approved',
+         stage_entered_at = v_now,
          updated_at = v_now
    where id = v_call.opportunity_id
-     and outcome is null
-     and archived_at is null
-     and stage <> 'won';
-  v_deal_exited := found;
+     and stage = 'call_booked'
+     and public.deal_is_active(archived_at, stage, outcome)
+     and not exists (
+       select 1 from sales_calls s
+       where s.opportunity_id = v_call.opportunity_id
+         and s.id <> v_call.id
+         and s.status = 'booked'
+     );
+  v_stage_returned := found;
 
-  -- 3. The Contact carries a durable, visible No-show tag — reusing the
-  --    existing tags table + contacts.tags array, not a bespoke boolean.
-  --    It is a SUMMARY for at-a-glance history, never the source of truth
-  --    (that stays the Sales Call), and it is attached at most once.
+  -- 3. The Contact carries a durable, visible No-show tag — a SUMMARY for
+  --    at-a-glance history, never the source of truth, attached once.
   select id into v_tag_id from tags where lower(name) = 'no-show' limit 1;
   if v_tag_id is null then
     insert into tags (name, color) values ('No-show', '#fde2e4')
@@ -1686,29 +1671,31 @@ begin
    where id = v_call.contact_id
      and not (coalesce(tags, '{}'::bigint[]) @> array[v_tag_id]);
 
-  -- 4. Task lifecycle. The call concluded, so its "Sales Call" task is
-  --    done. NO ordinary follow-up task is created: the Opportunity has
-  --    left the pipeline, so there is no stranded work to re-surface —
-  --    that visibility gap was the only reason the old
-  --    'sales_call_no_show' task existed. Any such task still pending from
-  --    before this rule is superseded work, so it is closed rather than
-  --    left behind as impossible work.
+  -- 4. The call concluded, so its own task is done. No follow-up task is
+  --    invented: the open question is derived, and a task duplicating it
+  --    could be deleted while the question remained.
+  -- Every open task about THIS call, whatever its type — including the
+  -- resolve_sales_call question this no-show has just answered. Scoped by
+  -- the call, never by the Contact: a returning applicant can have an
+  -- open question about a different call that this one says nothing about.
+  perform public.close_tasks_for_sales_call(v_call.id, v_now);
+
+  -- Legacy rows from before tasks carried sales_call_id. Still scoped to
+  -- the superseded types only, so nothing else of this Contact's is swept up.
   update tasks
      set done_date = v_now, status = 'completed'
    where contact_id = v_call.contact_id
+     and sales_call_id is null
      and type in ('sales_call', 'sales_call_no_show')
      and done_date is null;
 
   return jsonb_build_object(
-    'status', case when v_call.attendance = 'no_show' then 'already-no-show' else 'completed' end,
-    'sales_call_id', v_call.id,
-    'opportunity_id', v_call.opportunity_id,
-    'contact_id', v_call.contact_id,
-    'deal_exited', v_deal_exited,
-    'tag_id', v_tag_id
+    'status', case when v_already_no_show then 'already-no-show' else 'completed' end,
+    'stage_returned_to_approved', v_stage_returned
   );
 end;
-$$;
+$function$
+;
 
 revoke all on function public.record_sales_call_no_show(bigint) from public;
 grant execute on function public.record_sales_call_no_show(bigint) to authenticated;
@@ -2400,5 +2387,80 @@ begin
 
   return v_created + v_closed;
 end;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.reconcile_resolve_sales_call_tasks()
+ RETURNS integer
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_closed int;
+  v_created int;
+  v_sales_id bigint;
+begin
+  -- Resolved: close whatever is still open about it.
+  update tasks t
+     set done_date = now(), status = 'completed'
+    from sales_calls sc
+   where sc.id = t.sales_call_id
+     and t.type = 'resolve_sales_call'
+     and t.done_date is null
+     and public.sales_call_is_resolved(sc.attendance, sc.status, sc.dismissed_at);
+  get diagnostics v_closed = row_count;
+
+  -- Still an open question, and nothing currently asking it.
+  select id into v_sales_id from sales where administrator = true limit 1;
+
+  insert into tasks (contact_id, type, text, due_date, status,
+                     sales_call_id, opportunity_id, sales_id)
+  select sc.contact_id,
+         'resolve_sales_call',
+         format('%s · what happened on this call?',
+                nullif(btrim(coalesce(c.first_name, '') || ' ' || coalesce(c.last_name, '')), '')),
+         now(),
+         'pending',
+         sc.id,
+         sc.opportunity_id,
+         v_sales_id
+    from sales_calls sc
+    join contacts c on c.id = sc.contact_id
+   where sc.resolution_requested_at is not null
+     and not public.sales_call_is_resolved(sc.attendance, sc.status, sc.dismissed_at)
+     -- A call that has not happened yet is not an open question.
+     --
+     -- Six calls here were established as questions once, answered, and
+     -- are now booked for mid-October. Without this they would each come
+     -- back asking "what happened on this call?" about something three
+     -- weeks away. The question only exists once the time has passed.
+     and coalesce(sc.scheduled_at, (sc.scheduled_on + time '23:59')
+                    at time zone 'America/Denver') < now()
+     and not exists (
+       select 1 from tasks t
+        where t.sales_call_id = sc.id
+          and t.type = 'resolve_sales_call'
+          and t.done_date is null
+     );
+  get diagnostics v_created = row_count;
+
+  return v_closed + v_created;
+end;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.sales_call_is_resolved(p_attendance text, p_status text, p_dismissed_at timestamp with time zone)
+ RETURNS boolean
+ LANGUAGE sql
+ IMMUTABLE
+ SET search_path TO 'public'
+AS $function$
+  -- Any of the three canonical answers, or an explicit dismissal.
+  -- Attendance covers attended and no_show; a cancelled call has no
+  -- attendance to record and needs none.
+  select p_attendance is not null
+      or p_dismissed_at is not null
+      or p_status = 'cancelled';
 $function$
 ;

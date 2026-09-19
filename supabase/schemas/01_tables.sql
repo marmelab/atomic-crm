@@ -2033,3 +2033,6 @@ create table if not exists public.application_form_questions (
   constraint application_form_questions_one_per_key unique (form_version_id, question_key)
 );
 
+
+alter table public.sales_calls
+    add column if not exists resolution_requested_at timestamptz;

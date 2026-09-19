@@ -712,6 +712,11 @@ export type SalesCall = {
   // "not yet resolved", never overloaded onto the same null. Set together;
   // opportunity_id stays null forever once dismissed_at is set.
   dismissed_at?: string | null;
+  // When somebody established that nobody knows what happened on this
+  // call. NULL on the 166 attendance-less historical calls, which are not
+  // open questions — the result was recorded as pipeline stage instead.
+  // This, not the existence of a Task, is what makes the question durable.
+  resolution_requested_at?: string | null;
   dismissal_reason?: string | null;
   created_at: string;
   updated_at: string;
