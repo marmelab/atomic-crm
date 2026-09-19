@@ -248,6 +248,12 @@ export const planImportWrites = (source) => {
     contactId = null,
     offer = null,
     submittedAt = null,
+    currentOfferPrice = null,
+    // Today's list price is the amount only when the submission IS today's.
+    // For a historical re-submission nothing attached to it says what the
+    // person was quoted, and stamping the current price onto a past record
+    // is exactly how this system got payment truth wrong before.
+    priceIsAuthoritative = false,
   } = source;
 
   // The January whole-table copy. These rows record that a database was
@@ -293,6 +299,7 @@ export const planImportWrites = (source) => {
       entry_path: "application_form",
       outcome: null,
       cohort_id: null,
+      amount: priceIsAuthoritative ? currentOfferPrice : null,
     },
     application: {
       status: "pending",

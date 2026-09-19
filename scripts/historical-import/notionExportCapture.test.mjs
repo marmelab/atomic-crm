@@ -3,6 +3,7 @@
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync, readdirSync } from "node:fs";
 
 import {
   COPY_ARTIFACT_INSTANTS,
@@ -397,4 +398,82 @@ test("the plan carries the source page, which is what the guard keys on", () => 
   // Assert — a unique index on this column is what makes a concurrent
   // re-run collide instead of duplicating.
   assert.equal(plan.application.source_page_id, "p-new");
+});
+
+test("today's list price is the amount only for today's submission", () => {
+  // Arrange — Case 1 arrived today, so the current price IS the price.
+  const current = planImportWrites({
+    pageId: "p-today",
+    hasEmail: true,
+    contactId: null,
+    offer: "Growing Yourself Up",
+    currentOfferPrice: 1400,
+    priceIsAuthoritative: true,
+  });
+
+  // Arrange — Case 3 is a historical re-submission, and nothing attached
+  // to it says what that person was quoted.
+  const historical = planImportWrites({
+    pageId: "p-past",
+    hasEmail: true,
+    contactId: 110,
+    offer: "The Living Example",
+    currentOfferPrice: 4000,
+  });
+
+  // Assert
+  assert.equal(current.opportunity.amount, 1400);
+  assert.equal(historical.opportunity.amount, null);
+});
+
+test("the evidence-only state has the exact name the database stores", () => {
+  // Arrange / Act
+  const plan = planImportWrites({ pageId: "p", hasEmail: false });
+
+  // Assert — the string is a shared vocabulary with the CHECK constraint.
+  assert.equal(plan.reason, "evidence_only_identity_insufficient");
+});
+
+// The database invariants, read from the migrations that create them, so a
+// later migration cannot quietly undo either one.
+const MIGRATIONS = readdirSync(
+  new URL("../../supabase/migrations/", import.meta.url),
+)
+  .filter((n) => n.endsWith(".sql"))
+  .map((n) =>
+    readFileSync(
+      new URL(`../../supabase/migrations/${n}`, import.meta.url),
+      "utf8",
+    ),
+  )
+  .join("\n");
+
+test("one source page can only ever produce one Application", () => {
+  // Assert — a partial unique index, so the 159 rows with no source page
+  // are unaffected and a duplicate import collides instead of inserting.
+  assert.match(
+    MIGRATIONS,
+    /create unique index[^;]*applications_source_page_id_key[^;]*\(\s*source_page_id\s*\)[^;]*where\s+source_page_id\s+is\s+not\s+null/is,
+  );
+});
+
+test("snapshot versioning is never narrowed to one row per Application", () => {
+  // Assert — several snapshot versions may describe one Application, so
+  // making application_id unique would break re-capture of an edited page.
+  const uniqueOnApplicationId =
+    /create\s+unique\s+index[^;]*on\s+public\.historical_application_source_snapshots\s*\(\s*application_id\s*\)/is;
+  assert.ok(!uniqueOnApplicationId.test(MIGRATIONS));
+  // And the content-keyed index that DOES carry versioning is present.
+  assert.match(
+    MIGRATIONS,
+    /historical_application_source_snapshots_database_content_key[^;]*\(\s*source_database_id\s*,\s*content_hash\s*\)/is,
+  );
+});
+
+test("reconciliation_state accepts only what has actually been decided", () => {
+  // Assert — a constrained vocabulary, not a speculative state machine.
+  assert.match(
+    MIGRATIONS,
+    /reconciliation_state\s*=\s*'evidence_only_identity_insufficient'/i,
+  );
 });
