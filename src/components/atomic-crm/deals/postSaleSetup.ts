@@ -4,7 +4,9 @@ import type {
   DealStripePlanObject,
   EnrollmentOnboardingItem,
   EnrollmentStatus,
+  OnboardingTracking,
 } from "../types";
+import { assessOnboarding } from "../enrollments/assessOnboarding";
 import { assessPaymentTruth, type PaymentTruth } from "./paymentTruth";
 
 // What still has to happen before a sold Opportunity leaves the board.
@@ -63,12 +65,14 @@ const TERMINAL_ENROLLMENT_STATUSES: ReadonlySet<string> = new Set([
 export const assessPostSaleSetup = ({
   deal,
   enrollmentStatus,
+  enrollmentOnboardingTracking: onboardingTracking,
   scheduleItems,
   planObjects,
   onboardingItems,
 }: {
   deal: Deal;
   enrollmentStatus?: EnrollmentStatus | null;
+  enrollmentOnboardingTracking?: OnboardingTracking | null;
   scheduleItems: DealPaymentScheduleItem[];
   planObjects: DealStripePlanObject[];
   onboardingItems: EnrollmentOnboardingItem[];
@@ -89,16 +93,27 @@ export const assessPostSaleSetup = ({
 
   // Required checklist items that are genuinely outstanding.
   //
-  // An Enrollment with NO item rows at all is a historical import, not a
-  // client with everything outstanding — those clients were onboarded long
-  // before the checklist existed. Inventing blockers for them would drag
-  // years of finished clients back onto the board, so an empty checklist
-  // is read as "not tracked here", never as "nothing done".
-  const outstanding = onboardingItems.filter(
-    (item) => item.is_required && item.status !== "done",
-  );
-  for (const item of outstanding) {
-    blockers.push({ kind: "onboarding", label: `${item.label} pending` });
+  // This used to read an empty checklist as "not tracked here" and move
+  // on, which was right for the imported clients and wrong for everyone
+  // else — and it was a guess either way, because the rows cannot say
+  // which. The Enrollment says it now. A legacy Enrollment contributes no
+  // blocker, exactly as before; a TRACKED Enrollment with no checklist is
+  // no longer waved through as though it had finished one.
+  const onboarding = assessOnboarding({
+    tracking: onboardingTracking,
+    items: onboardingItems,
+  });
+
+  if (onboarding.mode === "tracked") {
+    if (onboarding.isMissingChecklist) {
+      blockers.push({
+        kind: "onboarding",
+        label: "Onboarding checklist missing",
+      });
+    }
+    for (const item of onboarding.outstandingRequired) {
+      blockers.push({ kind: "onboarding", label: `${item.label} pending` });
+    }
   }
 
   const payment = assessPaymentTruth({ deal, scheduleItems, planObjects });

@@ -1,6 +1,7 @@
 import type { DataProvider, Identifier } from "ra-core";
 
 import type { Enrollment, EnrollmentOnboardingItem } from "../types";
+import { assessOnboarding } from "./assessOnboarding";
 
 export type ActivateEnrollmentResult =
   | { applied: true }
@@ -9,7 +10,17 @@ export type ActivateEnrollmentResult =
       applied: false;
       reason: "requirements-incomplete";
       missingKeys: string[];
-    };
+    }
+  // Tracked, but carrying no required items at all. Previously this
+  // sailed through both here and in the database, because "no incomplete
+  // item exists" is trivially true of an empty list — the emptiest
+  // possible checklist passed the check a full one would fail. It is a
+  // missing checklist, not a finished one.
+  | { applied: false; reason: "checklist-missing" }
+  // Onboarding happened before the CRM tracked it, so there is no
+  // checklist to satisfy. Activating is legitimate but must be a decision
+  // somebody makes, never a silent consequence of an empty list.
+  | { applied: false; reason: "needs-untracked-acknowledgement" };
 
 // Contracts + Onboarding slice: the explicit human Activate action
 // (architecture review, §6 — Leif's approved bias, option B). Mirrors
@@ -28,6 +39,9 @@ export type ActivateEnrollmentResult =
 export const activateEnrollment = async (
   dataProvider: DataProvider,
   enrollmentId: Identifier,
+  // Set only when a person has been shown that this client's onboarding
+  // was never tracked and has chosen to activate anyway.
+  options: { acknowledgeUntracked?: boolean } = {},
 ): Promise<ActivateEnrollmentResult> => {
   const { data: enrollment } = await dataProvider.getOne<Enrollment>(
     "enrollments",
@@ -45,11 +59,26 @@ export const activateEnrollment = async (
       sort: { field: "sort_order", order: "ASC" },
     },
   );
-  const missingKeys = items
-    .filter((item) => item.is_required && item.status !== "done")
-    .map((item) => item.requirement_key);
-  if (missingKeys.length > 0) {
-    return { applied: false, reason: "requirements-incomplete", missingKeys };
+
+  const onboarding = assessOnboarding({
+    tracking: enrollment.onboarding_tracking,
+    items,
+  });
+
+  if (onboarding.mode === "legacy_untracked") {
+    if (!options.acknowledgeUntracked) {
+      return { applied: false, reason: "needs-untracked-acknowledgement" };
+    }
+  } else if (onboarding.isMissingChecklist) {
+    return { applied: false, reason: "checklist-missing" };
+  } else if (onboarding.outstandingRequired.length > 0) {
+    return {
+      applied: false,
+      reason: "requirements-incomplete",
+      missingKeys: onboarding.outstandingRequired.map(
+        (item) => item.requirement_key,
+      ),
+    };
   }
 
   await dataProvider.update("enrollments", {

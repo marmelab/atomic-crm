@@ -47,6 +47,7 @@ const buildDeal = (): Deal => ({
 const buildEnrollment = (overrides: Partial<Enrollment> = {}): Enrollment => ({
   id: ENROLLMENT_ID,
   opportunity_id: DEAL_ID,
+  onboarding_tracking: "tracked" as const,
   status: "active",
   start_date: "2026-01-01",
   end_date: null,

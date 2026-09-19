@@ -1,13 +1,28 @@
 import { useGetList, useGetMany } from "ra-core";
 import type { Identifier } from "ra-core";
 
-import type { Cohort, Deal, Enrollment, Offer } from "../types";
+import type {
+  Cohort,
+  Deal,
+  Enrollment,
+  EnrollmentStatusEvent,
+  Offer,
+} from "../types";
 import {
+  byMostRecentlyEndedFirst,
   byNewestStartFirst,
   bySoonestStartFirst,
   classifyEnrollment,
   type EnrollmentPhase,
 } from "./classifyEnrollment";
+
+// Which statuses end an engagement. Their event timestamps are the
+// second-best evidence of when somebody finished, behind end_date.
+const TERMINAL_STATUSES: ReadonlySet<string> = new Set([
+  "completed",
+  "withdrawn",
+  "ended",
+]);
 
 export type ClientRow = {
   enrollment: Enrollment;
@@ -15,6 +30,9 @@ export type ClientRow = {
   offer: Offer | undefined;
   cohort: Cohort | undefined;
   phase: EnrollmentPhase;
+  // When the CRM was told this engagement ended. Null when no terminal
+  // event was ever recorded — most of the imported rows.
+  terminalEventAt: string | null;
 };
 
 export type CohortGroup = {
@@ -48,6 +66,16 @@ export const useClientsGrouped = (): {
       sort: { field: "created_at", order: "DESC" },
     });
 
+  // Past ordering needs to know when each engagement ENDED, and only one
+  // Enrollment in this database carries an end_date. The terminal status
+  // event is the next-best real evidence, so it is fetched rather than
+  // approximated from the start date the way Past used to be sorted.
+  const { data: statusEvents, isPending: statusEventsPending } =
+    useGetList<EnrollmentStatusEvent>("enrollment_status_events", {
+      pagination: { page: 1, perPage: 1000 },
+      sort: { field: "entered_at", order: "DESC" },
+    });
+
   const dealIds = [
     ...new Set((enrollments ?? []).map((e) => e.opportunity_id)),
   ];
@@ -79,6 +107,7 @@ export const useClientsGrouped = (): {
 
   const isPending =
     enrollmentsPending ||
+    statusEventsPending ||
     (dealIds.length > 0 &&
       (dealsPending ||
         (offerIds.length > 0 && offersPending) ||
@@ -96,6 +125,18 @@ export const useClientsGrouped = (): {
   const dealById = new Map((deals ?? []).map((d) => [String(d.id), d]));
   const offerById = new Map((offers ?? []).map((o) => [String(o.id), o]));
   const cohortById = new Map((cohorts ?? []).map((c) => [String(c.id), c]));
+
+  // The LATEST terminal event per Enrollment. A row that was completed,
+  // reopened and completed again ended on the most recent one.
+  const terminalEventByEnrollment = new Map<string, string>();
+  for (const event of statusEvents ?? []) {
+    if (!TERMINAL_STATUSES.has(event.status)) continue;
+    const key = String(event.enrollment_id);
+    const seen = terminalEventByEnrollment.get(key);
+    if (!seen || event.entered_at > seen) {
+      terminalEventByEnrollment.set(key, event.entered_at);
+    }
+  }
 
   const livingExample: Record<EnrollmentPhase, ClientRow[]> = {
     upcoming: [],
@@ -118,6 +159,8 @@ export const useClientsGrouped = (): {
           ? cohortById.get(String(deal.cohort_id))
           : undefined,
       phase: classifyEnrollment(enrollment),
+      terminalEventAt:
+        terminalEventByEnrollment.get(String(enrollment.id)) ?? null,
     };
 
     if (offer?.type === "group") {
@@ -154,7 +197,10 @@ export const useClientsGrouped = (): {
     bySoonestStartFirst(a.enrollment, b.enrollment),
   );
   livingExample.past.sort((a, b) =>
-    byNewestStartFirst(a.enrollment, b.enrollment),
+    byMostRecentlyEndedFirst(
+      { ...a.enrollment, terminalEventAt: a.terminalEventAt },
+      { ...b.enrollment, terminalEventAt: b.terminalEventAt },
+    ),
   );
 
   const gyuCohorts: CohortGroup[] = [...gyuByCohort.entries()]
@@ -170,7 +216,12 @@ export const useClientsGrouped = (): {
     // proxy for when Leif set them up.
     .sort((a, b) => b.key.localeCompare(a.key, undefined, { numeric: true }));
 
-  gyuPast.sort((a, b) => byNewestStartFirst(a.enrollment, b.enrollment));
+  gyuPast.sort((a, b) =>
+    byMostRecentlyEndedFirst(
+      { ...a.enrollment, terminalEventAt: a.terminalEventAt },
+      { ...b.enrollment, terminalEventAt: b.terminalEventAt },
+    ),
+  );
 
   return { isPending: false, livingExample, gyuCohorts, gyuPast, other };
 };

@@ -1,6 +1,7 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, test } from "vitest";
 
 import {
+  byMostRecentlyEndedFirst,
   byNewestStartFirst,
   bySoonestStartFirst,
   classifyEnrollment,
@@ -207,5 +208,90 @@ describe("a client who has started and not finished stays Current", () => {
         "2026-09-18",
       ),
     ).toBe("past");
+  });
+});
+
+// ---------------------------------------------------------------------
+// Past is ordered by when people FINISHED
+// ---------------------------------------------------------------------
+// It sorted by start date, which put somebody who began in January and
+// left in February above somebody who began in December and finished last
+// week. "Who did I most recently stop working with" needs the other end of
+// the engagement.
+
+describe("byMostRecentlyEndedFirst", () => {
+  const row = (
+    id: number,
+    end_date: string | null,
+    terminalEventAt: string | null = null,
+  ) => ({ id, end_date, terminalEventAt });
+
+  test("a real end date wins, most recent first", () => {
+    // Arrange
+    const rows = [
+      row(1, "2026-01-31"),
+      row(2, "2026-08-24"),
+      row(3, "2026-05-02"),
+    ];
+
+    // Act
+    rows.sort(byMostRecentlyEndedFirst);
+
+    // Assert
+    expect(rows.map((r) => r.id)).toEqual([2, 3, 1]);
+  });
+
+  test("a recorded end date outranks a terminal event, however recent", () => {
+    // Arrange — the event says when the CRM was told; end_date says when
+    // it happened, and that is the better evidence even when older.
+    const withDate = row(1, "2026-02-01");
+    const withEvent = row(2, null, "2026-09-18T00:00:00Z");
+
+    // Act
+    const rows = [withEvent, withDate].sort(byMostRecentlyEndedFirst);
+
+    // Assert
+    expect(rows.map((r) => r.id)).toEqual([1, 2]);
+  });
+
+  test("terminal events order among themselves, most recent first", () => {
+    // Arrange
+    const rows = [
+      row(1, null, "2026-03-01T00:00:00Z"),
+      row(2, null, "2026-09-01T00:00:00Z"),
+    ];
+
+    // Act
+    rows.sort(byMostRecentlyEndedFirst);
+
+    // Assert
+    expect(rows.map((r) => r.id)).toEqual([2, 1]);
+  });
+
+  test("an Enrollment whose ending was never recorded sorts last", () => {
+    // Arrange — most of the imported rows. Giving them a date to make the
+    // sort tidy would be inventing history for a real person.
+    const rows = [
+      row(1, null, null),
+      row(2, null, "2026-01-01T00:00:00Z"),
+      row(3, "2026-01-01"),
+    ];
+
+    // Act
+    rows.sort(byMostRecentlyEndedFirst);
+
+    // Assert
+    expect(rows.map((r) => r.id)).toEqual([3, 2, 1]);
+  });
+
+  test("rows with no evidence at all keep a stable order", () => {
+    // Arrange — nothing to sort on must still not shuffle between renders.
+    const rows = [row(7, null), row(9, null), row(8, null)];
+
+    // Act
+    rows.sort(byMostRecentlyEndedFirst);
+
+    // Assert
+    expect(rows.map((r) => r.id)).toEqual([9, 8, 7]);
   });
 });

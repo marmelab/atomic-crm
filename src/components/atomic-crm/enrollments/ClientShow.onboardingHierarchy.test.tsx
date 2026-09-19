@@ -105,6 +105,7 @@ const buildTestCrm = ({
   const enrollment: Enrollment = {
     id: 1,
     opportunity_id: 1,
+    onboarding_tracking: "tracked" as const,
     status: enrollmentStatus,
     start_date: "2026-01-01",
     end_date: null,
@@ -296,6 +297,7 @@ describe("ClientShow — onboarding-hierarchy repair", () => {
     const enrollment: Enrollment = {
       id: 1,
       opportunity_id: 1,
+      onboarding_tracking: "tracked" as const,
       status: "active",
       start_date: "2026-01-01",
       end_date: null,

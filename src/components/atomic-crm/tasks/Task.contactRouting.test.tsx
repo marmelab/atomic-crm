@@ -53,6 +53,7 @@ describe("Task Dashboard person link — routes to Client page when deterministi
       {
         id: 1,
         opportunity_id: 10,
+        onboarding_tracking: "tracked" as const,
         status: "active",
         start_date: "2026-01-01",
         end_date: null,
@@ -62,6 +63,7 @@ describe("Task Dashboard person link — routes to Client page when deterministi
       {
         id: 2,
         opportunity_id: 11,
+        onboarding_tracking: "tracked" as const,
         status: "completed",
         start_date: "2025-01-01",
         end_date: "2025-06-01",
@@ -94,6 +96,7 @@ describe("Task Dashboard person link — routes to Client page when deterministi
       {
         id: 1,
         opportunity_id: 10,
+        onboarding_tracking: "tracked" as const,
         status: "active",
         start_date: "2026-01-01",
         end_date: null,
@@ -103,6 +106,7 @@ describe("Task Dashboard person link — routes to Client page when deterministi
       {
         id: 2,
         opportunity_id: 11,
+        onboarding_tracking: "tracked" as const,
         status: "onboarding",
         start_date: null,
         end_date: null,
@@ -135,6 +139,7 @@ describe("Task Dashboard person link — routes to Client page when deterministi
       {
         id: 1,
         opportunity_id: 10,
+        onboarding_tracking: "tracked" as const,
         status: "active",
         start_date: "2026-01-01",
         end_date: null,

@@ -34,6 +34,7 @@ const buildDeal = (): Deal => ({
 const buildEnrollment = (): Enrollment => ({
   id: ENROLLMENT_ID,
   opportunity_id: DEAL_ID,
+  onboarding_tracking: "tracked" as const,
   status: "onboarding",
   start_date: null,
   end_date: null,

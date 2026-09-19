@@ -290,6 +290,7 @@ describe("GYU Cohort person links", () => {
     const enrollment: Db["enrollments"][number] = {
       id: 1,
       opportunity_id: 3,
+      onboarding_tracking: "tracked" as const,
       status: "active",
       created_at: "2025-01-01T00:00:00.000Z",
       updated_at: "2025-01-01T00:00:00.000Z",

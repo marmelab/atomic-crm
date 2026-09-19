@@ -45,6 +45,7 @@ export const backfillEnrollmentsForWonDeals = (db: Db): void => {
       const enrollment: Enrollment = {
         id: nextEnrollmentId++,
         opportunity_id: deal.id,
+        onboarding_tracking: "tracked" as const,
         status: "onboarding",
         start_date: cohort?.program_start_at?.split("T")[0] ?? null,
         end_date: cohort?.program_end_at?.split("T")[0] ?? null,

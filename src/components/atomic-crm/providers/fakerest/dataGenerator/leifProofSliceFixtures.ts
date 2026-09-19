@@ -211,6 +211,7 @@ export const addLeifProofSliceFixtures = (db: Db) => {
   const marcusEnrollment: Enrollment = {
     id: nextEnrollmentId(),
     opportunity_id: marcusOpportunity.id,
+    onboarding_tracking: "tracked" as const,
     status: "active",
     start_date: marcusStart.toISOString().split("T")[0],
     end_date: marcusEnd.toISOString().split("T")[0],
@@ -355,6 +356,7 @@ export const addLeifProofSliceFixtures = (db: Db) => {
   db.enrollments.push({
     id: nextEnrollmentId(),
     opportunity_id: samOpportunity.id,
+    onboarding_tracking: "tracked" as const,
     status: "active",
     start_date: september?.program_start_at?.split("T")[0] ?? null,
     end_date: september?.program_end_at?.split("T")[0] ?? null,
@@ -441,6 +443,7 @@ export const addLeifProofSliceFixtures = (db: Db) => {
   db.enrollments.push({
     id: nextEnrollmentId(),
     opportunity_id: chrisOpportunity.id,
+    onboarding_tracking: "tracked" as const,
     status: "completed",
     start_date: chrisPastStart.toISOString().split("T")[0],
     end_date: chrisPastEnd.toISOString().split("T")[0],
@@ -482,6 +485,7 @@ export const addLeifProofSliceFixtures = (db: Db) => {
     db.enrollments.push({
       id: nextEnrollmentId(),
       opportunity_id: opportunity.id,
+      onboarding_tracking: "tracked" as const,
       status: "active",
       start_date: pastStartDate,
       end_date: endDate,
@@ -556,6 +560,7 @@ export const addLeifProofSliceFixtures = (db: Db) => {
   db.enrollments.push({
     id: nextEnrollmentId(),
     opportunity_id: noraOpportunity.id,
+    onboarding_tracking: "tracked" as const,
     status: "completed",
     start_date: noraStart.toISOString().split("T")[0],
     end_date: noraEnd.toISOString().split("T")[0],

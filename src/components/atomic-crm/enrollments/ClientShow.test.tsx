@@ -59,6 +59,7 @@ const wonDeal: Deal = {
 const enrollment: Enrollment = {
   id: 1,
   opportunity_id: 1,
+  onboarding_tracking: "tracked" as const,
   status: "onboarding",
   start_date: null,
   end_date: null,

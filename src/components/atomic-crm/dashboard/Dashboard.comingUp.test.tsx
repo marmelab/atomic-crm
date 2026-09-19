@@ -227,6 +227,7 @@ describe("Dashboard — Coming Up", () => {
     const leEnrollment: Enrollment = {
       id: 1,
       opportunity_id: 1,
+      onboarding_tracking: "tracked" as const,
       status: "active",
       start_date: dateOnlyFromNow(-30),
       end_date: dateOnlyFromNow(30), // later than the Cohort start below
@@ -326,6 +327,7 @@ describe("Dashboard — Coming Up", () => {
       {
         id: 1,
         opportunity_id: 1,
+        onboarding_tracking: "tracked" as const,
         status: "active",
         start_date: dateOnlyFromNow(-30),
         end_date: sharedEndDate,
@@ -335,6 +337,7 @@ describe("Dashboard — Coming Up", () => {
       {
         id: 2,
         opportunity_id: 2,
+        onboarding_tracking: "tracked" as const,
         status: "active",
         start_date: dateOnlyFromNow(-30),
         end_date: sharedEndDate,

@@ -378,6 +378,9 @@ async function ensureEnrollmentForWonDeal(
       data: {
         opportunity_id: deal.id,
         status: "onboarding",
+        // Mirrors handle_deal_won(): a sale made today is tracked.
+        // legacy_untracked only ever describes the past.
+        onboarding_tracking: "tracked",
         start_date: cohort?.program_start_at?.split("T")[0] ?? null,
         end_date: cohort?.program_end_at?.split("T")[0] ?? null,
       },

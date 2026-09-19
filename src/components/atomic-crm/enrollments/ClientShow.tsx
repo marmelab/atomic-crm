@@ -116,7 +116,10 @@ const EnrollmentOperationalHome = () => {
     ? `${contact.first_name ?? ""} ${contact.last_name ?? ""}`.trim()
     : deal.name;
 
-  const onboardingProgress = computeOnboardingProgress(items);
+  const onboardingProgress = computeOnboardingProgress(
+    items,
+    enrollment.onboarding_tracking,
+  );
   // ClientShow onboarding-hierarchy repair: collapse the checklist below
   // Sessions ONLY once the Enrollment has actually moved past the
   // onboarding phase (status !== "onboarding") — not the instant the
@@ -452,6 +455,30 @@ const PaymentContextCard = ({
   );
 };
 
+// Why an activation was refused, in Leif's words rather than the DB's.
+//
+// "checklist-missing" is the one worth spelling out: it looks identical to
+// "nothing left to do" on screen — an empty list either way — and used to
+// be treated as exactly that. It means the checklist never arrived.
+const ACTIVATION_REFUSAL_TEXT = {
+  "not-onboarding":
+    "This client is no longer awaiting onboarding — showing the current state.",
+  "requirements-incomplete":
+    "Some required items are still incomplete — showing the current state.",
+  "checklist-missing":
+    "This client's onboarding checklist is missing, so there is nothing to complete. Their Offer may have no onboarding steps set up.",
+  "needs-untracked-acknowledgement":
+    "This client's onboarding was never tracked here, so it has to be activated deliberately.",
+} as const;
+
+const ACTIVATION_REFUSAL_KEY = {
+  "not-onboarding": "resources.enrollments.already_activated",
+  "requirements-incomplete": "resources.enrollments.activation_incomplete",
+  "checklist-missing": "resources.enrollments.activation_checklist_missing",
+  "needs-untracked-acknowledgement":
+    "resources.enrollments.activation_needs_acknowledgement",
+} as const;
+
 const OnboardingChecklistCard = ({
   enrollment,
   tasks,
@@ -482,6 +509,12 @@ const OnboardingChecklistCard = ({
   const { requiredItems, optionalItems, requiredDoneCount } = progress;
   const readyToActivate =
     enrollment.status === "onboarding" && progress.allRequiredComplete;
+  // Onboarding that happened before the CRM tracked it. There is no
+  // checklist and there is not supposed to be one, so activating is a
+  // deliberate choice rather than the end of a list — and the client is
+  // not shown as 0/0 or as broken.
+  const readyToActivateUntracked =
+    enrollment.status === "onboarding" && progress.isLegacyUntracked;
 
   const toggleItem = async (item: EnrollmentOnboardingItem) => {
     // Human-acceptance repair, round 4: the checkbox itself is NEVER passed
@@ -534,20 +567,16 @@ const OnboardingChecklistCard = ({
   const handleActivate = async () => {
     setActivating(true);
     try {
-      const result = await activateEnrollment(dataProvider, enrollment.id);
+      const result = await activateEnrollment(dataProvider, enrollment.id, {
+        // Only ever true on the legacy branch, where the button itself
+        // says what it means before it is clicked.
+        acknowledgeUntracked: progress.isLegacyUntracked,
+      });
       if (!result.applied) {
-        notify(
-          result.reason === "not-onboarding"
-            ? "resources.enrollments.already_activated"
-            : "resources.enrollments.activation_incomplete",
-          {
-            type: "warning",
-            _:
-              result.reason === "not-onboarding"
-                ? "This Enrollment is no longer awaiting onboarding — showing the current state."
-                : "Some required items are still incomplete — showing the current state.",
-          },
-        );
+        notify(ACTIVATION_REFUSAL_KEY[result.reason], {
+          type: "warning",
+          _: ACTIVATION_REFUSAL_TEXT[result.reason],
+        });
       } else {
         notify("resources.enrollments.activated", {
           type: "info",
@@ -635,7 +664,24 @@ const OnboardingChecklistCard = ({
           before that, plain progress is the only thing shown. Once Active,
           neither shows again — the status Badge above already says so. */}
       <div className="flex items-center justify-between">
-        {enrollment.status === "onboarding" && readyToActivate ? (
+        {progress.isLegacyUntracked ? (
+          // Not "0/0", and not "Onboarding complete" either. This client
+          // was already running when the CRM took over; neither number nor
+          // tick mark would be a true statement about them.
+          <h3 className="text-sm font-medium text-muted-foreground">
+            {translate("resources.enrollments.onboarding_not_tracked", {
+              _: "Onboarding — not tracked here",
+            })}
+          </h3>
+        ) : progress.isMissingChecklist ? (
+          // An empty list that is supposed to have items. Says so, rather
+          // than looking indistinguishable from a finished one.
+          <h3 className="text-sm font-medium text-destructive">
+            {translate("resources.enrollments.onboarding_checklist_missing", {
+              _: "Onboarding checklist missing",
+            })}
+          </h3>
+        ) : enrollment.status === "onboarding" && readyToActivate ? (
           <span className="text-sm font-medium text-foreground">
             {translate("resources.enrollments.onboarding_complete", {
               _: "Onboarding complete",
@@ -650,19 +696,33 @@ const OnboardingChecklistCard = ({
               ` ${requiredDoneCount}/${requiredItems.length}`}
           </h3>
         )}
-        {enrollment.status === "onboarding" && readyToActivate && (
+        {(readyToActivate || readyToActivateUntracked) && (
           <Button size="sm" disabled={activating} onClick={handleActivate}>
             {activating
               ? translate("resources.enrollments.activating", {
                   _: "Activating…",
                 })
-              : translate("resources.enrollments.activate", {
-                  _: "Activate client",
-                })}
+              : readyToActivateUntracked
+                ? // The button says what clicking it means, so the
+                  // acknowledgement is the click itself.
+                  translate("resources.enrollments.activate_untracked", {
+                    _: "Activate without checklist",
+                  })
+                : translate("resources.enrollments.activate", {
+                    _: "Activate client",
+                  })}
           </Button>
         )}
       </div>
-      {checklist}
+      {progress.isLegacyUntracked ? (
+        <p className="text-sm text-muted-foreground">
+          {translate("resources.enrollments.onboarding_not_tracked_help", {
+            _: "This client was already under way when their record was imported, so their setup was never tracked as a checklist here. Nothing is missing.",
+          })}
+        </p>
+      ) : (
+        checklist
+      )}
     </div>
   );
 };

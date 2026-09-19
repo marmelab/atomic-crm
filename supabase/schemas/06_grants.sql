@@ -649,3 +649,5 @@ revoke all on table public.historical_application_source_snapshots from public;
 revoke all on table public.historical_application_source_snapshots from anon;
 revoke all on table public.historical_application_source_snapshots from authenticated;
 revoke all on table public.historical_application_source_snapshots from service_role;
+
+grant select on public.enrollments_missing_onboarding to authenticated;

@@ -115,6 +115,7 @@ export const useOnboardingPipeline = (): OnboardingPipeline => {
       const setup = assessPostSaleSetup({
         deal,
         enrollmentStatus: enrollment?.status ?? null,
+        enrollmentOnboardingTracking: enrollment?.onboarding_tracking ?? null,
         scheduleItems: scheduleByDeal.get(key) ?? [],
         planObjects: plansByDeal.get(key) ?? [],
         onboardingItems: enrollment

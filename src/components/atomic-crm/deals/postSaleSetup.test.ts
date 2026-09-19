@@ -83,8 +83,16 @@ const onboardingItem = (
     ...overrides,
   }) as EnrollmentOnboardingItem;
 
+// Every client modelled in this file is one of the imported ones — Sam,
+// Emma, Kerri — whose onboarding happened before the CRM tracked any of
+// it. That used to be implied by their empty checklist, which is exactly
+// the guess this slice removed, so it is stated instead. Individual tests
+// override it to model a client the CRM IS tracking.
 const assess = (args: Parameters<typeof assessPostSaleSetup>[0]) =>
-  assessPostSaleSetup(args);
+  assessPostSaleSetup({
+    enrollmentOnboardingTracking: "legacy_untracked",
+    ...args,
+  });
 
 describe("what keeps a sold Opportunity on the board", () => {
   test("Sam: said yes, plan exists only in Stripe — stays in Onboarding", () => {
@@ -165,6 +173,7 @@ describe("what keeps a sold Opportunity on the board", () => {
     const status = assess({
       deal: deal({ selected_payment_total: 700 }),
       enrollmentStatus: "onboarding",
+      enrollmentOnboardingTracking: "tracked",
       scheduleItems: [paidItem()],
       planObjects: [planObject()],
       onboardingItems: [onboardingItem({ label: "Contract" })],
@@ -180,6 +189,7 @@ describe("what keeps a sold Opportunity on the board", () => {
     const status = assess({
       deal: deal({ selected_payment_total: 700 }),
       enrollmentStatus: "onboarding",
+      enrollmentOnboardingTracking: "tracked",
       scheduleItems: [],
       planObjects: [],
       onboardingItems: [onboardingItem({ label: "Course access" })],
@@ -190,13 +200,14 @@ describe("what keeps a sold Opportunity on the board", () => {
     expect(status.blockers).toHaveLength(2);
   });
 
-  test("an empty checklist is not read as everything outstanding", () => {
-    // Arrange — every historical client predates the checklist and has no
-    // item rows at all. Inventing blockers would drag years of finished
-    // clients back onto the board.
+  test("a legacy client's empty checklist is not everything outstanding", () => {
+    // Arrange — an imported client predates the checklist entirely.
+    // Inventing blockers would drag years of finished clients back onto
+    // the board.
     const status = assess({
       deal: deal({ selected_payment_total: 700 }),
       enrollmentStatus: "active",
+      enrollmentOnboardingTracking: "legacy_untracked",
       scheduleItems: [paidItem()],
       planObjects: [planObject()],
       onboardingItems: [],
@@ -204,6 +215,28 @@ describe("what keeps a sold Opportunity on the board", () => {
 
     // Assert
     expect(status.complete).toBe(true);
+  });
+
+  test("a TRACKED client's empty checklist is a missing one, not a done one", () => {
+    // Arrange — same empty list, opposite meaning. This is the case that
+    // used to be waved through: no item is incomplete when no item
+    // exists, so the emptiest checklist passed the check a full one would
+    // fail, and the Opportunity left the board with its setup never done.
+    const status = assess({
+      deal: deal({ selected_payment_total: 700 }),
+      enrollmentStatus: "onboarding",
+      enrollmentOnboardingTracking: "tracked",
+      scheduleItems: [paidItem()],
+      planObjects: [planObject()],
+      onboardingItems: [],
+    });
+
+    // Assert
+    expect(status.complete).toBe(false);
+    expect(status.blockers).toContainEqual({
+      kind: "onboarding",
+      label: "Onboarding checklist missing",
+    });
   });
 
   test("a finished client never sits in the active pipeline", () => {

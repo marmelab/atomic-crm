@@ -482,8 +482,27 @@ create table public.enrollments (
     -- useClientsGrouped.ts, which files every terminal status under Past.
     -- 'ended': the container ran its course without successful completion
     -- and without a formal withdrawal. Neutral about the person on purpose.
-    constraint enrollments_status_check check (status in ('onboarding', 'active', 'offboarding', 'completed', 'withdrawn', 'ended'))
+    constraint enrollments_status_check check (status in ('onboarding', 'active', 'offboarding', 'completed', 'withdrawn', 'ended')),
+    -- A container cannot finish before it starts. Only where both dates
+    -- are known: a missing date is not permission to invent one.
+    constraint enrollments_end_after_start_check check (start_date is null or end_date is null or end_date >= start_date)
 );
+
+-- Whether the CRM is expected to KNOW this Enrollment's onboarding.
+--
+-- Without it an empty checklist meant three incompatible things at once,
+-- one per consumer: nothing is blocking, nothing is done, and activation
+-- is fine. Twenty-eight of this database's Enrollments were imported as
+-- already-running clients whose onboarding predates all of this; their
+-- empty checklist is a fact about the CRM. A new client's empty checklist
+-- is a checklist that went missing. The rows cannot tell those apart, so
+-- the Enrollment says which it is.
+alter table public.enrollments
+    add column if not exists onboarding_tracking text not null default 'tracked';
+alter table public.enrollments
+    drop constraint if exists enrollments_onboarding_tracking_check;
+alter table public.enrollments
+    add constraint enrollments_onboarding_tracking_check CHECK ((onboarding_tracking = ANY (ARRAY['tracked'::text, 'legacy_untracked'::text])));
 
 -- The AGREED payment schedule for a Deal, for arrangements the equal-
 -- installment snapshot on deals cannot express: a deposit plus a later

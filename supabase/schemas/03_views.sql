@@ -166,3 +166,22 @@ select count(sub.id) as is_initialized
 from (
     select sales.id from public.sales limit 1
 ) sub;
+
+-- Tracked Enrollments carrying no required onboarding items. Empty is the
+-- healthy state. A row here means seeding did not run, or the Offer has no
+-- active onboarding templates — either way the checklist is missing rather
+-- than finished, and activation will refuse.
+CREATE OR REPLACE VIEW public.enrollments_missing_onboarding AS
+ SELECT e.id AS enrollment_id,
+    e.opportunity_id,
+    e.status,
+    e.onboarding_tracking,
+    d.offer_id,
+    ( SELECT count(*) AS count
+           FROM onboarding_requirement_templates t
+          WHERE t.offer_id = d.offer_id AND t.is_active) AS active_templates
+   FROM enrollments e
+     JOIN deals d ON d.id = e.opportunity_id
+  WHERE e.onboarding_tracking = 'tracked'::text AND NOT (EXISTS ( SELECT 1
+           FROM enrollment_onboarding_items i
+          WHERE i.enrollment_id = e.id AND i.is_required));

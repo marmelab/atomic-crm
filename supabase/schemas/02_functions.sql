@@ -488,23 +488,18 @@ begin
 end;
 $$;
 
-CREATE OR REPLACE FUNCTION "public"."handle_deal_won"() RETURNS "trigger"
-    LANGUAGE "plpgsql"
-    SET "search_path" TO 'public'
-    AS $$
+CREATE OR REPLACE FUNCTION public.handle_deal_won()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SET search_path TO 'public'
+AS $function$
 declare
   v_cohort cohorts%ROWTYPE;
   v_enrollment_id bigint;
-  v_contact_name text;
-  v_item record;
 begin
-  -- Historical Migration slice: a historical Won Deal must never fire live
-  -- onboarding (a real Enrollment at 'onboarding' status, checklist items,
-  -- and Tasks due in 3 days from NOW) — the importer inserts the correct,
-  -- truthful final-state Enrollment itself. See
-  -- set_historical_migration_mode()'s own header for why this GUC check is
-  -- safe: only that narrowly-restricted function can ever set it, and it is
-  -- transaction-local by construction.
+  -- A historical Won Deal must never fire live onboarding: the importer
+  -- inserts the truthful final-state Enrollment itself. Only
+  -- set_historical_migration_mode() can set this GUC, transaction-locally.
   if current_setting('app.migration_mode', true) = 'true' then
     return new;
   end if;
@@ -515,75 +510,31 @@ begin
     end if;
 
     -- Idempotent: the unique constraint on enrollments.opportunity_id means
-    -- re-saving Won (or this trigger re-firing) never creates a duplicate.
-    -- `returning ... into` only actually assigns on the genuine-insert
-    -- path — the on-conflict no-op leaves v_enrollment_id null, which is
-    -- exactly the signal the Contracts + Onboarding block below needs to
-    -- stay just as replay-safe as the Enrollment creation it's gated on.
-    insert into enrollments (opportunity_id, status, start_date, end_date)
+    -- re-saving Won never creates a duplicate. `returning ... into` only
+    -- assigns on a genuine insert, so the block below stays replay-safe.
+    insert into enrollments (opportunity_id, status, start_date, end_date, onboarding_tracking)
     values (
       new.id,
       'onboarding',
       v_cohort.program_start_at::date,
-      v_cohort.program_end_at::date
+      v_cohort.program_end_at::date,
+      -- A sale made today is tracked. legacy_untracked is only ever a
+      -- statement about the past, never a default for new work.
+      'tracked'
     )
     on conflict (opportunity_id) do nothing
     returning id into v_enrollment_id;
 
     if v_enrollment_id is not null then
-      select trim(both ' ' from coalesce(first_name, '') || ' ' || coalesce(last_name, ''))
-        into v_contact_name
-        from contacts where id = new.contact_id;
-      if v_contact_name is null or v_contact_name = '' then
-        v_contact_name := new.name;
-      end if;
+      perform public.seed_enrollment_onboarding(v_enrollment_id);
 
-      -- Seed this Enrollment's checklist from whichever requirement
-      -- templates are currently active for this Deal's Offer (snapshotted,
-      -- not a live reference — see onboarding_requirement_templates' own
-      -- comment), one Task per REQUIRED item only (optional items get no
-      -- auto-task — Contracts + Onboarding slice, §8/§11 of the
-      -- architecture review).
-      for v_item in
-        insert into enrollment_onboarding_items
-          (enrollment_id, requirement_key, label, task_text_template, is_required, sort_order)
-        select v_enrollment_id, t.key, t.label, t.task_text_template, t.is_required, t.sort_order
-        from onboarding_requirement_templates t
-        where t.offer_id = new.offer_id and t.is_active
-        returning id, is_required, task_text_template
-      loop
-        if v_item.is_required then
-          insert into tasks (contact_id, type, text, due_date, status, enrollment_id, onboarding_item_id)
-          values (
-            new.contact_id,
-            'onboarding_item',
-            replace(v_item.task_text_template, '{name}', v_contact_name),
-            -- Deliberately NOT now() — every required item due immediately
-            -- at Enrollment creation would produce artificial overdue
-            -- noise (someone paying late in the day reads as instantly
-            -- behind). The Dashboard's Needs Onboarding section (driven
-            -- directly off Enrollment state, not Tasks) is the primary
-            -- "this person cannot disappear" signal; these Tasks' Overdue
-            -- bucket is a secondary nudge, so a few real days of slack is
-            -- correct, not a compromise.
-            now() + interval '3 days',
-            'pending',
-            v_enrollment_id,
-            v_item.id
-          );
-        end if;
-      end loop;
-
-      -- Scholarship Pricing + Capacity slice: atomically transition the
-      -- slot this Deal holds (grant time) into Enrollment-held occupancy —
-      -- a single UPDATE flipping both holder columns together, inside the
-      -- same transaction as the enrollments INSERT above, so no other
-      -- session can ever observe this Offer's slot as free between "Deal
-      -- loses it" and "Enrollment gains it".
+      -- Scholarship slot occupancy moves from Deal to Enrollment in the
+      -- same transaction, so the slot is never observably free between the
+      -- two.
       if new.pricing_mode = 'scholarship' then
         update scholarship_slots
-          set holder_deal_id = null, holder_enrollment_id = v_enrollment_id, updated_at = now()
-          where offer_id = new.offer_id and holder_deal_id = new.id;
+           set holder_deal_id = null, holder_enrollment_id = v_enrollment_id, updated_at = now()
+         where offer_id = new.offer_id and holder_deal_id = new.id;
         if not found then
           raise exception 'Deal % reached Won as scholarship but held no scholarship slot for offer % — data inconsistency', new.id, new.offer_id;
         end if;
@@ -595,7 +546,8 @@ begin
   end if;
   return new;
 end;
-$$;
+$function$
+;
 
 -- Scholarship Pricing + Capacity slice: the other half of the atomic
 -- grant/convert/release lifecycle (see handle_deal_saved()/handle_deal_won()
@@ -795,22 +747,50 @@ $$;
 -- every future write path to remember the invariant. Only guards the
 -- onboarding -> active direction; a manual correction back to onboarding
 -- stays ungated.
-CREATE OR REPLACE FUNCTION "public"."enforce_enrollment_activation_requirements"() RETURNS "trigger"
-    LANGUAGE "plpgsql"
-    SET "search_path" TO 'public'
-    AS $$
+CREATE OR REPLACE FUNCTION public.enforce_enrollment_activation_requirements()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_required int;
+  v_outstanding int;
 begin
-  if new.status = 'active' and old.status = 'onboarding' then
-    if exists (
-      select 1 from enrollment_onboarding_items
-      where enrollment_id = new.id and is_required and status <> 'done'
-    ) then
-      raise exception 'Cannot activate enrollment %: required onboarding items incomplete', new.id;
-    end if;
+  if new.status is distinct from 'active' or old.status is not distinct from 'active' then
+    return new;
   end if;
+
+  -- The historical importer writes truthful final states directly and must
+  -- not be forced through a live checklist it is not describing. Only
+  -- set_historical_migration_mode() can set this, and only for one
+  -- transaction.
+  if current_setting('app.migration_mode', true) = 'true' then
+    return new;
+  end if;
+
+  if new.onboarding_tracking = 'legacy_untracked' then
+    return new;
+  end if;
+
+  select count(*) filter (where is_required),
+         count(*) filter (where is_required and status <> 'done')
+    into v_required, v_outstanding
+    from enrollment_onboarding_items
+   where enrollment_id = new.id;
+
+  if v_required = 0 then
+    raise exception 'Cannot activate enrollment %: it is tracked but has no required onboarding items. Either its Offer has no active onboarding templates, or seeding did not run. An empty checklist is not a finished one.', new.id
+      using hint = 'Seed it with seed_enrollment_onboarding(), or record it as legacy_untracked if its onboarding genuinely happened outside the CRM.';
+  end if;
+
+  if v_outstanding > 0 then
+    raise exception 'Cannot activate enrollment %: % of % required onboarding items are not done', new.id, v_outstanding, v_required;
+  end if;
+
   return new;
 end;
-$$;
+$function$
+;
 
 -- Client Offboarding slice: mirrors handle_deal_won()'s own checklist +
 -- Task seeding exactly, but fires on the Enrollment's own active ->
@@ -2166,5 +2146,62 @@ AS $function$
      and p_on >= m.valid_from
      and (m.valid_to is null or p_on < m.valid_to)
    limit 1;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.seed_enrollment_onboarding(p_enrollment_id bigint, p_due_at timestamp with time zone DEFAULT (now() + '3 days'::interval))
+ RETURNS integer
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_deal deals%rowtype;
+  v_contact_name text;
+  v_item record;
+  v_seeded int := 0;
+begin
+  select d.* into v_deal
+    from deals d
+    join enrollments e on e.opportunity_id = d.id
+   where e.id = p_enrollment_id;
+  if not found then
+    raise exception 'enrollment % does not exist', p_enrollment_id;
+  end if;
+
+  select nullif(trim(both ' ' from coalesce(first_name, '') || ' ' || coalesce(last_name, '')), '')
+    into v_contact_name
+    from contacts where id = v_deal.contact_id;
+  v_contact_name := coalesce(v_contact_name, v_deal.name);
+
+  for v_item in
+    insert into enrollment_onboarding_items
+      (enrollment_id, requirement_key, label, task_text_template, is_required, sort_order)
+    select p_enrollment_id, t.key, t.label, t.task_text_template, t.is_required, t.sort_order
+      from onboarding_requirement_templates t
+     where t.offer_id = v_deal.offer_id and t.is_active
+    on conflict (enrollment_id, requirement_key) do nothing
+    returning id, is_required
+  loop
+    v_seeded := v_seeded + 1;
+    -- Optional items deliberately get no Task: an auto-task for something
+    -- nobody has to do is noise on Leif's dashboard.
+    if v_item.is_required and not exists (
+      select 1 from tasks where onboarding_item_id = v_item.id
+    ) then
+      insert into tasks (contact_id, type, text, due_date, status, enrollment_id, onboarding_item_id)
+      select v_deal.contact_id, 'onboarding_item',
+             replace(i.task_text_template, '{name}', v_contact_name),
+             -- Not now(): every required item due the instant somebody
+             -- pays reads as instantly overdue, which is noise rather
+             -- than urgency.
+             p_due_at, 'pending', p_enrollment_id, i.id
+        from enrollment_onboarding_items i
+       where i.id = v_item.id;
+    end if;
+  end loop;
+
+  return v_seeded;
+end;
 $function$
 ;

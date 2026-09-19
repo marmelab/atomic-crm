@@ -131,6 +131,7 @@ const buildTestCrm = ({
   const enrollment: Enrollment = {
     id,
     opportunity_id: id,
+    onboarding_tracking: "tracked" as const,
     status: enrollmentStatus,
     start_date: "2026-01-01",
     end_date: null,

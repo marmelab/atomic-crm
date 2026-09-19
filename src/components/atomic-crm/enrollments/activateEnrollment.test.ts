@@ -10,6 +10,7 @@ const ENROLLMENT_ID = 1;
 const buildEnrollment = (overrides: Partial<Enrollment> = {}): Enrollment => ({
   id: ENROLLMENT_ID,
   opportunity_id: 1,
+  onboarding_tracking: "tracked" as const,
   status: "onboarding",
   start_date: null,
   end_date: null,
@@ -115,5 +116,88 @@ describe("activateEnrollment", () => {
         previousData: buildEnrollment(),
       }),
     ).rejects.toThrow();
+  });
+});
+
+// ---------------------------------------------------------------------
+// What an EMPTY checklist means
+// ---------------------------------------------------------------------
+// "No required item is incomplete" is trivially true of an empty list, so
+// the emptiest possible checklist used to pass the check a full one would
+// fail — here and in the database. Whether that is correct depends on
+// something the items cannot say, so the Enrollment says it.
+
+describe("activateEnrollment and the empty checklist", () => {
+  it("refuses a tracked Enrollment whose checklist never arrived", async () => {
+    // Arrange — tracked, and carrying nothing at all.
+    const { dataProvider } = buildFixtures(buildEnrollment(), []);
+
+    // Act
+    const result = await activateEnrollment(dataProvider, ENROLLMENT_ID);
+
+    // Assert — a missing checklist, not a finished one.
+    expect(result).toEqual({ applied: false, reason: "checklist-missing" });
+    const { data: enrollment } = await dataProvider.getOne<Enrollment>(
+      "enrollments",
+      { id: ENROLLMENT_ID },
+    );
+    expect(enrollment.status).toBe("onboarding");
+  });
+
+  it("will not activate a legacy Enrollment without a deliberate choice", async () => {
+    // Arrange — imported client, no checklist, and none expected.
+    const { dataProvider } = buildFixtures(
+      buildEnrollment({ onboarding_tracking: "legacy_untracked" }),
+      [],
+    );
+
+    // Act
+    const result = await activateEnrollment(dataProvider, ENROLLMENT_ID);
+
+    // Assert — legitimate, but never a silent consequence of emptiness.
+    expect(result).toEqual({
+      applied: false,
+      reason: "needs-untracked-acknowledgement",
+    });
+  });
+
+  it("activates a legacy Enrollment once somebody acknowledges it", async () => {
+    // Arrange
+    const { dataProvider } = buildFixtures(
+      buildEnrollment({ onboarding_tracking: "legacy_untracked" }),
+      [],
+    );
+
+    // Act
+    const result = await activateEnrollment(dataProvider, ENROLLMENT_ID, {
+      acknowledgeUntracked: true,
+    });
+
+    // Assert
+    expect(result).toEqual({ applied: true });
+    const { data: enrollment } = await dataProvider.getOne<Enrollment>(
+      "enrollments",
+      { id: ENROLLMENT_ID },
+    );
+    expect(enrollment.status).toBe("active");
+  });
+
+  it("acknowledgement does not excuse an unfinished TRACKED checklist", async () => {
+    // Arrange — the flag must not become a way past real requirements.
+    const { dataProvider } = buildFixtures(buildEnrollment(), [
+      buildItem({ id: 1, requirement_key: "contract", status: "pending" }),
+    ]);
+
+    // Act
+    const result = await activateEnrollment(dataProvider, ENROLLMENT_ID, {
+      acknowledgeUntracked: true,
+    });
+
+    // Assert
+    expect(result).toEqual({
+      applied: false,
+      reason: "requirements-incomplete",
+      missingKeys: ["contract"],
+    });
   });
 });

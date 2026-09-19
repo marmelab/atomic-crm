@@ -34,7 +34,7 @@
     "second question too."
   ],
   "version": 1,
-  "total_migration_versions": 104,
+  "total_migration_versions": 106,
   "boundary_status": "resolved",
   "clean_room_prerequisites": {
     "$comment": [
@@ -160,6 +160,14 @@
       "reason": "Closes the two payment reviews that the derived totals now answer, for Libby Sloan-O'Brien and Mark Dickmann, and asserts that exactly two close.",
       "owns_durable_schema": false,
       "found_by": "clean_room_replay"
+    },
+    {
+      "version": "20260919040000",
+      "file": "20260919040000_lara_spagnola_onboarding_was_never_seeded.sql",
+      "classification": "main_only_historical_data_repair",
+      "reason": "Classifies this database's 28 imported Enrollments as legacy_untracked by their recorded import provenance, and seeds Lara Spagnola's missing onboarding checklist as incomplete. Asserts the exact production population and refuses unless Enrollment 65 is in the proven state.",
+      "owns_durable_schema": false,
+      "structure_extracted_to": "20260919030000_onboarding_tracking.sql"
     },
     {
       "version": "20260918390000",

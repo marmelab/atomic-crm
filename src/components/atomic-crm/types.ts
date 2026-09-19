@@ -383,11 +383,26 @@ export type EnrollmentStatus =
   // by design — it describes the container, not the person.
   | "ended";
 
+// Whether the CRM is supposed to know this Enrollment's onboarding.
+//
+// Without it, an empty checklist meant three incompatible things at once —
+// "nothing is blocking", "nothing is done", and "activation is fine" — one
+// per consumer. The Enrollment says which it is, and nobody infers it from
+// a row count again.
+export type OnboardingTracking =
+  // The CRM knows and enforces this checklist. Zero required items is an
+  // integrity problem, never a completion.
+  | "tracked"
+  // Onboarding happened before the checklist existed. Zero rows is valid,
+  // and must not render as 0% complete or as broken onboarding.
+  | "legacy_untracked";
+
 // The commercial/client lifecycle after a successful sale. At most one per
 // Opportunity.
 export type Enrollment = {
   opportunity_id: Identifier;
   status: EnrollmentStatus;
+  onboarding_tracking: OnboardingTracking;
   start_date?: string | null;
   end_date?: string | null;
   created_at: string;

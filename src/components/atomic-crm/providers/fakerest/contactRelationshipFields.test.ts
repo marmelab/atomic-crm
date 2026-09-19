@@ -64,6 +64,7 @@ describe("contacts getList — derived relationship fields (FakeRest)", () => {
     const enrollment: Enrollment = {
       id: 1,
       opportunity_id: 10,
+      onboarding_tracking: "tracked" as const,
       status: "active",
       created_at: "2026-01-01T00:00:00.000Z",
       updated_at: "2026-01-01T00:00:00.000Z",
@@ -198,6 +199,7 @@ describe("Applications reach their Contact without requiring a Deal", () => {
             contact_id: 1,
             // No Opportunity: none existed, and none is fabricated.
             opportunity_id: null,
+            onboarding_tracking: "tracked" as const,
             offer_id: gyuOffer.id,
             intended_cohort_id: null,
             status: "pending",

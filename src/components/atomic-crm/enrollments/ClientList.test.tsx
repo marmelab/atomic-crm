@@ -51,6 +51,7 @@ describe("ClientList", () => {
     const onboardingEnrollment: Enrollment = {
       id: 1,
       opportunity_id: 1,
+      onboarding_tracking: "tracked" as const,
       status: "onboarding",
       start_date: null,
       end_date: null,
@@ -60,6 +61,7 @@ describe("ClientList", () => {
     const activeEnrollment: Enrollment = {
       id: 2,
       opportunity_id: 2,
+      onboarding_tracking: "tracked" as const,
       status: "active",
       start_date: null,
       end_date: null,
@@ -69,6 +71,7 @@ describe("ClientList", () => {
     const completedEnrollment: Enrollment = {
       id: 3,
       opportunity_id: 3,
+      onboarding_tracking: "tracked" as const,
       status: "completed",
       start_date: null,
       end_date: null,
@@ -151,6 +154,7 @@ describe("ClientList", () => {
     const offboardingEnrollment: Enrollment = {
       id: 11,
       opportunity_id: 11,
+      onboarding_tracking: "tracked" as const,
       status: "offboarding",
       start_date: "2026-01-01",
       end_date: null,
@@ -160,6 +164,7 @@ describe("ClientList", () => {
     const completedEnrollment: Enrollment = {
       id: 12,
       opportunity_id: 12,
+      onboarding_tracking: "tracked" as const,
       status: "completed",
       start_date: "2026-01-01",
       end_date: null,
@@ -231,6 +236,7 @@ describe("ClientList", () => {
     const endedEnrollment: Enrollment = {
       id: 15,
       opportunity_id: 15,
+      onboarding_tracking: "tracked" as const,
       status: "ended",
       start_date: "2026-04-29",
       end_date: "2026-08-24",
@@ -240,6 +246,7 @@ describe("ClientList", () => {
     const currentEnrollment: Enrollment = {
       id: 16,
       opportunity_id: 16,
+      onboarding_tracking: "tracked" as const,
       status: "active",
       start_date: "2026-01-01",
       end_date: null,
@@ -305,6 +312,7 @@ describe("ClientList", () => {
     const withdrawnEnrollment: Enrollment = {
       id: 13,
       opportunity_id: 13,
+      onboarding_tracking: "tracked" as const,
       status: "withdrawn",
       start_date: "2026-08-05",
       end_date: null,
@@ -314,6 +322,7 @@ describe("ClientList", () => {
     const activeEnrollment: Enrollment = {
       id: 14,
       opportunity_id: 14,
+      onboarding_tracking: "tracked" as const,
       status: "active",
       start_date: "2026-01-01",
       end_date: null,

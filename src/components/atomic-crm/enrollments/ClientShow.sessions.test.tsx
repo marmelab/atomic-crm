@@ -71,6 +71,7 @@ const wonDeal: Deal = {
 const activeEnrollment: Enrollment = {
   id: 1,
   opportunity_id: 1,
+  onboarding_tracking: "tracked" as const,
   status: "active",
   start_date: "2026-01-01",
   end_date: null,
