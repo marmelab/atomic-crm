@@ -1,4 +1,5 @@
 import { useGetList } from "ra-core";
+import { isActiveOpportunity } from "../deals/dealActivity";
 
 import type { Application, Deal, SalesCall, Task } from "../types";
 import { classifyTaskActionKind } from "./taskActionDestination";
@@ -22,8 +23,8 @@ export type TaskActionDestination =
 // submitApplication.ts/waitlist/waitlistActions.ts for "is this Deal still
 // an open pipeline item" — duplicated rather than imported since those are
 // private, unexported helpers local to their own modules.
-const isActiveDeal = (deal: Pick<Deal, "stage" | "outcome" | "archived_at">) =>
-  deal.archived_at == null && deal.stage !== "won" && deal.outcome == null;
+// Canonical: deals/dealActivity.ts, mirrored by public.deal_is_active.
+const isActiveDeal = isActiveOpportunity;
 
 // Resolves WHERE a Task's primary action should navigate to, given only
 // what Task itself durably stores today: contact_id (Native Applications

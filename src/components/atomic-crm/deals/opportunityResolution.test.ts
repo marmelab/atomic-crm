@@ -75,18 +75,26 @@ const readDeal = async (
 ) => (await dataProvider.getOne<Deal>("deals", { id })).data;
 
 describe("recording a decision", () => {
-  it("committed advances the stage and never claims the money arrived", async () => {
+  it("yes is Won, and Won is not an exit", async () => {
+    // Arrange
     const dataProvider = makeProvider([buildDeal()]);
+
+    // Act
     const result = await recordOpportunityDecision(dataProvider, {
       opportunityId: 10,
-      decision: "onboarding",
+      decision: "won",
     });
 
+    // Assert — this used to write stage 'onboarding' on the reasoning that
+    // Won meant payment had arrived. Payment never gates Won: the sale
+    // succeeding and the money arriving are different dimensions, and
+    // persisting 'onboarding' made another of the fourteen legacy rows
+    // nobody can interpret.
     expect(result.status).toBe("recorded");
     const deal = await readDeal(dataProvider, 10);
-    expect(deal.stage).toBe("onboarding");
-    // Won is payment authority. Nobody has paid because somebody said yes.
-    expect(deal.stage).not.toBe("won");
+    expect(deal.stage).toBe("won");
+    expect(deal.stage).not.toBe("onboarding");
+    // Winning is not exiting.
     expect(deal.outcome).toBeNull();
     expect(deal.prospect_decision).toBe("yes");
   });
@@ -167,7 +175,7 @@ describe("recording a decision", () => {
     const dataProvider = makeProvider([buildDeal({ outcome: "lost" })]);
     const result = await recordOpportunityDecision(dataProvider, {
       opportunityId: 10,
-      decision: "onboarding",
+      decision: "won",
     });
 
     expect(result.status).toBe("already-resolved");

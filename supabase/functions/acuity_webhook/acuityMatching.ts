@@ -36,7 +36,16 @@ export type DealRow = {
 export const normalizeEmail = (email: string): string =>
   email.trim().toLowerCase();
 
-const isActiveDeal = (
+// The canonical active-sales predicate. The AUTHORITY is the SQL function
+// public.deal_is_active(archived_at, stage, outcome); the app mirrors it in
+// deals/dealActivity.ts. This is a third copy on purpose and under protest:
+// an Edge Function runs on Deno and cannot import from src/, so the choice
+// is between mirroring the rule and hand-writing it, and mirroring it with
+// an equivalence test is the honest version of that.
+//
+// acuityMatching.test.ts walks the same stage x outcome x archived matrix
+// the app-side test does, so the two cannot drift silently.
+export const isActiveDeal = (
   deal: Pick<DealRow, "stage" | "outcome" | "archived_at">,
 ) => deal.archived_at == null && deal.stage !== "won" && deal.outcome == null;
 

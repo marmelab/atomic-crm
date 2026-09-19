@@ -135,7 +135,7 @@ describe("bookSalesCall", () => {
   });
 
   it("does not regress an Opportunity already past Approved", async () => {
-    const { dataProvider, deal } = buildFixtures({ stage: "onboarding" });
+    const { dataProvider, deal } = buildFixtures({ stage: "won" });
 
     await bookSalesCall({
       dataProvider,
@@ -149,7 +149,7 @@ describe("bookSalesCall", () => {
     const { data: updatedDeal } = await dataProvider.getOne<Deal>("deals", {
       id: DEAL_ID,
     });
-    expect(updatedDeal.stage).toBe("onboarding");
+    expect(updatedDeal.stage).toBe("won");
   });
 
   it("a duplicate webhook delivery for the same Acuity appointment id is a safe no-op", async () => {
@@ -297,7 +297,7 @@ describe("bookSalesCall", () => {
       const { data: updatedDeal } = await dataProvider.getOne<Deal>("deals", {
         id: DEAL_ID,
       });
-      expect(updatedDeal.stage).toBe("onboarding");
+      expect(updatedDeal.stage).toBe("won");
     });
 
     it("a rebooking auto-resolves the outstanding no-show follow-up Task", async () => {
@@ -337,7 +337,8 @@ describe("bookSalesCall", () => {
       const { data: exitedDeal } = await dataProvider.getOne<Deal>("deals", {
         id: deal.id,
       });
-      expect(exitedDeal.outcome).toBe("lost");
+      // A no-show no longer ends the attempt; only the stage moved back.
+      expect(exitedDeal.outcome ?? null).toBeNull();
 
       await bookSalesCall({
         dataProvider,
@@ -350,14 +351,13 @@ describe("bookSalesCall", () => {
         acuityAppointmentTypeId: "12345",
       });
 
-      // Booking again must NOT revive the exited Opportunity — historical
-      // no-show stays historical. A genuine re-entry into sales creates a
-      // new Opportunity through the ordinary rules instead.
+      // Rebooking the SAME still-active attempt is the ordinary case, and
+      // it neither invents an outcome nor revives anything.
       const { data: afterRebooking } = await dataProvider.getOne<Deal>(
         "deals",
         { id: deal.id },
       );
-      expect(afterRebooking.outcome).toBe("lost");
+      expect(afterRebooking.outcome ?? null).toBeNull();
 
       // And still no follow-up Task was invented by the rebooking.
       const { data: tasksAfter } = await dataProvider.getList<Task>("tasks", {
@@ -398,8 +398,8 @@ describe("bookSalesCall", () => {
         attendance: "no_show",
       });
 
-      // Gate B: repeated processing creates no follow-up Tasks at all, and
-      // the Opportunity stays exactly once-exited.
+      // Repeated processing creates no follow-up Tasks at all: the open
+      // question is derived, not stored, so there is nothing to duplicate.
       const { data: tasks } = await dataProvider.getList<Task>("tasks", {
         filter: { contact_id: CONTACT_ID, type: "sales_call_no_show" },
         pagination: { page: 1, perPage: 10 },
@@ -407,11 +407,13 @@ describe("bookSalesCall", () => {
       });
       expect(tasks).toHaveLength(0);
 
-      const { data: exited } = await dataProvider.getOne<Deal>("deals", {
+      // The attempt converges: still active, and back at Approved because
+      // no call is booked. Re-running says the same thing again.
+      const { data: converged } = await dataProvider.getOne<Deal>("deals", {
         id: deal.id,
       });
-      expect(exited.outcome).toBe("lost");
-      expect(exited.stage).toBe("call_booked");
+      expect(converged.outcome ?? null).toBeNull();
+      expect(converged.stage).toBe("approved");
     });
   });
 });

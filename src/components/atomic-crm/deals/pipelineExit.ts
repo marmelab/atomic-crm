@@ -1,4 +1,5 @@
 import type { Deal, OpportunityOutcome } from "../types";
+import { isActiveOpportunity } from "./dealActivity";
 
 // The one place that knows how a human reason becomes canonical state.
 //
@@ -125,7 +126,4 @@ export const findExitReason = (
 // it. Deliberately not restricted to particular stages: a sales process
 // can end at Approved, at Decision, at Committed, or anywhere else Leif
 // legitimately decides it is over.
-export const canRemoveFromPipeline = (
-  deal: Pick<Deal, "stage" | "outcome" | "archived_at">,
-): boolean =>
-  deal.archived_at == null && deal.outcome == null && deal.stage !== "won";
+export const canRemoveFromPipeline = isActiveOpportunity;

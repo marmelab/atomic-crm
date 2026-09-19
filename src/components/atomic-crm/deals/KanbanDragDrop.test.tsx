@@ -200,12 +200,14 @@ describe("Kanban drop — what happens after the card lands", () => {
     ]);
     const eventsBefore = (await readStageEvents(dataProvider, 1)).length;
 
+    // Onboarding is deliberately absent: it is a SYNTHETIC column derived
+    // from Won plus an Enrollment plus unfinished setup, and dropping onto
+    // it would persist the legacy stage value the database now refuses.
     const path = [
       "application_received",
       "approved",
       "call_booked",
       "decision",
-      "onboarding",
     ];
     for (const to of path) {
       const deal = await readDeal(dataProvider, 1);
@@ -219,6 +221,58 @@ describe("Kanban drop — what happens after the card lands", () => {
     expect(newStages).toEqual(path);
     // One row per move — not one per render, and none duplicated.
     expect(new Set(newStages).size).toBe(path.length);
+  });
+
+  it("refuses a drop onto the synthetic Onboarding column", async () => {
+    // Arrange — the column exists on the board, but it is derived. A card
+    // landing there would write the legacy stage value, which is how the
+    // fourteen uninterpretable rows came to exist.
+    const dataProvider = makeProvider([
+      buildDeal({ id: 1, stage: "decision" }),
+    ]);
+    const before = await readDeal(dataProvider, 1);
+    const eventsBefore = (await readStageEvents(dataProvider, 1)).length;
+
+    // Act
+    const outcome = await dragTo(dataProvider, before, "onboarding");
+
+    // Assert — refused, and nothing written.
+    expect(outcome).toEqual({ applied: false, reason: "synthetic-column" });
+    expect((await readDeal(dataProvider, 1)).stage).toBe("decision");
+    expect((await readStageEvents(dataProvider, 1)).length).toBe(eventsBefore);
+  });
+
+  it("refuses to win an Opportunity by dragging it", async () => {
+    // Arrange — winning is an explicit decision with its own action, not a
+    // gesture that can happen by accident.
+    const dataProvider = makeProvider([
+      buildDeal({ id: 1, stage: "decision" }),
+    ]);
+    const before = await readDeal(dataProvider, 1);
+
+    // Act
+    const outcome = await dragTo(dataProvider, before, "won");
+
+    // Assert
+    expect(outcome).toEqual({ applied: false, reason: "synthetic-column" });
+    expect((await readDeal(dataProvider, 1)).stage).toBe("decision");
+  });
+
+  it("refuses to drag a sales attempt that has already ended", async () => {
+    // Arrange — the board only lists active cards, so this is unreachable
+    // today. It is asserted so the guard survives the board one day
+    // showing more.
+    const dataProvider = makeProvider([
+      buildDeal({ id: 1, stage: "decision", outcome: "nurture" }),
+    ]);
+    const before = await readDeal(dataProvider, 1);
+
+    // Act
+    const outcome = await dragTo(dataProvider, before, "approved");
+
+    // Assert — a decision somebody made is not undone by a gesture.
+    expect(outcome).toEqual({ applied: false, reason: "not-active" });
+    expect((await readDeal(dataProvider, 1)).outcome).toBe("nurture");
   });
 
   it("a repeated drop onto the column it already occupies writes nothing", async () => {

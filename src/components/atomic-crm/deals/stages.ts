@@ -1,8 +1,9 @@
 import type { ConfigurationContextValue } from "../root/ConfigurationContext";
-import type { Deal, SalesCall } from "../types";
+import type { Deal } from "../types";
 import {
   comparatorForStage,
   nextBookedCallByOpportunity,
+  type SalesCallForOrdering,
 } from "./pipelineOrdering";
 
 export type DealsByStage = Record<Deal["stage"], Deal[]>;
@@ -13,10 +14,7 @@ export const getDealsByStage = (
   // Sales calls are what Call Booked is ordered by. Optional so every
   // existing caller keeps working; without them that column falls back to
   // "no booking known" for everyone and stays deterministic.
-  salesCalls?: readonly Pick<
-    SalesCall,
-    "opportunity_id" | "status" | "scheduled_at" | "scheduled_on"
-  >[],
+  salesCalls?: readonly SalesCallForOrdering[],
   now?: number,
 ) => {
   if (!dealStages) return {};

@@ -1,4 +1,9 @@
-import type { Deal, SalesCall } from "../types";
+import type { Deal } from "../types";
+import {
+  callInstant,
+  selectSalesCallsByOpportunity,
+  type SalesCallForSelection,
+} from "../sales-calls/salesCallSelection";
 
 // Every Kanban column sorts by the thing that column is actually for.
 //
@@ -41,26 +46,22 @@ import type { Deal, SalesCall } from "../types";
 // Ties everywhere break on Opportunity id descending so the order is
 // stable across renders and never depends on row arrival order.
 
-export type SalesCallForOrdering = Pick<
-  SalesCall,
-  "opportunity_id" | "status" | "scheduled_at" | "scheduled_on"
->;
+export type SalesCallForOrdering = SalesCallForSelection;
 
-// The booked call an Opportunity is currently waiting on. Mirrors
-// sales-calls/selectCurrentSalesCall.ts's precedence (a still-booked call
-// outranks anything concluded) without importing its richer shape.
+// The booked call an Opportunity is currently waiting on.
+//
+// This used to be a second, independent reading of the sales calls, which
+// meant the board and the drawer could disagree about the same
+// relationship. It now projects the ONE model in
+// sales-calls/salesCallSelection.ts down to the single value the
+// comparator needs.
 export const nextBookedCallByOpportunity = (
   salesCalls: readonly SalesCallForOrdering[] | undefined,
 ): Map<string, string> => {
   const byOpportunity = new Map<string, string>();
-  for (const call of salesCalls ?? []) {
-    if (call.status !== "booked") continue;
-    if (call.opportunity_id == null) continue;
-    const key = String(call.opportunity_id);
-    const at = call.scheduled_at ?? `${call.scheduled_on}T23:59:00.000Z`;
-    const existing = byOpportunity.get(key);
-    // Earliest booked call is the one the column is about.
-    if (!existing || at < existing) byOpportunity.set(key, at);
+  for (const [id, view] of selectSalesCallsByOpportunity(salesCalls)) {
+    const at = view.booked ? callInstant(view.booked) : null;
+    if (at) byOpportunity.set(id, at);
   }
   return byOpportunity;
 };
@@ -81,11 +82,29 @@ const longestWaitingFirst = (a: Deal, b: Deal): number => {
   return diff !== 0 ? diff : byIdDescending(a, b);
 };
 
+/**
+ * Cards in Call Booked with no booked call behind them.
+ *
+ * The stage asserts there is a call in the calendar. When there is not,
+ * the card is not merely unsorted — it is inconsistent, and saying so is
+ * the point: the previous behaviour let such a card fall into the
+ * "no booking" band and take an id-based position that looks exactly like
+ * a legitimate order.
+ */
+export const inconsistentCallBookedDeals = (
+  deals: readonly Deal[] | undefined,
+  nextCallAt: Map<string, string>,
+): Deal[] =>
+  (deals ?? []).filter(
+    (deal) => deal.stage === "call_booked" && !nextCallAt.has(String(deal.id)),
+  );
+
 const nextCallFirst =
   (nextCallAt: Map<string, string>, now: number) =>
   (a: Deal, b: Deal): number => {
     // Three bands, in this order: future bookings (soonest first), past
-    // unresolved bookings (soonest first), then no booking at all.
+    // unresolved bookings (soonest first), then no booking at all — which
+    // in this column means the card is inconsistent with its own stage.
     const rank = (deal: Deal): { band: number; at: string } => {
       const at = nextCallAt.get(String(deal.id));
       if (!at) return { band: 2, at: "" };

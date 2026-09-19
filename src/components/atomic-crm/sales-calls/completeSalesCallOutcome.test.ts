@@ -107,7 +107,7 @@ describe("completeSalesCallOutcome", () => {
     const { data: deal } = await dataProvider.getOne<Deal>("deals", {
       id: DEAL_ID,
     });
-    expect(deal.stage).toBe("onboarding");
+    expect(deal.stage).toBe("won");
     expect(deal.owner_decision).toBe("would_work_with");
     expect(deal.prospect_decision).toBe("yes");
     expect(deal.outcome).toBeNull();
@@ -296,19 +296,14 @@ describe("completeSalesCallOutcome", () => {
     const { data: deal } = await dataProvider.getOne<Deal>("deals", {
       id: DEAL_ID,
     });
-    // Go-Live Blocker: Sales-Call No-Show/Rebooking slice — the stage/
-    // outcome/owner_decision restraint is unchanged (still nobody's
-    // decision to guess); this is exactly the "do NOT auto-mark
-    // Lost/Nurture/Not Fit/Do Not Engage" requirement.
-    // Gate B: the Deal EXITS the active pipeline. "Active" is canonically
-    // archived_at null AND stage !== "won" AND outcome null (DealList.tsx's
-    // own filter), so outcome carries the exit. stage is deliberately
-    // preserved — the Deal really did reach Call Booked, and rewriting that
-    // to mark an exit would falsify history. No decision is invented, and
-    // the outcome is never "nurture".
-    expect(deal.stage).toBe("call_booked");
-    expect(deal.outcome).toBe("lost");
-    expect(deal.outcome).not.toBe("nurture");
+    // Sales-state-machine slice: a no-show is a fact about a CALL, not a
+    // decision about a person. It used to set outcome = "lost", which
+    // ended the sale automatically — Alva Winsa is still terminal because
+    // of it. The attempt now stays active, and only the stage moves, back
+    // to Approved, because Call Booked asserts a booked call and there is
+    // none. What happens next is derived, not decided here.
+    expect(deal.outcome ?? null).toBeNull();
+    expect(deal.stage).toBe("approved");
     expect(deal.owner_decision).toBeNull();
     expect(deal.prospect_decision ?? null).toBeNull();
 
@@ -412,12 +407,13 @@ describe("completeSalesCallOutcome", () => {
     });
     expect(allTasks).toHaveLength(0);
 
-    // The Deal stays exited — never revived, never double-mutated.
+    // The attempt stays ACTIVE and converged — never double-mutated, and
+    // never ended by a missed meeting.
     const { data: deal } = await dataProvider.getOne<Deal>("deals", {
       id: DEAL_ID,
     });
-    expect(deal.outcome).toBe("lost");
-    expect(deal.stage).toBe("call_booked");
+    expect(deal.outcome ?? null).toBeNull();
+    expect(deal.stage).toBe("approved");
   });
 
   it("is idempotent: completing an already-completed call is a safe no-op, never a second write", async () => {
@@ -446,7 +442,7 @@ describe("completeSalesCallOutcome", () => {
     });
     // Still reflects the FIRST (real) outcome, not the second call's data.
     expect(deal.prospect_decision).toBe("yes");
-    expect(deal.stage).toBe("onboarding");
+    expect(deal.stage).toBe("won");
   });
 
   it("refuses to complete a call with no matched Opportunity", async () => {
@@ -526,11 +522,14 @@ describe("sales-call No-show exits the Opportunity", () => {
       attendance: "no_show",
     });
 
-  it("removes the Opportunity from the active-pipeline query while preserving both records", async () => {
+  it("KEEPS the Opportunity in the active pipeline while preserving both records", async () => {
     const { dataProvider } = buildTwoOpportunityFixtures();
     await markNoShow(dataProvider);
 
-    // The exact filter the Kanban board uses (DealList.tsx).
+    // The exact filter the Kanban board uses (DealList.tsx), which is the
+    // canonical active predicate. A missed meeting does not remove anybody
+    // from it — that used to happen automatically, and it is why Alva
+    // Winsa is terminal today with nobody having decided so.
     const { data: activePipeline } = await dataProvider.getList<Deal>("deals", {
       filter: {
         "archived_at@is": null,
@@ -540,7 +539,7 @@ describe("sales-call No-show exits the Opportunity", () => {
       pagination: { page: 1, perPage: 50 },
       sort: { field: "id", order: "ASC" },
     });
-    expect(activePipeline.map((d) => d.id)).not.toContain(DEAL_ID);
+    expect(activePipeline.map((d) => d.id)).toContain(DEAL_ID);
 
     // Preserved, not deleted — both the Deal and the Sales Call.
     const { data: deal } = await dataProvider.getOne<Deal>("deals", {
@@ -562,8 +561,10 @@ describe("sales-call No-show exits the Opportunity", () => {
     const { data: deal } = await dataProvider.getOne<Deal>("deals", {
       id: DEAL_ID,
     });
+    // No invented stage, and no invented outcome either. It returns to an
+    // existing one that is true: approved to have a call, none booked.
     expect(deal.stage).not.toBe("no_show");
-    expect(deal.stage).toBe("call_booked");
+    expect(deal.stage).toBe("approved");
   });
 
   it("leaves an unrelated Opportunity and its Sales Call untouched", async () => {
@@ -603,7 +604,10 @@ describe("sales-call No-show exits the Opportunity", () => {
     const { data: oldDeal } = await dataProvider.getOne<Deal>("deals", {
       id: DEAL_ID,
     });
-    expect(oldDeal.outcome).toBe("lost");
+    // The old attempt is not ended by the no-show, and the new one is
+    // genuinely separate rather than a revival of it.
+    expect(oldDeal.outcome ?? null).toBeNull();
+    expect(oldDeal.id).not.toBe(newDeal.id);
     expect(newDeal.outcome ?? null).toBeNull();
 
     // Historical truth survives the new Opportunity.
@@ -746,8 +750,8 @@ describe("No-show convergence on a half-recorded legacy call", () => {
     const { data: deal } = await dataProvider.getOne<Deal>("deals", {
       id: DEAL_ID,
     });
-    expect(deal.outcome).toBe("lost");
-    expect(deal.stage).toBe("call_booked");
+    expect(deal.outcome ?? null).toBeNull();
+    expect(deal.stage).toBe("approved");
 
     const { data: contact } = await dataProvider.getOne<Contact>("contacts", {
       id: CONTACT_ID,

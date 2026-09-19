@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest";
 
 import {
   comparatorForStage,
+  inconsistentCallBookedDeals,
   nextBookedCallByOpportunity,
   ORDERING_RULE_LABELS,
+  type SalesCallForOrdering,
 } from "./pipelineOrdering";
 import { getDealsByStage } from "./stages";
 import type { Deal, SalesCall } from "../types";
@@ -32,14 +34,16 @@ const deal = (over: Partial<Deal> & { id: number }): Deal =>
     ...over,
   }) as Deal;
 
+let nextCallId = 1;
+
 const call = (
   opportunityId: number,
   scheduledAt: string,
   status: SalesCall["status"] = "booked",
-): Pick<
-  SalesCall,
-  "opportunity_id" | "status" | "scheduled_at" | "scheduled_on"
-> => ({
+): SalesCallForOrdering => ({
+  // The canonical selector identifies calls by id (it is how ties break
+  // and how `current` is excluded from history), so fixtures carry one.
+  id: nextCallId++,
   opportunity_id: opportunityId,
   status,
   scheduled_at: scheduledAt,
@@ -232,5 +236,77 @@ describe("the board applies these rules", () => {
     ]) {
       expect(ORDERING_RULE_LABELS[stage]).toBeTruthy();
     }
+  });
+});
+
+describe("a Call Booked card with no booked call behind it", () => {
+  it("is reported as inconsistent rather than silently ordered", () => {
+    // Arrange — the stage asserts a booked call. When there is none the
+    // card used to fall into the "no booking" band and take an id-based
+    // position that looks exactly like a legitimate order.
+    const withCall = deal({ id: 1, stage: "call_booked" });
+    const withoutCall = deal({ id: 2, stage: "call_booked" });
+    const calls = [call(1, "2026-09-20T15:00:00.000Z")];
+    const nextCallAt = nextBookedCallByOpportunity(calls);
+
+    // Act
+    const inconsistent = inconsistentCallBookedDeals(
+      [withCall, withoutCall],
+      nextCallAt,
+    );
+
+    // Assert
+    expect(inconsistent.map((d) => d.id)).toEqual([2]);
+  });
+
+  it("sorts after every card that does have one", () => {
+    // Arrange — deterministic, and deterministically LAST.
+    const soon = deal({ id: 1, stage: "call_booked" });
+    const later = deal({ id: 2, stage: "call_booked" });
+    const none = deal({ id: 99, stage: "call_booked" });
+    const calls = [
+      call(1, "2026-09-20T15:00:00.000Z"),
+      call(2, "2026-09-25T15:00:00.000Z"),
+    ];
+
+    // Act
+    const ordered = order("call_booked", [none, later, soon], calls);
+
+    // Assert — the inconsistent card cannot reach the top of the column by
+    // having the highest id.
+    expect(ordered).toEqual([1, 2, 99]);
+  });
+
+  it("treats a cancelled call as no booking at all", () => {
+    // Arrange — cancelling frees the booked slot, so the stage is now
+    // asserting something untrue and the card is inconsistent.
+    const cancelledOnly = deal({ id: 5, stage: "call_booked" });
+    const calls = [call(5, "2026-09-20T15:00:00.000Z", "cancelled")];
+
+    // Act
+    const nextCallAt = nextBookedCallByOpportunity(calls);
+
+    // Assert
+    expect(nextCallAt.has("5")).toBe(false);
+    expect(
+      inconsistentCallBookedDeals([cancelledOnly], nextCallAt).map((d) => d.id),
+    ).toEqual([5]);
+  });
+
+  it("uses the LATER booking once a rebooking exists", () => {
+    // Arrange — a no-show followed by a genuine rebooking. The board must
+    // order by the call that is actually going to happen.
+    const rebooked = deal({ id: 7, stage: "call_booked" });
+    const calls = [
+      call(7, "2026-09-10T15:00:00.000Z", "completed"),
+      call(7, "2026-09-28T15:00:00.000Z"),
+    ];
+
+    // Act
+    const nextCallAt = nextBookedCallByOpportunity(calls);
+
+    // Assert — the concluded call is history; the booked one is the order.
+    expect(nextCallAt.get("7")).toBe("2026-09-28T15:00:00.000Z");
+    expect(inconsistentCallBookedDeals([rebooked], nextCallAt)).toEqual([]);
   });
 });

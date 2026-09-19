@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { isActiveOpportunity } from "../deals/dealActivity";
 import { Link } from "react-router";
 import { Plus } from "lucide-react";
 import {
@@ -136,8 +137,8 @@ const CurrentRelationship = ({ contactId }: { contactId: Identifier }) => {
     { enabled: dealIds.length > 0 },
   );
 
-  const isActiveDeal = (deal: Deal) =>
-    deal.archived_at == null && deal.stage !== "won" && deal.outcome == null;
+  // Canonical: deals/dealActivity.ts, mirrored by public.deal_is_active.
+  const isActiveDeal = isActiveOpportunity;
   const offerName = (offerId: Identifier | null | undefined) =>
     (offers ?? []).find((o) => String(o.id) === String(offerId))?.name ?? "";
   const dealOfferName = (dealId: Identifier | null | undefined) => {

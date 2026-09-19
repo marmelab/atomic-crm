@@ -15,9 +15,18 @@ export const GHOSTED_TAG_NAME = "Ghosted";
 const GHOSTED_TAG_COLOR = "#c9ccd2";
 
 export type OpportunityDecision =
-  // They said yes. Stage advances; this is NOT Won — Won is payment
-  // authority, and nobody has paid because somebody said yes.
-  | "onboarding"
+  // They said yes. Yes IS Won.
+  //
+  // This used to write stage = 'onboarding' on the reasoning that Won was
+  // payment authority and nobody had paid yet. That reasoning is retired:
+  // payment never gates Won, the four dimensions (sales outcome,
+  // enrollment phase, onboarding state, payment state) are independent,
+  // and persisting 'onboarding' as a sales stage made a fifteenth row of
+  // the fourteen legacy ones nobody can now interpret. The board's
+  // Onboarding column is SYNTHETIC — Won, with an Enrollment, with
+  // post-sale setup unfinished — and a database trigger now refuses any
+  // new write of the stored value.
+  | "won"
   // They considered the offer and said no.
   | "declined"
   // They stopped replying. Commercially the same as declined, humanly not
@@ -58,14 +67,14 @@ export const recordOpportunityDecision = async (
 
   const now = new Date().toISOString();
 
-  if (decision === "onboarding") {
-    if (deal.stage === "onboarding") {
-      return { status: "already-resolved" };
-    }
+  if (decision === "won") {
+    // Won, with no outcome: winning is not exiting. The existing
+    // handle_deal_won trigger creates or retains the Enrollment from here,
+    // idempotently, so nothing about that mechanism is duplicated.
     await dataProvider.update<Deal>("deals", {
       id: deal.id,
       data: {
-        stage: "onboarding",
+        stage: "won",
         stage_entered_at: now,
         prospect_decision: "yes",
       },

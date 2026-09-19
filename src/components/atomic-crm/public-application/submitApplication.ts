@@ -1,4 +1,5 @@
 import type { DataProvider, Identifier } from "ra-core";
+import { isActiveOpportunity } from "../deals/dealActivity";
 
 import type { Application, Cohort, Contact, Deal, Offer, Sale } from "../types";
 import { validateOfferCohort } from "../deals/offerCohortValidation";
@@ -63,8 +64,8 @@ const isPlausibleEmail = (email: string): boolean =>
 // duplicated rather than imported since that one is a private, unexported
 // helper local to the waitlist module; both are one-line predicates over
 // the same three Deal fields, low risk of silently diverging.
-const isActiveDeal = (deal: Pick<Deal, "stage" | "outcome" | "archived_at">) =>
-  deal.archived_at == null && deal.stage !== "won" && deal.outcome == null;
+// Canonical: deals/dealActivity.ts, mirrored by public.deal_is_active.
+const isActiveDeal = isActiveOpportunity;
 
 const isCohortAcceptingApplications = (
   cohort: Pick<

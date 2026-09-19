@@ -16,14 +16,9 @@
 
 // The live-pipeline condition every other view already uses (see
 // DealList.tsx): not archived, not Won, no exit outcome.
-const isActiveOpportunity = (deal: {
-  stage: string;
-  outcome?: string | null;
-  archived_at?: string | null;
-}): boolean =>
-  deal.archived_at == null && deal.stage !== "won" && deal.outcome == null;
 
 export const DECIDING_STAGE = "decision";
+import { isActiveOpportunity } from "./dealActivity";
 
 export const isPersonDeciding = (deal: {
   stage: string;

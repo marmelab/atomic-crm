@@ -3,6 +3,7 @@ import type { DropResult } from "@hello-pangea/dnd";
 
 import type { Deal } from "../types";
 import type { DealsByStage } from "./stages";
+import { isActiveOpportunity, isWritableStage } from "./dealActivity";
 
 // What a Kanban drop actually does, lifted out of the component so it can
 // be proven.
@@ -23,7 +24,19 @@ export type DealStageDropOutcome =
   // same-column drop has nothing to persist.
   | {
       applied: false;
-      reason: "no-destination" | "same-column" | "unknown-card";
+      reason:
+        | "no-destination"
+        | "same-column"
+        | "unknown-card"
+        // The card's sales attempt has already ended. A gesture must not
+        // be able to reopen it — reactivating a decision somebody made is
+        // a business action, not a drag.
+        | "not-active"
+        // The Onboarding column is DERIVED: Won, with an Enrollment, with
+        // post-sale setup unfinished. Dropping a card there would persist
+        // the legacy stage value instead, which the database refuses
+        // anyway; refusing here says so before the round trip.
+        | "synthetic-column";
     };
 
 export const applyDealStageDrop = async (
@@ -39,6 +52,19 @@ export const applyDealStageDrop = async (
 
   const deal = dealsByStage[from]?.[source.index];
   if (!deal) return { applied: false, reason: "unknown-card" };
+
+  // A terminal attempt stays terminal. The board only lists active cards,
+  // so this is unreachable today — which is exactly why it is worth
+  // asserting: the guard has to survive the board one day showing more.
+  if (!isActiveOpportunity(deal)) {
+    return { applied: false, reason: "not-active" };
+  }
+
+  // Onboarding is synthetic and Won is a decision, not a gesture. Both are
+  // refused rather than written.
+  if (!isWritableStage(to) || to === "won") {
+    return { applied: false, reason: "synthetic-column" };
+  }
 
   // The one shared path every other stage-changing pathway already uses
   // (Application review, sales-call booking and outcomes): the "deals"

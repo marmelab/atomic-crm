@@ -9,6 +9,7 @@ import type { DataProvider, Identifier } from "ra-core";
 
 import { isContactDoNotEngage } from "../contacts/doNotEngageGuard";
 import type { Deal, Offer, WaitlistEntry } from "../types";
+import { isActiveOpportunity } from "../deals/dealActivity";
 import { recordManualInvitation } from "./waitlistInvitations";
 import { syncWaitlistForActiveDeal } from "./waitlistSync";
 
@@ -75,8 +76,8 @@ export type ConvertToOpportunityResult =
 // Opportunity does not block conversion — only a currently-open one does
 // (§12: "If an existing active Opportunity already exists ... do NOT
 // create a duplicate").
-const isActiveDeal = (deal: Pick<Deal, "stage" | "outcome" | "archived_at">) =>
-  deal.archived_at == null && deal.stage !== "won" && deal.outcome == null;
+// Canonical: deals/dealActivity.ts, mirrored by public.deal_is_active.
+const isActiveDeal = isActiveOpportunity;
 
 // waiting/invited -> converted. Creates (or reuses) an Opportunity for the
 // same Contact + Offer + Cohort, starting at "Interested" — never a later

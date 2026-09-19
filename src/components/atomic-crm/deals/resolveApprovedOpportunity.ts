@@ -1,4 +1,5 @@
 import type { DataProvider, Identifier } from "ra-core";
+import { isActiveOpportunity } from "./dealActivity";
 
 import type { Deal } from "../types";
 
@@ -67,5 +68,4 @@ export const resolveApprovedOpportunity = async (
 
 export const isAwaitingBooking = (
   deal: Pick<Deal, "stage" | "outcome" | "archived_at">,
-): boolean =>
-  deal.archived_at == null && deal.outcome == null && deal.stage === "approved";
+): boolean => isActiveOpportunity(deal) && deal.stage === "approved";

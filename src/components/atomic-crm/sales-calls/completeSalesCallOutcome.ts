@@ -182,11 +182,11 @@ export const completeSalesCallOutcome = async (
     });
   }
 
-  // Payment domain foundation slice: reaching Committed is what generates
+  // Payment domain foundation slice: winning is what generates
   // the personalized Offer Page's access token — see offerPageToken.ts's
   // own comment for why it's idempotent and never rotates an
   // already-issued link.
-  if (dealUpdate.stage === "onboarding") {
+  if (dealUpdate.stage === "won") {
     await ensureOfferPageToken(dataProvider, deal.id);
   }
 
@@ -215,11 +215,17 @@ const buildAttendedDealUpdate = ({
 
   // ownerDecision === "would_work_with"
   if (prospectDecision === "yes") {
+    // Yes IS Won. This used to write the legacy stage "onboarding" on the
+    // reasoning that Won meant the money had arrived; payment never gates
+    // Won, and the database now refuses that value outright. The board's
+    // Onboarding column is derived from Won + an Enrollment + unfinished
+    // post-sale setup, and the existing handle_deal_won trigger creates
+    // the Enrollment from here.
     return {
       owner_decision: "would_work_with",
       prospect_decision: "yes",
       follow_up_date: null,
-      stage: "onboarding",
+      stage: "won",
     };
   }
   if (prospectDecision === "no") {

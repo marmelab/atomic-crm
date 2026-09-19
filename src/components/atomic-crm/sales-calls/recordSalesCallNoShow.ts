@@ -2,6 +2,7 @@ import type { DataProvider, Identifier } from "ra-core";
 
 import type { Contact, Deal, SalesCall, Tag, Task } from "../types";
 import { completeResolveSalesCallTask } from "./resolveSalesCallTask";
+import { isActiveOpportunity } from "../deals/dealActivity";
 
 // Gate B — the dev/FakeRest half of the dual-implementation No-show path.
 // The production path is the Postgres function
@@ -12,14 +13,28 @@ import { completeResolveSalesCallTask } from "./resolveSalesCallTask";
 // (submit_public_application() <-> submitApplication.ts) and waitlist sync
 // (deal_waitlist_sync trigger <-> waitlistSync.ts).
 //
-// The rule: marking a sales call No-show is certain enough to exit the
-// Opportunity. Concretely —
+// The rule, CHANGED in the sales-state-machine slice: a no-show is a fact
+// about a call, not a decision about a person.
+//
+// This used to set outcome = 'lost', which ended the sales attempt
+// automatically. Alva Winsa is still terminal because of it — nobody
+// decided that, a missed meeting did. "They did not turn up" does not
+// answer "are we done?", "will they rebook?" or "should they nurture?",
+// and a system that answers those questions on Leif's behalf is inventing
+// business decisions.
+//
+// So now —
 //   Sales Call  canonical history: attendance 'no_show', status 'completed'
-//   Opportunity leaves the ACTIVE pipeline via outcome 'lost'
+//   Opportunity stays ACTIVE, and returns from Call Booked to Approved
+//               because that stage asserts a booked call and there is none
 //   Contact     carries a durable, visible "No-show" tag
-//   Tasks       no new follow-up work is created
-// Nothing is deleted, no stage is rewritten, and no new pipeline stage or
-// outcome value is invented.
+//   Outcome     untouched. Ending the attempt is an explicit human action
+//   Decision    untouched. Missing a call is not the prospect saying no
+//
+// What replaces the automatic exit is a DERIVED condition — active
+// Opportunity, latest call cancelled or no-show, nothing booked since —
+// computed in deals/needsNextSalesStep.ts. It cannot be deleted, because
+// it is not stored.
 
 export const NO_SHOW_TAG_NAME = "No-show";
 // Same palette the manual tag UI uses (tags/colors.ts).
@@ -28,8 +43,8 @@ const NO_SHOW_TAG_COLOR = "#fde2e4";
 export type RecordSalesCallNoShowResult =
   | { status: "completed" }
   // Re-running the action on an already-no-showed call. Safe and
-  // convergent: it re-asserts the exit and the tag rather than duplicating
-  // anything.
+  // convergent: it re-asserts the tag and the stage rather than
+  // duplicating anything.
   | { status: "already-no-show" }
   | { status: "not-found" }
   | { status: "no-opportunity" }
@@ -101,37 +116,49 @@ export const recordSalesCallNoShow = async (
     });
   }
 
-  // 2. The Opportunity exits the ACTIVE pipeline. "Active" is canonically
-  //    archived_at null AND stage !== 'won' AND outcome null (DealList's
-  //    own filter), so setting outcome is the existing exit mechanism.
-  //    'lost' is the same exit the Do-Not-Engage path uses; the no-show
-  //    REASON stays durable on the Sales Call, so no reason column is
-  //    invented. stage is deliberately left alone — the Deal really did
-  //    reach Call Booked, and rewriting that to mark an exit would falsify
-  //    history.
+  // 2. The Opportunity stays an active sales attempt. Only the stage
+  //    moves, and only because Call Booked asserts a booked call that no
+  //    longer exists — the same regression a cancellation performs. If a
+  //    later booking already exists the stage is already telling the
+  //    truth, so it is left alone.
+  //
+  //    outcome is NOT set. prospect_decision is NOT set. Ending the
+  //    attempt is an explicit decision with its own action and its own
+  //    outcome event.
   const { data: deal } = await dataProvider.getOne<Deal>("deals", {
     id: salesCall.opportunity_id,
   });
-  if (
-    deal.outcome == null &&
-    deal.archived_at == null &&
-    deal.stage !== "won"
-  ) {
-    await dataProvider.update<Deal>("deals", {
-      id: deal.id,
-      data: { outcome: "lost" },
-      previousData: deal,
-    });
+  if (isActiveOpportunity(deal) && deal.stage === "call_booked") {
+    const { data: calls } = await dataProvider.getList<SalesCall>(
+      "sales_calls",
+      {
+        filter: { opportunity_id: deal.id },
+        pagination: { page: 1, perPage: 100 },
+        sort: { field: "id", order: "ASC" },
+      },
+    );
+    const stillBooked = calls.some(
+      (call) =>
+        String(call.id) !== String(salesCall.id) && call.status === "booked",
+    );
+    if (!stillBooked) {
+      await dataProvider.update<Deal>("deals", {
+        id: deal.id,
+        data: { stage: "approved", stage_entered_at: now },
+        previousData: deal,
+      });
+    }
   }
 
   // 3. Contact-level visible history, reusing the existing tag model.
   await ensureNoShowTag(dataProvider, salesCall.contact_id);
 
   // 4. The call concluded, so its own task is done. No follow-up task is
-  //    created: the Opportunity has left the pipeline, so there is no
-  //    stranded decision to re-surface. A 'sales_call_no_show' task left
-  //    pending by the previous behavior is superseded work, closed here
-  //    rather than left behind as impossible work.
+  //    invented here: the open question — what happens next with this
+  //    person — is DERIVED by deals/needsNextSalesStep.ts, so a task
+  //    duplicating it could be deleted while the question remained. A
+  //    'sales_call_no_show' task left pending by the previous behavior is
+  //    superseded work, closed here rather than left behind.
   await completePendingTasks(dataProvider, salesCall.contact_id, now);
   // "No-show" is one of the three canonical answers to "what happened on
   // this call?", so a resolve_sales_call ambiguity task for THIS call is

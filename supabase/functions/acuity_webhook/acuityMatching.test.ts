@@ -14,6 +14,7 @@ vi.mock("../_shared/supabaseAdmin.ts", () => ({
 import {
   findActiveOpportunity,
   findOrCreateContact,
+  isActiveDeal,
   normalizeEmail,
   resolveOfferCohort,
 } from "./acuityMatching";
@@ -285,5 +286,63 @@ describe("acuityMatching", () => {
 
       expect(result).toEqual({ deal: null, ambiguous: false });
     });
+  });
+});
+
+describe("the active-sales predicate matches the SQL authority", () => {
+  // An Edge Function cannot import from src/, so the rule exists here as a
+  // third copy. This walks the same matrix the app-side test walks, so the
+  // copy cannot drift from public.deal_is_active without failing.
+  const STAGES = [
+    "interested",
+    "application_received",
+    "approved",
+    "call_booked",
+    "decision",
+    "won",
+    "onboarding",
+  ];
+  const OUTCOMES = [
+    null,
+    "nurture",
+    "needs_higher_care",
+    "not_fit",
+    "lost",
+    "workshops_only",
+  ];
+  const ARCHIVED = [null, "2026-09-18T00:00:00.000Z"];
+
+  /** What public.deal_is_active computes. */
+  const sqlDealIsActive = (
+    archived_at: string | null,
+    stage: string,
+    outcome: string | null,
+  ) => archived_at === null && stage !== "won" && outcome === null;
+
+  it("agrees on every stage, outcome and archive combination", () => {
+    // Arrange
+    const disagreements: string[] = [];
+
+    for (const stage of STAGES) {
+      for (const outcome of OUTCOMES) {
+        for (const archived_at of ARCHIVED) {
+          // Act
+          const edge = isActiveDeal({
+            stage,
+            outcome,
+            archived_at,
+          } as never);
+          const sql = sqlDealIsActive(archived_at, stage, outcome);
+
+          // Assert
+          if (edge !== sql) {
+            disagreements.push(`${stage}/${outcome ?? "null"}/${archived_at}`);
+          }
+        }
+      }
+    }
+
+    expect(disagreements).toEqual([]);
+    expect(STAGES.length * OUTCOMES.length * ARCHIVED.length).toBe(84);
   });
 });
