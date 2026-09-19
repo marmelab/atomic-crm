@@ -102,7 +102,10 @@ export const LivingExampleApplicationPage = ({
       title="Apply to Chat with Leif"
       orientation={
         <>
-          Take your time and answer as honestly as you can.{" "}
+          Take your time and answer as honestly as you can.
+          {/* The instruction and the promise are two different thoughts,
+              so they get their own lines rather than running together. */}
+          <br />
           {/* Only this sentence is italicised: it is the promise about
               what happens next, and it reads as an aside to the
               instruction before it. */}
