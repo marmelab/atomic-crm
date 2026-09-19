@@ -94,10 +94,12 @@ describe("PaymentPanel", () => {
 
   it("states uncertainty and offers a way to close it, instead of asserting a state", async () => {
     // Arrange — Mia Cosme: money scattered across Customer objects the CRM
-    // is not linked to.
+    // is not linked to. Her agreed total IS recorded, so the question is
+    // the scattered payments and reading it is what closes it.
     const screen = await show(
       [
         deal({
+          selected_payment_total: 4000,
           payment_review_reason:
             "Payments sit across four different Stripe Customer objects.",
         }),
@@ -115,6 +117,29 @@ describe("PaymentPanel", () => {
     await expect
       .element(screen.getByRole("button", { name: "Mark reviewed" }))
       .toBeVisible();
+  });
+
+  it("will not let a raised question be closed while the total is still missing", async () => {
+    // Arrange — the same question, but nothing records what she agreed to
+    // pay. Acknowledging it would clear the stored reason and immediately
+    // raise the derived "no agreed total" one in its place: the same loop,
+    // one step slower. So the missing fact is asked for first.
+    const screen = await show(
+      [
+        deal({
+          payment_review_reason:
+            "Payments sit across four different Stripe Customer objects.",
+        }),
+      ],
+      [paidItem({ amount: 925 })],
+    );
+
+    await expect
+      .element(screen.getByRole("button", { name: "Record agreed terms" }))
+      .toBeVisible();
+    await expect
+      .element(screen.getByRole("button", { name: "Mark reviewed" }))
+      .not.toBeInTheDocument();
   });
 
   it("asks for a payment plan only when there is genuinely nothing and no doubt", async () => {

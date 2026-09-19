@@ -3,6 +3,11 @@ import type Stripe from "npm:stripe@18.5.0";
 import { supabaseAdmin } from "../_shared/supabaseAdmin.ts";
 import { ingestStripePayments } from "./stripePayments.ts";
 import { recordPlanObjects } from "./stripePlanObjects.ts";
+import {
+  deriveAgreedTerms,
+  isRefusal,
+  type SchedulePhaseFacts,
+} from "./stripeAgreedTerms.ts";
 
 // Periodic Stripe reconciliation: the half the webhook cannot do.
 //
@@ -44,6 +49,8 @@ export type StripeReconcileDelta = {
   obligationsSatisfied: number;
   planObjectsRecorded: number;
   planObjectsUpdated: number;
+  /** Agreed totals a finite Stripe plan proved on this run. */
+  agreedTermsDerived: number;
   needsReview: { contactId: number; reason: string }[];
   alreadyLinked: number;
   noStripePlan: number;
@@ -63,6 +70,7 @@ const emptyDelta = (): StripeReconcileDelta => ({
   obligationsSatisfied: 0,
   planObjectsRecorded: 0,
   planObjectsUpdated: 0,
+  agreedTermsDerived: 0,
   needsReview: [],
   alreadyLinked: 0,
   noStripePlan: 0,
@@ -81,6 +89,10 @@ type Candidate = {
   currentSubscriptionId: string | null;
   currentScheduleId: string | null;
   agreedTotal: number | null;
+  // Whether an agreed total is actually RECORDED, as distinct from
+  // agreedTotal above, which falls back to the Offer list price so
+  // payments have something to reconcile against.
+  termsRecorded: boolean;
   reviewReason: string | null;
 };
 
@@ -143,6 +155,7 @@ const loadCandidates = async (contactId?: number): Promise<Candidate[]> => {
           currentSubscriptionId: null,
           currentScheduleId: null,
           agreedTotal: null,
+          termsRecorded: false,
           reviewReason: null,
         });
       }
@@ -164,6 +177,9 @@ const loadCandidates = async (contactId?: number): Promise<Candidate[]> => {
           : deal.offer_price_snapshot != null
             ? Number(deal.offer_price_snapshot)
             : null,
+      termsRecorded:
+        deal.selected_payment_total != null &&
+        Number(deal.selected_payment_total) > 0,
       reviewReason: (deal.payment_review_reason as string) ?? null,
     });
   }
@@ -328,6 +344,46 @@ export const reconcileStripe = async (
     const currentScheduleId =
       runningSchedules[0]?.id ?? upcomingSchedules[0]?.id ?? null;
 
+    // WHAT THE PLAN PROVES WAS AGREED.
+    //
+    // Linking a schedule and knowing the agreed total were never
+    // connected, so Emma Wijns's Opportunity carried her plan and still
+    // read "Agreed terms not recorded". The plan says $1,000 a month from
+    // November to March; that is $4,000, in Stripe's own data.
+    //
+    // Only ever fills a gap. A total the CRM already holds — whether Leif
+    // stated it or a checkout wrote it — is never overwritten by this.
+    if (!candidate.termsRecorded && currentScheduleId) {
+      const derived = await deriveTermsForSchedule(
+        stripe,
+        [...runningSchedules, ...upcomingSchedules].find(
+          (s) => s.id === currentScheduleId,
+        ),
+        candidate.dealId,
+      );
+      if (derived) {
+        const { error: termsError } = await supabaseAdmin
+          .from("deals")
+          .update({
+            selected_payment_total: derived.totalMinor / 100,
+            selected_payment_total_source: "stripe_derived",
+            selected_installment_count: derived.installmentCount,
+            ...(derived.installmentAmountMinor != null
+              ? {
+                  selected_installment_amount:
+                    derived.installmentAmountMinor / 100,
+                }
+              : {}),
+          })
+          .eq("id", candidate.dealId);
+        if (termsError) {
+          delta.errors.push(`deal ${candidate.dealId}: ${termsError.message}`);
+        } else {
+          delta.agreedTermsDerived += 1;
+        }
+      }
+    }
+
     const patch: Record<string, string> = {};
     if (
       currentScheduleId &&
@@ -362,6 +418,76 @@ export const reconcileStripe = async (
   }
 
   return delta;
+};
+
+// The phase facts a total can be built from, resolved one price at a time
+// because a schedule phase carries its price as an id.
+const deriveTermsForSchedule = async (
+  stripe: Stripe,
+  schedule: Stripe.SubscriptionSchedule | undefined,
+  dealId: number,
+) => {
+  if (!schedule) return null;
+
+  // Money already recorded against this Opportunity. Any of it and the
+  // commitment stops being provable from the plan alone.
+  const { data: paidItems } = await supabaseAdmin
+    .from("deal_payment_schedule_items")
+    .select("amount")
+    .eq("deal_id", dealId)
+    .eq("status", "paid");
+  const collectedMinor = ((paidItems ?? []) as { amount: number }[]).reduce(
+    (sum, item) => sum + Math.round(Number(item.amount ?? 0) * 100),
+    0,
+  );
+
+  const phases: SchedulePhaseFacts[] = [];
+  for (const phase of schedule.phases ?? []) {
+    const item = phase.items?.[0] ?? null;
+    // More than one line on a phase is more than one thing being sold, and
+    // this is not the place to decide which of them is the agreement.
+    if (!item || (phase.items?.length ?? 0) > 1) {
+      phases.push({
+        amountMinor: null,
+        interval: null,
+        intervalCount: null,
+        iterations: null,
+        startDate: null,
+        endDate: null,
+      });
+      continue;
+    }
+    let amountMinor: number | null = null;
+    let interval: string | null = null;
+    let intervalCount: number | null = null;
+    if (typeof item.price === "object" && item.price != null) {
+      amountMinor = item.price.unit_amount ?? null;
+      interval = item.price.recurring?.interval ?? null;
+      intervalCount = item.price.recurring?.interval_count ?? null;
+    } else if (typeof item.price === "string") {
+      try {
+        const price = await stripe.prices.retrieve(item.price);
+        amountMinor = price.unit_amount ?? null;
+        interval = price.recurring?.interval ?? null;
+        intervalCount = price.recurring?.interval_count ?? null;
+      } catch {
+        // An unreadable price is a plan that proves nothing, not a plan
+        // worth nothing.
+        amountMinor = null;
+      }
+    }
+    phases.push({
+      amountMinor,
+      interval,
+      intervalCount,
+      iterations: phase.iterations ?? null,
+      startDate: phase.start_date ?? null,
+      endDate: phase.end_date ?? null,
+    });
+  }
+
+  const result = deriveAgreedTerms(phases, collectedMinor);
+  return isRefusal(result) ? null : result;
 };
 
 const scheduleSubscriptionId = (

@@ -32,6 +32,7 @@ export const syncStripeForContact = async (
       paymentsIngested: number;
       planObjectsRecorded: number;
       planObjectsUpdated: number;
+      agreedTermsDerived: number;
       needsReview: { contactId: number; reason: string }[];
       ambiguous: { contactId: number; candidates: string[] }[];
       errors: string[];
@@ -67,28 +68,37 @@ export const syncStripeForContact = async (
     return { status: "needs-review", message: delta.needsReview[0].reason };
   }
 
-  // Said in the order a person cares about: a new plan is the headline, new
-  // money next, and "nothing changed" is a real, useful answer.
+  // What actually changed, said as a list rather than as one headline.
+  //
+  // It used to pick a single sentence, and the one it landed on for an
+  // already-linked person was "no new Stripe records" — read, reasonably,
+  // as "Stripe has nothing for this client". It never meant that. It
+  // meant this run found nothing NEW, which is a statement about the run
+  // and says nothing about what Stripe holds. A sync does several
+  // different jobs and now reports each of them.
+  const changes: string[] = [];
   if (delta.subscriptionsLinked > 0 || delta.schedulesLinked > 0) {
-    return {
-      status: "linked",
-      message: "Stripe synced — new subscription found.",
-    };
+    changes.push("new plan linked");
   }
+  if (delta.agreedTermsDerived > 0) changes.push("agreed total from Stripe");
   if (delta.paymentsIngested > 0) {
     const count = delta.paymentsIngested;
-    return {
-      status: "linked",
-      message: `Stripe synced — ${count} payment${count === 1 ? "" : "s"} recorded.`,
-    };
+    changes.push(`${count} payment${count === 1 ? "" : "s"} recorded`);
   }
   if (delta.planObjectsRecorded > 0 || delta.planObjectsUpdated > 0) {
-    return { status: "linked", message: "Stripe synced — payments updated." };
+    changes.push("plan details updated");
+  }
+
+  if (changes.length > 0) {
+    return {
+      status: "linked",
+      message: `Stripe synced — ${changes.join(", ")}.`,
+    };
   }
   if (delta.alreadyLinked > 0) {
     return {
       status: "already-linked",
-      message: "Stripe synced — no new Stripe records.",
+      message: "Stripe synced — already up to date with Stripe.",
     };
   }
   return {

@@ -34,7 +34,7 @@
     "second question too."
   ],
   "version": 1,
-  "total_migration_versions": 120,
+  "total_migration_versions": 121,
   "boundary_status": "resolved",
   "clean_room_prerequisites": {
     "$comment": [
@@ -200,6 +200,13 @@
       "reason": "Puts Opportunities 139, 187 and 189 back into call_booked, where each sale genuinely reached before the retired rule demoted it on a cancelled or missed call. Asserts each row individually and that exactly three move, and refuses if any has since been decided.",
       "owns_durable_schema": false,
       "structure_extracted_to": "20260919160000_call_booked_is_not_undone_by_a_missed_call.sql"
+    },
+    {
+      "version": "20260919190000",
+      "file": "20260919190000_three_agreed_totals_their_stripe_plans_prove.sql",
+      "classification": "main_only_historical_data_repair",
+      "reason": "Records the agreed totals that Emma Wijns, Ava Frotton and Heidi Elias's own Stripe Subscription Schedules prove, by hardcoded Opportunity and schedule id, refusing any row that has moved on or collected money. Deliberately leaves Daniel Alexander unresolved.",
+      "owns_durable_schema": false
     }
   ]
 }

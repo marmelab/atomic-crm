@@ -373,9 +373,15 @@ const PaymentContextCard = ({
           // Said plainly, because not knowing is the truth here — and the
           // Offer's current list price is a fact about the product, not
           // about this person.
+          //
+          // It used to blame history: "for this historical client". Emma
+          // Wijns was sold last week, and reading that on her page made a
+          // fixable gap look like an old one nobody could do anything
+          // about. The sentence states the fact and stops there; the
+          // Payment panel below carries the action.
           <span className="text-sm text-muted-foreground">
             {translate("resources.enrollments.terms_not_recorded", {
-              _: "Commercial terms were not recorded for this historical client.",
+              _: "No agreed total is recorded for this client.",
             })}
           </span>
         )}
