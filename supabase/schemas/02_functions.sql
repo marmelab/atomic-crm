@@ -2249,3 +2249,149 @@ begin
      where onboarding_item_id = new.id and done_date is null;
     return new;
   end if;
+
+
+CREATE OR REPLACE FUNCTION public.enforce_application_opportunity_agreement()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_deal deals%rowtype;
+begin
+  if new.opportunity_id is null then
+    return new;
+  end if;
+
+  select * into v_deal from deals where id = new.opportunity_id;
+  if not found then
+    raise exception 'Application % points at Opportunity %, which does not exist',
+      coalesce(new.id::text, 'new'), new.opportunity_id;
+  end if;
+
+  if v_deal.contact_id is distinct from new.contact_id then
+    raise exception 'Application % belongs to Contact % but Opportunity % belongs to Contact %',
+      coalesce(new.id::text, 'new'), new.contact_id, v_deal.id, v_deal.contact_id;
+  end if;
+
+  if v_deal.offer_id is distinct from new.offer_id then
+    raise exception 'Application % is for Offer % but Opportunity % is for Offer %; an application cannot belong to a sales attempt for a different programme',
+      coalesce(new.id::text, 'new'), new.offer_id, v_deal.id, v_deal.offer_id;
+  end if;
+
+  return new;
+end;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.materialize_application_responses(p_snapshot_id bigint)
+ RETURNS integer
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_snapshot historical_application_source_snapshots%rowtype;
+  v_written int := 0;
+  v_metadata constant text[] := array[
+    'Full Name', 'Your name:', 'Email', 'Status', 'Submission time',
+    'Call Booked', 'Notes', 'My notes', 'Respondent'
+  ];
+begin
+  select * into v_snapshot
+    from historical_application_source_snapshots where id = p_snapshot_id;
+  if not found then
+    raise exception 'snapshot % does not exist', p_snapshot_id;
+  end if;
+
+  if v_snapshot.application_id is null then
+    raise exception 'snapshot % is not attached to an Application; copy artifacts and evidence-only rows must never produce responses', p_snapshot_id;
+  end if;
+  if v_snapshot.is_copy_artifact then
+    raise exception 'snapshot % is a copy artifact', p_snapshot_id;
+  end if;
+
+  insert into application_responses
+    (application_id, position, question_key, question_text,
+     answer_text, answered, source_snapshot_id)
+  select
+    v_snapshot.application_id,
+    row_number() over (order by c.ordinality)::smallint,
+    null,
+    c.value #>> '{}',
+    nullif(btrim(coalesce(v.value #>> '{}', '')), ''),
+    nullif(btrim(coalesce(v.value #>> '{}', '')), '') is not null,
+    v_snapshot.id
+  from jsonb_array_elements(v_snapshot.raw_snapshot->'columns')
+         with ordinality c(value, ordinality)
+  join jsonb_array_elements(v_snapshot.raw_snapshot->'values')
+         with ordinality v(value, ordinality)
+    on v.ordinality = c.ordinality
+  where not ((c.value #>> '{}') = any (v_metadata))
+  on conflict (application_id, position) do nothing;
+
+  get diagnostics v_written = row_count;
+  return v_written;
+end;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.materialize_native_application_responses()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_version application_form_versions%rowtype;
+begin
+  -- Recovered history is materialised from its preserved snapshot
+  -- instead, and carries no raw_answers at all.
+  if new.raw_answers is null or new.raw_answers = '{}'::jsonb then
+    return new;
+  end if;
+
+  select * into v_version from application_form_versions
+   where offer_id = new.offer_id and is_current;
+  if not found then
+    -- No registered wording for this Offer. The Application still stands;
+    -- it simply has no question text to store, which is honest and
+    -- visible rather than a guess from a labels file.
+    return new;
+  end if;
+
+  update applications
+     set form_key = v_version.form_key, form_label = v_version.form_label
+   where id = new.id;
+
+  insert into application_responses
+    (application_id, position, question_key, question_text, answer_text, answered)
+  select new.id,
+         q.position,
+         q.question_key,
+         q.question_text,
+         nullif(btrim(coalesce(new.raw_answers ->> q.question_key, '')), ''),
+         nullif(btrim(coalesce(new.raw_answers ->> q.question_key, '')), '') is not null
+    from application_form_questions q
+   where q.form_version_id = v_version.id
+  on conflict (application_id, position) do nothing;
+
+  return new;
+end;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.reject_application_response_mutation()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SET search_path TO 'public'
+AS $function$
+begin
+  if current_setting('app.migration_mode', true) = 'true' then
+    return coalesce(new, old);
+  end if;
+  raise exception 'application_responses is an immutable submission record; % is not allowed', tg_op
+    using hint = 'Responses are written once by materialize_application_responses() or at submission time. Correcting one means re-materialising from its source snapshot.';
+end;
+$function$
+;

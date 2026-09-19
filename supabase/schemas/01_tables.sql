@@ -1948,3 +1948,88 @@ CREATE UNIQUE INDEX tasks_one_open_per_offboarding_item ON public.tasks USING bt
 CREATE UNIQUE INDEX tasks_one_open_per_cadence_issue ON public.tasks USING btree (cadence_issue_id) WHERE ((done_date IS NULL) AND (cadence_issue_id IS NOT NULL));
 CREATE UNIQUE INDEX tasks_one_open_per_sales_call_type ON public.tasks USING btree (sales_call_id, type) WHERE ((done_date IS NULL) AND (sales_call_id IS NOT NULL));
 CREATE UNIQUE INDEX tasks_one_open_review_per_application ON public.tasks USING btree (application_id) WHERE ((done_date IS NULL) AND (application_id IS NOT NULL));
+
+-- Applications: exact questions, exact answers, and which form asked.
+alter table public.applications
+    add column if not exists form_key text;
+alter table public.applications
+    add column if not exists form_label text;
+alter table public.applications
+    drop constraint if exists applications_opportunity_id_fkey;
+alter table public.applications
+    add constraint applications_opportunity_id_fkey foreign key (opportunity_id)
+    references public.deals(id) on update cascade on delete set null;
+
+create table if not exists public.application_responses (
+  id bigint generated always as identity primary key,
+  application_id bigint not null
+    references public.applications(id) on update cascade on delete cascade,
+  -- Order as the form presented it. The Notion export preserves column
+  -- order in an array, which is why the snapshot keeps `columns` and
+  -- `values` as parallel arrays rather than an object: jsonb reorders
+  -- object keys and would have lost this.
+  position smallint not null,
+  -- Present for native submissions (the form's own key). NULL for
+  -- recovered history, where no key ever existed — only wording.
+  question_key text,
+  -- The exact words, as asked. Never derived from a labels file.
+  question_text text not null,
+  -- The exact answer, byte for byte. NULL means the question was asked
+  -- and left empty, which is different from the question not being there.
+  answer_text text,
+  answered boolean not null default false,
+  -- Which preserved snapshot this row was read out of, so the provenance
+  -- stays inspectable without exposing the sealed snapshot itself.
+  source_snapshot_id bigint
+    references public.historical_application_source_snapshots(id)
+    on update cascade on delete set null,
+  materialized_at timestamptz not null default now(),
+
+  -- One Application can never receive another's answers at the same slot.
+  constraint application_responses_one_per_slot unique (application_id, position),
+  -- An unanswered row cannot carry text, and an answered one must.
+  constraint application_responses_answered_agrees check (
+    answered = (answer_text is not null and btrim(answer_text) <> '')
+  )
+);
+
+create index if not exists application_responses_application_id_idx
+  on public.application_responses (application_id, position);
+
+
+create index if not exists application_responses_application_id_idx
+  on public.application_responses (application_id, position);
+
+create table if not exists public.application_form_versions (
+  id bigint generated always as identity primary key,
+  -- Stable across versions: "le_application", "gyu_application".
+  form_key text not null,
+  -- What a person reads. Carries the version, because that is the part
+  -- that tells two wordings apart.
+  form_label text not null,
+  offer_id bigint references public.offers(id) on update cascade,
+  -- Exactly one version per Offer may receive new submissions.
+  is_current boolean not null default false,
+  created_at timestamptz not null default now(),
+  constraint application_form_versions_key_label_key unique (form_key, form_label)
+);
+
+create unique index if not exists application_form_versions_one_current_per_offer
+  on public.application_form_versions (offer_id)
+  where is_current;
+
+create table if not exists public.application_form_questions (
+  id bigint generated always as identity primary key,
+  form_version_id bigint not null
+    references public.application_form_versions(id) on update cascade on delete cascade,
+  position smallint not null,
+  -- The key the form submits its answer under, which is how an answer
+  -- finds its question.
+  question_key text not null,
+  -- The exact words shown. Visual treatment (an italicised word) is not
+  -- content and is not represented here.
+  question_text text not null,
+  constraint application_form_questions_one_per_slot unique (form_version_id, position),
+  constraint application_form_questions_one_per_key unique (form_version_id, question_key)
+);
+

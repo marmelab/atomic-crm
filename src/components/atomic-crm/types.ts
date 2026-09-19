@@ -277,8 +277,18 @@ export type Application = {
   intended_cohort_id?: Identifier | null;
   status: ApplicationStatus;
   submitted_at: string;
+  // When a human actually reviewed it. NULL on every recovered historical
+  // Application, including the 62 that carry a decision: the decision is
+  // known, the moment it was made is not, and stamping the import time in
+  // would invent it. A decided status with no timestamp is valid history,
+  // never "not reviewed".
   reviewed_at?: string | null;
   raw_answers: Record<string, unknown>;
+  // Which form version this person filled in. The two recovered Notion
+  // forms differ by one clause in one question, so the answers cannot be
+  // read correctly without knowing which was asked.
+  form_key?: string | null;
+  form_label?: string | null;
   summary?: string | null;
   source: ApplicationSource;
   created_at: string;
@@ -1190,3 +1200,26 @@ export interface ContactGender {
   label: string;
   icon: ComponentType<{ className?: string }>;
 }
+
+// One question as it was actually asked, and the answer as it was actually
+// written.
+//
+// The question text lives HERE rather than being reconstructed from
+// answerLabels.ts at render time, because a labels file describes today's
+// form and has nothing truthful to say about what somebody was asked in
+// 2026. Immutable once written: corrections mean re-materialising from the
+// preserved source snapshot, never editing the row.
+export type ApplicationResponse = {
+  application_id: Identifier;
+  // Order as the form presented it, from the source's own column order.
+  position: number;
+  // Present for native submissions; NULL for recovered history, where no
+  // key ever existed — only wording.
+  question_key?: string | null;
+  question_text: string;
+  // NULL means asked and left blank, which is not the same as not asked.
+  answer_text?: string | null;
+  answered: boolean;
+  source_snapshot_id?: Identifier | null;
+  materialized_at: string;
+} & Pick<RaRecord, "id">;

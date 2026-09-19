@@ -3,6 +3,7 @@ import type {
   DealPaymentScheduleItem,
   DealStripePlanObject,
   Application,
+  ApplicationResponse,
   ClientSession,
   ClientSessionCadenceIssue,
   ClientSessionCadenceIssueEvent,
@@ -48,6 +49,7 @@ export interface Db {
   deal_notes: DealNote[];
   deal_stage_events: DealStageEvent[];
   applications: Application[];
+  application_responses: ApplicationResponse[];
   enrollments: Enrollment[];
   onboarding_requirement_templates: OnboardingRequirementTemplate[];
   enrollment_onboarding_items: EnrollmentOnboardingItem[];

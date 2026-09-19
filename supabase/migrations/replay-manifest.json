@@ -34,7 +34,7 @@
     "second question too."
   ],
   "version": 1,
-  "total_migration_versions": 108,
+  "total_migration_versions": 111,
   "boundary_status": "resolved",
   "clean_room_prerequisites": {
     "$comment": [
@@ -184,6 +184,14 @@
       "reason": "Asserts which of this database's open Tasks the deterministic linkage rules resolved, and that Dax Kara's review Task stayed unlinked because he has two Applications and two Opportunities and nothing records which one it means.",
       "owns_durable_schema": false,
       "structure_extracted_to": "20260919050000_tasks_are_projections.sql"
+    },
+    {
+      "version": "20260919080000",
+      "file": "20260919080000_application_history_this_database.sql",
+      "classification": "main_only_historical_data_repair",
+      "reason": "Backfills the 159 recovered Applications source page ids, materialises their exact questions and answers from the preserved Notion snapshots, clears 14 links that pointed at an Opportunity for a different programme, attaches 24 uniquely-matchable submissions, and points Dax Kara's review Task at the one Application that is current work.",
+      "owns_durable_schema": false,
+      "structure_extracted_to": "20260919070000_application_responses.sql"
     }
   ]
 }

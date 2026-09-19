@@ -7,6 +7,7 @@ import { findDealLabel, formatTimestampString } from "../deals/dealUtils";
 import { PageHeader, PersonCard, Section } from "../misc/ProgramLayout";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { ApplicationAnswers } from "./ApplicationAnswers";
+import { ApplicationResponses } from "./ApplicationResponses";
 import {
   applicationStatusBadgeVariant,
   applicationStatusLabels,
@@ -93,6 +94,19 @@ const ApplicationShowContent = () => {
               _: "Application Answers",
             })}
           >
+            {/* Which form this person filled in. The two recovered Notion
+                forms differ by one clause, so "which wording did they
+                answer" is a real question rather than a curiosity. */}
+            {record.form_label && (
+              <p className="text-xs text-muted-foreground">
+                {record.form_label}
+              </p>
+            )}
+            {/* Recovered and native submissions both land here. Responses
+                carry their own question text; raw_answers is the older
+                native payload and still renders through its labels map
+                for Applications that have no materialised responses. */}
+            <ApplicationResponses applicationId={record.id} />
             <ApplicationAnswers answers={record.raw_answers} />
           </Section>
 

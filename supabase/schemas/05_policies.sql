@@ -276,3 +276,30 @@ create policy "Enable update for authenticated users only" on public.contact_str
 create policy "Enable insert for authenticated users only" on public.deal_stripe_plan_objects for insert to authenticated with check (true);
 create policy "Enable read access for authenticated users" on public.deal_stripe_plan_objects for select to authenticated using (true);
 create policy "Enable update for authenticated users only" on public.deal_stripe_plan_objects for update to authenticated using (true) with check (true);
+
+-- Application answers are a person's own words: readable by the CRM,
+-- never writable through it.
+alter table public.application_responses enable row level security;
+
+drop policy if exists "Application responses are readable" on public.application_responses;
+create policy "Application responses are readable"
+  on public.application_responses
+  for select
+  to authenticated
+  using (true);
+
+-- No insert/update/delete policy exists, deliberately. Writes go through
+-- the security-definer materializer below, which is the only path.
+revoke all on public.application_responses from anon;
+grant select on public.application_responses to authenticated;
+
+alter table public.application_form_versions enable row level security;
+alter table public.application_form_questions enable row level security;
+
+drop policy if exists "Form versions are readable" on public.application_form_versions;
+create policy "Form versions are readable" on public.application_form_versions
+  for select to authenticated using (true);
+drop policy if exists "Form questions are readable" on public.application_form_questions;
+create policy "Form questions are readable" on public.application_form_questions
+  for select to authenticated using (true);
+

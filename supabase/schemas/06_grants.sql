@@ -651,3 +651,10 @@ revoke all on table public.historical_application_source_snapshots from authenti
 revoke all on table public.historical_application_source_snapshots from service_role;
 
 grant select on public.enrollments_missing_onboarding to authenticated;
+
+grant select on public.application_responses to authenticated;
+revoke all on public.application_responses from anon;
+grant select on public.application_form_versions to authenticated;
+grant select on public.application_form_questions to authenticated;
+revoke all on public.application_form_versions from anon;
+revoke all on public.application_form_questions from anon;

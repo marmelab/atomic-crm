@@ -245,3 +245,21 @@ drop trigger if exists on_enrollment_terminal_task_cleanup on public.enrollments
 create trigger on_enrollment_terminal_task_cleanup
   after update of status on public.enrollments
   for each row execute function public.close_tasks_for_terminal_enrollment();
+
+-- A submitted Application is immutable evidence, and it materialises the
+-- questions it answered in the same transaction it is created in.
+drop trigger if exists reject_application_response_mutation on public.application_responses;
+create trigger reject_application_response_mutation
+  before update or delete on public.application_responses
+  for each row execute function public.reject_application_response_mutation();
+
+drop trigger if exists enforce_application_opportunity_agreement on public.applications;
+create trigger enforce_application_opportunity_agreement
+  before insert or update of opportunity_id, contact_id, offer_id
+  on public.applications
+  for each row execute function public.enforce_application_opportunity_agreement();
+
+drop trigger if exists on_application_materialize_responses on public.applications;
+create trigger on_application_materialize_responses
+  after insert on public.applications
+  for each row execute function public.materialize_native_application_responses();
