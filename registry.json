@@ -1226,6 +1226,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/deals/paymentReview.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/deals/paymentPresentation.ts",
           "type": "registry:component"
         },
