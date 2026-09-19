@@ -1833,6 +1833,10 @@ AS $function$
     select d.created_at from deals d where d.contact_id = p_contact_id
     union all
     select w.joined_at from waitlist_entries w where w.contact_id = p_contact_id
+    union all
+    -- The same doorway, read from the other end.
+    select i.first_seen_at from contact_external_identities i
+     where i.contact_id = p_contact_id and i.first_seen_at <= now()
   ) evidence;
 $function$
 ;
@@ -1880,6 +1884,11 @@ AS $function$
     union all
     select n.date from deal_notes n join deals d on d.id = n.deal_id
      where d.contact_id = p_contact_id and n.date <= now()
+    union all
+    -- The doorway. Any provider that records an observation through
+    -- record_external_identity() contributes here, and nowhere else.
+    select i.last_seen_at from contact_external_identities i
+     where i.contact_id = p_contact_id and i.last_seen_at <= now()
   ) occurred;
 $function$
 ;
@@ -2462,5 +2471,295 @@ AS $function$
   select p_attendance is not null
       or p_dismissed_at is not null
       or p_status = 'cancelled';
+$function$
+;
+
+
+CREATE OR REPLACE FUNCTION public.contact_merge_conflicts(p_source bigint, p_destination bigint)
+ RETURNS TABLE(code text, detail text)
+ LANGUAGE plpgsql
+ STABLE
+ SET search_path TO 'public'
+AS $function$
+begin
+  if p_source = p_destination then
+    return query select 'same_contact'::text, 'A Contact cannot be merged into itself'::text;
+    return;
+  end if;
+  if not exists (select 1 from contacts where id = p_source) then
+    return query select 'source_missing'::text, format('Contact %s does not exist', p_source);
+  end if;
+  if not exists (select 1 from contacts where id = p_destination) then
+    return query select 'destination_missing'::text, format('Contact %s does not exist', p_destination);
+  end if;
+
+  -- Different real addresses on each side. Legitimate for one human with
+  -- two addresses; also exactly what two different humans look like.
+  return query
+  select 'different_emails'::text,
+         format('%s address(es) on one side, %s on the other, none shared',
+                (select count(*) from contact_email_addresses where contact_id = p_source),
+                (select count(*) from contact_email_addresses where contact_id = p_destination))
+   where exists (select 1 from contact_email_addresses where contact_id = p_source)
+     and exists (select 1 from contact_email_addresses where contact_id = p_destination)
+     and not exists (
+       select 1 from contact_email_addresses a
+        join contact_email_addresses b on b.normalized_email = a.normalized_email
+       where a.contact_id = p_source and b.contact_id = p_destination);
+
+  -- Both sides still in play. Merging identity is fine; assuming the two
+  -- sales attempts are one is not, and somebody should look.
+  return query
+  select 'both_have_live_opportunities'::text,
+         format('%s live on one side, %s on the other',
+                (select count(*) from deals d where d.contact_id = p_source
+                  and public.deal_is_active(d.archived_at, d.stage, d.outcome)),
+                (select count(*) from deals d where d.contact_id = p_destination
+                  and public.deal_is_active(d.archived_at, d.stage, d.outcome)))
+   where (select count(*) from deals d where d.contact_id = p_source
+           and public.deal_is_active(d.archived_at, d.stage, d.outcome)) > 0
+     and (select count(*) from deals d where d.contact_id = p_destination
+           and public.deal_is_active(d.archived_at, d.stage, d.outcome)) > 0;
+
+  -- Two people cannot both be mid-programme and be one person.
+  return query
+  select 'both_have_active_enrollments'::text, 'Both Contacts have a non-terminal Enrollment'::text
+   where exists (select 1 from enrollments e join deals d on d.id = e.opportunity_id
+                  where d.contact_id = p_source and e.status not in ('completed','withdrawn','ended'))
+     and exists (select 1 from enrollments e join deals d on d.id = e.opportunity_id
+                  where d.contact_id = p_destination and e.status not in ('completed','withdrawn','ended'));
+
+  -- Separate Stripe customers may be one person's two checkouts, or two
+  -- people's money. Never guessed.
+  return query
+  select 'different_stripe_customers'::text,
+         format('%s Stripe customer(s) on one side, %s on the other',
+                (select count(*) from contact_stripe_customers where contact_id = p_source),
+                (select count(*) from contact_stripe_customers where contact_id = p_destination))
+   where (select count(*) from contact_stripe_customers where contact_id = p_source) > 0
+     and (select count(*) from contact_stripe_customers where contact_id = p_destination) > 0;
+
+  -- The same provider identity already naming the other Contact is the
+  -- one case that is evidence FOR a merge; a DIFFERENT one on each side
+  -- for the same provider+account is evidence against.
+  return query
+  select 'conflicting_provider_identity'::text,
+         format('both hold a different %s identity', a.provider)
+    from contact_external_identities a
+    join contact_external_identities b
+      on b.provider = a.provider
+     and b.provider_account_id is not distinct from a.provider_account_id
+     and b.external_user_id <> a.external_user_id
+   where a.contact_id = p_source and b.contact_id = p_destination
+   group by a.provider;
+
+  -- Already merged away.
+  return query
+  select 'already_merged'::text,
+         format('Contact %s was already merged into %s', p_source, c.merged_into_contact_id)
+    from contacts c where c.id = p_source and c.merged_into_contact_id is not null;
+end;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.merge_contacts_safely(p_source bigint, p_destination bigint, p_actor text, p_evidence text, p_acknowledged_conflicts text[] DEFAULT '{}'::text[])
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_unacknowledged text[];
+  v_moved jsonb := '{}'::jsonb;
+  v_n bigint;
+  v_merge_id bigint;
+begin
+  if p_actor is null or btrim(p_actor) = '' then
+    raise exception 'a merge must record who performed it';
+  end if;
+  if p_evidence is null or btrim(p_evidence) = '' then
+    raise exception 'a merge must record the evidence it rests on';
+  end if;
+
+  -- Lock both, lowest id first, so two merges cannot interleave.
+  perform 1 from contacts where id in (p_source, p_destination)
+   order by id for update;
+
+  if not exists (select 1 from contacts where id = p_source) then
+    raise exception 'source Contact % does not exist', p_source;
+  end if;
+  if not exists (select 1 from contacts where id = p_destination) then
+    raise exception 'destination Contact % does not exist', p_destination;
+  end if;
+
+  select coalesce(array_agg(code), '{}')
+    into v_unacknowledged
+    from public.contact_merge_conflicts(p_source, p_destination)
+   where code <> all (coalesce(p_acknowledged_conflicts, '{}'));
+
+  if array_length(v_unacknowledged, 1) is not null then
+    raise exception 'merge refused: unacknowledged conflict(s) %', v_unacknowledged
+      using hint = 'Review each with contact_merge_conflicts(), then pass the codes you accept as p_acknowledged_conflicts.';
+  end if;
+
+  -- ---- Every child, named explicitly. ----
+  -- Applications carry their own Opportunity agreement check, so they are
+  -- moved with their Opportunities rather than independently.
+  update deals set contact_id = p_destination where contact_id = p_source;
+  get diagnostics v_n = row_count; v_moved := v_moved || jsonb_build_object('deals', v_n);
+
+  update applications set contact_id = p_destination where contact_id = p_source;
+  get diagnostics v_n = row_count; v_moved := v_moved || jsonb_build_object('applications', v_n);
+
+  update sales_calls set contact_id = p_destination where contact_id = p_source;
+  get diagnostics v_n = row_count; v_moved := v_moved || jsonb_build_object('sales_calls', v_n);
+
+  update client_sessions set contact_id = p_destination where contact_id = p_source;
+  get diagnostics v_n = row_count; v_moved := v_moved || jsonb_build_object('client_sessions', v_n);
+
+  update tasks set contact_id = p_destination where contact_id = p_source;
+  get diagnostics v_n = row_count; v_moved := v_moved || jsonb_build_object('tasks', v_n);
+
+  update contact_notes set contact_id = p_destination where contact_id = p_source;
+  get diagnostics v_n = row_count; v_moved := v_moved || jsonb_build_object('contact_notes', v_n);
+
+  update waitlist_entries set contact_id = p_destination where contact_id = p_source;
+  get diagnostics v_n = row_count; v_moved := v_moved || jsonb_build_object('waitlist_entries', v_n);
+
+  update waitlist_invitations set contact_id = p_destination where contact_id = p_source;
+  get diagnostics v_n = row_count; v_moved := v_moved || jsonb_build_object('waitlist_invitations', v_n);
+
+  -- Stripe relations move as evidence. The unique key is the Stripe
+  -- customer id, so nothing can be duplicated by this; is_primary is left
+  -- alone rather than guessed at, and payment truth is untouched.
+  update contact_stripe_customers set contact_id = p_destination where contact_id = p_source;
+  get diagnostics v_n = row_count; v_moved := v_moved || jsonb_build_object('contact_stripe_customers', v_n);
+
+  -- Provider identities move too; their uniqueness is on the provider id,
+  -- so a genuine duplicate identity would already have been a conflict.
+  update contact_external_identities set contact_id = p_destination, updated_at = now()
+   where contact_id = p_source;
+  get diagnostics v_n = row_count; v_moved := v_moved || jsonb_build_object('external_identities', v_n);
+
+  -- historical_import_records is deliberately NOT touched. It is keyed by
+  -- (entity_table, entity_id) and records how a particular ROW was
+  -- imported, not who a person is. The source Contact row still exists —
+  -- this merge does not delete it — so its provenance stays attached to
+  -- something real, and moving it would collide with the destination's
+  -- own row on that unique key.
+
+  -- ---- The surviving Contact keeps the earliest evidence. ----
+  -- first_seen is "when did this person first appear", so the earlier of
+  -- the two is the true answer; last_seen is the later.
+  update contacts d
+     set first_seen = least(d.first_seen, s.first_seen),
+         last_seen = greatest(d.last_seen, s.last_seen)
+    from contacts s
+   where d.id = p_destination and s.id = p_source;
+
+  -- ---- The losing Contact stays, and says what it became. ----
+  update contacts set merged_into_contact_id = p_destination where id = p_source;
+
+  insert into contact_merges
+    (source_contact_id, destination_contact_id, actor, evidence, moved_counts)
+  values (p_source, p_destination, p_actor, p_evidence, v_moved)
+  returning id into v_merge_id;
+
+  return jsonb_build_object(
+    'merge_id', v_merge_id,
+    'source_contact_id', p_source,
+    'destination_contact_id', p_destination,
+    'moved', v_moved
+  );
+end;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.normalize_email(p_email text)
+ RETURNS text
+ LANGUAGE sql
+ IMMUTABLE
+ SET search_path TO 'public'
+AS $function$
+  select nullif(lower(btrim(p_email)), '');
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.record_external_identity(p_provider text, p_provider_account_id text, p_external_user_id text, p_display_identifier text DEFAULT NULL::text, p_metadata jsonb DEFAULT '{}'::jsonb, p_observed_at timestamp with time zone DEFAULT now(), p_email text DEFAULT NULL::text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_existing contact_external_identities%rowtype;
+  v_contact_id bigint;
+  v_matches int;
+begin
+  if p_external_user_id is null or btrim(p_external_user_id) = '' then
+    raise exception 'an external identity needs the provider''s own id, never a handle';
+  end if;
+
+  -- A. Already known. The handle may have changed; that is metadata.
+  select * into v_existing from contact_external_identities
+   where provider = p_provider
+     and provider_account_id is not distinct from p_provider_account_id
+     and external_user_id = p_external_user_id;
+
+  if found then
+    update contact_external_identities
+       set display_identifier = coalesce(p_display_identifier, display_identifier),
+           metadata = metadata || coalesce(p_metadata, '{}'::jsonb),
+           first_seen_at = least(coalesce(first_seen_at, p_observed_at), p_observed_at),
+           last_seen_at = greatest(coalesce(last_seen_at, p_observed_at), p_observed_at),
+           updated_at = now()
+     where id = v_existing.id;
+
+    -- Follow a merge rather than resurrecting a merged-away Contact.
+    select coalesce(c.merged_into_contact_id, c.id) into v_contact_id
+      from contacts c where c.id = v_existing.contact_id;
+
+    return jsonb_build_object('status', 'known', 'contact_id', v_contact_id,
+                              'identity_id', v_existing.id);
+  end if;
+
+  -- B. Not known, but an exact address match names exactly one Contact.
+  if public.normalize_email(p_email) is not null then
+    select count(distinct contact_id) into v_matches
+      from contact_email_addresses
+     where normalized_email = public.normalize_email(p_email);
+
+    if v_matches = 1 then
+      select coalesce(c.merged_into_contact_id, c.id) into v_contact_id
+        from contact_email_addresses a
+        join contacts c on c.id = a.contact_id
+       where a.normalized_email = public.normalize_email(p_email)
+       limit 1;
+
+      insert into contact_external_identities
+        (contact_id, provider, provider_account_id, external_user_id,
+         display_identifier, metadata, first_seen_at, last_seen_at)
+      values (v_contact_id, p_provider, p_provider_account_id, p_external_user_id,
+              p_display_identifier, coalesce(p_metadata, '{}'::jsonb),
+              p_observed_at, p_observed_at)
+      returning id into v_existing.id;
+
+      return jsonb_build_object('status', 'linked_by_email', 'contact_id', v_contact_id,
+                                'identity_id', v_existing.id);
+    end if;
+
+    -- D. The address names more than one person. Refuse, loudly.
+    if v_matches > 1 then
+      return jsonb_build_object('status', 'ambiguous',
+        'reason', format('%s Contacts hold that address; a person must decide', v_matches));
+    end if;
+  end if;
+
+  -- C. Nothing deterministic to attach to. The caller decides whether its
+  --    integration rules justify creating a Contact; this will not do it
+  --    on a handle's say-so.
+  return jsonb_build_object('status', 'unresolved',
+    'reason', 'no existing identity and no exact email match');
+end;
 $function$
 ;

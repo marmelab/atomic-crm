@@ -131,11 +131,15 @@ const declaredContactForeignKeys = (): Map<string, Set<ContactDeleteRule>> => {
 
       // The clause runs to the end of this constraint definition.
       const clause = source.slice(match.index, match.index + 200);
-      const rule: ContactDeleteRule = /on\s+delete\s+cascade/i.test(
-        clause.split(/[;,]\s*\n/)[0],
-      )
+      // Three outcomes now, not two: contacts references itself via
+      // merged_into_contact_id, which clears the forwarding pointer
+      // rather than destroying or blocking anything.
+      const definition = clause.split(/[;,]\s*\n/)[0];
+      const rule: ContactDeleteRule = /on\s+delete\s+cascade/i.test(definition)
         ? "CASCADE"
-        : "NO ACTION";
+        : /on\s+delete\s+set\s+null/i.test(definition)
+          ? "SET NULL"
+          : "NO ACTION";
 
       const table = owner[1].toLowerCase();
       if (!found.has(table)) found.set(table, new Set());
@@ -252,13 +256,20 @@ describe("the contact delete-rule map is what the schema actually says", () => {
   });
 
   it("still names the tables a contact delete would destroy", () => {
-    // Arrange — the live rules read from MAIN during the Slice 0 audit.
+    // Arrange — the live rules read from MAIN during the Slice 0 audit,
+    // plus the three tables Slice 5 added. Each was considered rather
+    // than absorbed: identities belong to the person and go with them, a
+    // merge record has to outlive both sides of the merge it explains,
+    // and the self-reference only ever clears a forwarding pointer.
     // Assert
     expect(CONTACT_FK_DELETE_RULES).toEqual({
       applications: "NO ACTION",
       client_sessions: "CASCADE",
+      contact_external_identities: "CASCADE",
+      contact_merges: "NO ACTION",
       contact_notes: "CASCADE",
       contact_stripe_customers: "CASCADE",
+      contacts: "SET NULL",
       deals: "CASCADE",
       sales_calls: "CASCADE",
       tasks: "CASCADE",

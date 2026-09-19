@@ -2036,3 +2036,112 @@ create table if not exists public.application_form_questions (
 
 alter table public.sales_calls
     add column if not exists resolution_requested_at timestamptz;
+
+-- Contact identity: provider identities as evidence, never as the person.
+create table if not exists public.contact_external_identities (
+  id bigint generated always as identity primary key,
+  contact_id bigint not null
+    references public.contacts(id) on update cascade on delete cascade,
+
+  -- Which system is speaking. Constrained so a typo cannot invent a
+  -- provider; adding one is a one-line migration and a deliberate act.
+  provider text not null,
+
+  -- WHICH account of that provider observed it. An Instagram user id is
+  -- scoped to the business account that saw it, so the same person
+  -- messaging two different IG accounts is two scoped ids, and the same
+  -- scoped id seen by two accounts is not automatically one person.
+  -- NULL where the provider has no such scoping (a Stripe customer id is
+  -- global to the account).
+  provider_account_id text,
+
+  -- The provider's own immutable identifier. NEVER a handle, never an
+  -- email typed by a human, never anything the person can change.
+  external_user_id text not null,
+
+  -- What to show Leif, and what he might search for: "@someone",
+  -- "person@example.com". Mutable by definition — a handle change updates
+  -- this and nothing else.
+  display_identifier text,
+
+  -- Small, provider-specific context. Never tokens, never secrets.
+  metadata jsonb not null default '{}'::jsonb,
+
+  first_seen_at timestamptz,
+  last_seen_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+
+  constraint contact_external_identities_provider_check check (
+    provider in ('instagram', 'gmail', 'email', 'stripe', 'acuity', 'notion')
+  ),
+  constraint contact_external_identities_external_user_id_check check (
+    btrim(external_user_id) <> ''
+  )
+);
+
+-- The invariant the whole model rests on: one provider identity names at
+-- most one human. A partial pair of unique indexes rather than one, because
+-- NULL provider_account_id would otherwise defeat uniqueness entirely.
+create unique index if not exists contact_external_identities_scoped_key
+  on public.contact_external_identities (provider, provider_account_id, external_user_id)
+  where provider_account_id is not null;
+
+create unique index if not exists contact_external_identities_global_key
+  on public.contact_external_identities (provider, external_user_id)
+  where provider_account_id is null;
+
+create index if not exists contact_external_identities_contact_idx
+  on public.contact_external_identities (contact_id);
+
+-- Searching a handle has to find the person, without the handle ever
+-- being the key.
+create index if not exists contact_external_identities_display_idx
+  on public.contact_external_identities (lower(display_identifier));
+
+
+create unique index if not exists contact_external_identities_scoped_key
+  on public.contact_external_identities (provider, provider_account_id, external_user_id)
+  where provider_account_id is not null;
+
+create unique index if not exists contact_external_identities_global_key
+  on public.contact_external_identities (provider, external_user_id)
+  where provider_account_id is null;
+
+create index if not exists contact_external_identities_contact_idx
+  on public.contact_external_identities (contact_id);
+
+-- Searching a handle has to find the person, without the handle ever
+-- being the key.
+create index if not exists contact_external_identities_display_idx
+  on public.contact_external_identities (lower(display_identifier));
+
+
+alter table public.contacts
+    add column if not exists merged_into_contact_id bigint;
+alter table public.contacts
+    drop constraint if exists contacts_merged_into_fkey;
+alter table public.contacts
+    add constraint contacts_merged_into_fkey foreign key (merged_into_contact_id)
+    references public.contacts(id) on update cascade on delete set null;
+alter table public.contacts
+    drop constraint if exists contacts_not_merged_into_self;
+alter table public.contacts
+    add constraint contacts_not_merged_into_self check (merged_into_contact_id is distinct from id);
+create table if not exists public.contact_merges (
+  id bigint generated always as identity primary key,
+  source_contact_id bigint not null references public.contacts(id) on update cascade,
+  destination_contact_id bigint not null references public.contacts(id) on update cascade,
+  merged_at timestamptz not null default now(),
+  -- Who decided. A person, or the named process that did it.
+  actor text not null,
+  -- Why it was safe: the deterministic evidence, in words.
+  evidence text not null,
+  -- What moved, per table, so the merge can be explained and audited.
+  moved_counts jsonb not null default '{}'::jsonb,
+  constraint contact_merges_distinct check (source_contact_id <> destination_contact_id)
+);
+
+create index if not exists contact_merges_source_idx on public.contact_merges (source_contact_id);
+create index if not exists contact_merges_destination_idx on public.contact_merges (destination_contact_id);
+

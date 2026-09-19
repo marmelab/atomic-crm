@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { contactDisplayNameOr } from "../contacts/contactDisplayName";
 import {
   useDataProvider,
   useNotify,
@@ -72,28 +73,20 @@ import { describeAgreedTerms, formatMoney } from "../deals/paymentPresentation";
 // showing five indistinguishable rows. The underlying Tasks still exist
 // and still surface normally on the Dashboard/Contact page/etc.
 export const ClientShow = () => (
-  <Show actions={<EditButton />} title={<ClientTitle />}>
+  // No page title, because the page already has one.
+  //
+  // The framework's default was the record representation — "Client #63",
+  // the id of a join record — so a previous pass replaced it with the
+  // person's name. But the body already opened with their name, as a link
+  // to their Contact with the programme and email beneath it, so every
+  // client page showed the same person twice, once plain and once useful.
+  //
+  // The body's version is the one worth keeping: it is the one that goes
+  // somewhere. This drops the plain copy rather than the linked one.
+  <Show actions={<EditButton />} title={false}>
     <EnrollmentOperationalHome />
   </Show>
 );
-
-// Who this page is about, as its heading.
-//
-// The framework's default is the record representation, which for an
-// Enrollment is its id: production showed "Client #63" in 24px bold above
-// Sam Milz's own name in 18px. The internal id of a join record is not a
-// person's identity, and nobody has ever gone looking for client sixty-three.
-const ClientTitle = () => {
-  const enrollment = useRecordContext<Enrollment>();
-  const { deal, contact } = useEnrollmentOperationalData(enrollment);
-
-  if (!enrollment) return null;
-  const name = contact
-    ? `${contact.first_name ?? ""} ${contact.last_name ?? ""}`.trim()
-    : (deal?.name ?? "");
-  // Never fall back to the id: an empty heading is better than a wrong one.
-  return <>{name}</>;
-};
 
 const EnrollmentOperationalHome = () => {
   const enrollment = useRecordContext<Enrollment>();
@@ -112,9 +105,7 @@ const EnrollmentOperationalHome = () => {
 
   if (isPending || !enrollment || !deal || !offer) return null;
 
-  const contactName = contact
-    ? `${contact.first_name ?? ""} ${contact.last_name ?? ""}`.trim()
-    : deal.name;
+  const contactName = contactDisplayNameOr(contact, deal.name);
 
   const onboardingProgress = computeOnboardingProgress(
     items,
@@ -179,7 +170,10 @@ const EnrollmentOperationalHome = () => {
               the direct relationship already on the Deal, never a
               heuristic guess. Visibly a link (underline-on-hover) but
               styled like the plain name it replaces, not a loud CTA. */}
-          <span className="text-2xl font-bold tracking-tight">
+          {/* The page heading, now that the framework chrome no longer
+              renders a second one. A real heading element because it is
+              genuinely this page's title. */}
+          <h2 className="text-2xl font-bold tracking-tight">
             {contact ? (
               <Link
                 to={`/contacts/${contact.id}/show`}
@@ -190,7 +184,7 @@ const EnrollmentOperationalHome = () => {
             ) : (
               contactName
             )}
-          </span>
+          </h2>
           {/* The programme is context for the person, not the other way
               round. */}
           <span className="text-base text-muted-foreground">

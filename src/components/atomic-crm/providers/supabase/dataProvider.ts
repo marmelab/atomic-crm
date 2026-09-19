@@ -349,6 +349,12 @@ const lifeCycleCallbacks: ResourceCallbacks[] = [
         "email",
         "phone",
         "background",
+        // The free-text note, and the handles providers know a person by.
+        // Both are search metadata only: identity lives on the immutable
+        // provider id, so finding somebody by "@handle" never implies two
+        // Contacts with the same handle text are one person.
+        "identifiers",
+        "external_identifiers_fts",
       ])(params);
     },
   },

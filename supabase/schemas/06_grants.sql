@@ -660,3 +660,9 @@ revoke all on public.application_form_versions from anon;
 revoke all on public.application_form_questions from anon;
 
 grant select on public.applications_awaiting_review to authenticated;
+
+grant select on public.contact_external_identities to authenticated;
+revoke all on public.contact_external_identities from anon;
+grant select on public.contact_merges to authenticated;
+revoke all on public.contact_merges from anon;
+grant select on public.contact_email_addresses to authenticated;

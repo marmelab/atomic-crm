@@ -82,7 +82,7 @@ export const refuseContactDelete = (): never => {
  * this, so a future schema change cannot quietly widen the blast radius
  * or add a new dependent table nobody accounted for.
  */
-export type ContactDeleteRule = "CASCADE" | "NO ACTION";
+export type ContactDeleteRule = "CASCADE" | "NO ACTION" | "SET NULL";
 
 export const CONTACT_FK_DELETE_RULES: Record<string, ContactDeleteRule> = {
   // Destroyed with the Contact.
@@ -93,10 +93,19 @@ export const CONTACT_FK_DELETE_RULES: Record<string, ContactDeleteRule> = {
   sales_calls: "CASCADE",
   tasks: "CASCADE",
   waitlist_entries: "CASCADE",
+  // A person's provider identities are about them and go with them.
+  contact_external_identities: "CASCADE",
   // Block the delete instead, which is why a merge aborts for anyone who
   // ever applied.
   applications: "NO ACTION",
   waitlist_invitations: "NO ACTION",
+  // The record that a merge happened outlives both sides of it: deleting
+  // a Contact that was ever merged would erase the explanation for where
+  // its history went.
+  contact_merges: "NO ACTION",
+  // contacts points at itself: merged_into_contact_id. Clearing it loses
+  // only the forwarding pointer, never a record.
+  contacts: "SET NULL",
 };
 
 /** The tables a Contact delete would destroy, worst first. */

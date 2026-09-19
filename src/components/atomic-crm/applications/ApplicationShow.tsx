@@ -1,4 +1,5 @@
 import { ShowBase, useRecordContext, useTranslate } from "ra-core";
+import { contactDisplayNameOr } from "../contacts/contactDisplayName";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -34,7 +35,7 @@ const ApplicationShowContent = () => {
 
   if (!record || isPending || !deal || !contact || !offer) return null;
 
-  const applicantName = `${contact.first_name} ${contact.last_name}`;
+  const applicantName = contactDisplayNameOr(contact, deal.name);
   const submittedLabel = translate(
     "resources.applications.fields.submitted_at",
     { _: "Submitted" },

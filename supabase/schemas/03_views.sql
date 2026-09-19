@@ -151,7 +151,19 @@ select
     -- "active"; converted/removed entries don't count).
     bool_or(w.status in ('waiting', 'invited')) as is_on_waitlist,
     -- Has a non-archived Opportunity currently exited into nurture.
-    bool_or(d.outcome = 'nurture' and d.archived_at is null) as has_nurture_deal
+    bool_or(d.outcome = 'nurture' and d.archived_at is null) as has_nurture_deal,
+    -- The legacy free-text identifiers note, so search can reach it.
+    co.identifiers,
+    -- So a merged-away Contact can be kept out of lists without a second
+    -- query. The row survives a merge; it just stops being a person you
+    -- work with.
+    co.merged_into_contact_id,
+    -- The display handles/addresses providers know this person by — for
+    -- SEARCH ONLY. Identity lives on the immutable provider id in
+    -- contact_external_identities; a handle is a label that can change.
+    (select string_agg(distinct i.display_identifier, ' ')
+       from public.contact_external_identities i
+      where i.contact_id = co.id and i.display_identifier is not null) as external_identifiers_fts
 from public.contacts co
     left join public.tasks t on co.id = t.contact_id
     left join public.companies c on co.company_id = c.id
