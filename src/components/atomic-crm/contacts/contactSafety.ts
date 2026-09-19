@@ -75,6 +75,45 @@ export const refuseContactDelete = (): never => {
 };
 
 /**
+ * The classification for two Contacts that look like the same person but
+ * cannot be proved to be.
+ *
+ * Merging is only ever justified by an exact provider identity or an exact
+ * normalized address. A shared name is not evidence — two people really do
+ * share a name, and Terra Israd 212/213 is exactly that case, confirmed
+ * independently.
+ */
+export const POSSIBLE_DUPLICATE_OWNER_REVIEW =
+  "possible_duplicate_owner_review";
+
+/**
+ * The pairs carrying that classification today, recorded here rather than
+ * written onto the Contacts themselves — the review is about them, not a
+ * fact about them, and nothing should mutate a real person's record to
+ * hold a question.
+ *
+ * Every one of these is the same shape: one side with a real address and
+ * full history, one side holding a single Application and no address at
+ * all. They share no normalized email and no Stripe customer, and the
+ * orphan side's Application contains no address anywhere in its answers,
+ * so no deterministic evidence exists to settle them. The owner reviewed
+ * them on 2026-09-19 and chose to leave all four unmerged.
+ *
+ * This is a record, not a mechanism: nothing reads it to act. If a
+ * deterministic identity later arrives for one of these people — a Gmail
+ * address, an Instagram account — `record_external_identity()` resolves it
+ * on evidence and the pair leaves this list.
+ */
+export const CONTACTS_AWAITING_DUPLICATE_REVIEW: ReadonlyArray<
+  readonly [number, number]
+> = [
+  [106, 344],
+  [133, 364],
+  [142, 341],
+  [161, 349],
+];
+
+/**
  * What actually happens to each table when a Contact row is deleted.
  *
  * Read from the live database during the Slice 0 audit and frozen here.
