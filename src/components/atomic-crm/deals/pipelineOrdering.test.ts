@@ -135,7 +135,7 @@ describe("entry stages — newest first", () => {
   );
 });
 
-describe("Decision — the promise Leif made comes first", () => {
+describe("Decision — what still needs a decision comes first", () => {
   it("orders by soonest follow-up date", () => {
     const deals = [
       deal({ id: 1, stage: "decision", follow_up_date: "2026-09-30" }),
@@ -165,13 +165,16 @@ describe("Decision — the promise Leif made comes first", () => {
     expect(order("decision", deals)).toEqual([2, 1]);
   });
 
-  it("ranks a promised follow-up above having promised nothing", () => {
+  it("ranks having no plan at all above a plan already made", () => {
+    // A future follow-up means this attempt HAS a next action. One with
+    // no follow-up has none, and nobody has chosen one — which is the
+    // work this column exists to surface.
     const deals = [
       deal({ id: 1, stage: "decision", follow_up_date: null }),
       deal({ id: 2, stage: "decision", follow_up_date: "2026-12-31" }),
     ];
 
-    expect(order("decision", deals)).toEqual([2, 1]);
+    expect(order("decision", deals)).toEqual([1, 2]);
   });
 
   // NOW is 2026-09-18T12:00Z, which is 2026-09-18 in the CRM's own
@@ -195,7 +198,7 @@ describe("Decision — the promise Leif made comes first", () => {
     expect(order("decision", deals)).toEqual([2, 3, 1]);
   });
 
-  it("puts today between the overdue and the upcoming", () => {
+  it("runs overdue, then today, then unscheduled, then upcoming", () => {
     const deals = [
       deal({ id: 1, stage: "decision", follow_up_date: "2026-09-19" }),
       deal({ id: 2, stage: "decision", follow_up_date: "2026-09-18" }),
@@ -203,7 +206,38 @@ describe("Decision — the promise Leif made comes first", () => {
       deal({ id: 4, stage: "decision", follow_up_date: null }),
     ];
 
-    expect(order("decision", deals)).toEqual([3, 2, 1, 4]);
+    expect(order("decision", deals)).toEqual([3, 2, 4, 1]);
+  });
+
+  it("due today outranks an Opportunity with nothing scheduled", () => {
+    const deals = [
+      deal({
+        id: 1,
+        stage: "decision",
+        follow_up_date: null,
+        // Waiting far longer, and still below a promise owed today.
+        stage_entered_at: "2026-01-01T00:00:00.000Z",
+      }),
+      deal({ id: 2, stage: "decision", follow_up_date: "2026-09-18" }),
+    ];
+
+    expect(order("decision", deals)).toEqual([2, 1]);
+  });
+
+  it("an overdue follow-up outranks every later band", () => {
+    const deals = [
+      deal({ id: 1, stage: "decision", follow_up_date: "2026-09-25" }),
+      deal({
+        id: 2,
+        stage: "decision",
+        follow_up_date: null,
+        stage_entered_at: "2026-01-01T00:00:00.000Z",
+      }),
+      deal({ id: 3, stage: "decision", follow_up_date: "2026-09-18" }),
+      deal({ id: 4, stage: "decision", follow_up_date: "2026-08-01" }),
+    ];
+
+    expect(order("decision", deals)).toEqual([4, 3, 2, 1]);
   });
 
   it("reads the follow-up day in the CRM's timezone, not the server's", () => {
@@ -239,7 +273,7 @@ describe("Decision — the promise Leif made comes first", () => {
   // The acceptance case, with synthetic stand-ins. Leif saw one person
   // with a future follow-up sitting above two who had been in Decision for
   // a month with nothing scheduled at all.
-  it("regression: a future follow-up still outranks no follow-up", () => {
+  it("regression: the two nobody has planned for come above the one who is handled", () => {
     const gil = deal({
       id: 186,
       stage: "decision",
@@ -259,15 +293,16 @@ describe("Decision — the promise Leif made comes first", () => {
       stage_entered_at: "2026-08-21T00:00:00.000Z",
     });
 
-    // Band 2 (upcoming) before band 3 (nothing promised), then the two
-    // unpromised ones by how long they have waited.
-    expect(order("decision", [gianina, bess, gil])).toEqual([186, 105, 98]);
+    // The unscheduled pair first, longest waiting of them leading, and
+    // Gil last because the 22nd is already arranged.
+    expect(order("decision", [gianina, bess, gil])).toEqual([105, 98, 186]);
   });
 
-  it("regression: once that follow-up is overdue, the month-old ones still wait", () => {
-    // The same three, read a week later. Gil's promise is now broken, so
-    // he moves from band 2 to band 0 — above the unpromised pair either
-    // way. Only a change to how an absent follow-up is treated moves them.
+  it("regression: once that follow-up is overdue, Gil comes back to the top", () => {
+    // The same two, read a week later. Gil's promise is now BROKEN, which
+    // is a different thing from planned — band 0, above the unscheduled
+    // one. Being handled only outranks being unhandled while the plan
+    // still holds.
     const later = new Date("2026-09-29T12:00:00.000Z").getTime();
     const deals = [
       deal({

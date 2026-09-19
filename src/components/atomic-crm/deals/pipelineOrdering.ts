@@ -33,11 +33,12 @@ import {
 //     this stage with no booked call at all sorts last of all.
 //
 //   Decision
-//     Follow-up chronology, in four bands: overdue (oldest broken promise
-//     first), due today, due later (soonest first), then no follow-up
-//     date at all. Within a band, longest-waiting first. The date is a
-//     commitment Leif made, and a promise already broken outranks one
-//     that is merely upcoming.
+//     What still needs a decision, in four bands: overdue follow-ups
+//     (oldest broken promise first), due today, then the ones with no
+//     follow-up scheduled at all (longest waiting first), then future
+//     follow-ups (soonest first). A planned follow-up means the attempt
+//     already has a next action; no follow-up at all means nobody has
+//     chosen one, which is the work this column is for.
 //
 //   Committed
 //     Longest waiting FIRST. Committed means somebody said yes and
@@ -120,22 +121,27 @@ const nextCallFirst =
   };
 
 /**
- * "Follow-up soonest first", meaning exactly one thing.
+ * "Needs action first", meaning exactly one thing.
  *
  * `deals.follow_up_date` is the only source. It is a commitment Leif made,
  * and the follow-up Task that projects it carries the same date — there is
  * deliberately no second follow-up date to disagree with it.
  *
- * Four bands, because a date on its own does not say how urgent it is:
+ * Four bands:
  *
  *   0  overdue    — the promise has already been broken. Oldest first, so
  *                   the one broken longest is the one shouting loudest.
  *   1  today      — owed today.
- *   2  later      — soonest first.
- *   3  no date    — no promise was ever made.
+ *   2  no date    — nothing is planned for this person at all.
+ *   3  later      — soonest first.
  *
- * Within a band, and for the whole of band 3, longest-waiting breaks the
- * tie: with nothing promised, time in the stage is the only real signal.
+ * The order of the last two is the whole point, and it is not obvious. A
+ * future follow-up means the sales attempt already HAS a next action: Gil
+ * is handled, he is handled on the 22nd, and nothing needs deciding about
+ * him today. An Opportunity sitting in Decision with no follow-up at all
+ * has no next action and nobody has chosen one — which is exactly the
+ * work this column exists to surface. So unscheduled outranks planned,
+ * and within it the person who has been waiting longest comes first.
  *
  * Dates are compared as calendar days in the CRM's own timezone. A
  * follow-up due "today" is due today wherever the server happens to be.
@@ -143,8 +149,8 @@ const nextCallFirst =
 export const FOLLOW_UP_BANDS = {
   overdue: 0,
   today: 1,
-  later: 2,
-  none: 3,
+  none: 2,
+  later: 3,
 } as const;
 
 const CRM_TIME_ZONE = "America/Denver";
@@ -182,7 +188,7 @@ export const followUpBand = (
   return FOLLOW_UP_BANDS.later;
 };
 
-const soonestFollowUpFirst =
+const needsActionFirst =
   (now: number) =>
   (a: Deal, b: Deal): number => {
     const today = crmDayKey(now);
@@ -190,13 +196,17 @@ const soonestFollowUpFirst =
     const bandB = followUpBand(b, today);
     if (bandA !== bandB) return bandA - bandB;
 
-    // Both overdue and both later sort by the date itself, ascending —
+    // Overdue and upcoming both sort by the date itself, ascending —
     // oldest broken promise first, soonest upcoming promise first. Same
-    // direction, and it is the right one in both bands.
+    // direction, and it is the right one in both bands. Today's band and
+    // the unscheduled band have no date to sort by and fall straight
+    // through to how long the person has been waiting.
     const dayA = followUpDay(a);
     const dayB = followUpDay(b);
     if (dayA && dayB && dayA !== dayB) return dayA.localeCompare(dayB);
 
+    // longestWaitingFirst already breaks its own tie on id descending, so
+    // the order is total and stable across renders.
     return longestWaitingFirst(a, b);
   };
 
@@ -212,7 +222,7 @@ export const comparatorForStage = (
     case "call_booked":
       return nextCallFirst(context.nextCallAt, context.now ?? Date.now());
     case "decision":
-      return soonestFollowUpFirst(context.now ?? Date.now());
+      return needsActionFirst(context.now ?? Date.now());
     case "onboarding":
       return longestWaitingFirst;
     default:
@@ -229,6 +239,6 @@ export const ORDERING_RULE_LABELS: Record<string, string> = {
   application_received: "Newest first",
   approved: "Newest first",
   call_booked: "Next call first",
-  decision: "Follow-up soonest first",
+  decision: "Needs action first",
   onboarding: "Waiting longest first",
 };

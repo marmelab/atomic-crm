@@ -128,7 +128,18 @@ export const REVIEW_THRESHOLD = 2;
  * migration that MUST replay into an empty database. Adding one to silence
  * a replay failure is the exact mistake this module exists to catch.
  */
-export const REVIEWED_DETERMINISTIC = {};
+export const REVIEWED_DETERMINISTIC = {
+  // Matched "a table of named real clients" on
+  //   values ('Zz', 'Exit Probe', now(), now())
+  // which is a synthetic Contact, inserted inside a subtransaction that
+  // the block then rolls back. The migration owns a function definition
+  // and a grant and writes no business data at all; the row exists only
+  // to prove, at deploy time, that ending a sale works for the role the
+  // browser actually uses. It replays into an empty database, which is
+  // where it was first proved.
+  20260919180000:
+    "synthetic probe row, rolled back; owns a function and a grant",
+};
 
 /**
  * Whether the canonical Acuity mapping is built from production data.

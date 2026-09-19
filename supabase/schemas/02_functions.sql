@@ -1895,25 +1895,35 @@ $function$
 CREATE OR REPLACE FUNCTION public.record_deal_outcome_event()
  RETURNS trigger
  LANGUAGE plpgsql
+ SECURITY DEFINER
  SET search_path TO 'public'
 AS $function$
+declare
+  v_source text := coalesce(
+    nullif(current_setting('app.outcome_event_source', true), ''), 'app');
+  v_note text := nullif(current_setting('app.outcome_event_note', true), '');
 begin
   if tg_op = 'INSERT' then
     if new.outcome is not null then
       insert into public.deal_outcome_events
-        (opportunity_id, old_outcome, new_outcome, exit_reason, occurred_at, source)
-      values (new.id, null, new.outcome, new.exit_reason, now(), 'app');
+        (opportunity_id, old_outcome, new_outcome, exit_reason, occurred_at, source, note)
+      values (new.id, null, new.outcome, new.exit_reason, now(), v_source, v_note);
     end if;
   elsif new.outcome is distinct from old.outcome
      or (new.outcome is not null and new.exit_reason is distinct from old.exit_reason) then
     insert into public.deal_outcome_events
-      (opportunity_id, old_outcome, new_outcome, exit_reason, occurred_at, source)
-    values (new.id, old.outcome, new.outcome, new.exit_reason, now(), 'app');
+      (opportunity_id, old_outcome, new_outcome, exit_reason, occurred_at, source, note)
+    values (new.id, old.outcome, new.outcome, new.exit_reason, now(), v_source, v_note);
   end if;
   return new;
 end;
 $function$
 ;
+
+-- deal_outcome_events grants no role INSERT: an exit is recorded as a
+-- consequence of a Deal changing, never by a client asserting one. That is
+-- why the trigger is SECURITY DEFINER, and why nothing needs EXECUTE on it.
+revoke all on function public.record_deal_outcome_event() from public, anon, authenticated;
 
 CREATE OR REPLACE FUNCTION public.record_sales_call_reinstated(p_sales_call_id bigint)
  RETURNS jsonb

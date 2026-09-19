@@ -2,6 +2,7 @@ import type { AuthProvider } from "ra-core";
 import { supabaseAuthProvider } from "ra-supabase-core";
 
 import { canAccess } from "../commons/canAccess";
+import { isSessionFailure } from "./isSessionFailure";
 import { getSupabaseClient } from "./supabase";
 
 const getBaseAuthProvider = () =>
@@ -142,6 +143,15 @@ export const getAuthProvider = (): AuthProvider => {
       }
 
       return baseAuthProvider.checkAuth(params);
+    },
+    // ra-supabase-core logs out on every 401 and every 403. A 403 the
+    // DATABASE produced — a missing grant, a failed check, an RLS refusal
+    // — is not a dead session, and treating it as one signed Leif out
+    // mid-action with a perfectly valid login. See isSessionFailure.ts;
+    // a real auth failure still ends the session.
+    checkError: async (error) => {
+      if (isSessionFailure(error)) return Promise.reject();
+      return Promise.resolve();
     },
     canAccess: async (params) => {
       const isInitialized = await getIsInitialized();
