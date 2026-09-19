@@ -84,6 +84,33 @@ read, copy or reuse MAIN's. These are environment facts, not configuration
 the repository owns, and they are recorded under `clean_room_prerequisites`
 in the manifest.
 
+### Deployment and public URLs
+
+**The app is HASH-routed.** `CRM.tsx` explains why: crossing between
+`/#/apply/...` and any other `/#/...` path is a same-document hash change,
+which lets a public submission and the CRM's own read of it share one live
+dataProvider instance. So the real public application links are:
+
+- `https://crm.leifariel.com/#/apply/living-example`
+- `https://crm.leifariel.com/#/apply/growing-yourself-up/<cohortId>`
+
+`vercel.json` redirects the plain `/apply/*` paths to those, and rewrites
+everything else to `index.html` so an unmatched path is not a bare 404.
+
+**vercel.json is schema-validated before the build starts** (`additionalProperties:
+false`). An unknown key — an explanatory `$comment`, say — fails the
+deployment in 0ms with no build log, while the previous build keeps serving
+and everything looks fine. Explanations go here, not in that file;
+`scripts/historical-import/vercelConfig.test.mjs` guards the key set.
+
+**Two deploy targets with different bases.** Vercel serves from a domain
+root and needs `base: "/"`; the GitHub Pages demo serves from a subpath and
+sets `VITE_BASE=./` in the deploy workflow. `vite.config.ts` defaults to `/`.
+
+**Vercel deploys on push to main**, separately from the GitHub Actions
+workflow (which handles the docs, the demo, and Supabase). A green Actions
+run does not mean the frontend deployed — check `npx vercel ls`.
+
 ### Registry (Shadcn Components)
 
 ```bash

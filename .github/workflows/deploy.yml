@@ -59,6 +59,10 @@ jobs:
 
         env:
             VITE_IS_DEMO: true
+            # The demo is served from a GitHub Pages SUBPATH, so its assets
+            # must be referenced relatively. Production (Vercel) serves from
+            # a domain root and needs absolute paths — see vite.config.ts.
+            VITE_BASE: "./"
             VITE_INBOUND_EMAIL: ${{ vars.VITE_INBOUND_EMAIL }}
             VITE_ATTACHMENTS_BUCKET: ${{ vars.VITE_ATTACHMENTS_BUCKET || 'attachments' }}
             PRODUCTION_REMOTE: https://git:${{ secrets.DEPLOY_TOKEN || secrets.GITHUB_TOKEN }}@github.com/${{ vars.DEMO_DEPLOY_REPOSITORY }}
