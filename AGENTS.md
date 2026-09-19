@@ -39,6 +39,32 @@ npx supabase db push                    # Push migrations to remote
 npx supabase db reset --local           # Reset local database (destructive)
 ```
 
+#### Disaster recovery: what rebuilds, and what is restored
+
+Two different things, and confusing them wastes days:
+
+- **Schema + deterministic configuration** — rebuilt from this repository.
+  Must replay into an *empty* database. Never derive configuration from
+  business rows that only production happens to contain.
+- **Business data** — restored from a Supabase backup. Never rebuilt by
+  replaying migrations.
+- **MAIN-only historical data repairs** — migrations that correct specific
+  real records (a named client, Opportunity 187, "expected 4 Enrollments").
+  They keep their production-specific assertions, because those assertions
+  are what makes them safe on MAIN. They are **not** replayed into an empty
+  database; they are listed in `supabase/migrations/replay-manifest.json`.
+
+**Writing a new migration:** it is deterministic by default. Only add it to
+the manifest if it genuinely repairs historical production data *and* owns
+no durable schema, column, index, constraint, function, trigger, policy,
+grant or canonical configuration. A migration that does both cannot be
+skipped — split the structural half out so it rebuilds on its own.
+
+`node scripts/historical-import/replayBoundary.mjs` audits this and exits
+non-zero on a violation. The one real prerequisite a clean environment
+needs before `20260906070000` is `create extension pg_cron` (it restarts
+Postgres, so the next `db push` needs one retry).
+
 ### Registry (Shadcn Components)
 
 ```bash

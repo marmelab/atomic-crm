@@ -1,0 +1,144 @@
+{
+  "$comment": [
+    "Which migrations reconstruct a database, and which only repair this one.",
+    "",
+    "The chain contains two kinds of migration. Schema and deterministic",
+    "configuration must rebuild from this repository into an empty database —",
+    "that is the disaster-recovery property. Historical data repairs correct",
+    "specific real records on MAIN; replaying them into an empty database is",
+    "meaningless, and the assertions that make them trustworthy there would",
+    "have to be gutted to make them pass here.",
+    "",
+    "So they are listed, not weakened. Everything absent from this file is",
+    "deterministic and MUST replay from empty. A new migration is deterministic",
+    "by default; adding it here is a deliberate act.",
+    "",
+    "owns_durable_schema means the migration also creates structure or",
+    "configuration the finished CRM needs. Such a migration CANNOT simply be",
+    "skipped: the structure has to be reconstructible on its own first, or the",
+    "rebuilt database silently lacks it. Those are flagged unresolved below."
+  ],
+  "version": 1,
+  "total_migration_versions": 101,
+  "main_only_historical_data_repairs": [
+    {
+      "version": "20260918070000",
+      "file": "20260918070000_historical_chat_calls_and_sophie_attach.sql",
+      "classification": "main_only_historical_data_repair",
+      "reason": "Recreates thirteen historical Acuity 'chat' calls and four contacts that exist only in Acuity, and attaches Sophie Russell's call 52 to Opportunity 87. Asserts exact production ids and counts.",
+      "owns_durable_schema": false
+    },
+    {
+      "version": "20260918180000",
+      "file": "20260918180000_won_is_a_sales_fact_not_a_payment_fact.sql",
+      "classification": "main_only_historical_data_repair",
+      "reason": "Moves four named Opportunities to Won and asserts their Enrollments, Linda's absent start date and her exact collected total.",
+      "owns_durable_schema": false
+    },
+    {
+      "version": "20260918220000",
+      "file": "20260918220000_restore_mia_payment_review.sql",
+      "classification": "main_only_historical_data_repair",
+      "reason": "Restores the payment review reason a sweep erased from Mia Cosme's Opportunity.",
+      "owns_durable_schema": false
+    },
+    {
+      "version": "20260918240000",
+      "file": "20260918240000_owner_verified_payment_truth.sql",
+      "classification": "main_only_historical_data_repair",
+      "reason": "Records owner-stated and Stripe-verified payment facts for Mia, Emily, Jess and Linda.",
+      "owns_durable_schema": false
+    },
+    {
+      "version": "20260918270000",
+      "file": "20260918270000_lara_spagnola_one_payment_two_records.sql",
+      "classification": "main_only_historical_data_repair",
+      "reason": "Collapses Lara Spagnola's duplicated $400 payment into one row carrying both provenances.",
+      "owns_durable_schema": false
+    },
+    {
+      "version": "20260918160000",
+      "file": "20260918160000_reinstate_action_and_no_show_convergence.sql",
+      "classification": "main_only_historical_data_repair",
+      "reason": "Converges two historical no-show calls and asserts the exact live count.",
+      "owns_durable_schema": true,
+      "durable_objects": [
+        "function public.record_sales_call_reinstated(bigint)",
+        "function public.close_tasks_for_sales_call(bigint, timestamptz)",
+        "grant execute on record_sales_call_reinstated to authenticated, service_role"
+      ],
+      "boundary_status": "unresolved"
+    },
+    {
+      "version": "20260918190000",
+      "file": "20260918190000_owner_truth_and_stripe_reconciliation_schedule.sql",
+      "classification": "main_only_historical_data_repair",
+      "reason": "Records Linda Turner's owner-stated payment and asserts live figures.",
+      "owns_durable_schema": true,
+      "durable_objects": ["cron job 'reconcile-stripe' (47 * * * *)"],
+      "boundary_status": "unresolved"
+    },
+    {
+      "version": "20260918200000",
+      "file": "20260918200000_onboarding_complete_and_stripe_link_provenance.sql",
+      "classification": "main_only_historical_data_repair",
+      "reason": "Marks four named Enrollments onboarded and asserts exact counts, Emma's absent Stripe plan and Linda's paid-in-full record.",
+      "owns_durable_schema": true,
+      "durable_objects": [
+        "deals.stripe_linked_at",
+        "deals.stripe_link_source",
+        "constraint deals_stripe_link_source_check"
+      ],
+      "boundary_status": "unresolved"
+    },
+    {
+      "version": "20260918210000",
+      "file": "20260918210000_payment_truth_is_broader_than_plan_truth.sql",
+      "classification": "main_only_historical_data_repair",
+      "reason": "Corrects payment truth for Emily, Jess, Jules and Mia.",
+      "owns_durable_schema": true,
+      "durable_objects": [
+        "deals.payment_review_reason",
+        "unique index deal_payment_schedule_items_stripe_pi_key"
+      ],
+      "boundary_status": "unresolved"
+    },
+    {
+      "version": "20260918260000",
+      "file": "20260918260000_a_session_in_the_future_has_not_happened.sql",
+      "classification": "main_only_historical_data_repair",
+      "reason": "Repairs 76 client sessions marked completed while scheduled in the future, and Adriano Castro's Enrollment.",
+      "owns_durable_schema": true,
+      "durable_objects": [
+        "function public.reject_completed_future_session()",
+        "trigger reject_completed_future_session on client_sessions",
+        "function public.reject_completion_with_sessions_remaining()",
+        "trigger reject_completion_with_sessions_remaining on enrollments"
+      ],
+      "boundary_status": "unresolved"
+    },
+    {
+      "version": "20260918320000",
+      "file": "20260918320000_canonical_payment_data.sql",
+      "classification": "main_only_historical_data_repair",
+      "reason": "Derives five agreed totals from Stripe, merges Linda's and Lara's duplicated payments, and records owner-confirmed onboarding items. Asserts exact collected totals.",
+      "owns_durable_schema": true,
+      "durable_objects": [
+        "enrollment_onboarding_items.completion_source",
+        "constraint enrollment_onboarding_items_completion_source_check"
+      ],
+      "boundary_status": "unresolved"
+    },
+    {
+      "version": "20260918390000",
+      "file": "20260918390000_alva_winsa_no_show_was_not_a_decision.sql",
+      "classification": "main_only_historical_data_repair",
+      "reason": "Clears the mechanically-created 'lost' outcome from Alva Winsa's Opportunity 187. Refuses to run unless that Opportunity is in the exact proven state.",
+      "owns_durable_schema": true,
+      "durable_objects": [
+        "function public.record_deal_outcome_event() (the version honouring app.outcome_event_source)"
+      ],
+      "boundary_status": "unresolved"
+    }
+  ]
+}
