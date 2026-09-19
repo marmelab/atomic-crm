@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
 import { useParams } from "react-router";
 
 import type { PublicApplicationDataSource } from "./publicApplicationDataSource";
 import type { PublicOfferContext } from "./publicOfferContext";
 import { PublicApplicationLayout } from "./PublicApplicationLayout";
+import { ApplicationUnavailableNotice } from "./ApplicationUnavailableNotice";
+import { usePublicOfferContext } from "./usePublicOfferContext";
 import {
   PublicApplicationForm,
   type ApplicationQuestion,
@@ -69,25 +70,21 @@ export const GrowingYourselfUpApplicationPage = ({
   dataSource: PublicApplicationDataSource;
 }) => {
   const { cohortId } = useParams();
-  const [context, setContext] = useState<PublicOfferContext | "pending">(
-    "pending",
+  // A link with no cohort in it is a bad link, not a failure to load —
+  // the same "not-found" answer the effect gave before, kept so the page
+  // still explains itself rather than offering a pointless retry.
+  const state = usePublicOfferContext(() =>
+    cohortId
+      ? dataSource.getGroupCohortContext(cohortId)
+      : Promise.resolve({ kind: "not-found" } as PublicOfferContext),
   );
 
-  useEffect(() => {
-    if (!cohortId) {
-      setContext({ kind: "not-found" });
-      return;
-    }
-    let cancelled = false;
-    dataSource.getGroupCohortContext(cohortId).then((result) => {
-      if (!cancelled) setContext(result);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [dataSource, cohortId]);
-
-  if (context === "pending") return null;
+  // Never an unbounded wait: a failure is a visible, retryable state.
+  if (state.status === "loading") return null;
+  if (state.status === "failed") {
+    return <ApplicationUnavailableNotice onRetry={state.retry} />;
+  }
+  const context = state.context;
 
   if (context.kind === "not-found") {
     return (

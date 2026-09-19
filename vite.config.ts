@@ -83,7 +83,19 @@ export default defineConfig({
         }
       : {}),
   },
-  base: "./",
+  // Absolute, because this app is served from a domain root and has real
+  // nested routes.
+  //
+  // "./" came from the upstream template's GitHub Pages demo, where the
+  // app lives under a subpath. It makes every asset reference relative to
+  // the CURRENT URL, so /apply/living-example asked for
+  // /apply/assets/index-*.js and got a 404 — the public application form
+  // rendered nothing at all while a real applicant was waiting. Only the
+  // site root ever worked.
+  //
+  // Still overridable for a subpath deploy, which is the one case that
+  // genuinely needs it.
+  base: process.env.VITE_BASE ?? "/",
   esbuild: {
     keepNames: true,
   },

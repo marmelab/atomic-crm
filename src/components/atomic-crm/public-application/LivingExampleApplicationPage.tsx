@@ -1,8 +1,7 @@
-import { useEffect, useState } from "react";
-
 import type { PublicApplicationDataSource } from "./publicApplicationDataSource";
-import type { PublicOfferContext } from "./publicOfferContext";
 import { PublicApplicationLayout } from "./PublicApplicationLayout";
+import { ApplicationUnavailableNotice } from "./ApplicationUnavailableNotice";
+import { usePublicOfferContext } from "./usePublicOfferContext";
 import {
   PublicApplicationForm,
   type ApplicationQuestion,
@@ -72,21 +71,16 @@ export const LivingExampleApplicationPage = ({
 }: {
   dataSource: PublicApplicationDataSource;
 }) => {
-  const [context, setContext] = useState<PublicOfferContext | "pending">(
-    "pending",
+  const state = usePublicOfferContext(() =>
+    dataSource.getLivingExampleContext(),
   );
 
-  useEffect(() => {
-    let cancelled = false;
-    dataSource.getLivingExampleContext().then((result) => {
-      if (!cancelled) setContext(result);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [dataSource]);
-
-  if (context === "pending") return null;
+  // Never an unbounded wait: a failure is a visible, retryable state.
+  if (state.status === "loading") return null;
+  if (state.status === "failed") {
+    return <ApplicationUnavailableNotice onRetry={state.retry} />;
+  }
+  const context = state.context;
   if (context.kind !== "individual") {
     return (
       <PublicApplicationLayout

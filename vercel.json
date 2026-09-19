@@ -1,0 +1,30 @@
+{
+  "$comment": [
+    "This app is HASH-routed, deliberately: CRM.tsx explains that crossing",
+    "between /#/apply/... and any other /#/... path is a same-document hash",
+    "change, which is what lets a public submission and the CRM's own read",
+    "of it share one live dataProvider instance.",
+    "",
+    "So the real application link is /#/apply/living-example. The obvious",
+    "one — /apply/living-example, which is what anybody would type or paste",
+    "— was a hard 404, because nothing on disk matches that path and there",
+    "was no config here at all.",
+    "",
+    "The redirect makes the obvious URL work. The catch-all rewrite stops",
+    "every other unmatched path returning a bare 404 page; Vercel checks the",
+    "filesystem first, so real assets still serve themselves."
+  ],
+  "redirects": [
+    {
+      "source": "/apply",
+      "destination": "/#/apply",
+      "permanent": false
+    },
+    {
+      "source": "/apply/:path*",
+      "destination": "/#/apply/:path*",
+      "permanent": false
+    }
+  ],
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+}

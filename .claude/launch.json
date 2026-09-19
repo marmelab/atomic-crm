@@ -25,6 +25,12 @@
         "5175"
       ],
       "port": 5175
+    },
+    {
+      "name": "preview-build",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["vite", "preview", "--port", "4173"],
+      "port": 4173
     }
   ]
 }
