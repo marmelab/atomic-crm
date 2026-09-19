@@ -55,6 +55,19 @@ export default defineConfig({
         // Never serve a stale index.html: the shell is what decides which
         // hashed chunks load, so a stale one pins every other stale asset.
         cleanupOutdatedCaches: true,
+        // /apply/* must reach the network.
+        //
+        // The service worker installs a catch-all navigation fallback that
+        // answers every navigation from the cached shell. That is right for
+        // the app's own routes, and wrong for /apply/living-example, which
+        // is not an app route at all: it only works because the host
+        // redirects it to the hash URL. With the fallback catching it, the
+        // browser never asks the host, so the redirect never runs and the
+        // visitor lands on the path with #/login instead of the form.
+        //
+        // A first-time visitor was fine; anyone who had ever opened the CRM
+        // — which is everyone who would be testing it — was not.
+        navigateFallbackDenylist: [/^\/apply(\/|$)/],
       },
       manifest: false, // Use existing manifest.json from public/
     }),
