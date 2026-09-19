@@ -204,3 +204,26 @@ create or replace trigger on_auth_user_created
 create or replace trigger on_auth_user_updated
     after update on auth.users
     for each row execute function public.handle_update_user();
+
+
+-- =====================================================================
+-- Declarative-schema reconciliation, 2026-09-18
+-- =====================================================================
+-- Triggers that migrations added.
+--
+-- Everything below was extracted from the live database with the
+-- server's own catalog functions rather than written by hand, because a
+-- hand-copied function body differs from pg_dump's normalised form in
+-- whitespace alone and produces a permanent phantom diff.
+--
+-- These objects were created by migrations and exist on MAIN; they were
+-- simply never mirrored here. Migrations, MAIN and this file now
+-- describe the same database.
+
+CREATE TRIGGER acuity_type_period_no_overlap_trigger BEFORE INSERT OR UPDATE OF acuity_appointment_type_id, valid_from, valid_to ON public.acuity_appointment_type_map FOR EACH ROW EXECUTE FUNCTION acuity_type_period_no_overlap();
+CREATE TRIGGER reject_completed_future_session BEFORE INSERT OR UPDATE ON public.client_sessions FOR EACH ROW EXECUTE FUNCTION reject_completed_future_session();
+CREATE TRIGGER clamp_contact_last_seen_trigger BEFORE INSERT OR UPDATE OF last_seen, first_seen ON public.contacts FOR EACH ROW EXECUTE FUNCTION clamp_contact_last_seen();
+CREATE TRIGGER guard_deal_onboarding_stage BEFORE INSERT OR UPDATE OF stage ON public.deals FOR EACH ROW EXECUTE FUNCTION guard_persisted_onboarding_stage();
+CREATE TRIGGER on_deal_outcome_changed AFTER INSERT OR UPDATE OF outcome, exit_reason ON public.deals FOR EACH ROW EXECUTE FUNCTION record_deal_outcome_event();
+CREATE TRIGGER reject_completion_with_sessions_remaining BEFORE INSERT OR UPDATE ON public.enrollments FOR EACH ROW EXECUTE FUNCTION reject_completion_with_sessions_remaining();
+CREATE TRIGGER complete_sales_call_matching_task_trigger AFTER UPDATE OF opportunity_id ON public.sales_calls FOR EACH ROW EXECUTE FUNCTION complete_sales_call_matching_task();

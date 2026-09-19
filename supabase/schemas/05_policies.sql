@@ -251,3 +251,28 @@ create policy "Enable read access for authenticated users" on public.deal_stage_
 create policy "Enable insert for authenticated users only" on public.deal_stage_events for insert to authenticated with check (true);
 create policy "Enable update for authenticated users only" on public.deal_stage_events for update to authenticated using (true) with check (true);
 create policy "Deal Stage Events Delete Policy" on public.deal_stage_events for delete to authenticated using (true);
+
+
+-- =====================================================================
+-- Declarative-schema reconciliation, 2026-09-18
+-- =====================================================================
+-- Policies that migrations added.
+--
+-- Everything below was extracted from the live database with the
+-- server's own catalog functions rather than written by hand, because a
+-- hand-copied function body differs from pg_dump's normalised form in
+-- whitespace alone and produces a permanent phantom diff.
+--
+-- These objects were created by migrations and exist on MAIN; they were
+-- simply never mirrored here. Migrations, MAIN and this file now
+-- describe the same database.
+
+create policy "Enable insert for authenticated users only" on public.acuity_appointment_type_map for insert to authenticated with check (true);
+create policy "Enable read access for authenticated users" on public.acuity_appointment_type_map for select to authenticated using (true);
+create policy "Enable update for authenticated users only" on public.acuity_appointment_type_map for update to authenticated using (true) with check (true);
+create policy "Enable insert for authenticated users only" on public.contact_stripe_customers for insert to authenticated with check (true);
+create policy "Enable read access for authenticated users" on public.contact_stripe_customers for select to authenticated using (true);
+create policy "Enable update for authenticated users only" on public.contact_stripe_customers for update to authenticated using (true) with check (true);
+create policy "Enable insert for authenticated users only" on public.deal_stripe_plan_objects for insert to authenticated with check (true);
+create policy "Enable read access for authenticated users" on public.deal_stripe_plan_objects for select to authenticated using (true);
+create policy "Enable update for authenticated users only" on public.deal_stripe_plan_objects for update to authenticated using (true) with check (true);

@@ -1783,3 +1783,388 @@ $$;
 revoke all on function public.record_sales_call_no_show(bigint) from public;
 grant execute on function public.record_sales_call_no_show(bigint) to authenticated;
 grant execute on function public.record_sales_call_no_show(bigint) to service_role;
+
+
+-- =====================================================================
+-- Declarative-schema reconciliation, 2026-09-18
+-- =====================================================================
+-- Functions that migrations added.
+--
+-- Everything below was extracted from the live database with the
+-- server's own catalog functions rather than written by hand, because a
+-- hand-copied function body differs from pg_dump's normalised form in
+-- whitespace alone and produces a permanent phantom diff.
+--
+-- These objects were created by migrations and exist on MAIN; they were
+-- simply never mirrored here. Migrations, MAIN and this file now
+-- describe the same database.
+
+CREATE OR REPLACE FUNCTION public.acuity_type_period_no_overlap()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_conflict text;
+begin
+  select coalesce(m.label, m.id::text) into v_conflict
+    from acuity_appointment_type_map m
+   where m.acuity_appointment_type_id = new.acuity_appointment_type_id
+     and m.id <> coalesce(new.id, -1)
+     -- Two half-open periods [a,b) and [c,d) overlap iff a < d and c < b,
+     -- with NULL upper bounds read as infinity.
+     and new.valid_from < coalesce(m.valid_to, 'infinity'::date)
+     and m.valid_from < coalesce(new.valid_to, 'infinity'::date)
+   limit 1;
+
+  if v_conflict is not null then
+    raise exception 'acuity appointment type % already has a mapping covering that period (%)',
+      new.acuity_appointment_type_id, v_conflict;
+  end if;
+  return new;
+end;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.clamp_contact_last_seen()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_occurred timestamptz;
+begin
+  if new.last_seen is not null and new.last_seen > now() then
+    -- On INSERT there is no prior row; TG_OP tells us which fallback is
+    -- honest. Either way, now() is never the answer.
+    v_occurred := contact_last_occurred_activity(new.id);
+    if v_occurred is not null then
+      new.last_seen := v_occurred;
+    elsif tg_op = 'UPDATE' then
+      new.last_seen := old.last_seen;
+    else
+      new.last_seen := null;
+    end if;
+  end if;
+
+  if new.first_seen is not null and new.last_seen is not null
+     and new.last_seen < new.first_seen then
+    new.last_seen := new.first_seen;
+  end if;
+
+  return new;
+end;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.close_tasks_for_sales_call(p_sales_call_id bigint, p_completed_at timestamp with time zone)
+ RETURNS bigint
+ LANGUAGE sql
+ SET search_path TO 'public'
+AS $function$
+  with closed as (
+    update tasks
+       set done_date = p_completed_at, status = 'completed'
+     where sales_call_id = p_sales_call_id
+       and done_date is null
+       and status in ('pending', 'waiting')
+    returning 1
+  )
+  select count(*) from closed;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.complete_sales_call_matching_task()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SET search_path TO 'public'
+AS $function$
+begin
+  -- Only the NULL -> attached transition answers the question. An
+  -- already-attached call being re-saved changes nothing, and a call that
+  -- is still unmatched must keep its task.
+  if old.opportunity_id is not null or new.opportunity_id is null then
+    return new;
+  end if;
+
+  update tasks
+     set done_date = coalesce(done_date, now()),
+         status    = 'completed'
+   where sales_call_id = new.id
+     and type = 'sales_call_needs_matching'
+     and done_date is null;
+
+  return new;
+end;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.contact_first_occurred_evidence(p_contact_id bigint)
+ RETURNS timestamp with time zone
+ LANGUAGE sql
+ STABLE
+ SET search_path TO 'public'
+AS $function$
+  select min(at) from (
+    select a.submitted_at as at from applications a where a.contact_id = p_contact_id and a.submitted_at <= now()
+    union all
+    select coalesce(sc.scheduled_at, (sc.scheduled_on + time '12:00') at time zone 'UTC')
+      from sales_calls sc where sc.contact_id = p_contact_id
+    union all
+    select cs.scheduled_at from client_sessions cs where cs.contact_id = p_contact_id
+    union all
+    select d.created_at from deals d where d.contact_id = p_contact_id
+    union all
+    select w.joined_at from waitlist_entries w where w.contact_id = p_contact_id
+  ) evidence;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.contact_last_occurred_activity(p_contact_id bigint)
+ RETURNS timestamp with time zone
+ LANGUAGE sql
+ STABLE
+ SET search_path TO 'public'
+AS $function$
+  select max(at) from (
+    select a.submitted_at as at from applications a where a.contact_id = p_contact_id and a.submitted_at <= now()
+    union all
+    select a.reviewed_at from applications a where a.contact_id = p_contact_id and a.reviewed_at <= now()
+    union all
+    -- A sales call counts once its own time has passed. A date-only
+    -- historical call is read at the end of its day: the earliest moment
+    -- the whole day is certainly behind us, inventing no clock time.
+    select coalesce(sc.scheduled_at, (sc.scheduled_on + time '23:59') at time zone 'UTC')
+      from sales_calls sc
+     where sc.contact_id = p_contact_id
+       and coalesce(sc.scheduled_at, (sc.scheduled_on + time '23:59') at time zone 'UTC') <= now()
+    union all
+    select sc.cancelled_at from sales_calls sc where sc.contact_id = p_contact_id and sc.cancelled_at <= now()
+    union all
+    select sc.attendance_recorded_at from sales_calls sc where sc.contact_id = p_contact_id and sc.attendance_recorded_at <= now()
+    union all
+    select e.occurred_at from sales_call_events e join sales_calls sc on sc.id = e.sales_call_id
+     where sc.contact_id = p_contact_id and e.occurred_at <= now()
+    union all
+    select cs.scheduled_at from client_sessions cs where cs.contact_id = p_contact_id and cs.scheduled_at <= now()
+    union all
+    select cs.cancelled_at from client_sessions cs where cs.contact_id = p_contact_id and cs.cancelled_at <= now()
+    union all
+    select cs.no_show_at from client_sessions cs where cs.contact_id = p_contact_id and cs.no_show_at <= now()
+    union all
+    select d.created_at from deals d where d.contact_id = p_contact_id and d.created_at <= now()
+    union all
+    select se.entered_at from deal_stage_events se join deals d on d.id = se.opportunity_id
+     where d.contact_id = p_contact_id and se.entered_at <= now()
+    union all
+    select w.joined_at from waitlist_entries w where w.contact_id = p_contact_id and w.joined_at <= now()
+    union all
+    select n.date from contact_notes n where n.contact_id = p_contact_id and n.date <= now()
+    union all
+    select n.date from deal_notes n join deals d on d.id = n.deal_id
+     where d.contact_id = p_contact_id and n.date <= now()
+  ) occurred;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.deal_is_active(p_archived_at timestamp with time zone, p_stage text, p_outcome text)
+ RETURNS boolean
+ LANGUAGE sql
+ IMMUTABLE
+ SET search_path TO 'public'
+AS $function$
+  select p_archived_at is null
+     and p_stage is distinct from 'won'
+     and p_outcome is null;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.guard_persisted_onboarding_stage()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SET search_path TO 'public'
+AS $function$
+begin
+  if new.stage = 'onboarding'
+     and (tg_op = 'INSERT' or old.stage is distinct from 'onboarding') then
+    raise exception
+      'stage "onboarding" is legacy storage and cannot be written. A sale that succeeded is stage = won; the Onboarding column is derived from Won plus an Enrollment plus unfinished setup.'
+      using errcode = 'check_violation';
+  end if;
+  return new;
+end;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.record_deal_outcome_event()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SET search_path TO 'public'
+AS $function$
+begin
+  if tg_op = 'INSERT' then
+    if new.outcome is not null then
+      insert into public.deal_outcome_events
+        (opportunity_id, old_outcome, new_outcome, exit_reason, occurred_at, source)
+      values (new.id, null, new.outcome, new.exit_reason, now(), 'app');
+    end if;
+  elsif new.outcome is distinct from old.outcome
+     or (new.outcome is not null and new.exit_reason is distinct from old.exit_reason) then
+    insert into public.deal_outcome_events
+      (opportunity_id, old_outcome, new_outcome, exit_reason, occurred_at, source)
+    values (new.id, old.outcome, new.outcome, new.exit_reason, now(), 'app');
+  end if;
+  return new;
+end;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.record_sales_call_reinstated(p_sales_call_id bigint)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_call sales_calls%ROWTYPE;
+  v_now timestamptz := now();
+  v_deal_advanced boolean := false;
+begin
+  select * into v_call from sales_calls where id = p_sales_call_id for update;
+  if not found then
+    return jsonb_build_object('status', 'not-found');
+  end if;
+
+  -- Never re-open something that actually concluded. If a human recorded
+  -- attendance, that is the truth about this call and a live upstream
+  -- booking cannot overwrite it.
+  if v_call.attendance is not null then
+    return jsonb_build_object('status', 'already-concluded');
+  end if;
+
+  -- Only a future call can be "still booked". A past cancelled call is
+  -- history, and this is exactly where Aurelie must be left alone.
+  if coalesce(v_call.scheduled_at, (v_call.scheduled_on + time '23:59') at time zone 'UTC') <= v_now then
+    return jsonb_build_object('status', 'in-the-past');
+  end if;
+
+  if v_call.status = 'booked' then
+    return jsonb_build_object('status', 'already-booked');
+  end if;
+
+  update sales_calls
+     set status = 'booked',
+         cancelled_at = null,
+         updated_at = v_now
+   where id = v_call.id;
+
+  insert into sales_call_events (sales_call_id, kind, occurred_at, new_scheduled_at)
+  values (v_call.id, 'booked', v_now, v_call.scheduled_at);
+
+  -- The Opportunity returns to Call Booked, but only from Approved and
+  -- only while still active — the exact inverse of the cancellation path,
+  -- and never dragging a Deal backwards from Decision or further on.
+  if v_call.opportunity_id is not null then
+    update deals
+       set stage = 'call_booked',
+           stage_entered_at = v_now,
+           updated_at = v_now
+     where id = v_call.opportunity_id
+       and stage = 'approved'
+       and outcome is null
+       and archived_at is null;
+    v_deal_advanced := found;
+  end if;
+
+  return jsonb_build_object(
+    'status', 'reinstated',
+    'sales_call_id', v_call.id,
+    'opportunity_id', v_call.opportunity_id,
+    'deal_advanced_to_call_booked', v_deal_advanced
+  );
+end;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.refresh_contact_last_activity()
+ RETURNS bigint
+ LANGUAGE plpgsql
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_updated bigint;
+begin
+  update contacts c
+     set last_seen = contact_last_occurred_activity(c.id)
+   where contact_last_occurred_activity(c.id) is not null
+     and c.last_seen is distinct from contact_last_occurred_activity(c.id);
+  get diagnostics v_updated = row_count;
+  return v_updated;
+end;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.reject_completed_future_session()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+begin
+  -- now() is not immutable, so this cannot be a CHECK constraint.
+  if new.status = 'completed' and new.scheduled_at > now() then
+    raise exception
+      'client session % is scheduled at % and cannot be completed before it happens',
+      new.id, new.scheduled_at;
+  end if;
+  return new;
+end;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.reject_completion_with_sessions_remaining()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_remaining int;
+begin
+  if new.status <> 'completed' then
+    return new;
+  end if;
+
+  select count(*) into v_remaining
+  from public.client_sessions s
+  where s.enrollment_id = new.id
+    and s.status <> 'cancelled'
+    and s.no_show_at is null
+    and s.scheduled_at > now();
+
+  if v_remaining > 0 then
+    raise exception
+      'enrollment % still has % session(s) scheduled and cannot be completed',
+      new.id, v_remaining;
+  end if;
+  return new;
+end;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.resolve_acuity_appointment_type(p_appointment_type_id text, p_on date)
+ RETURNS TABLE(offer_id bigint, offer_name text, kind text, cohort_id bigint, label text, resolution text, valid_from date, valid_to date)
+ LANGUAGE sql
+ STABLE
+ SET search_path TO 'public'
+AS $function$
+  select m.offer_id, o.name, m.kind, m.cohort_id, m.label, m.resolution,
+         m.valid_from, m.valid_to
+    from acuity_appointment_type_map m
+    left join offers o on o.id = m.offer_id
+   where m.acuity_appointment_type_id = p_appointment_type_id
+     and p_on >= m.valid_from
+     and (m.valid_to is null or p_on < m.valid_to)
+   limit 1;
+$function$
+;

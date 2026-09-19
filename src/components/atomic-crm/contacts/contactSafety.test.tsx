@@ -211,6 +211,46 @@ describe("the contact delete-rule map is what the schema actually says", () => {
     );
   });
 
+  it("keeps the snapshot store unreachable from the browser", () => {
+    // Arrange — the declarative schema is what a clean-room rebuild
+    // reconstructs, so the lockdown has to be expressed HERE and not only
+    // in the migration that first applied it. This repo has already had to
+    // fix grant drift twice.
+    const grants = SQL_SOURCES["/supabase/schemas/06_grants.sql"];
+    const policies = SQL_SOURCES["/supabase/schemas/05_policies.sql"];
+
+    // Assert — revoked from every role a signed-in browser can become,
+    // service_role included: it bypasses RLS, so a grant there would undo
+    // the lock rather than narrow it.
+    for (const role of ["public", "anon", "authenticated", "service_role"]) {
+      expect(grants).toContain(
+        `revoke all on table public.historical_application_source_snapshots from ${role};`,
+      );
+    }
+    // And nothing grants it back.
+    expect(grants).not.toMatch(
+      /grant[^\n]*historical_application_source_snapshots[^\n]*to (anon|authenticated|service_role)/i,
+    );
+    // RLS with zero policies is the second, independent lock.
+    expect(policies).not.toMatch(
+      /on public\.historical_application_source_snapshots/i,
+    );
+  });
+
+  it("keeps the merge primitive callable by nobody the browser can become", () => {
+    // Arrange
+    const grants = SQL_SOURCES["/supabase/schemas/06_grants.sql"];
+
+    // Assert — PUBLIC first, because a function with no ACL defaults to
+    // EXECUTE for PUBLIC and revoking the named roles alone changes
+    // nothing.
+    for (const role of ["public", "anon", "authenticated", "service_role"]) {
+      expect(grants).toContain(
+        `revoke all on function public.merge_contacts(bigint, bigint) from ${role};`,
+      );
+    }
+  });
+
   it("still names the tables a contact delete would destroy", () => {
     // Arrange — the live rules read from MAIN during the Slice 0 audit.
     // Assert

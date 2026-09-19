@@ -610,3 +610,42 @@ revoke select, insert, update, delete on table public.historical_import_records 
 revoke all on function public.set_historical_migration_mode(boolean) from public;
 revoke all on function public.set_historical_migration_mode(boolean) from authenticated;
 grant all on function public.set_historical_migration_mode(boolean) to service_role;
+
+-- =====================================================================
+-- Declarative-schema reconciliation, 2026-09-18
+-- =====================================================================
+-- Grants for the tables migrations added. Each posture below is what MAIN
+-- actually has and was verified against it, not a default copied from a
+-- neighbouring table — the two grant-drift incidents this repo already
+-- fixed (20260902020000, 20260911120000) both started as a blanket
+-- "grant all" that nobody meant.
+
+-- Acuity appointment-type map: ordinary authenticated CRUD.
+grant all on table public.acuity_appointment_type_map to authenticated;
+grant all on table public.acuity_appointment_type_map to service_role;
+revoke select, insert, update, delete on table public.acuity_appointment_type_map from anon;
+
+-- Stripe identity and plan history: readable and writable by the app, and
+-- never deletable — a Stripe identity or plan object is history.
+grant select, insert, update on table public.contact_stripe_customers to authenticated;
+grant select, insert, update on table public.contact_stripe_customers to service_role;
+revoke select, insert, update, delete on table public.contact_stripe_customers from anon;
+
+grant select, insert, update on table public.deal_stripe_plan_objects to authenticated;
+grant select, insert, update on table public.deal_stripe_plan_objects to service_role;
+revoke select, insert, update, delete on table public.deal_stripe_plan_objects from anon;
+
+-- Outcome history is append-only and written by a trigger, so nobody the
+-- browser can become needs any privilege on it at all.
+revoke select, insert, update, delete on table public.deal_outcome_events from anon;
+revoke select, insert, update, delete on table public.deal_outcome_events from authenticated;
+revoke select, insert, update, delete on table public.deal_outcome_events from service_role;
+
+-- Historical Application source snapshots hold real applicant PII. RLS is
+-- enabled with ZERO policies (05_policies.sql declares no policy for it)
+-- and every grant is revoked, including service_role — which bypasses RLS
+-- and would therefore undo the lock. Owner only.
+revoke all on table public.historical_application_source_snapshots from public;
+revoke all on table public.historical_application_source_snapshots from anon;
+revoke all on table public.historical_application_source_snapshots from authenticated;
+revoke all on table public.historical_application_source_snapshots from service_role;
