@@ -5,6 +5,7 @@ import { BusinessAtAGlance } from "./BusinessAtAGlance";
 import { ComingUp } from "./ComingUp";
 import { CompletedTodayTasks } from "./CompletedTodayTasks";
 import { DashboardActivityLog } from "./DashboardActivityLog";
+import { DashboardApplicationsForReview } from "./DashboardApplicationsForReview";
 import { DashboardTasks } from "./DashboardTasks";
 import { NeedsOnboarding } from "./NeedsOnboarding";
 import { OutstandingScholarshipReservations } from "./OutstandingScholarshipReservations";
@@ -53,6 +54,8 @@ export const Dashboard = () => {
       </div>
 
       <DashboardTasks />
+
+      <DashboardApplicationsForReview />
 
       <CompletedTodayTasks />
 

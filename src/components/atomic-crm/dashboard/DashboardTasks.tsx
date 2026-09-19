@@ -184,7 +184,6 @@ const TaskBucket = ({
   const translate = useTranslate();
   const [expanded, setExpanded] = useState(false);
   const visibleTasks = expanded ? tasks : tasks.slice(0, VISIBLE_COUNT);
-  const remaining = tasks.length - visibleTasks.length;
 
   return (
     <Card className="min-w-0">
@@ -221,16 +220,25 @@ const TaskBucket = ({
                 />
               ),
             )}
-            {remaining > 0 && (
+            {/* Expanding was one-way: once opened, the bucket stayed open
+                for the rest of the session, so a long queue permanently
+                pushed everything below it off the screen. It toggles now,
+                and the collapsed label states how many are hidden rather
+                than saying "5 more" without saying of what. */}
+            {tasks.length > VISIBLE_COUNT && (
               <button
                 type="button"
-                onClick={() => setExpanded(true)}
+                onClick={() => setExpanded((was) => !was)}
                 className="text-sm text-muted-foreground underline hover:no-underline text-left"
               >
-                {translate("crm.dashboard.tasks_load_more", {
-                  _: "%{count} more",
-                  count: remaining,
-                })}
+                {expanded
+                  ? translate("crm.dashboard.tasks_show_fewer", {
+                      _: "Show fewer",
+                    })
+                  : translate("crm.dashboard.tasks_show_all", {
+                      _: `Show all ${tasks.length}`,
+                      count: tasks.length,
+                    })}
               </button>
             )}
           </div>

@@ -1311,18 +1311,11 @@ $$;
 -- privilege elevation. The public HTTP surface remains exactly
 -- public_application/index.ts — this function is not a new public
 -- capability, it's the existing one made atomic.
-CREATE OR REPLACE FUNCTION "public"."submit_public_application"(
-    "p_offer_id" bigint,
-    "p_cohort_id" bigint,
-    "p_first_name" text,
-    "p_last_name" text,
-    "p_email" text,
-    "p_phone" text,
-    "p_answers" jsonb
-) RETURNS jsonb
-    LANGUAGE "plpgsql"
-    SET "search_path" TO 'public'
-    AS $$
+CREATE OR REPLACE FUNCTION public.submit_public_application(p_offer_id bigint, p_cohort_id bigint, p_first_name text, p_last_name text, p_email text, p_phone text, p_answers jsonb)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SET search_path TO 'public'
+AS $function$
 DECLARE
   v_email text := lower(trim(p_email));
   v_contact contacts%ROWTYPE;
@@ -1347,11 +1340,6 @@ BEGIN
     RAISE EXCEPTION 'email_invalid' USING ERRCODE = 'invalid_parameter_value';
   END IF;
 
-  -- Defense-in-depth structural re-check — the Edge Function already
-  -- validated offer/cohort (including the Denver-timezone open-window
-  -- logic this function deliberately does not duplicate) before ever
-  -- calling here; this is the same minimal FK-existence backstop
-  -- handle_deal_saved() already applies to any deals insert regardless.
   IF NOT EXISTS (SELECT 1 FROM offers WHERE id = p_offer_id AND is_active) THEN
     RAISE EXCEPTION 'offer_invalid' USING ERRCODE = 'invalid_parameter_value';
   END IF;
@@ -1361,14 +1349,8 @@ BEGIN
     RAISE EXCEPTION 'cohort_invalid' USING ERRCODE = 'invalid_parameter_value';
   END IF;
 
-  -- Serialize concurrent submissions for the same applicant identity for
-  -- the rest of this transaction (released automatically at commit/
-  -- rollback) — see header comment.
   PERFORM pg_advisory_xact_lock(hashtext('submit_public_application:' || v_email));
 
-  -- Read current state ONCE, before any write (mirrors submitApplication.ts
-  -- / the pre-atomicity Edge Function exactly) so a true no-op retry can be
-  -- recognized with ZERO writes.
   SELECT * INTO v_contact
   FROM contacts c
   WHERE EXISTS (
@@ -1405,27 +1387,9 @@ BEGIN
   END IF;
 
   IF v_pending_app.id IS NOT NULL THEN
-    -- jsonb equality is key-order-independent (both sides are stored in
-    -- Postgres's own canonical jsonb form) — mirrors answersEqual()
-    -- exactly without needing a manual key-by-key comparison.
     v_answers_match := p_answers = v_pending_app.raw_answers;
   END IF;
 
-  -- Adversarial-review correction: an earlier draft of this function
-  -- trusted "Application matches" alone, reasoning that atomicity makes
-  -- "Application exists but Task doesn't" unreachable. That's only true
-  -- for rows THIS function itself created — it is NOT true for a row the
-  -- OLD, pre-atomicity code path already left behind before this function
-  -- was ever deployed (exactly the legacy-partial-state case this whole
-  -- migration exists to repair). Without this check, such a legacy row
-  -- would hit this fast path on its very next matching resubmission and
-  -- return early WITHOUT ever creating the missing Task — silently
-  -- perpetuating the original bug for any row that predates this
-  -- deployment. Checking Task existence here too (mirrors
-  -- submitApplication.ts's own identical check) costs nothing once this
-  -- function has been the only writer for a while (the Task will simply
-  -- already exist), and is exactly what repairs a legacy row instead of
-  -- rubber-stamping it.
   IF v_contact.id IS NOT NULL AND NOT v_is_dne THEN
     SELECT EXISTS (
       SELECT 1 FROM tasks
@@ -1443,7 +1407,6 @@ BEGIN
     );
   END IF;
 
-  -- Resolve or create the Contact.
   IF v_contact.id IS NOT NULL THEN
     UPDATE contacts SET last_seen = now() WHERE id = v_contact.id RETURNING * INTO v_contact;
   ELSE
@@ -1462,9 +1425,6 @@ BEGIN
     ) RETURNING * INTO v_contact;
   END IF;
 
-  -- Resolve or create the Deal (never reused for a DNE contact — a fresh
-  -- Deal already in the exited state, exactly like both prior
-  -- implementations).
   IF v_deal.id IS NULL THEN
     INSERT INTO deals (
       contact_id, offer_id, cohort_id, stage, outcome, owner_decision,
@@ -1476,15 +1436,9 @@ BEGIN
       (SELECT current_price FROM offers WHERE id = p_offer_id),
       'application_form', ''
     ) RETURNING * INTO v_deal;
-    -- name/snapshot fields are computed by the existing BEFORE trigger
-    -- handle_deal_saved(); the existing AFTER trigger on_deal_waitlist_sync
-    -- fires automatically for this fresh INSERT.
   ELSE
     v_deal_reused := true;
     IF NOT v_is_dne THEN
-      -- Reusing writes nothing to `deals`, so on_deal_waitlist_sync never
-      -- fires for this path — mirror it explicitly (same rule, same WHERE
-      -- clause, as handle_deal_waitlist_sync() itself).
       UPDATE waitlist_entries
       SET status = 'converted', converted_at = now(), converted_opportunity_id = v_deal.id
       WHERE contact_id = v_deal.contact_id
@@ -1494,7 +1448,6 @@ BEGIN
     END IF;
   END IF;
 
-  -- Resolve, update-in-place, or create the Application.
   IF v_pending_app.id IS NOT NULL THEN
     UPDATE applications
     SET raw_answers = p_answers, submitted_at = now()
@@ -1511,15 +1464,13 @@ BEGIN
       v_application_id := v_existing_application_id;
     ELSE
       -- Phase 4J: offer_id/intended_cohort_id stamped directly from the
-      -- already-validated p_offer_id/p_cohort_id parameters — never
-      -- re-derived from v_deal. p_cohort_id is NULL for an individual
-      -- Offer (The Living Example) by construction (the Edge Function
-      -- only ever passes a cohort for a group Offer), so
-      -- intended_cohort_id is naturally always NULL for LE with no
-      -- special-casing here.
-      -- contact_id is the Application's canonical person relationship; the
-      -- Deal stays the optional Opportunity relationship. source marks a
-      -- live submission, which may legitimately become review work.
+      -- already-validated parameters, never re-derived from v_deal.
+      -- Phase 4J: offer_id/intended_cohort_id stamped directly from the
+      -- already-validated parameters, never re-derived from v_deal.
+      -- Gate A final candidate: contact_id is the Application's canonical
+      -- person relationship (the Deal remains the optional Opportunity
+      -- relationship), and source marks this as a live submission that
+      -- legitimately represents outstanding review work.
       INSERT INTO applications (contact_id, opportunity_id, offer_id, intended_cohort_id, raw_answers, submitted_at, status, reviewed_at, source)
       VALUES (
         v_contact.id, v_deal.id, p_offer_id, p_cohort_id, p_answers, now(),
@@ -1530,8 +1481,6 @@ BEGIN
     END IF;
   END IF;
 
-  -- Review Application Task: idempotent (skips if a pending one already
-  -- exists), never created for the DNE auto-resolve path.
   IF NOT v_is_dne THEN
     SELECT EXISTS (
       SELECT 1 FROM tasks
@@ -1540,7 +1489,7 @@ BEGIN
         AND done_date IS NULL
     ) INTO v_has_pending_task;
 
-    IF NOT v_has_pending_task THEN
+    IF FALSE THEN  -- review Tasks are now created only on SLA breach, by reconcile_application_review_tasks()
       SELECT id INTO v_sales_id FROM sales WHERE administrator = true LIMIT 1;
       v_applicant_name := trim(both ' ' from coalesce(v_contact.first_name, '') || ' ' || coalesce(v_contact.last_name, ''));
       INSERT INTO tasks (contact_id, type, text, due_date, status, sales_id)
@@ -1558,7 +1507,8 @@ BEGIN
     'dne_auto_resolved', v_is_dne
   );
 END;
-$$;
+$function$
+;
 
 CREATE OR REPLACE FUNCTION "public"."record_sales_call_cancelled"("p_sales_call_id" bigint) RETURNS "jsonb"
     LANGUAGE "plpgsql"
@@ -2392,6 +2342,63 @@ begin
   end if;
   raise exception 'application_responses is an immutable submission record; % is not allowed', tg_op
     using hint = 'Responses are written once by materialize_application_responses() or at submission time. Correcting one means re-materialising from its source snapshot.';
+end;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.reconcile_application_review_tasks()
+ RETURNS integer
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_created int := 0;
+  v_closed int;
+  v_sales_id bigint;
+begin
+  select id into v_sales_id from sales where administrator = true limit 1;
+
+  -- Close escalations whose Application is no longer overdue review work:
+  -- reviewed, its attempt moved on, or its attempt ended.
+  update tasks t
+     set done_date = now(), status = 'completed'
+   where t.type = 'review_application'
+     and t.done_date is null
+     and not exists (
+       select 1 from applications_awaiting_review r
+        where r.application_id = t.application_id and r.is_overdue
+     );
+  get diagnostics v_closed = row_count;
+
+  -- One escalation per overdue Application that has none. The partial
+  -- unique index on (application_id) where done_date is null is what makes
+  -- this safe to run as often as we like.
+  insert into tasks (contact_id, type, text, due_date, status,
+                     application_id, opportunity_id, sales_id)
+  select r.contact_id,
+         'review_application',
+         format('Review %s''s application',
+                nullif(btrim(coalesce(c.first_name, '') || ' ' || coalesce(c.last_name, '')), '')),
+         -- The day it SHOULD have been reviewed by, not the day it
+         -- arrived. A due date in the past is now a true statement.
+         (r.review_due_on::timestamp at time zone 'America/Denver'),
+         'pending',
+         r.application_id,
+         r.opportunity_id,
+         v_sales_id
+    from applications_awaiting_review r
+    join contacts c on c.id = r.contact_id
+   where r.is_overdue
+     and not exists (
+       select 1 from tasks t
+        where t.type = 'review_application'
+          and t.done_date is null
+          and t.application_id = r.application_id
+     );
+  get diagnostics v_created = row_count;
+
+  return v_created + v_closed;
 end;
 $function$
 ;

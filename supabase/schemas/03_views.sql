@@ -185,3 +185,19 @@ CREATE OR REPLACE VIEW public.enrollments_missing_onboarding AS
   WHERE e.onboarding_tracking = 'tracked'::text AND NOT (EXISTS ( SELECT 1
            FROM enrollment_onboarding_items i
           WHERE i.enrollment_id = e.id AND i.is_required));
+
+-- Applications that are current review work: pending, on a live sales
+-- attempt still at Application Received. Never merely status = pending.
+CREATE OR REPLACE VIEW public.applications_awaiting_review AS
+ SELECT a.id AS application_id,
+    a.contact_id,
+    a.opportunity_id,
+    a.offer_id,
+    a.submitted_at,
+    (a.submitted_at AT TIME ZONE 'America/Denver'::text)::date AS submitted_on,
+    (now() AT TIME ZONE 'America/Denver'::text)::date - (a.submitted_at AT TIME ZONE 'America/Denver'::text)::date AS days_elapsed,
+    (a.submitted_at AT TIME ZONE 'America/Denver'::text)::date + 3 AS review_due_on,
+    ((now() AT TIME ZONE 'America/Denver'::text)::date - (a.submitted_at AT TIME ZONE 'America/Denver'::text)::date) > 3 AS is_overdue
+   FROM applications a
+     JOIN deals d ON d.id = a.opportunity_id
+  WHERE a.status = 'pending'::text AND deal_is_active(d.archived_at, d.stage, d.outcome) AND d.stage = 'application_received'::text;;

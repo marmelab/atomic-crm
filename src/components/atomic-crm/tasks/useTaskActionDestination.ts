@@ -115,7 +115,8 @@ export const useTaskActionDestination = (
   // through that Contact's Deals. Scoped to live submissions because this
   // resolves the destination for a REVIEW action; an imported historical
   // record is never the thing a review Task is about.
-  const wantsApplications = actionKind === "application-review";
+  const wantsApplications =
+    actionKind === "application-review" && task.application_id == null;
   const { data: applications, isPending: isPendingApplications } =
     useGetList<Application>(
       "applications",
@@ -209,9 +210,27 @@ export const useTaskActionDestination = (
   }
 
   if (actionKind === "application-review") {
-    // No longer gated on the Contact having Deals: the Application is
-    // reached through its own contact_id, so a review destination resolves
-    // even for an applicant with no Opportunity.
+    // The Task names its Application outright, so there is nothing to
+    // resolve and nothing to guess.
+    //
+    // This is what sent Leif to the generic Edit Task modal. The lookup
+    // below filters on source = "public_form", and every Application in
+    // this database is a recovered historical_import — so it matched
+    // nothing, found no target, and fell through to task-detail. A review
+    // Task opened a Description/Due date/Type form instead of the
+    // application it exists because of.
+    if (task.application_id != null) {
+      return {
+        destination: {
+          kind: "application-review",
+          to: `/applications/${task.application_id}/show`,
+        },
+        isPending: false,
+      };
+    }
+
+    // Older Tasks created before that column existed still resolve the
+    // old way, by Contact.
     if (isPendingApplications) {
       return { destination: null, isPending: true };
     }
