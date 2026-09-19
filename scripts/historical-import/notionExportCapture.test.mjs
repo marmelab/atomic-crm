@@ -15,6 +15,7 @@ import {
   parseCsv,
   parseExportTime,
   partitionSourceRows,
+  planImportWrites,
   toMinute,
 } from "./notionExportCapture.mjs";
 
@@ -264,4 +265,136 @@ test("a submission after an Opportunity ended is not attached silently", () => {
 
   // Assert — a decision, not an automatic reactivation.
   assert.equal(verdict, "G");
+});
+
+// The locked import decisions for the three genuinely additional rows.
+// Synthetic evidence only — no real applicant, no real email.
+
+test("a brand-new applicant creates the whole chain", () => {
+  // Arrange — Case 1's shape: email present, nobody matches.
+  const plan = planImportWrites({
+    pageId: "p-new",
+    hasEmail: true,
+    contactId: null,
+    offer: "Growing Yourself Up",
+    submittedAt: "2026-09-18T20:18:00.000Z",
+  });
+
+  // Assert
+  assert.equal(plan.reason, "new_contact");
+  assert.deepEqual(plan.creates, [
+    "contact",
+    "opportunity",
+    "application",
+    "review_application_task",
+    "snapshot_link",
+  ]);
+  assert.equal(plan.opportunity.stage, "application_received");
+  assert.equal(plan.opportunity.cohort_id, null);
+  assert.equal(plan.opportunity.outcome, null);
+  assert.equal(plan.application.status, "pending");
+  assert.equal(plan.application.reviewed_at, null);
+  assert.equal(plan.application.intended_cohort_id, null);
+  assert.equal(plan.application.submitted_at, "2026-09-18T20:18:00.000Z");
+});
+
+test("the source is the historical vocabulary, never the public form", () => {
+  // Arrange / Act — it did not come through the CRM's own form, and
+  // saying otherwise would misstate where the submission came from.
+  const plan = planImportWrites({
+    pageId: "p-new",
+    hasEmail: true,
+    contactId: null,
+    offer: "Growing Yourself Up",
+  });
+
+  // Assert
+  assert.equal(plan.application.source, "historical_import");
+});
+
+test("a later submission after a closed attempt opens a NEW one", () => {
+  // Arrange — Case 3's shape: the person exists, their only Opportunity
+  // ended with an outcome.
+  const plan = planImportWrites({
+    pageId: "p-again",
+    hasEmail: true,
+    contactId: 110,
+    offer: "The Living Example",
+    submittedAt: "2026-08-21T00:45:00.000Z",
+  });
+
+  // Assert — a new attempt, and no Contact is created for someone who
+  // already exists.
+  assert.equal(plan.reason, "new_sales_attempt");
+  assert.ok(!plan.creates.includes("contact"));
+  assert.ok(plan.creates.includes("opportunity"));
+  assert.ok(plan.creates.includes("application"));
+  // Nothing in the plan touches the closed Opportunity or its Application.
+  assert.ok(!JSON.stringify(plan).includes("outcome_cleared"));
+  assert.equal(plan.opportunity.outcome, null);
+});
+
+test("a name with no email stays evidence, and creates nothing", () => {
+  // Arrange — Case 2's shape.
+  const plan = planImportWrites({
+    pageId: "p-noemail",
+    hasEmail: false,
+    contactId: null,
+    offer: "The Living Example",
+  });
+
+  // Assert
+  assert.deepEqual(plan.creates, []);
+  assert.equal(plan.reason, "evidence_only_identity_insufficient");
+});
+
+test("a copy artifact never becomes a business record", () => {
+  // Arrange — one of the 56 rows the January database copy created.
+  const plan = planImportWrites({
+    pageId: "p-copy",
+    isCopyArtifact: true,
+    hasEmail: true,
+    contactId: null,
+    offer: "Growing Yourself Up",
+  });
+
+  // Assert — even with a perfectly good email and no conflicting identity.
+  assert.deepEqual(plan.creates, []);
+  assert.equal(plan.reason, "copy_artifact");
+});
+
+test("re-running the import plans nothing the second time", () => {
+  // Arrange — the same source page, already imported once.
+  const first = planImportWrites({
+    pageId: "p-new",
+    hasEmail: true,
+    contactId: null,
+    offer: "Growing Yourself Up",
+  });
+  const second = planImportWrites({
+    pageId: "p-new",
+    hasEmail: true,
+    contactId: null,
+    offer: "Growing Yourself Up",
+    alreadyImported: true,
+  });
+
+  // Assert
+  assert.equal(first.creates.length, 5);
+  assert.deepEqual(second.creates, []);
+  assert.equal(second.reason, "already_imported");
+});
+
+test("the plan carries the source page, which is what the guard keys on", () => {
+  // Arrange / Act
+  const plan = planImportWrites({
+    pageId: "p-new",
+    hasEmail: true,
+    contactId: null,
+    offer: "Growing Yourself Up",
+  });
+
+  // Assert — a unique index on this column is what makes a concurrent
+  // re-run collide instead of duplicating.
+  assert.equal(plan.application.source_page_id, "p-new");
 });

@@ -231,3 +231,76 @@ export const classifyAdditional = (evidence) => {
   // Opportunity that already ended would silently reactivate it.
   return activeOpportunity ? "A" : "G";
 };
+
+/**
+ * Exactly which rows importing one source snapshot would write.
+ *
+ * Returns a plan rather than performing anything, so the decision and the
+ * write are separable and the decision is testable on its own. An empty
+ * `creates` is a real answer — some evidence is only ever evidence.
+ */
+export const planImportWrites = (source) => {
+  const {
+    pageId,
+    isCopyArtifact = false,
+    alreadyImported = false,
+    hasEmail = false,
+    contactId = null,
+    offer = null,
+    submittedAt = null,
+  } = source;
+
+  // The January whole-table copy. These rows record that a database was
+  // duplicated, not that anybody applied.
+  if (isCopyArtifact) {
+    return { creates: [], reason: "copy_artifact", pageId };
+  }
+
+  // The durable guard: one source page can only ever produce one
+  // Application, so a re-run plans nothing at all.
+  if (alreadyImported) {
+    return { creates: [], reason: "already_imported", pageId };
+  }
+
+  // Identity in this system is keyed on email. A name alone cannot be
+  // matched to anything later, so it stays evidence rather than becoming a
+  // Contact that looks certain and is not.
+  if (!hasEmail && contactId === null) {
+    return {
+      creates: [],
+      reason: "evidence_only_identity_insufficient",
+      pageId,
+    };
+  }
+
+  // A later genuine submission is a new sales attempt. It never reopens a
+  // closed one, and it never edits what the closed one recorded.
+  const creates = [
+    ...(contactId === null ? ["contact"] : []),
+    "opportunity",
+    "application",
+    "review_application_task",
+    "snapshot_link",
+  ];
+
+  return {
+    creates,
+    reason: contactId === null ? "new_contact" : "new_sales_attempt",
+    pageId,
+    opportunity: {
+      offer,
+      stage: "application_received",
+      entry_path: "application_form",
+      outcome: null,
+      cohort_id: null,
+    },
+    application: {
+      status: "pending",
+      reviewed_at: null,
+      intended_cohort_id: null,
+      submitted_at: submittedAt,
+      source: "historical_import",
+      source_page_id: pageId,
+    },
+  };
+};
