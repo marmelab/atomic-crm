@@ -526,6 +526,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/public-application/usePublicOfferContext.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/public-application/submitApplication.ts",
           "type": "registry:component"
         },
@@ -559,6 +563,10 @@
         },
         {
           "path": "src/components/atomic-crm/public-application/CopyApplicationLinkButton.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/public-application/ApplicationUnavailableNotice.tsx",
           "type": "registry:component"
         },
         {
@@ -1066,6 +1074,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/enrollments/endEnrollment.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/enrollments/computeOnboardingProgress.ts",
           "type": "registry:component"
         },
@@ -1087,6 +1099,10 @@
         },
         {
           "path": "src/components/atomic-crm/enrollments/classifyEnrollment.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/enrollments/assessOnboarding.ts",
           "type": "registry:component"
         },
         {
@@ -1430,6 +1446,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/dashboard/DashboardApplicationsForReview.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/dashboard/DashboardActivityLog.tsx",
           "type": "registry:component"
         },
@@ -1443,6 +1463,10 @@
         },
         {
           "path": "src/components/atomic-crm/dashboard/ComingUp.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/dashboard/CollapsibleQueue.tsx",
           "type": "registry:component"
         },
         {
@@ -1499,6 +1523,10 @@
         },
         {
           "path": "src/components/atomic-crm/contacts/contactModel.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/contacts/contactDisplayName.ts",
           "type": "registry:component"
         },
         {
@@ -1738,6 +1766,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/applications/applicationReviewSla.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/applications/applicationConstants.ts",
           "type": "registry:component"
         },
@@ -1755,6 +1787,10 @@
         },
         {
           "path": "src/components/atomic-crm/applications/ApplicationReviewActions.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/applications/ApplicationResponses.tsx",
           "type": "registry:component"
         },
         {
