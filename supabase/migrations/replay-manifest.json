@@ -34,7 +34,7 @@
     "second question too."
   ],
   "version": 1,
-  "total_migration_versions": 106,
+  "total_migration_versions": 108,
   "boundary_status": "resolved",
   "clean_room_prerequisites": {
     "$comment": [
@@ -176,6 +176,14 @@
       "reason": "Clears the mechanically-created 'lost' outcome from Alva Winsa's Opportunity 187. Refuses to run unless that Opportunity is in the exact proven state.",
       "owns_durable_schema": false,
       "structure_extracted_to": "20260919020000_final_outcome_event_behaviour.sql"
+    },
+    {
+      "version": "20260919060000",
+      "file": "20260919060000_task_linkage_this_database.sql",
+      "classification": "main_only_historical_data_repair",
+      "reason": "Asserts which of this database's open Tasks the deterministic linkage rules resolved, and that Dax Kara's review Task stayed unlinked because he has two Applications and two Opportunities and nothing records which one it means.",
+      "owns_durable_schema": false,
+      "structure_extracted_to": "20260919050000_tasks_are_projections.sql"
     }
   ]
 }

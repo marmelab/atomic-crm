@@ -58,10 +58,15 @@ describe("TaskCreateSheet", () => {
 
     await typeInput.click();
     const typeOptions = screen.getByRole("listbox");
-    // Exact match: "Call" alone is now ambiguous between "Sales Call" and
-    // "Resolve Sales Call" (Acuity/Sales Call Lifecycle slice's new task
-    // type) — this test selects "Sales Call" specifically.
-    await typeOptions.getByText("Sales Call", { exact: true }).click();
+    // The form used to offer every type, including the system
+    // projections — a hand-made "Sales Call" or "Onboarding" Task points
+    // at no call and no checklist item, so nothing would ever close it and
+    // its action button would have nowhere to go. Only genuinely manual
+    // types are offered now, which today means "Other".
+    await expect
+      .element(typeOptions.getByText("Sales Call", { exact: true }))
+      .not.toBeInTheDocument();
+    await typeOptions.getByText("Other", { exact: true }).click();
 
     // Manual Task UX repair, round 2 (§4): due_date is now a date-only
     // control (DateInput), not datetime-local.
@@ -100,7 +105,7 @@ describe("TaskCreateSheet", () => {
     expect(createdTask).toMatchObject({
       contact_id: 2,
       text: "Follow up about onboarding",
-      type: "sales_call",
+      type: "other",
     });
     expect(tasks.data).toHaveLength(2);
 

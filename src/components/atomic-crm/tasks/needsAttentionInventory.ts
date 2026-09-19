@@ -32,6 +32,16 @@ export type NeedsAttentionKind = {
   closesAutomaticallyWhen: string;
   // Whether Leif can also tick it off by hand.
   manuallyCompletable: boolean;
+  // Where this kind of Task comes from.
+  //
+  //   system   a business condition somewhere else created it, and that
+  //            condition — not this row — is the truth. Leif must not be
+  //            able to conjure one from the Add Task form: a hand-made
+  //            "Onboarding" Task would be a projection of nothing.
+  //   manual   Leif wrote it down. There is no underlying condition, so
+  //            the Task IS the record.
+  //   retired  no longer created. Existing rows stay readable.
+  origin: "system" | "manual" | "retired";
   // Lower sorts first. Derived from how much a delay costs, not from an
   // arbitrary weighting: a booking nobody can attribute, and a call whose
   // outcome is unknown, both silently corrupt the pipeline; a follow-up is
@@ -60,6 +70,7 @@ export const NEEDS_ATTENTION_KINDS: readonly NeedsAttentionKind[] = [
     urgency: 0,
     dueDateMeans: null,
     actionLabel: "Match",
+    origin: "system",
   },
   {
     type: "resolve_sales_call",
@@ -75,6 +86,7 @@ export const NEEDS_ATTENTION_KINDS: readonly NeedsAttentionKind[] = [
     urgency: 1,
     dueDateMeans: null,
     actionLabel: "Resolve",
+    origin: "system",
   },
   {
     type: "sales_call",
@@ -89,6 +101,7 @@ export const NEEDS_ATTENTION_KINDS: readonly NeedsAttentionKind[] = [
     urgency: 3,
     dueDateMeans: "When the call is scheduled",
     actionLabel: "Open",
+    origin: "system",
   },
   {
     type: "follow_up",
@@ -103,6 +116,7 @@ export const NEEDS_ATTENTION_KINDS: readonly NeedsAttentionKind[] = [
     urgency: 2,
     dueDateMeans: "The follow-up date you promised yourself",
     actionLabel: "Follow up",
+    origin: "system",
   },
   {
     type: "nurture_follow_up",
@@ -116,6 +130,7 @@ export const NEEDS_ATTENTION_KINDS: readonly NeedsAttentionKind[] = [
     urgency: 5,
     dueDateMeans: "When to revisit",
     actionLabel: "Revisit",
+    origin: "retired",
   },
   {
     type: "sales_call_cancelled",
@@ -130,6 +145,7 @@ export const NEEDS_ATTENTION_KINDS: readonly NeedsAttentionKind[] = [
     urgency: 4,
     dueDateMeans: null,
     actionLabel: "Resolve",
+    origin: "retired",
   },
   {
     type: "sales_call_no_show",
@@ -145,6 +161,7 @@ export const NEEDS_ATTENTION_KINDS: readonly NeedsAttentionKind[] = [
     urgency: 4,
     dueDateMeans: null,
     actionLabel: "Resolve",
+    origin: "retired",
   },
   {
     type: "resolve_client_session_cadence",
@@ -167,6 +184,7 @@ export const NEEDS_ATTENTION_KINDS: readonly NeedsAttentionKind[] = [
     // presenting this timestamp would invent a deadline.
     dueDateMeans: null,
     actionLabel: "Resolve",
+    origin: "system",
   },
   {
     type: "onboarding_item",
@@ -181,6 +199,7 @@ export const NEEDS_ATTENTION_KINDS: readonly NeedsAttentionKind[] = [
     urgency: 7,
     dueDateMeans: "When the step is due",
     actionLabel: "Open",
+    origin: "system",
   },
   {
     type: "offboarding_item",
@@ -194,6 +213,7 @@ export const NEEDS_ATTENTION_KINDS: readonly NeedsAttentionKind[] = [
     urgency: 8,
     dueDateMeans: "When the step is due",
     actionLabel: "Open",
+    origin: "system",
   },
   {
     type: "review_application",
@@ -207,6 +227,7 @@ export const NEEDS_ATTENTION_KINDS: readonly NeedsAttentionKind[] = [
     urgency: 2,
     dueDateMeans: "When it was submitted",
     actionLabel: "Review",
+    origin: "system",
   },
   {
     type: "check_payment",
@@ -221,6 +242,7 @@ export const NEEDS_ATTENTION_KINDS: readonly NeedsAttentionKind[] = [
     urgency: 4,
     dueDateMeans: "When the payment was expected",
     actionLabel: "Check",
+    origin: "retired",
   },
   {
     type: "other",
@@ -234,6 +256,7 @@ export const NEEDS_ATTENTION_KINDS: readonly NeedsAttentionKind[] = [
     urgency: 9,
     dueDateMeans: "Whatever date you set",
     actionLabel: "Open",
+    origin: "manual",
   },
 ];
 
@@ -268,3 +291,23 @@ export const byOperationalUrgency = (
   }
   return Number(a.id) - Number(b.id);
 };
+
+// The types Leif may create by hand.
+//
+// The Add Task form offered all thirteen, which let him hand-make an
+// "Onboarding" or "Application to review" Task — a projection of nothing,
+// pointing at no checklist item and no Application, which the routing then
+// could not open and no condition would ever close. System types are
+// created by the condition that makes them true; retired ones are not
+// created at all.
+export const MANUALLY_CREATABLE_TASK_TYPES: readonly string[] =
+  NEEDS_ATTENTION_KINDS.filter((kind) => kind.origin === "manual").map(
+    (kind) => kind.type,
+  );
+
+// Whether a Task of this type is a projection of a condition held
+// elsewhere. Those must not be deleted or invented from the generic UI:
+// the condition would outlive the row, or the row would claim a condition
+// that does not exist.
+export const isSystemTaskType = (type: string | null | undefined): boolean =>
+  describeTaskKind(type)?.origin === "system";

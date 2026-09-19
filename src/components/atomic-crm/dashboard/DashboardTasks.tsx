@@ -44,7 +44,7 @@ export const DashboardTasks = () => {
   const { isRecentlyCompleted, markCompleted: handleTaskCompleted } =
     useRecentlyCompletedTasks();
 
-  const { needsAttention, overdue, today, next7Days } = useMemo(() => {
+  const { needsAttention, overdue, today, next7Days, later } = useMemo(() => {
     const ongoing = (tasks ?? []).filter(
       (task) => !isDone(task) || isRecentlyCompleted(task.id),
     );
@@ -80,6 +80,21 @@ export const DashboardTasks = () => {
       next7Days: ongoing.filter(
         (task) =>
           !hasNoMeaningfulDueDate(task) && isDueNext7Days(task.due_date),
+      ),
+      // Everything further out than seven days.
+      //
+      // There was no such bucket, so a dated Task simply stopped being
+      // shown anywhere once it was more than a week away — it matched
+      // neither Needs Attention (it has a real date), nor Overdue, Today
+      // or Next 7 Days. Sarah Henke's sales call on 15 October is the live
+      // case: a real appointment, invisible on the Dashboard. A future
+      // commitment must not disappear for being far away.
+      later: ongoing.filter(
+        (task) =>
+          !hasNoMeaningfulDueDate(task) &&
+          !isOverdue(task.due_date) &&
+          !isDueToday(task.due_date) &&
+          !isDueNext7Days(task.due_date),
       ),
     };
   }, [tasks, isRecentlyCompleted]);
@@ -132,6 +147,18 @@ export const DashboardTasks = () => {
           onTaskCompleted={handleTaskCompleted}
         />
       </div>
+      {/* Only rendered when something is actually out there, so the
+          Dashboard does not grow an empty fourth column for the common
+          case — but never silently dropped when it is not empty. */}
+      {later.length > 0 && (
+        <div className="mt-4">
+          <TaskBucket
+            title={translate("crm.dashboard.tasks_later", { _: "Later" })}
+            tasks={later}
+            onTaskCompleted={handleTaskCompleted}
+          />
+        </div>
+      )}
     </div>
   );
 };

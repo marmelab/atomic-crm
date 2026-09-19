@@ -2205,3 +2205,47 @@ begin
 end;
 $function$
 ;
+
+
+CREATE OR REPLACE FUNCTION public.close_tasks_for_terminal_enrollment()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SET search_path TO 'public'
+AS $function$
+begin
+  if new.status not in ('completed', 'withdrawn', 'ended')
+     or old.status in ('completed', 'withdrawn', 'ended') then
+    return new;
+  end if;
+
+CREATE OR REPLACE FUNCTION public.close_tasks_for_terminal_opportunity()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SET search_path TO 'public'
+AS $function$
+begin
+  if public.deal_is_active(new.archived_at, new.stage, new.outcome)
+     or (tg_op = 'UPDATE'
+         and not public.deal_is_active(old.archived_at, old.stage, old.outcome)) then
+    return new;
+  end if;
+
+CREATE OR REPLACE FUNCTION public.sync_task_from_onboarding_item()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_enrollment enrollments%rowtype;
+  v_deal deals%rowtype;
+  v_contact_name text;
+begin
+  -- Item finished: close its open Task, if it still has one.
+  if new.status = 'done' then
+    update tasks
+       set done_date = coalesce(done_date, coalesce(new.completed_at, now())),
+           status = 'completed'
+     where onboarding_item_id = new.id and done_date is null;
+    return new;
+  end if;

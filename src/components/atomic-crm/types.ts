@@ -1071,6 +1071,15 @@ export type Task = {
   type: string;
   text: string;
   due_date: string;
+  // NULL on rows that predate the column. Their real creation time is
+  // unknown, and defaulting them to "now" would manufacture history.
+  created_at?: string | null;
+  // The sales attempt this Task belongs to, where it belongs to one.
+  // Routing used to guess it from the Contact, which works until somebody
+  // has two Opportunities. NULL is an honest gap, not a default.
+  opportunity_id?: Identifier | null;
+  // The Application a review Task is about, and its dedupe target.
+  application_id?: Identifier | null;
   done_date?: string | null;
   // Kept in sync with done_date (see dataProvider's "tasks" lifecycle hook):
   // completing/uncompleting via the checkbox toggles both. "waiting" and

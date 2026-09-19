@@ -8,6 +8,7 @@ import { DateInput } from "@/components/admin";
 import { contactOptionText } from "../misc/ContactOption";
 import { dateOnlyToTimestamp } from "../misc/dateOnlyToTimestamp";
 import { useConfigurationContext } from "../root/ConfigurationContext";
+import { MANUALLY_CREATABLE_TASK_TYPES } from "./needsAttentionInventory";
 import { taskStatuses } from "./taskConstants";
 
 export const TaskFormContent = ({
@@ -16,6 +17,23 @@ export const TaskFormContent = ({
   selectContact?: boolean;
 }) => {
   const { taskTypes } = useConfigurationContext();
+
+  // Only the types Leif actually creates.
+  //
+  // The form offered all thirteen, including the system projections. A
+  // hand-made "Onboarding" Task points at no checklist item, so nothing
+  // would ever close it and its Open button would have nowhere to go; a
+  // hand-made "Application to review" claims an Application that does not
+  // exist. Those rows are created by the condition they describe, never
+  // here. The configured list is still the source of labels, so a tenant
+  // adding a genuinely manual type keeps working.
+  const manualTypes = taskTypes.filter((choice) =>
+    MANUALLY_CREATABLE_TASK_TYPES.includes(String(choice.value)),
+  );
+  // A tenant whose configuration names no manual type at all would
+  // otherwise get an empty, unsubmittable select.
+  const typeChoices = manualTypes.length > 0 ? manualTypes : taskTypes;
+
   return (
     <div className="flex flex-col gap-4">
       <TextInput
@@ -57,7 +75,7 @@ export const TaskFormContent = ({
         <SelectInput
           source="type"
           validate={required()}
-          choices={taskTypes}
+          choices={typeChoices}
           optionText="label"
           optionValue="value"
           defaultValue="other"

@@ -227,3 +227,21 @@ CREATE TRIGGER guard_deal_onboarding_stage BEFORE INSERT OR UPDATE OF stage ON p
 CREATE TRIGGER on_deal_outcome_changed AFTER INSERT OR UPDATE OF outcome, exit_reason ON public.deals FOR EACH ROW EXECUTE FUNCTION record_deal_outcome_event();
 CREATE TRIGGER reject_completion_with_sessions_remaining BEFORE INSERT OR UPDATE ON public.enrollments FOR EACH ROW EXECUTE FUNCTION reject_completion_with_sessions_remaining();
 CREATE TRIGGER complete_sales_call_matching_task_trigger AFTER UPDATE OF opportunity_id ON public.sales_calls FOR EACH ROW EXECUTE FUNCTION complete_sales_call_matching_task();
+
+-- Task projections follow their condition: a reopened checklist item
+-- brings its Task back, and a terminal Opportunity or Enrollment closes
+-- only the Task families whose premise it was.
+drop trigger if exists on_onboarding_item_task_sync on public.enrollment_onboarding_items;
+create trigger on_onboarding_item_task_sync
+  after insert or update of status on public.enrollment_onboarding_items
+  for each row execute function public.sync_task_from_onboarding_item();
+
+drop trigger if exists on_deal_terminal_task_cleanup on public.deals;
+create trigger on_deal_terminal_task_cleanup
+  after update of stage, outcome, archived_at on public.deals
+  for each row execute function public.close_tasks_for_terminal_opportunity();
+
+drop trigger if exists on_enrollment_terminal_task_cleanup on public.enrollments;
+create trigger on_enrollment_terminal_task_cleanup
+  after update of status on public.enrollments
+  for each row execute function public.close_tasks_for_terminal_enrollment();

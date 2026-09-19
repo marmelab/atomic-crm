@@ -1907,3 +1907,44 @@ alter table public.enrollment_onboarding_items
     drop constraint if exists enrollment_onboarding_items_completion_source_check;
 alter table public.enrollment_onboarding_items
     add constraint enrollment_onboarding_items_completion_source_check CHECK (((completion_source IS NULL) OR (completion_source = ANY (ARRAY['app'::text, 'owner_confirmed'::text, 'historical_confirmed'::text]))));
+
+-- Tasks are projections: a Task says something needs attention, it is not
+-- what makes it true. These are the columns and rules that keep it that
+-- way — an explicit target, one vocabulary, one idea of "done", and no
+-- second open Task about the same thing. See
+-- 20260919050000_tasks_are_projections.sql.
+alter table public.tasks
+    add column if not exists created_at timestamptz;
+alter table public.tasks
+    alter column created_at set default now();
+alter table public.tasks
+    add column if not exists opportunity_id bigint;
+alter table public.tasks
+    add column if not exists application_id bigint;
+alter table public.tasks
+    alter column type set not null;
+
+alter table public.tasks
+    drop constraint if exists tasks_opportunity_id_fkey;
+alter table public.tasks
+    add constraint tasks_opportunity_id_fkey FOREIGN KEY (opportunity_id) REFERENCES deals(id) ON UPDATE CASCADE ON DELETE SET NULL;
+alter table public.tasks
+    drop constraint if exists tasks_application_id_fkey;
+alter table public.tasks
+    add constraint tasks_application_id_fkey FOREIGN KEY (application_id) REFERENCES applications(id) ON UPDATE CASCADE ON DELETE SET NULL;
+alter table public.tasks
+    drop constraint if exists tasks_type_check;
+alter table public.tasks
+    add constraint tasks_type_check CHECK ((type = ANY (ARRAY['sales_call_needs_matching'::text, 'resolve_sales_call'::text, 'sales_call'::text, 'follow_up'::text, 'resolve_client_session_cadence'::text, 'onboarding_item'::text, 'offboarding_item'::text, 'review_application'::text, 'other'::text, 'nurture_follow_up'::text, 'sales_call_cancelled'::text, 'sales_call_no_show'::text, 'check_payment'::text])));
+alter table public.tasks
+    drop constraint if exists tasks_completion_agreement_check;
+alter table public.tasks
+    add constraint tasks_completion_agreement_check CHECK (((done_date IS NULL) = (status = ANY (ARRAY['pending'::text, 'waiting'::text]))));
+
+create index if not exists tasks_opportunity_id_idx on public.tasks (opportunity_id);
+create index if not exists tasks_application_id_idx on public.tasks (application_id);
+CREATE UNIQUE INDEX tasks_one_open_per_onboarding_item ON public.tasks USING btree (onboarding_item_id) WHERE ((done_date IS NULL) AND (onboarding_item_id IS NOT NULL));
+CREATE UNIQUE INDEX tasks_one_open_per_offboarding_item ON public.tasks USING btree (offboarding_item_id) WHERE ((done_date IS NULL) AND (offboarding_item_id IS NOT NULL));
+CREATE UNIQUE INDEX tasks_one_open_per_cadence_issue ON public.tasks USING btree (cadence_issue_id) WHERE ((done_date IS NULL) AND (cadence_issue_id IS NOT NULL));
+CREATE UNIQUE INDEX tasks_one_open_per_sales_call_type ON public.tasks USING btree (sales_call_id, type) WHERE ((done_date IS NULL) AND (sales_call_id IS NOT NULL));
+CREATE UNIQUE INDEX tasks_one_open_review_per_application ON public.tasks USING btree (application_id) WHERE ((done_date IS NULL) AND (application_id IS NOT NULL));
