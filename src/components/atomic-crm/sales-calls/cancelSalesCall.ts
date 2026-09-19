@@ -1,6 +1,6 @@
 import type { DataProvider, Identifier } from "ra-core";
 
-import type { Deal, SalesCall, Task } from "../types";
+import type { SalesCall, Task } from "../types";
 import { cancelSalesCallTask } from "./salesCallTask";
 
 // The ONE canonical cancellation, used by BOTH entry points: the manual
@@ -16,21 +16,19 @@ import { cancelSalesCallTask } from "./salesCallTask";
 // are still interested. So this never touches `attendance`, never attaches
 // the No-show tag, and never sets an exit outcome.
 //
-// WHAT CHANGED, and why: this function used to leave the Opportunity in
-// Call Booked and create a "stranded lead" follow-up task, on the reasoning
-// that regressing the stage was a business decision it should not guess.
-// The effect was that Call Booked kept asserting a booked call that did not
-// exist, and a task was created to compensate for the stage lying. Leif's
-// ruling is that Call Booked means exactly one thing — there is a genuine
-// booked future call — so the stage now moves to `approved` (approved to
-// have a call, none scheduled), which IS the "needs booking" signal the
-// stranding task was standing in for. The task is therefore retired rather
-// than kept alongside it.
+// The Opportunity's stage is not touched. There was a period when it was:
+// the stage moved back to `approved` on the reasoning that Call Booked
+// asserts a booked call and a cancelled one is not booked. Acceptance
+// testing retired that. `approved` means "qualified, waiting to book",
+// which is where somebody is BEFORE they ever agreed to meet, so writing
+// it moved people backwards through the sales process on a fact that says
+// nothing about how far the sale had got.
 //
-// Outcome is still never decided here: whether to pursue somebody who
-// cancelled is Leif's judgement (Jori and Brandon cancelled identically and
-// got different dispositions), so it stays null and the Deal sits visibly
-// at Approved with no call booked.
+// Outcome is never decided here either: whether to pursue somebody who
+// cancelled is Leif's judgement (Jori and Brandon cancelled identically
+// and got different dispositions). It stays null, the card stays where the
+// sale reached, and deals/needsNextSalesStep.ts surfaces the open question
+// from the call facts rather than from the stage.
 
 export type CancelSalesCallResult =
   | { status: "cancelled" }
@@ -108,27 +106,19 @@ export const cancelSalesCallMirror = async (
   await cancelSalesCallTask(dataProvider, salesCall.contact_id);
   await cancelTasksForCall(dataProvider, salesCall.id);
 
-  // 3. The Opportunity leaves Call Booked, because that stage asserts a
-  //    booked call and there is none. Only from 'call_booked' and only
-  //    while still active: a Deal that has since progressed or exited is
-  //    never dragged backwards by cancelling an old call.
-  if (salesCall.opportunity_id != null) {
-    const { data: deal } = await dataProvider
-      .getOne<Deal>("deals", { id: salesCall.opportunity_id })
-      .catch(() => ({ data: null as Deal | null }));
-    if (
-      deal &&
-      deal.stage === "call_booked" &&
-      deal.outcome == null &&
-      deal.archived_at == null
-    ) {
-      await dataProvider.update<Deal>("deals", {
-        id: deal.id,
-        data: { stage: "approved", stage_entered_at: now },
-        previousData: deal,
-      });
-    }
-  }
+  // 3. The Opportunity is NOT touched.
+  //
+  //    This used to write the stage back to 'approved', because Call
+  //    Booked asserts a booked call and there is none. But 'approved'
+  //    means "qualified, waiting to book" — where somebody is BEFORE they
+  //    have ever agreed to meet — so writing it moved a person backwards
+  //    through the sales process on the strength of a fact that says
+  //    nothing about how far the sale has got. Owner decision, after
+  //    acceptance testing found four people demoted that way.
+  //
+  //    What happens next is still surfaced, just not by moving the card:
+  //    deals/needsNextSalesStep.ts derives it from active + latest call
+  //    cancelled/no-show + nothing booked since, independently of stage.
 
   return { status: "cancelled" };
 };

@@ -1519,7 +1519,6 @@ AS $function$
 declare
   v_call sales_calls%ROWTYPE;
   v_now timestamptz := now();
-  v_deal_returned boolean := false;
   v_tasks_closed int := 0;
 begin
   select * into v_call from sales_calls where id = p_sales_call_id for update;
@@ -1562,28 +1561,16 @@ begin
      and status in ('pending', 'waiting');
   get diagnostics v_tasks_closed = row_count;
 
-  -- 3. The Opportunity leaves Call Booked. Only from 'call_booked', and
-  --    only while it is still active — a Deal that has since progressed or
-  --    exited is not dragged backwards by cancelling an old call.
-  --    stage_entered_at is set so record_deal_stage_event() timestamps the
-  --    transition as happening now rather than reusing the old value.
-  if v_call.opportunity_id is not null then
-    update deals
-       set stage = 'approved',
-           stage_entered_at = v_now,
-           updated_at = v_now
-     where id = v_call.opportunity_id
-       and stage = 'call_booked'
-       and outcome is null
-       and archived_at is null;
-    v_deal_returned := found;
-  end if;
+  -- 3. The Opportunity is NOT touched. The sale reached wherever it
+  --    reached; a cancelled meeting is not a reason to say it reached less.
+  --    Leif decides what happens next, and until he does the Opportunity
+  --    stays exactly where it is with the cancellation visible on it.
 
   return jsonb_build_object(
     'status', case when v_call.status = 'cancelled' then 'already-cancelled' else 'cancelled' end,
     'sales_call_id', v_call.id,
     'opportunity_id', v_call.opportunity_id,
-    'deal_returned_to_approved', v_deal_returned,
+    'opportunity_stage_unchanged', true,
     'tasks_closed', v_tasks_closed,
     -- Reported so a caller can be explicit that nothing was decided about
     -- pursuing this person.
@@ -1603,7 +1590,6 @@ declare
   v_now timestamptz := now();
   v_already_no_show boolean;
   v_tag_id bigint;
-  v_stage_returned boolean := false;
 begin
   select * into v_call from sales_calls where id = p_sales_call_id for update;
   if not found then
@@ -1620,8 +1606,6 @@ begin
   v_already_no_show := v_call.attendance is not distinct from 'no_show';
 
   -- 1. The Sales Call is the CANONICAL historical record of the no-show.
-  --    status leaves 'booked' so the partial unique index does not block a
-  --    later genuine rebooking.
   if not v_already_no_show then
     update sales_calls
        set attendance = 'no_show',
@@ -1640,23 +1624,9 @@ begin
      where id = v_call.id;
   end if;
 
-  -- 2. The Opportunity REMAINS an active sales attempt. Only the stage
-  --    moves, and only when nothing else is booked: Call Booked has to
-  --    mean there is a call booked.
-  update deals
-     set stage = 'approved',
-         stage_entered_at = v_now,
-         updated_at = v_now
-   where id = v_call.opportunity_id
-     and stage = 'call_booked'
-     and public.deal_is_active(archived_at, stage, outcome)
-     and not exists (
-       select 1 from sales_calls s
-       where s.opportunity_id = v_call.opportunity_id
-         and s.id <> v_call.id
-         and s.status = 'booked'
-     );
-  v_stage_returned := found;
+  -- 2. The Opportunity is NOT touched — see record_sales_call_cancelled().
+  --    They did not turn up. That is a fact about the meeting, not a
+  --    demotion of the sale.
 
   -- 3. The Contact carries a durable, visible No-show tag — a SUMMARY for
   --    at-a-glance history, never the source of truth, attached once.
@@ -1674,7 +1644,7 @@ begin
   -- 4. The call concluded, so its own task is done. No follow-up task is
   --    invented: the open question is derived, and a task duplicating it
   --    could be deleted while the question remained.
-  -- Every open task about THIS call, whatever its type — including the
+  --    Every open task about THIS call, whatever its type — including the
   -- resolve_sales_call question this no-show has just answered. Scoped by
   -- the call, never by the Contact: a returning applicant can have an
   -- open question about a different call that this one says nothing about.
@@ -1691,7 +1661,7 @@ begin
 
   return jsonb_build_object(
     'status', case when v_already_no_show then 'already-no-show' else 'completed' end,
-    'stage_returned_to_approved', v_stage_returned
+    'opportunity_stage_unchanged', true
   );
 end;
 $function$

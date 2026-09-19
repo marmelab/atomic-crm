@@ -407,13 +407,13 @@ describe("bookSalesCall", () => {
       });
       expect(tasks).toHaveLength(0);
 
-      // The attempt converges: still active, and back at Approved because
-      // no call is booked. Re-running says the same thing again.
+      // The attempt converges: still active, and still at the stage the
+      // sale reached. Re-running says the same thing again.
       const { data: converged } = await dataProvider.getOne<Deal>("deals", {
         id: deal.id,
       });
       expect(converged.outcome ?? null).toBeNull();
-      expect(converged.stage).toBe("approved");
+      expect(converged.stage).toBe("call_booked");
     });
   });
 });

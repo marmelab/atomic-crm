@@ -33,10 +33,11 @@ import {
 //     this stage with no booked call at all sorts last of all.
 //
 //   Decision
-//     Soonest follow-up date FIRST, because that date is a commitment
-//     Leif made. Opportunities with no follow-up date fall back to
-//     longest-waiting, which is the genuine urgency signal when no
-//     promise has been made.
+//     Follow-up chronology, in four bands: overdue (oldest broken promise
+//     first), due today, due later (soonest first), then no follow-up
+//     date at all. Within a band, longest-waiting first. The date is a
+//     commitment Leif made, and a promise already broken outranks one
+//     that is merely upcoming.
 //
 //   Committed
 //     Longest waiting FIRST. Committed means somebody said yes and
@@ -118,17 +119,86 @@ const nextCallFirst =
     return byIdDescending(a, b);
   };
 
-const soonestFollowUpFirst = (a: Deal, b: Deal): number => {
-  const aDate = a.follow_up_date ?? "";
-  const bDate = b.follow_up_date ?? "";
-  if (aDate !== bDate) {
-    // A promised follow-up outranks having made no promise.
-    if (!aDate) return 1;
-    if (!bDate) return -1;
-    return aDate.localeCompare(bDate);
-  }
-  return longestWaitingFirst(a, b);
+/**
+ * "Follow-up soonest first", meaning exactly one thing.
+ *
+ * `deals.follow_up_date` is the only source. It is a commitment Leif made,
+ * and the follow-up Task that projects it carries the same date — there is
+ * deliberately no second follow-up date to disagree with it.
+ *
+ * Four bands, because a date on its own does not say how urgent it is:
+ *
+ *   0  overdue    — the promise has already been broken. Oldest first, so
+ *                   the one broken longest is the one shouting loudest.
+ *   1  today      — owed today.
+ *   2  later      — soonest first.
+ *   3  no date    — no promise was ever made.
+ *
+ * Within a band, and for the whole of band 3, longest-waiting breaks the
+ * tie: with nothing promised, time in the stage is the only real signal.
+ *
+ * Dates are compared as calendar days in the CRM's own timezone. A
+ * follow-up due "today" is due today wherever the server happens to be.
+ */
+export const FOLLOW_UP_BANDS = {
+  overdue: 0,
+  today: 1,
+  later: 2,
+  none: 3,
+} as const;
+
+const CRM_TIME_ZONE = "America/Denver";
+
+const dayKeyFormatter = new Intl.DateTimeFormat("en-CA", {
+  timeZone: CRM_TIME_ZONE,
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+
+/** The CRM-local calendar day of an instant, as YYYY-MM-DD. */
+export const crmDayKey = (at: number | Date): string =>
+  dayKeyFormatter.format(at instanceof Date ? at : new Date(at));
+
+// follow_up_date is already a date, so only the day part is meaningful; a
+// value that arrives as a full timestamp is trimmed rather than parsed,
+// which keeps the comparison in calendar days and out of timezone
+// arithmetic.
+const followUpDay = (deal: Deal): string | null => {
+  const raw = deal.follow_up_date;
+  if (!raw) return null;
+  const day = String(raw).slice(0, 10);
+  return day || null;
 };
+
+export const followUpBand = (
+  deal: Deal,
+  today: string,
+): (typeof FOLLOW_UP_BANDS)[keyof typeof FOLLOW_UP_BANDS] => {
+  const day = followUpDay(deal);
+  if (!day) return FOLLOW_UP_BANDS.none;
+  if (day < today) return FOLLOW_UP_BANDS.overdue;
+  if (day === today) return FOLLOW_UP_BANDS.today;
+  return FOLLOW_UP_BANDS.later;
+};
+
+const soonestFollowUpFirst =
+  (now: number) =>
+  (a: Deal, b: Deal): number => {
+    const today = crmDayKey(now);
+    const bandA = followUpBand(a, today);
+    const bandB = followUpBand(b, today);
+    if (bandA !== bandB) return bandA - bandB;
+
+    // Both overdue and both later sort by the date itself, ascending —
+    // oldest broken promise first, soonest upcoming promise first. Same
+    // direction, and it is the right one in both bands.
+    const dayA = followUpDay(a);
+    const dayB = followUpDay(b);
+    if (dayA && dayB && dayA !== dayB) return dayA.localeCompare(dayB);
+
+    return longestWaitingFirst(a, b);
+  };
 
 export const comparatorForStage = (
   stage: string,
@@ -142,7 +212,7 @@ export const comparatorForStage = (
     case "call_booked":
       return nextCallFirst(context.nextCallAt, context.now ?? Date.now());
     case "decision":
-      return soonestFollowUpFirst;
+      return soonestFollowUpFirst(context.now ?? Date.now());
     case "onboarding":
       return longestWaitingFirst;
     default:

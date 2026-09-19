@@ -296,14 +296,14 @@ describe("completeSalesCallOutcome", () => {
     const { data: deal } = await dataProvider.getOne<Deal>("deals", {
       id: DEAL_ID,
     });
-    // Sales-state-machine slice: a no-show is a fact about a CALL, not a
-    // decision about a person. It used to set outcome = "lost", which
-    // ended the sale automatically — Alva Winsa is still terminal because
-    // of it. The attempt now stays active, and only the stage moves, back
-    // to Approved, because Call Booked asserts a booked call and there is
-    // none. What happens next is derived, not decided here.
+    // A no-show is a fact about a CALL, not a decision about a person. It
+    // used to set outcome = "lost", which ended the sale automatically —
+    // Alva Winsa is still terminal because of it. Later it moved the stage
+    // back to Approved instead, which was a smaller version of the same
+    // mistake: it said this person had never agreed to meet. Now nothing
+    // about the Opportunity moves. What happens next is derived.
     expect(deal.outcome ?? null).toBeNull();
-    expect(deal.stage).toBe("approved");
+    expect(deal.stage).toBe("call_booked");
     expect(deal.owner_decision).toBeNull();
     expect(deal.prospect_decision ?? null).toBeNull();
 
@@ -413,7 +413,7 @@ describe("completeSalesCallOutcome", () => {
       id: DEAL_ID,
     });
     expect(deal.outcome ?? null).toBeNull();
-    expect(deal.stage).toBe("approved");
+    expect(deal.stage).toBe("call_booked");
   });
 
   it("is idempotent: completing an already-completed call is a safe no-op, never a second write", async () => {
@@ -561,10 +561,10 @@ describe("sales-call No-show exits the Opportunity", () => {
     const { data: deal } = await dataProvider.getOne<Deal>("deals", {
       id: DEAL_ID,
     });
-    // No invented stage, and no invented outcome either. It returns to an
-    // existing one that is true: approved to have a call, none booked.
+    // No invented stage, no invented outcome, and no demotion either: the
+    // card stays exactly where the sale reached.
     expect(deal.stage).not.toBe("no_show");
-    expect(deal.stage).toBe("approved");
+    expect(deal.stage).toBe("call_booked");
   });
 
   it("leaves an unrelated Opportunity and its Sales Call untouched", async () => {
@@ -751,7 +751,7 @@ describe("No-show convergence on a half-recorded legacy call", () => {
       id: DEAL_ID,
     });
     expect(deal.outcome ?? null).toBeNull();
-    expect(deal.stage).toBe("approved");
+    expect(deal.stage).toBe("call_booked");
 
     const { data: contact } = await dataProvider.getOne<Contact>("contacts", {
       id: CONTACT_ID,

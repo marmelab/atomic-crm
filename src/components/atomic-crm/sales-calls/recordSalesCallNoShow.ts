@@ -1,8 +1,7 @@
 import type { DataProvider, Identifier } from "ra-core";
 
-import type { Contact, Deal, SalesCall, Tag, Task } from "../types";
+import type { Contact, SalesCall, Tag, Task } from "../types";
 import { completeResolveSalesCallTask } from "./resolveSalesCallTask";
-import { isActiveOpportunity } from "../deals/dealActivity";
 
 // Gate B — the dev/FakeRest half of the dual-implementation No-show path.
 // The production path is the Postgres function
@@ -25,8 +24,9 @@ import { isActiveOpportunity } from "../deals/dealActivity";
 //
 // So now —
 //   Sales Call  canonical history: attendance 'no_show', status 'completed'
-//   Opportunity stays ACTIVE, and returns from Call Booked to Approved
-//               because that stage asserts a booked call and there is none
+//   Opportunity stays ACTIVE and stays exactly where the sale reached.
+//               There was a period when it moved back to Approved; see
+//               cancelSalesCall.ts for why that was retired
 //   Contact     carries a durable, visible "No-show" tag
 //   Outcome     untouched. Ending the attempt is an explicit human action
 //   Decision    untouched. Missing a call is not the prospect saying no
@@ -116,39 +116,13 @@ export const recordSalesCallNoShow = async (
     });
   }
 
-  // 2. The Opportunity stays an active sales attempt. Only the stage
-  //    moves, and only because Call Booked asserts a booked call that no
-  //    longer exists — the same regression a cancellation performs. If a
-  //    later booking already exists the stage is already telling the
-  //    truth, so it is left alone.
+  // 2. The Opportunity is NOT touched — see cancelSalesCall.ts for why
+  //    the old write back to 'approved' is gone. They did not turn up.
+  //    That is a fact about the meeting, not a demotion of the sale.
   //
   //    outcome is NOT set. prospect_decision is NOT set. Ending the
   //    attempt is an explicit decision with its own action and its own
   //    outcome event.
-  const { data: deal } = await dataProvider.getOne<Deal>("deals", {
-    id: salesCall.opportunity_id,
-  });
-  if (isActiveOpportunity(deal) && deal.stage === "call_booked") {
-    const { data: calls } = await dataProvider.getList<SalesCall>(
-      "sales_calls",
-      {
-        filter: { opportunity_id: deal.id },
-        pagination: { page: 1, perPage: 100 },
-        sort: { field: "id", order: "ASC" },
-      },
-    );
-    const stillBooked = calls.some(
-      (call) =>
-        String(call.id) !== String(salesCall.id) && call.status === "booked",
-    );
-    if (!stillBooked) {
-      await dataProvider.update<Deal>("deals", {
-        id: deal.id,
-        data: { stage: "approved", stage_entered_at: now },
-        previousData: deal,
-      });
-    }
-  }
 
   // 3. Contact-level visible history, reusing the existing tag model.
   await ensureNoShowTag(dataProvider, salesCall.contact_id);

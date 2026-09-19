@@ -173,6 +173,122 @@ describe("Decision — the promise Leif made comes first", () => {
 
     expect(order("decision", deals)).toEqual([2, 1]);
   });
+
+  // NOW is 2026-09-18T12:00Z, which is 2026-09-18 in the CRM's own
+  // timezone — so "today" below means the 18th.
+  it("puts a broken promise above one that is merely upcoming", () => {
+    const deals = [
+      deal({ id: 1, stage: "decision", follow_up_date: "2026-09-19" }),
+      deal({ id: 2, stage: "decision", follow_up_date: "2026-09-10" }),
+    ];
+
+    expect(order("decision", deals)).toEqual([2, 1]);
+  });
+
+  it("orders overdue follow-ups oldest first — longest broken, loudest", () => {
+    const deals = [
+      deal({ id: 1, stage: "decision", follow_up_date: "2026-09-15" }),
+      deal({ id: 2, stage: "decision", follow_up_date: "2026-07-02" }),
+      deal({ id: 3, stage: "decision", follow_up_date: "2026-08-20" }),
+    ];
+
+    expect(order("decision", deals)).toEqual([2, 3, 1]);
+  });
+
+  it("puts today between the overdue and the upcoming", () => {
+    const deals = [
+      deal({ id: 1, stage: "decision", follow_up_date: "2026-09-19" }),
+      deal({ id: 2, stage: "decision", follow_up_date: "2026-09-18" }),
+      deal({ id: 3, stage: "decision", follow_up_date: "2026-09-17" }),
+      deal({ id: 4, stage: "decision", follow_up_date: null }),
+    ];
+
+    expect(order("decision", deals)).toEqual([3, 2, 1, 4]);
+  });
+
+  it("reads the follow-up day in the CRM's timezone, not the server's", () => {
+    // 2026-09-18T12:00Z is still the 18th in America/Denver (06:00), so a
+    // follow-up dated the 18th is due TODAY, never already overdue.
+    const deals = [
+      deal({ id: 1, stage: "decision", follow_up_date: "2026-09-18" }),
+      deal({ id: 2, stage: "decision", follow_up_date: "2026-09-17" }),
+    ];
+
+    expect(order("decision", deals)).toEqual([2, 1]);
+  });
+
+  it("compares calendar days even when a value arrives as a timestamp", () => {
+    // Follow-up timing lives on the Opportunity; the follow-up Task
+    // projects it and stores a time of day. If a timestamp ever reaches
+    // this field, the hour must not decide the order — only the day.
+    const deals = [
+      deal({
+        id: 1,
+        stage: "decision",
+        follow_up_date: "2026-09-25T23:00:00.000Z" as Deal["follow_up_date"],
+      }),
+      deal({ id: 2, stage: "decision", follow_up_date: "2026-09-25" }),
+      deal({ id: 3, stage: "decision", follow_up_date: "2026-09-24" }),
+    ];
+
+    // 3 first on its earlier day; 1 and 2 share a day, so the tie falls to
+    // longest-waiting and then to id, never to the 23:00.
+    expect(order("decision", deals)).toEqual([3, 2, 1]);
+  });
+
+  // The acceptance case, with synthetic stand-ins. Leif saw one person
+  // with a future follow-up sitting above two who had been in Decision for
+  // a month with nothing scheduled at all.
+  it("regression: a future follow-up still outranks no follow-up", () => {
+    const gil = deal({
+      id: 186,
+      stage: "decision",
+      follow_up_date: "2026-09-22",
+      stage_entered_at: "2026-09-18T02:23:46.000Z",
+    });
+    const bess = deal({
+      id: 105,
+      stage: "decision",
+      follow_up_date: null,
+      stage_entered_at: "2026-08-20T00:00:00.000Z",
+    });
+    const gianina = deal({
+      id: 98,
+      stage: "decision",
+      follow_up_date: null,
+      stage_entered_at: "2026-08-21T00:00:00.000Z",
+    });
+
+    // Band 2 (upcoming) before band 3 (nothing promised), then the two
+    // unpromised ones by how long they have waited.
+    expect(order("decision", [gianina, bess, gil])).toEqual([186, 105, 98]);
+  });
+
+  it("regression: once that follow-up is overdue, the month-old ones still wait", () => {
+    // The same three, read a week later. Gil's promise is now broken, so
+    // he moves from band 2 to band 0 — above the unpromised pair either
+    // way. Only a change to how an absent follow-up is treated moves them.
+    const later = new Date("2026-09-29T12:00:00.000Z").getTime();
+    const deals = [
+      deal({
+        id: 105,
+        stage: "decision",
+        follow_up_date: null,
+        stage_entered_at: "2026-08-20T00:00:00.000Z",
+      }),
+      deal({
+        id: 186,
+        stage: "decision",
+        follow_up_date: "2026-09-22",
+        stage_entered_at: "2026-09-18T02:23:46.000Z",
+      }),
+    ];
+
+    const sorted = [...deals].sort(
+      comparatorForStage("decision", { nextCallAt: new Map(), now: later }),
+    );
+    expect(sorted.map((d) => d.id)).toEqual([186, 105]);
+  });
 });
 
 describe("Committed — waiting longest first", () => {

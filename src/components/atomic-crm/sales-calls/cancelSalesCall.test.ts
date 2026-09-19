@@ -12,12 +12,15 @@ import { cancelSalesCall } from "./cancelSalesCall";
 // decide a disposition, or leave Call Booked asserting a call that does not
 // exist.
 //
-// This file previously encoded the opposite: the Opportunity stayed in Call
-// Booked and a "stranded lead" task was created to compensate. That made
-// Call Booked mean two different things, so Leif ruled it means exactly one
-// — there is a genuine booked future call. Returning the Deal to Approved
-// IS the needs-booking signal the stranding task stood in for, so the task
-// is retired along with the old behaviour.
+// The Opportunity is not moved at all. There was a period when cancelling
+// wrote the stage back to Approved, on the reasoning that Call Booked
+// asserts a booked call. Acceptance testing retired that: Approved means
+// "qualified, waiting to book", so writing it says this person never
+// agreed to meet. The stage stays where the sale reached, and the open
+// question is derived from the call facts instead (needsNextSalesStep).
+//
+// The "stranded lead" task that once compensated for the stage is still
+// retired, and still asserted absent here.
 
 const CONTACT_ID = 1;
 const OFFER_ID = 2;
@@ -107,7 +110,7 @@ const fetchStrandingTasks = async (
 };
 
 describe("cancelSalesCall — canonical cancellation", () => {
-  it("cancels the call, frees the Opportunity from Call Booked, and closes that call's task", async () => {
+  it("cancels the call and closes that call's task, leaving the Opportunity where the sale reached", async () => {
     const { dataProvider } = buildFixtures();
     const salesCallId = await book(dataProvider, "acuity-cancel-1");
 
@@ -127,9 +130,11 @@ describe("cancelSalesCall — canonical cancellation", () => {
     const { data: deal } = await dataProvider.getOne<Deal>("deals", {
       id: DEAL_ID,
     });
-    // Call Booked asserted a booked call; there is none.
-    expect(deal.stage).toBe("approved");
-    // But nothing was decided about pursuing them.
+    // The sale got as far as Call Booked and a cancelled meeting does not
+    // un-make that. Moving it back to Approved would say this person has
+    // never agreed to meet, which is not true.
+    expect(deal.stage).toBe("call_booked");
+    // And nothing was decided about pursuing them.
     expect(deal.outcome).toBeFalsy();
 
     // That call's task is cancelled, not completed — nobody did it.

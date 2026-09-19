@@ -114,6 +114,29 @@ export const PIPELINE_EXIT_REASONS: readonly PipelineExitDefinition[] = [
   },
 ];
 
+/**
+ * The reasons that actually mean "they said no".
+ *
+ * The Decision card's No button used to open the whole exit list, which
+ * put Ghosted, Nurture and Not a fit inside a dialog titled "They said
+ * no" — three things nobody said no to. Ghosted especially: staying
+ * silent is not declining, and the difference decides whether Leif ever
+ * writes to this person again.
+ *
+ * So No now offers only the negative answers a prospect can actually
+ * give. The full list is still there under Remove from pipeline, which is
+ * where an exit that is not a prospect's decision belongs.
+ */
+export const DECLINED_EXIT_REASONS: readonly PipelineExitReason[] = [
+  "declined_offer",
+  "money",
+  "afraid",
+  "timing",
+];
+
+/** Ghosted is its own answer, never one of No's reasons. */
+export const GHOSTED_EXIT_REASON: PipelineExitReason = "ghosted";
+
 export const findExitReason = (
   reason: PipelineExitReason,
 ): PipelineExitDefinition => {

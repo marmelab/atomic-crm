@@ -163,26 +163,14 @@ function createFakeDb(seed: Record<string, Row[]>) {
       }
     }
 
-    let returned = false;
-    if (call.opportunity_id != null) {
-      for (const deal of tables.deals ?? []) {
-        if (
-          deal.id === call.opportunity_id &&
-          deal.stage === "call_booked" &&
-          deal.outcome == null &&
-          deal.archived_at == null
-        ) {
-          deal.stage = "approved";
-          deal.stage_entered_at = now;
-          returned = true;
-        }
-      }
-    }
+    // The Opportunity is deliberately NOT touched. A cancelled meeting
+    // says nothing about how far the sale has got, so the stage stays
+    // where the sale reached — see 20260919160000.
 
     return Promise.resolve({
       data: {
         status: alreadyCancelled ? "already-cancelled" : "cancelled",
-        deal_returned_to_approved: returned,
+        opportunity_stage_unchanged: true,
       },
       error: null,
     });
@@ -557,7 +545,7 @@ describe("acuitySalesCallHandlers", () => {
         ],
       });
 
-    it("returns the Opportunity to Approved, converging with the manual path", async () => {
+    it("leaves the Opportunity where the sale reached, converging with the manual path", async () => {
       fakeDb.current = bookedFixture();
       fakeDb.current.tables.deals = [
         {
@@ -581,19 +569,19 @@ describe("acuitySalesCallHandlers", () => {
       expect(fakeDb.current.tables.sales_call_events[0]).toMatchObject({
         kind: "cancelled",
       });
-      // Call Booked asserts that a call is booked. A cancelled call left
-      // the Opportunity claiming a booking that no longer existed —
-      // production drift this produced for real (Susan Hendriks sat in
-      // Call Booked with nothing in the calendar) while the manual path
-      // and the app mirror both handled it correctly. All three now go
-      // through record_sales_call_cancelled().
-      expect(fakeDb.current.tables.deals[0].stage).toBe("approved");
+      // The stage is not touched. There was a period when a cancellation
+      // wrote it back to Approved so that Call Booked never claimed a
+      // booking that had gone; acceptance testing retired that, because
+      // Approved says this person never agreed to meet. All three paths
+      // go through record_sales_call_cancelled(), so they agree either
+      // way — that convergence is what this asserts.
+      expect(fakeDb.current.tables.deals[0].stage).toBe("call_booked");
       // Attendance is still never invented: nobody showed up or failed to.
       expect(fakeDb.current.tables.sales_calls[0].attendance).toBeUndefined();
-      // The "decide what happens next" task is NOT created any more, and
-      // must not be: it existed only because a cancellation used to strand
-      // the Opportunity in Call Booked with no call. It no longer strands,
-      // and the Approved actions are where that decision is made.
+      // The "decide what happens next" task is NOT created, and must not
+      // be: the open question is DERIVED from the call facts
+      // (needsNextSalesStep), so a task duplicating it could be deleted
+      // while the question remained.
       const followUpTasks = fakeDb.current.tables.tasks.filter(
         (task) => task.type === "sales_call_cancelled",
       );
