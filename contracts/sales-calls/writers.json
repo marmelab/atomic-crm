@@ -1,0 +1,129 @@
+{
+  "$comment": "Every supported production path that CREATES a public.sales_calls row, and nothing else. This file is not documentation: salesCallWriterInventory.test.ts executes each writer and asserts the payload it actually produces matches `supplies` exactly, and e2e/salesCallWriteContracts.spec.ts replays each `supplies` set into a real migrated Postgres. Adding or removing a supported creation path therefore forces an explicit decision here. The regression this exists to make unrepeatable: on 2026-09-17 scheduled_on became NOT NULL while no writer supplied it, every Sales Call INSERT failed in production for three days, and the whole suite stayed green because FakeRest does not enforce database constraints. Only creation is inventoried — an UPDATE path cannot violate a creation contract.",
+  "version": 1,
+  "table": "public.sales_calls",
+  "writers": [
+    {
+      "id": "app.book_sales_call",
+      "title": "Leif logs or books a Sales Call in the CRM",
+      "runtime": "browser/app",
+      "entrypoint": {
+        "file": "src/components/atomic-crm/sales-calls/bookSalesCall.ts",
+        "symbol": "bookSalesCall"
+      },
+      "operation": "dataProvider.create(\"sales_calls\") -> PostgREST POST /rest/v1/sales_calls -> INSERT",
+      "auth_role": "authenticated",
+      "invoked_by": [
+        "src/components/atomic-crm/sales-calls/LogSalesCallDialog.tsx — the \"Log Sales Call\" button on an Opportunity that reached a call stage without a tracked call"
+      ],
+      "supplies": [
+        "opportunity_id",
+        "contact_id",
+        "status",
+        "original_scheduled_at",
+        "scheduled_at",
+        "reschedule_count",
+        "source",
+        "acuity_appointment_id",
+        "acuity_appointment_type_id"
+      ],
+      "derived_by_database": [
+        "id",
+        "scheduled_on",
+        "schedule_precision",
+        "created_at",
+        "updated_at"
+      ],
+      "owns_after_insert": [
+        "sales_call_events row of kind 'booked'",
+        "sets resolution_requested_at when the call is past-dated, so it asks what happened rather than inventing attendance",
+        "advances the Opportunity Approved -> Call Booked when attached",
+        "creates a sales_call_needs_matching Task when unattached, and no Task at all when attached"
+      ],
+      "existing_coverage": [
+        "src/components/atomic-crm/sales-calls/bookSalesCall.test.ts",
+        "src/components/atomic-crm/sales-calls/logHistoricalSalesCall.test.ts",
+        "src/components/atomic-crm/sales-calls/aBookingIsNotAQuestion.test.ts"
+      ],
+      "coverage_gap_this_slice_closes": "Every existing test runs against FakeRest, which enforces no NOT NULL, no CHECK and no trigger. None of them could see the scheduled_on regression."
+    },
+    {
+      "id": "edge.acuity_handle_scheduled",
+      "title": "An Acuity appointment becomes a Sales Call",
+      "runtime": "supabase edge function (deno)",
+      "entrypoint": {
+        "file": "supabase/functions/acuity_webhook/acuitySalesCallHandlers.ts",
+        "symbol": "handleScheduled"
+      },
+      "operation": "supabaseAdmin.from(\"sales_calls\").insert() -> PostgREST -> INSERT",
+      "auth_role": "service_role",
+      "invoked_by": [
+        "supabase/functions/acuity_webhook/index.ts — webhook action=scheduled",
+        "supabase/functions/acuity_webhook/acuitySalesCallHandlers.ts handleRescheduled — falls through to handleScheduled when no row carries that appointment id yet",
+        "supabase/functions/acuity_webhook/acuityReconcile.ts — the hourly reconcile-acuity cron, for a live Acuity appointment the CRM has no row for"
+      ],
+      "supplies": [
+        "opportunity_id",
+        "contact_id",
+        "status",
+        "original_scheduled_at",
+        "scheduled_at",
+        "reschedule_count",
+        "source",
+        "acuity_appointment_id",
+        "acuity_appointment_type_id"
+      ],
+      "derived_by_database": [
+        "id",
+        "scheduled_on",
+        "schedule_precision",
+        "created_at",
+        "updated_at"
+      ],
+      "owns_after_insert": [
+        "sales_call_events row of kind 'booked'",
+        "advances the Opportunity Approved -> Call Booked when deterministically matched",
+        "creates a sales_call_needs_matching Task when there is no single compatible active Opportunity, and no Task at all when matched",
+        "never creates an Opportunity and never reopens a terminal one"
+      ],
+      "existing_coverage": [
+        "supabase/functions/acuity_webhook/acuitySalesCallHandlers.test.ts"
+      ],
+      "coverage_gap_this_slice_closes": "Runs against an in-file fake supabaseAdmin, which likewise enforces nothing the database enforces.",
+      "intentional_divergence_from": {
+        "writer": "app.book_sales_call",
+        "field": "resolution_requested_at",
+        "note": "The app sets it on a past-dated call because a human deliberately stated the call happened. Acuity does not: a reconciler noticing a past appointment is not somebody establishing that nobody knows what happened, and manufacturing that question wholesale is the backlog-inventing trap 20260919050000 avoided. Recorded here so the asymmetry stays deliberate instead of becoming drift."
+      }
+    }
+  ],
+  "deliberately_excluded": {
+    "$comment": "Audited and rejected as creation paths. Listed so a future reader does not have to re-derive the negative.",
+    "update_only": [
+      "src/components/atomic-crm/sales-calls/rescheduleSalesCall.ts — UPDATE of scheduled_at",
+      "src/components/atomic-crm/sales-calls/cancelSalesCall.ts — UPDATE via record_sales_call_cancelled()",
+      "src/components/atomic-crm/sales-calls/completeSalesCallOutcome.ts — UPDATE of attendance/status",
+      "src/components/atomic-crm/sales-calls/recordSalesCallNoShow.ts — UPDATE of attendance",
+      "src/components/atomic-crm/sales-calls/resolveUnmatchedSalesCall.ts — UPDATE of opportunity_id on an EXISTING call; it creates a Deal, never a Sales Call",
+      "supabase/functions/acuity_webhook/acuitySalesCallHandlers.ts handleCanceled — UPDATE",
+      "supabase/functions/acuity_webhook/acuitySalesCallHandlers.ts handleRescheduled — UPDATE when the row exists; its create path is inventoried above under edge.acuity_handle_scheduled"
+    ],
+    "reconcilers_and_projections": [
+      "public.reconcile_sales_call_tasks() — writes tasks, never sales_calls",
+      "public.sync_deal_sales_call_at() — mirrors scheduled_at onto deals",
+      "public.derive_sales_call_scheduled_on() — a BEFORE trigger on the writers above, not a writer"
+    ],
+    "database_functions": [
+      "No function in supabase/schemas/ inserts into sales_calls. Verified: creation is exclusively a client-side INSERT through PostgREST."
+    ],
+    "historical_repair_migrations": [
+      "supabase/migrations/20260918070000_historical_chat_calls_and_sophie_attach.sql",
+      "supabase/migrations/20260920020000_a_calls_date_is_derived_not_supplied.sql",
+      "supabase/migrations/20260920030000_dax_call_and_a_stage_its_own_call_proves.sql"
+    ],
+    "test_or_demo_only": [
+      "src/components/atomic-crm/providers/fakerest/dataGenerator/salesCalls.ts — demo data generator",
+      "src/components/atomic-crm/sales-calls/acuityBookingService.ts — processAcuityWebhookEvent has NO production caller. It is an app-side mirror of the Edge Function's booking flow that only its own test file imports. Reported, not changed: a third copy of a rule that nothing runs is a drift surface, and deciding its fate is outside this slice."
+    ]
+  }
+}

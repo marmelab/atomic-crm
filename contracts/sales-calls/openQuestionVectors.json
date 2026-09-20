@@ -1,0 +1,213 @@
+{
+  "$comment": "Canonical contract vectors for the Sales Call open-question classification. ONE set of cases, driven through every runtime that answers the question, so the copies cannot drift apart in silence. Production duplication across runtimes is unavoidable (a Deno Edge Function cannot import from src/); TEST duplication is not, and this file is the thing that is not duplicated. The regression this exists to make unrepeatable: migration 20260918030000 split one overloaded task type into sales_call_needs_matching (whose booking is this?) and resolve_sales_call (what happened on this past call?); the app was updated and the Acuity Edge Function was not, so four real future bookings reached the Dashboard asking what had happened on calls weeks away. Every arm evaluates at the same fixed `now`, so a disagreement is a real disagreement and never a clock.",
+  "version": 1,
+  "now": "2026-09-20T18:00:00.000Z",
+  "now_note": "Noon in America/Denver (MDT, UTC-6). Vector times are absolute and stated relative to this instant.",
+  "runtimes": {
+    "database": "public.sales_call_open_question() — THE AUTHORITY. Returns matching | attendance | none.",
+    "app": "salesCallTaskQuestion() in src/components/atomic-crm/sales-calls/salesCallTaskTypes.ts — the app-side mirror, the same arrangement isActiveDeal has with deal_is_active.",
+    "edge": "handleScheduled() in supabase/functions/acuity_webhook/acuitySalesCallHandlers.ts — does not classify in general; it chooses the Task type for a booking it is creating. Only the vectors marked edge.reachable describe a state a fresh Acuity booking can be in (always booked, no attendance, not dismissed, no resolution requested)."
+  },
+  "task_type_for_question": {
+    "matching": "sales_call_needs_matching",
+    "attendance": "resolve_sales_call",
+    "none": null
+  },
+  "vectors": [
+    {
+      "id": "future-attached-booked",
+      "description": "An attached booking weeks away. Nothing is unknown: the Call Booked stage and the Opportunity's own Sales Call section already carry it.",
+      "call": {
+        "opportunity_id": 1,
+        "dismissed_at": null,
+        "status": "booked",
+        "attendance": null,
+        "scheduled_at": "2026-10-29T17:00:00.000Z",
+        "scheduled_on": "2026-10-29",
+        "resolution_requested_at": null
+      },
+      "expected_question": "none",
+      "edge": { "reachable": true, "matched": true }
+    },
+    {
+      "id": "past-attached-resolution-requested",
+      "description": "Somebody deliberately established that nobody recorded what happened. This is the only way an attendance question is ever born.",
+      "call": {
+        "opportunity_id": 1,
+        "dismissed_at": null,
+        "status": "booked",
+        "attendance": null,
+        "scheduled_at": "2026-08-01T18:00:00.000Z",
+        "scheduled_on": "2026-08-01",
+        "resolution_requested_at": "2026-08-02T15:00:00.000Z"
+      },
+      "expected_question": "attendance",
+      "edge": { "reachable": false }
+    },
+    {
+      "id": "past-attached-no-resolution-requested",
+      "description": "109 imported calls look exactly like this: past, attached, no attendance, because their result was recorded as pipeline stage. Attendance is NEVER inferred from attendance IS NULL, so these are not open questions and must never become 109 Dashboard alerts.",
+      "call": {
+        "opportunity_id": 1,
+        "dismissed_at": null,
+        "status": "booked",
+        "attendance": null,
+        "scheduled_at": "2026-08-01T18:00:00.000Z",
+        "scheduled_on": "2026-08-01",
+        "resolution_requested_at": null
+      },
+      "expected_question": "none",
+      "edge": { "reachable": true, "matched": true }
+    },
+    {
+      "id": "unmatched-future-booking",
+      "description": "THE REGRESSION VECTOR. Anna Howard's 29 October booking. Nobody knows whose it is; that outranks every other question. It is emphatically not an attendance question — the call has not happened.",
+      "call": {
+        "opportunity_id": null,
+        "dismissed_at": null,
+        "status": "booked",
+        "attendance": null,
+        "scheduled_at": "2026-10-29T17:00:00.000Z",
+        "scheduled_on": "2026-10-29",
+        "resolution_requested_at": null
+      },
+      "expected_question": "matching",
+      "edge": { "reachable": true, "matched": false }
+    },
+    {
+      "id": "unmatched-past-booking",
+      "description": "Past and unattributed. Still a matching question, not an attendance one: the attendance question is about a sales relationship this call has not been attached to yet.",
+      "call": {
+        "opportunity_id": null,
+        "dismissed_at": null,
+        "status": "booked",
+        "attendance": null,
+        "scheduled_at": "2026-08-01T18:00:00.000Z",
+        "scheduled_on": "2026-08-01",
+        "resolution_requested_at": "2026-08-02T15:00:00.000Z"
+      },
+      "expected_question": "matching",
+      "edge": { "reachable": true, "matched": false }
+    },
+    {
+      "id": "attended-call",
+      "description": "Attendance recorded. The question it once posed has been answered.",
+      "call": {
+        "opportunity_id": 1,
+        "dismissed_at": null,
+        "status": "completed",
+        "attendance": "attended",
+        "scheduled_at": "2026-08-01T18:00:00.000Z",
+        "scheduled_on": "2026-08-01",
+        "resolution_requested_at": "2026-08-02T15:00:00.000Z"
+      },
+      "expected_question": "none",
+      "edge": { "reachable": false }
+    },
+    {
+      "id": "no-show-call",
+      "description": "A no-show is an answer, not an absence of one. It never demotes the Opportunity either — see 20260919160000.",
+      "call": {
+        "opportunity_id": 1,
+        "dismissed_at": null,
+        "status": "completed",
+        "attendance": "no_show",
+        "scheduled_at": "2026-08-01T18:00:00.000Z",
+        "scheduled_on": "2026-08-01",
+        "resolution_requested_at": "2026-08-02T15:00:00.000Z"
+      },
+      "expected_question": "none",
+      "edge": { "reachable": false }
+    },
+    {
+      "id": "cancelled-call",
+      "description": "Cancelled is itself what happened to the call. Asking what happened on it would be asking a question that already has an answer.",
+      "call": {
+        "opportunity_id": 1,
+        "dismissed_at": null,
+        "status": "cancelled",
+        "attendance": null,
+        "scheduled_at": "2026-08-01T18:00:00.000Z",
+        "scheduled_on": "2026-08-01",
+        "resolution_requested_at": "2026-08-02T15:00:00.000Z"
+      },
+      "expected_question": "none",
+      "edge": { "reachable": false }
+    },
+    {
+      "id": "dismissed-call",
+      "description": "Explicitly not a sales situation. Nothing to ask about it ever again, and a duplicate Acuity replay must never resurrect its alert.",
+      "call": {
+        "opportunity_id": 1,
+        "dismissed_at": "2026-08-03T15:00:00.000Z",
+        "status": "booked",
+        "attendance": null,
+        "scheduled_at": "2026-08-01T18:00:00.000Z",
+        "scheduled_on": "2026-08-01",
+        "resolution_requested_at": "2026-08-02T15:00:00.000Z"
+      },
+      "expected_question": "none",
+      "edge": { "reachable": false }
+    },
+    {
+      "id": "dismissed-unmatched-call",
+      "description": "Dismissal outranks the matching question too. An unattached booking somebody already ruled out is finished, not waiting.",
+      "call": {
+        "opportunity_id": null,
+        "dismissed_at": "2026-08-03T15:00:00.000Z",
+        "status": "booked",
+        "attendance": null,
+        "scheduled_at": "2026-08-01T18:00:00.000Z",
+        "scheduled_on": "2026-08-01",
+        "resolution_requested_at": null
+      },
+      "expected_question": "none",
+      "edge": { "reachable": false }
+    },
+    {
+      "id": "date-only-past-day-over",
+      "description": "A historical date-only call counts as past once the whole DAY is over — its clock time is genuinely unknown, so end-of-day is the only moment the day is certainly behind us.",
+      "call": {
+        "opportunity_id": 1,
+        "dismissed_at": null,
+        "status": "completed",
+        "attendance": null,
+        "scheduled_at": null,
+        "scheduled_on": "2026-09-19",
+        "resolution_requested_at": "2026-09-19T15:00:00.000Z"
+      },
+      "expected_question": "attendance",
+      "edge": { "reachable": false }
+    },
+    {
+      "id": "date-only-today-day-not-over",
+      "description": "Same shape, but the day is still running in America/Denver. Nothing may ask what happened yet.",
+      "call": {
+        "opportunity_id": 1,
+        "dismissed_at": null,
+        "status": "completed",
+        "attendance": null,
+        "scheduled_at": null,
+        "scheduled_on": "2026-09-20",
+        "resolution_requested_at": "2026-09-20T15:00:00.000Z"
+      },
+      "expected_question": "none",
+      "edge": { "reachable": false }
+    },
+    {
+      "id": "denver-evening-crosses-utc-day",
+      "description": "An evening Denver booking whose UTC date is the NEXT day. scheduled_on must say the Denver day. The same instant that breaks a naive UTC date cast.",
+      "call": {
+        "opportunity_id": null,
+        "dismissed_at": null,
+        "status": "booked",
+        "attendance": null,
+        "scheduled_at": "2026-10-30T01:30:00.000Z",
+        "scheduled_on": "2026-10-29",
+        "resolution_requested_at": null
+      },
+      "expected_question": "matching",
+      "edge": { "reachable": true, "matched": false }
+    }
+  ]
+}

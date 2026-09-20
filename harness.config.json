@@ -32,7 +32,7 @@
         "kind": "unit",
         "runner": "vitest",
         "config": "vitest.config.ts",
-        "projects": ["app", "claude"],
+        "projects": ["app", "claude", "contracts"],
         "changedScoped": true
       },
       {

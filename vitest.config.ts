@@ -67,6 +67,9 @@ export default defineConfig({
             // them. Without this they are collected here and fail on import,
             // which is how five of them sat red without running at all.
             "scripts/**",
+            // Contract tests are Node-only (they read the repo from disk with
+            // node:fs); they run under the "contracts" project below.
+            "contracts/**",
           ],
           server: {
             deps: {
@@ -84,6 +87,24 @@ export default defineConfig({
           // so they need more headroom than the default 5s.
           testTimeout: 30000,
           hookTimeout: 30000,
+        },
+      },
+      {
+        // Reliability contracts (contracts/): the checked-in inventories and
+        // canonical vectors, plus the tests that hold each runtime to them.
+        // Node, because they read the repository from disk and execute writers
+        // headlessly — no DOM is involved in any of it.
+        resolve: {
+          alias: {
+            "@": path.resolve(__dirname, "./src"),
+          },
+        },
+        test: {
+          name: "contracts",
+          globals: true,
+          environment: "node",
+          include: ["contracts/**/*.test.ts"],
+          exclude: ["**/node_modules/**", ".supabase-e2e/**"],
         },
       },
       {
