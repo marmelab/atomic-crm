@@ -147,6 +147,16 @@ export const REVIEWED_DETERMINISTIC = {
   // a trigger function and its trigger and writes no business data.
   20260920020000:
     "synthetic probe row, deleted; owns a trigger function and its trigger",
+  // Matched the same way, on
+  //   values ('Zz', 'Clamp Probe', ...)
+  // — two synthetic Contacts, one written as service_role and one as
+  // authenticated, inside a subtransaction that ends by raising so both
+  // roll back. They prove at deploy time that writing a Contact no longer
+  // requires the right to read identity rows, and that the identity table
+  // stays out of reach of the same role. The migration owns one function
+  // definition and writes no business data.
+  20260920130000:
+    "synthetic probe rows, rolled back; owns a trigger function definition",
 };
 
 /**

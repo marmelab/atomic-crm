@@ -1716,6 +1716,7 @@ $function$
 CREATE OR REPLACE FUNCTION public.clamp_contact_last_seen()
  RETURNS trigger
  LANGUAGE plpgsql
+ SECURITY DEFINER
  SET search_path TO 'public'
 AS $function$
 declare

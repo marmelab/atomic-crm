@@ -255,3 +255,134 @@ test.describe("and the CRM still works", () => {
     ).toBeNull();
   });
 });
+
+// Writing a Contact must not require the right to read identity rows.
+//
+// clamp_contact_last_seen() refuses a Contact a last_seen in the future and
+// repairs it from real evidence — and the evidence includes
+// contact_external_identities, which service_role deliberately cannot read.
+// Both functions were SECURITY INVOKER, so the whole repair ran as whoever
+// wrote the Contact, and the Edge Functions' own role hit
+// "42501 permission denied for table contact_external_identities".
+//
+// It only ever fired on a last_seen strictly in the future, which is what a
+// client-generated timestamp becomes by the time the database evaluates
+// now() — so it was real, intermittent, and looked like nothing. A new
+// person booking a call through Acuity is exactly the path that creates a
+// Contact as service_role.
+//
+// Fixed by elevating the trigger and nothing else (20260920130000).
+const FUTURE = () => new Date(Date.now() + 5 * 60_000).toISOString();
+const AN_HOUR_AGO = () => new Date(Date.now() - 60 * 60_000).toISOString();
+
+const newContact = (extra: Record<string, unknown>) => ({
+  first_name: "Clamp",
+  last_name: "Probe",
+  email_jsonb: [],
+  phone_jsonb: [],
+  tags: [],
+  ...extra,
+});
+
+test.describe("a Contact write does not need identity rights", () => {
+  test("service_role may write a Contact whose last_seen is in the future", async () => {
+    const admin = serviceRoleClient();
+
+    const { data, error } = await admin
+      .from("contacts")
+      .insert(newContact({ first_seen: AN_HOUR_AGO(), last_seen: FUTURE() }))
+      .select("id, last_seen")
+      .single();
+
+    expect(
+      error,
+      `the Edge Functions' role still cannot create a Contact: ${error?.code} ${error?.message}`,
+    ).toBeNull();
+    // Canonical rule: a future last_seen never survives. With no other
+    // evidence for a brand-new Contact, the honest answer is null — never
+    // now(), and never the future value it was handed.
+    expect(data!.last_seen, "a future last_seen survived the clamp").toBeNull();
+  });
+
+  test("service_role may update a Contact to a future last_seen, and the old value stands", async () => {
+    const admin = serviceRoleClient();
+    const seen = AN_HOUR_AGO();
+
+    const { data: created } = await admin
+      .from("contacts")
+      .insert(newContact({ first_seen: seen, last_seen: seen }))
+      .select("id")
+      .single();
+
+    const { data: updated, error } = await admin
+      .from("contacts")
+      .update({ last_seen: FUTURE() })
+      .eq("id", created!.id)
+      .select("last_seen")
+      .single();
+
+    expect(error, `${error?.code} ${error?.message}`).toBeNull();
+    expect(
+      new Date(updated!.last_seen!).toISOString(),
+      "an UPDATE with a future last_seen must fall back to the value that already stood",
+    ).toBe(seen);
+  });
+
+  test("an ordinary past last_seen is still written exactly as given", async () => {
+    const admin = serviceRoleClient();
+    const seen = AN_HOUR_AGO();
+
+    const { data, error } = await admin
+      .from("contacts")
+      .insert(newContact({ first_seen: seen, last_seen: seen }))
+      .select("last_seen")
+      .single();
+
+    expect(error).toBeNull();
+    expect(new Date(data!.last_seen!).toISOString()).toBe(seen);
+  });
+
+  test("authenticated is unaffected, and clamps the same way", async () => {
+    const client = await signedInClient(serviceRoleClient());
+
+    const { data, error } = await client
+      .from("contacts")
+      .insert(newContact({ first_seen: AN_HOUR_AGO(), last_seen: FUTURE() }))
+      .select("last_seen")
+      .single();
+
+    expect(error, `${error?.code} ${error?.message}`).toBeNull();
+    expect(data!.last_seen).toBeNull();
+  });
+
+  test("the elevated trigger hands the caller nothing", async () => {
+    // The whole point of fixing this in the trigger rather than with a
+    // grant: after the write succeeds, the role that made it still cannot
+    // read a single identity row.
+    const admin = serviceRoleClient();
+
+    await admin
+      .from("contacts")
+      .insert(newContact({ first_seen: AN_HOUR_AGO(), last_seen: FUTURE() }));
+
+    expectDenied(
+      await admin.from("contact_external_identities").select("id").limit(1),
+      "service_role SELECT on contact_external_identities",
+    );
+  });
+
+  test("anon gains nothing from any of it", async () => {
+    const client = anonClient();
+
+    expectDenied(
+      await client
+        .from("contacts")
+        .insert(newContact({ first_seen: AN_HOUR_AGO(), last_seen: FUTURE() })),
+      "anon INSERT into contacts",
+    );
+    expectDenied(
+      await client.from("contact_external_identities").select("id").limit(1),
+      "anon SELECT on contact_external_identities",
+    );
+  });
+});
