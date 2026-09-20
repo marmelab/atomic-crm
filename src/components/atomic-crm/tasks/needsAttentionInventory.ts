@@ -65,7 +65,7 @@ export const NEEDS_ATTENTION_KINDS: readonly NeedsAttentionKind[] = [
     destination: "sales-call-needs-matching → /sales-calls/:id/resolve",
     resolution: "Attach to an Opportunity, create the right one, or dismiss.",
     closesAutomaticallyWhen:
-      "sales_calls.opportunity_id stops being NULL, by any route — a database trigger enforces this, so a SQL backfill closes it too.",
+      "sales_calls.opportunity_id stops being NULL, by any route — a database trigger enforces this, so a SQL backfill closes it too, and reconcile_sales_call_tasks() closes it for a dismissed booking as well.",
     manuallyCompletable: false,
     urgency: 0,
     dueDateMeans: null,
@@ -77,11 +77,11 @@ export const NEEDS_ATTENTION_KINDS: readonly NeedsAttentionKind[] = [
     label: "Resolve sales call",
     question: "What happened on this call?",
     createdWhen:
-      "A call is attached to the right Opportunity and its attendance was never recorded. Created deliberately, never derived — 109 historical calls have no attendance and are not open questions.",
+      "A call is attached to the right Opportunity, ITS TIME HAS PASSED, and its attendance was never recorded. Created deliberately (sales_calls.resolution_requested_at), never derived — 109 historical calls have no attendance and are not open questions, and a call still in the future has no outcome to ask about.",
     destination: "resolve-sales-call → /sales-calls/:id/outcome",
     resolution: "Call happened, No-show, or Cancelled.",
     closesAutomaticallyWhen:
-      "Any of the three canonical outcomes is recorded for that call.",
+      "Any of the three canonical outcomes is recorded for that call — or the question stops being an open one by any other route, which reconcile_sales_call_tasks() enforces in both directions.",
     manuallyCompletable: false,
     urgency: 1,
     dueDateMeans: null,
@@ -92,16 +92,17 @@ export const NEEDS_ATTENTION_KINDS: readonly NeedsAttentionKind[] = [
     type: "sales_call",
     label: "Sales call",
     question: "This call is coming up.",
-    createdWhen: "A booking is matched to an Opportunity.",
+    createdWhen:
+      "Retired. Historically created for every booked call, which made the Task list a second calendar — a row with a date and a person and nothing to do but attend an appointment the Call Booked stage, the Opportunity and the calendar already show. A booking is a fact; only matching, attendance and follow-up are work.",
     destination: "opportunity-context → /deals/:id/show",
     resolution: "Run the call, then record its outcome.",
     closesAutomaticallyWhen:
-      "The call's outcome is recorded, or the booking is cancelled.",
+      "The call's outcome is recorded, or the booking is cancelled. reconcile_sales_call_tasks() also closes any that survive.",
     manuallyCompletable: true,
     urgency: 3,
     dueDateMeans: "When the call is scheduled",
     actionLabel: "Open",
-    origin: "system",
+    origin: "retired",
   },
   {
     type: "follow_up",

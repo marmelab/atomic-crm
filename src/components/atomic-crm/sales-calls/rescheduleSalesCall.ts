@@ -1,7 +1,6 @@
 import type { DataProvider, Identifier } from "ra-core";
 
 import type { SalesCall } from "../types";
-import { updateSalesCallTaskDueDate } from "./salesCallTask";
 
 export type RescheduleSalesCallResult =
   | { status: "rescheduled"; salesCall: SalesCall }
@@ -59,13 +58,8 @@ export const rescheduleSalesCall = async (
   });
 
   // Never touches Opportunity stage — a reschedule is the same call moving
-  // in time, not a pipeline event. Only the Sales Call Task's due date
-  // (when the Opportunity was matched and a task exists) moves with it.
-  await updateSalesCallTaskDueDate(
-    dataProvider,
-    salesCall.contact_id,
-    newScheduledAt,
-  );
-
+  // in time, not a pipeline event. It retargets no Task either: the
+  // appointment is a calendar fact carried by the Sales Call row, not a
+  // piece of work (salesCallTask.ts).
   return { status: "rescheduled", salesCall: updated };
 };

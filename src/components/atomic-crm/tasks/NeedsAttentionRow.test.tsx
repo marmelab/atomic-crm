@@ -79,6 +79,43 @@ describe("Needs Attention rows", () => {
       .toHaveAttribute("href", "/contacts/1/show");
   });
 
+  it("asks a future booking whose it is, never what happened on it", async () => {
+    // Arrange — Anna Howard's 29 October booking, attached to nothing.
+    // The row used to read "What happened on this call?" above a [Resolve]
+    // button, about a call five weeks away.
+    const { element } = buildTestCrm({
+      sales_calls: [
+        salesCall({
+          opportunity_id: null,
+          scheduled_at: "2026-10-29T18:00:00.000Z",
+          original_scheduled_at: "2026-10-29T18:00:00.000Z",
+        }),
+      ],
+      tasks: [
+        task({
+          type: "sales_call_needs_matching",
+          text: "SalesId Verify · The Living Example · Oct 29, 2026, 6:00 PM",
+        }),
+      ],
+    });
+
+    // Act
+    const screen = await render(element);
+
+    // Assert
+    await expect
+      .element(
+        screen.getByText("Which Opportunity does this booking belong to?"),
+      )
+      .toBeInTheDocument();
+    await expect
+      .element(screen.getByText("What happened on this call?"))
+      .not.toBeInTheDocument();
+    await expect
+      .element(screen.getByRole("button", { name: "Match" }))
+      .toBeInTheDocument();
+  });
+
   it("shows no date when the task's due_date is an internal artefact", async () => {
     // Arrange — resolve_sales_call carries a due_date only because the
     // column requires one. Presenting it would invent a deadline.

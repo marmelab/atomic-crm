@@ -71,6 +71,72 @@ export const classifySalesCallAmbiguity = (
   return hasHappenedBy(salesCall, now) ? "needs-outcome" : "none";
 };
 
+// Which Task, if any, a booking warrants right now.
+//
+// classifySalesCallAmbiguity above answers "what is unknown about this
+// call?" — a question about the call, which the resolution pages branch
+// on. This answers the narrower one the Task system needs: "is a Task of
+// this kind warranted?" The difference is the deliberate-resolution gate.
+// A call whose time has passed with no attendance is ambiguous; it is only
+// WORK once somebody established it as an open question, because 109
+// historical calls have no attendance and turning those into alerts would
+// bury the real ones.
+//
+// The AUTHORITY is the SQL function public.sales_call_open_question();
+// reconcile_sales_call_tasks() enforces it in both directions, hourly and
+// for every writer including ones that never run app code. This is the
+// app-side mirror, the same arrangement isActiveDeal has with
+// deal_is_active — and the reason it exists is that the Acuity webhook's
+// own hand-copy of a task type drifted from the app's and nothing caught
+// it until four future bookings asked Leif what had happened on them.
+export type SalesCallTaskQuestion = "matching" | "attendance" | "none";
+
+export const salesCallTaskQuestion = (
+  salesCall: Pick<
+    SalesCall,
+    | "opportunity_id"
+    | "dismissed_at"
+    | "attendance"
+    | "status"
+    | "scheduled_at"
+    | "scheduled_on"
+    | "resolution_requested_at"
+  >,
+  now: Date = new Date(),
+): SalesCallTaskQuestion => {
+  const ambiguity = classifySalesCallAmbiguity(salesCall, now);
+  if (ambiguity === "needs-matching") return "matching";
+  if (ambiguity === "none") return "none";
+  return salesCall.resolution_requested_at != null ? "attendance" : "none";
+};
+
+// The Task type each question is asked with. A type absent from this map
+// is not a sales-call question at all.
+export const TASK_TYPE_FOR_QUESTION: Readonly<
+  Record<Exclude<SalesCallTaskQuestion, "none">, string>
+> = {
+  matching: SALES_CALL_NEEDS_MATCHING_TASK_TYPE,
+  attendance: RESOLVE_SALES_CALL_TASK_TYPE,
+};
+
+/**
+ * Is an open Task of this type warranted by this booking?
+ *
+ * The invariant the Dashboard depends on: an open Task must never route to
+ * a screen that answers "there is nothing to do here". Mihaela Petrova's
+ * did — her booking had been matched, so the outcome page said "This call
+ * is already resolved" while the row still offered Resolve.
+ */
+export const salesCallTaskIsWarranted = (
+  taskType: string,
+  salesCall: Parameters<typeof salesCallTaskQuestion>[0],
+  now: Date = new Date(),
+): boolean => {
+  const question = salesCallTaskQuestion(salesCall, now);
+  if (question === "none") return false;
+  return TASK_TYPE_FOR_QUESTION[question] === taskType;
+};
+
 const hasHappenedBy = (
   salesCall: Pick<SalesCall, "scheduled_at" | "scheduled_on">,
   now: Date,

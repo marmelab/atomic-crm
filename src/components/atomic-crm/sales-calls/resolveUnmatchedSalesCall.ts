@@ -1,12 +1,9 @@
 import type { DataProvider, Identifier } from "ra-core";
 
-import type { Contact, Deal, SalesCall } from "../types";
+import type { Deal, SalesCall } from "../types";
 import { advanceApprovedToCallBooked } from "./bookSalesCall";
 import { resolveOfferCohortForAppointmentType } from "./offerCohortAcuityMapping";
 import { completeSalesCallNeedsMatchingTask } from "./salesCallNeedsMatchingTask";
-import { ensureSalesCallTask } from "./salesCallTask";
-import { resolveDefaultTaskSalesId } from "./resolveDefaultTaskSalesId";
-import { scheduleDate } from "./salesCallSchedule";
 
 // Unmatched Sales Call Resolution slice: the three human decisions the
 // dedicated resolution page (/sales-calls/:id/resolve) offers for a
@@ -33,23 +30,16 @@ const fetchSalesCall = async (
 const isUnresolved = (salesCall: SalesCall): boolean =>
   salesCall.opportunity_id == null && salesCall.dismissed_at == null;
 
-const resolveContactName = async (
-  dataProvider: DataProvider,
-  contactId: Identifier,
-): Promise<string> => {
-  const { data: contact } = await dataProvider.getOne<Contact>("contacts", {
-    id: contactId,
-  });
-  return `${contact.first_name ?? ""} ${contact.last_name ?? ""}`.trim();
-};
-
 // Shared tail of the attach/create paths: point the EXISTING sales_call at
 // the resolved Opportunity, advance Approved -> Call Booked (a no-op for an
 // Opportunity already further along, or one freshly created directly at
-// Call Booked), ensure the normal "Sales Call: {Person}" task exists, and
-// resolve the "Needs Attention" alert — exactly bookSalesCall.ts's own
-// matched-branch behavior, applied by hand instead of by a live Acuity
-// webhook.
+// Call Booked), and resolve the "Needs Attention" alert — exactly
+// bookSalesCall.ts's own matched-branch behavior, applied by hand instead
+// of by a live Acuity webhook.
+//
+// It creates no Task for the appointment. Matching this booking answered a
+// question; it did not hand Leif a new job. The call is now visible where
+// a call belongs — the Opportunity, the Call Booked stage, the calendar.
 const finishAttaching = async (
   dataProvider: DataProvider,
   salesCall: SalesCall,
@@ -71,21 +61,6 @@ const finishAttaching = async (
 
   await advanceApprovedToCallBooked(dataProvider, opportunityId);
 
-  const contactName = await resolveContactName(
-    dataProvider,
-    salesCall.contact_id,
-  );
-  const salesId = await resolveDefaultTaskSalesId(dataProvider);
-  await ensureSalesCallTask(dataProvider, {
-    contactId: salesCall.contact_id,
-    contactName,
-    // A date-only historical call has no timestamp; its date is still a
-    // real fact, so the task carries that rather than nothing.
-    scheduledAt:
-      salesCall.scheduled_at ??
-      `${scheduleDate(salesCall) ?? ""}T12:00:00.000Z`,
-    salesId,
-  });
   await completeSalesCallNeedsMatchingTask(
     dataProvider,
     salesCall.contact_id,

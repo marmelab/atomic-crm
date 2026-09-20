@@ -60,7 +60,7 @@ const buildFixtures = (dealOverrides: Partial<Deal> = {}) => {
 };
 
 describe("bookSalesCall", () => {
-  it("books a call for a matched Opportunity: advances Approved -> Call Booked and creates a Sales Call task", async () => {
+  it("books a call for a matched Opportunity: advances Approved -> Call Booked and hands Leif no task", async () => {
     const { dataProvider, deal } = buildFixtures();
 
     const result = await bookSalesCall({
@@ -81,14 +81,16 @@ describe("bookSalesCall", () => {
     expect(updatedDeal.stage).toBe("call_booked");
     expect(updatedDeal.sales_call_at).toBe("2026-09-10T15:00:00.000Z");
 
+    // The booking is recorded where a booking belongs — the stage above,
+    // the Opportunity's own sales_call_at, the Sales Call row — and
+    // nowhere in the Task system. A Task means Leif has something to do,
+    // and attending an appointment the CRM already shows him is not it.
     const { data: tasks } = await dataProvider.getList<Task>("tasks", {
-      filter: { contact_id: CONTACT_ID, type: "sales_call" },
+      filter: { contact_id: CONTACT_ID },
       pagination: { page: 1, perPage: 10 },
       sort: { field: "id", order: "ASC" },
     });
-    expect(tasks).toHaveLength(1);
-    expect(tasks[0].due_date).toBe("2026-09-10T15:00:00.000Z");
-    expect(tasks[0].done_date).toBeFalsy();
+    expect(tasks).toHaveLength(0);
 
     const { data: events } = await dataProvider.getList("sales_call_events", {
       filter: {
@@ -182,7 +184,7 @@ describe("bookSalesCall", () => {
       pagination: { page: 1, perPage: 10 },
       sort: { field: "id", order: "ASC" },
     });
-    expect(tasks).toHaveLength(1);
+    expect(tasks).toHaveLength(0);
   });
 
   it("a second booking for an Opportunity that already has a booked call retargets it instead of duplicating", async () => {

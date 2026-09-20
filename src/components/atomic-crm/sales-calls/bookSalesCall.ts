@@ -1,10 +1,6 @@
 import type { DataProvider, Identifier } from "ra-core";
 
 import type { Deal, SalesCall, SalesCallSource } from "../types";
-import {
-  ensureSalesCallTask,
-  updateSalesCallTaskDueDate,
-} from "./salesCallTask";
 import { completeSalesCallCancelledTask } from "./salesCallCancelledTask";
 import { completeSalesCallNoShowTask } from "./salesCallNoShowTask";
 import { ensureSalesCallNeedsMatchingTask } from "./salesCallNeedsMatchingTask";
@@ -140,12 +136,10 @@ export const bookSalesCall = async (
 
   if (input.opportunityId != null) {
     await advanceApprovedToCallBooked(dataProvider, input.opportunityId);
-    await ensureSalesCallTask(dataProvider, {
-      contactId: input.contactId,
-      contactName: input.contactName,
-      scheduledAt: input.scheduledAt,
-      salesId,
-    });
+    // The booking itself creates no Task. A Task means Leif has something
+    // to do; a scheduled call is a calendar fact, already carried by the
+    // Call Booked stage and the Opportunity's own Sales Call section. See
+    // salesCallTask.ts for why that projection was retired.
     // The person is back on the calendar — resolves any "sales call was
     // cancelled, decide next steps" task a prior cancellation on this same
     // Opportunity left open (GYU real-infrastructure slice, human-
@@ -225,10 +219,7 @@ const retargetExistingBooking = async (
       new_scheduled_at: scheduledAt,
     },
   });
-  await updateSalesCallTaskDueDate(
-    dataProvider,
-    existing.contact_id,
-    scheduledAt,
-  );
+  // Nothing to retarget: the appointment is not a Task, so moving it moves
+  // the Sales Call row and the calendar, which is where the fact lives.
   return updated;
 };

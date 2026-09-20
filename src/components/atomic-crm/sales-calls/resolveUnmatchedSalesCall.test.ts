@@ -163,7 +163,11 @@ describe("attachSalesCallToOpportunity", () => {
       (t) => t.type === "sales_call_needs_matching",
     );
     expect(resolveTask?.done_date).toBeTruthy();
-    expect(tasks.some((t) => t.type === "sales_call")).toBe(true);
+    // Answering the matching question closes it and hands back no new
+    // work. The booking is now visible on the Opportunity above; it is
+    // not also an entry in the Task list.
+    expect(tasks.some((t) => t.type === "sales_call")).toBe(false);
+    expect(tasks.some((t) => !t.done_date)).toBe(false);
   });
 
   it("rejects an incompatible Opportunity (wrong Offer) rather than attaching across offers", async () => {

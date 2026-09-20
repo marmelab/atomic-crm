@@ -17,6 +17,25 @@ import {
 // completeSalesCallOutcome.ts's job, triggered by an explicit human action
 // in the CRM UI.
 
+// The two sales-call task types, mirrored from
+// src/components/atomic-crm/sales-calls/salesCallTaskTypes.ts (a Deno Edge
+// Function cannot import from src/). They are two different questions and
+// this file must never confuse them again:
+//
+//   SALES_CALL_NEEDS_MATCHING — "which Opportunity does this booking
+//     belong to?" Valid for exactly as long as opportunity_id IS NULL.
+//
+//   RESOLVE_SALES_CALL — "what happened on this call?" Only ever valid for
+//     a call that is already attached AND whose time has passed.
+//
+// This handler asked the second question about four bookings in late
+// October and November: it kept the literal "resolve_sales_call" from
+// before migration 20260918030000 split the combined type in two, so every
+// unmatched future booking reached the Dashboard as an attendance question
+// about a call that has not happened yet, and reached the outcome page,
+// which correctly had nothing to offer it.
+const SALES_CALL_NEEDS_MATCHING_TASK_TYPE = "sales_call_needs_matching";
+
 export const jsonResponse = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
     status,
@@ -42,9 +61,9 @@ const resolveDefaultTaskSalesId = async (): Promise<number | undefined> => {
 };
 
 // Unmatched Sales Call Resolution slice: salesCallId is only ever passed
-// for type "resolve_sales_call" — mirrors src/'s own resolveSalesCallTask.ts
+// for the matching task — mirrors src/'s own salesCallNeedsMatchingTask.ts
 // exactly (deterministic dedup by sales_call_id when known, since a
-// returning Contact can have more than one unresolved booking at once).
+// returning Contact can have more than one unmatched booking at once).
 const ensureTask = async (params: {
   contactId: number;
   type: string;
@@ -213,12 +232,19 @@ export const handleScheduled = async (
 
   if (deal) {
     await advanceApprovedToCallBooked(deal.id);
-    await ensureTask({
-      contactId: contact.id,
-      type: "sales_call",
-      text: `Sales call with ${contactName}`,
-      dueDate: appointment.datetime,
-    });
+    // No Task for the appointment itself.
+    //
+    // A Task means "Leif has something to do". A booked call is a calendar
+    // fact, and the CRM already carries it in the places a fact belongs:
+    // the Call Booked stage, the Opportunity's own Sales Call section, and
+    // the Acuity calendar. Projecting it into the Task system as well
+    // turned Tasks into a second calendar — "Sales Call: Mihaela Petrova —
+    // Nov 10" sat under Later with nothing to do about it.
+    //
+    // What a call legitimately creates is an ACTION: a matching question
+    // while nobody knows whose booking it is, an attendance question once
+    // its time has passed unanswered, or a follow-up somebody promised.
+    // None of those is "the appointment exists".
     // The person is back on the calendar — resolves any "sales call was
     // cancelled, decide next steps" task a prior cancellation on this same
     // Opportunity left open (GYU real-infrastructure slice, human-
@@ -231,15 +257,20 @@ export const handleScheduled = async (
   } else {
     // Never fabricate an Opportunity to make the webhook "succeed" — the
     // booking is preserved with opportunity_id null and surfaced via the
-    // same "Sales call needs matching" Task the CRM UI already knows how
-    // to render (self-describing text, Task.tsx) and resolve
+    // "Sales call needs matching" Task the CRM UI already knows how to
+    // render (self-describing text, Task.tsx) and resolve
     // (/sales-calls/:id/resolve, sales-calls/resolveUnmatchedSalesCall.ts).
+    //
+    // The question is WHOSE booking this is. It is not "what happened on
+    // this call?" — that one cannot be asked about a call still weeks
+    // away, and asking it is what sent Anna Howard's 29 October booking to
+    // the attendance page.
     const offerLabel = mapping.cohort
       ? `${mapping.offer.name} — ${mapping.cohort.name}`
       : mapping.offer.name;
     await ensureTask({
       contactId: contact.id,
-      type: "resolve_sales_call",
+      type: SALES_CALL_NEEDS_MATCHING_TASK_TYPE,
       text: `${contactName} · ${offerLabel} · ${formatDateTime(appointment.datetime)}`,
       dueDate: new Date().toISOString(),
       salesCallId: salesCall.id,
@@ -296,21 +327,11 @@ export const handleRescheduled = async (
     new_scheduled_at: appointment.datetime,
   });
 
-  const { data: pendingTask } = await supabaseAdmin
-    .from("tasks")
-    .select("id, done_date")
-    .eq("contact_id", row.contact_id)
-    .eq("type", "sales_call");
-  const pending = (
-    (pendingTask ?? []) as { id: number; done_date: string | null }[]
-  ).find((task) => !task.done_date);
-  if (pending) {
-    await supabaseAdmin
-      .from("tasks")
-      .update({ due_date: appointment.datetime })
-      .eq("id", pending.id);
-  }
-
+  // Nothing to retarget: the appointment is no longer projected into the
+  // Task system, so moving it moves a calendar fact and the Sales Call row
+  // that records it — not a piece of work. A matching question, if this
+  // booking has one, is about WHOSE it is and is unaffected by the time
+  // changing.
   return jsonResponse({ status: "rescheduled" });
 };
 

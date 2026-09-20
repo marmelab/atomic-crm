@@ -221,7 +221,11 @@ describe("clicking it twice", () => {
 });
 
 describe("the work it leaves behind", () => {
-  it("creates the call's own task and no duplicate", async () => {
+  it("leaves no appointment task behind, however many times it runs", async () => {
+    // The call is the record; the Task system is for work. What this call
+    // genuinely leaves open is resolution_requested_at — "nobody has said
+    // what happened here" — asserted above, and the one question the
+    // reconciler turns into a row.
     const dataProvider = build();
 
     await log(dataProvider, PAST_CALL);
@@ -232,6 +236,19 @@ describe("the work it leaves behind", () => {
       pagination: { page: 1, perPage: 20 },
       sort: { field: "id", order: "ASC" },
     });
-    expect(tasks).toHaveLength(1);
+    expect(tasks).toHaveLength(0);
+  });
+
+  it("leaves no appointment task behind for a future call either", async () => {
+    const dataProvider = build();
+
+    await log(dataProvider, FUTURE_CALL);
+
+    const { data: tasks } = await dataProvider.getList<Task>("tasks", {
+      filter: { contact_id: CONTACT_ID },
+      pagination: { page: 1, perPage: 20 },
+      sort: { field: "id", order: "ASC" },
+    });
+    expect(tasks).toHaveLength(0);
   });
 });

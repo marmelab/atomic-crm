@@ -2399,28 +2399,84 @@ end;
 $function$
 ;
 
-CREATE OR REPLACE FUNCTION public.reconcile_resolve_sales_call_tasks()
- RETURNS integer
+CREATE OR REPLACE FUNCTION public.sales_call_open_question(p_opportunity_id bigint, p_dismissed_at timestamp with time zone, p_status text, p_attendance text, p_scheduled_at timestamp with time zone, p_scheduled_on date, p_resolution_requested_at timestamp with time zone, p_now timestamp with time zone)
+ RETURNS text
+ LANGUAGE sql
+ IMMUTABLE
+ SET search_path TO 'public'
+AS $function$
+  select case
+    -- Explicitly not a sales situation: nothing to ask about it ever again.
+    when p_dismissed_at is not null then 'none'
+    -- Nobody knows whose booking this is. That outranks every other
+    -- question, because the others are about a sales relationship this
+    -- call has not yet been attributed to.
+    when p_opportunity_id is null then 'matching'
+    -- Cancelled is itself an answer to "what happened".
+    when p_status = 'cancelled' then 'none'
+    when p_attendance is not null then 'none'
+    -- Never derived from "attendance is null" alone.
+    when p_resolution_requested_at is null then 'none'
+    -- A call that has not happened has no outcome to record. A date-only
+    -- call counts as past once the whole DAY is over, never earlier — its
+    -- clock time is genuinely unknown.
+    when coalesce(p_scheduled_at,
+                  (p_scheduled_on + time '23:59') at time zone 'America/Denver')
+         >= p_now then 'none'
+    else 'attendance'
+  end;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.reconcile_sales_call_tasks()
+ RETURNS jsonb
  LANGUAGE plpgsql
  SECURITY DEFINER
  SET search_path TO 'public'
 AS $function$
 declare
-  v_closed int;
-  v_created int;
-  v_sales_id bigint;
+  v_refiled    int;
+  v_closed     int;
+  v_created    int;
+  v_appointments int;
+  v_sales_id   bigint;
 begin
-  -- Resolved: close whatever is still open about it.
+  -- 2a. Ask the question the booking actually poses.
   update tasks t
-     set done_date = now(), status = 'completed'
+     set type = 'sales_call_needs_matching'
     from sales_calls sc
    where sc.id = t.sales_call_id
      and t.type = 'resolve_sales_call'
      and t.done_date is null
-     and public.sales_call_is_resolved(sc.attendance, sc.status, sc.dismissed_at);
+     and public.sales_call_open_question(
+           sc.opportunity_id, sc.dismissed_at, sc.status, sc.attendance,
+           sc.scheduled_at, sc.scheduled_on, sc.resolution_requested_at,
+           now()) = 'matching'
+     and not exists (
+       select 1 from tasks other
+        where other.sales_call_id = sc.id
+          and other.type = 'sales_call_needs_matching'
+          and other.done_date is null);
+  get diagnostics v_refiled = row_count;
+
+  -- 2b. A task whose question is no longer the one its booking poses is
+  --     finished.
+  update tasks t
+     set done_date = coalesce(t.done_date, now()),
+         status = 'completed'
+    from sales_calls sc
+   where sc.id = t.sales_call_id
+     and t.type in ('sales_call_needs_matching', 'resolve_sales_call')
+     and t.done_date is null
+     and public.sales_call_open_question(
+           sc.opportunity_id, sc.dismissed_at, sc.status, sc.attendance,
+           sc.scheduled_at, sc.scheduled_on, sc.resolution_requested_at,
+           now())
+         <> case t.type when 'sales_call_needs_matching' then 'matching'
+                        else 'attendance' end;
   get diagnostics v_closed = row_count;
 
-  -- Still an open question, and nothing currently asking it.
+  -- 2c. An open attendance question with nothing asking it.
   select id into v_sales_id from sales where administrator = true limit 1;
 
   insert into tasks (contact_id, type, text, due_date, status,
@@ -2436,25 +2492,30 @@ begin
          v_sales_id
     from sales_calls sc
     join contacts c on c.id = sc.contact_id
-   where sc.resolution_requested_at is not null
-     and not public.sales_call_is_resolved(sc.attendance, sc.status, sc.dismissed_at)
-     -- A call that has not happened yet is not an open question.
-     --
-     -- Six calls here were established as questions once, answered, and
-     -- are now booked for mid-October. Without this they would each come
-     -- back asking "what happened on this call?" about something three
-     -- weeks away. The question only exists once the time has passed.
-     and coalesce(sc.scheduled_at, (sc.scheduled_on + time '23:59')
-                    at time zone 'America/Denver') < now()
+   where public.sales_call_open_question(
+           sc.opportunity_id, sc.dismissed_at, sc.status, sc.attendance,
+           sc.scheduled_at, sc.scheduled_on, sc.resolution_requested_at,
+           now()) = 'attendance'
      and not exists (
        select 1 from tasks t
         where t.sales_call_id = sc.id
           and t.type = 'resolve_sales_call'
-          and t.done_date is null
-     );
+          and t.done_date is null);
   get diagnostics v_created = row_count;
 
-  return v_closed + v_created;
+  -- 2d. The appointment is not a task.
+  update tasks
+     set done_date = coalesce(done_date, now()),
+         status = 'completed'
+   where type = 'sales_call'
+     and done_date is null;
+  get diagnostics v_appointments = row_count;
+
+  return jsonb_build_object(
+    'refiled_as_matching', v_refiled,
+    'closed_question_answered', v_closed,
+    'created_attendance_question', v_created,
+    'closed_appointment_tasks', v_appointments);
 end;
 $function$
 ;

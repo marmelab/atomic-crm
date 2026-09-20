@@ -123,15 +123,17 @@ describe("processAcuityWebhookEvent", () => {
     );
     expect(salesCallCount).toBe(1);
 
+    // Zero, not one: the appointment is not a Task. A second delivery
+    // must not create a second anything, and the first created none.
     const { total: taskCount } = await dataProvider.getList<Task>("tasks", {
       filter: { contact_id: CONTACT_ID, type: "sales_call" },
       pagination: { page: 1, perPage: 10 },
       sort: { field: "id", order: "ASC" },
     });
-    expect(taskCount).toBe(1);
+    expect(taskCount).toBe(0);
   });
 
-  it("rescheduled: updates the same Sales Call row, never creating a second one, and moves the Task due date", async () => {
+  it("rescheduled: updates the same Sales Call row and the Opportunity's own call time, never creating a second one", async () => {
     const { dataProvider, deal } = buildFixtures();
     await processAcuityWebhookEvent({
       dataProvider,
@@ -172,12 +174,15 @@ describe("processAcuityWebhookEvent", () => {
     });
     expect(updatedDeal.sales_call_at).toBe("2026-09-15T15:00:00.000Z");
 
-    const { data: tasks } = await dataProvider.getList<Task>("tasks", {
+    // The moved appointment is visible on the Sales Call row and on the
+    // Opportunity's sales_call_at above — the surfaces a calendar fact
+    // belongs to. No Task carries it, so none needs retargeting.
+    const { total: taskCount } = await dataProvider.getList<Task>("tasks", {
       filter: { contact_id: CONTACT_ID, type: "sales_call" },
       pagination: { page: 1, perPage: 10 },
       sort: { field: "id", order: "ASC" },
     });
-    expect(tasks[0].due_date).toBe("2026-09-15T15:00:00.000Z");
+    expect(taskCount).toBe(0);
   });
 
   it("rescheduled multiple times: reschedule_count reflects every event and the individual events are preserved", async () => {
@@ -270,12 +275,15 @@ describe("processAcuityWebhookEvent", () => {
     expect(updatedDeal.outcome).toBeFalsy();
     expect(updatedDeal.sales_call_at).toBeNull();
 
-    const { data: tasks } = await dataProvider.getList<Task>("tasks", {
+    // Nothing to cancel in the Task system either: the booking never
+    // projected one. The cancellation is recorded where it is true — on
+    // the Sales Call, and on the Opportunity's now-empty sales_call_at.
+    const { total: taskCount } = await dataProvider.getList<Task>("tasks", {
       filter: { contact_id: CONTACT_ID, type: "sales_call" },
       pagination: { page: 1, perPage: 10 },
       sort: { field: "id", order: "ASC" },
     });
-    expect(tasks[0].status).toBe("cancelled");
+    expect(taskCount).toBe(0);
 
     void deal;
   });
