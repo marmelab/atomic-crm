@@ -24,10 +24,17 @@ const cmd = input.tool_input?.command || "";
 if (!cmd) process.exit(0);
 
 // Browser rules — any caller: this sandbox has no display, a headed run hangs forever.
+//
+// `playwright test` has no --headless flag: headless IS the default and
+// --headed is the opt-out. Demanding --headless made every Playwright
+// command unwritable — the CLI answers "unknown option '--headless'" — so
+// the rule blocked the safe runs along with the unsafe ones, and the e2e
+// suite could not be invoked at all. Block the flag that actually opens a
+// window instead. Same intent, now satisfiable.
 const opensHeadedPlaywright = (c) =>
   /playwright/.test(c) &&
   /(screenshot|test|codegen)/.test(c) &&
-  !c.includes("--headless");
+  /--headed\b/.test(c);
 const opensViteBrowser = (c) =>
   /(vite|npm run (dev|start|start-demo))/.test(c) && c.includes("--open");
 
