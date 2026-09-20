@@ -61,17 +61,7 @@ stop-supabase: ## stop local supabase
 stop: stop-supabase ## stop the stack locally
 
 start-supabase-e2e: ## start a separate supabase instance for e2e (fresh DB every run)
-	@npx supabase stop --workdir .supabase-e2e --no-backup 2>/dev/null || true
-	rm -rf .supabase-e2e/supabase
-	mkdir -p .supabase-e2e/supabase
-	cp supabase/config.e2e.toml .supabase-e2e/supabase/config.toml
-	cp -r supabase/migrations .supabase-e2e/supabase/migrations
-	cp -r supabase/schemas .supabase-e2e/supabase/schemas
-	cp -r supabase/functions .supabase-e2e/supabase/functions
-	cp -r supabase/templates .supabase-e2e/supabase/templates
-	cp supabase/seed.sql .supabase-e2e/supabase/seed.sql
-	cp supabase/signing_keys.json .supabase-e2e/supabase/signing_keys.json
-	@$(call run-silent-tty,npx supabase start --workdir .supabase-e2e,supabase-e2e)
+	node scripts/cleanRoomBootstrap.mjs
 
 stop-supabase-e2e: ## stop the e2e supabase instance
 	npx supabase stop --workdir .supabase-e2e --no-backup
