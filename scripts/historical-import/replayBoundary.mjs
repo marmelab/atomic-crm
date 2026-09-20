@@ -139,6 +139,14 @@ export const REVIEWED_DETERMINISTIC = {
   // where it was first proved.
   20260919180000:
     "synthetic probe row, rolled back; owns a function and a grant",
+  // Matched the same way, on
+  //   values ('Zz', 'Call Probe', now(), now())
+  // — a synthetic Contact used to prove, at deploy time, that a sales
+  // call can be created again by both the browser's role and the
+  // webhook's. The probe deletes everything it made. The migration owns
+  // a trigger function and its trigger and writes no business data.
+  20260920020000:
+    "synthetic probe row, deleted; owns a trigger function and its trigger",
 };
 
 /**

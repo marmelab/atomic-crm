@@ -117,6 +117,25 @@ export const bookSalesCall = async (
     },
   });
 
+  // A call whose time has already passed is not something to attend —
+  // it is something whose outcome nobody has recorded. Logging Dax
+  // Kara's call of 1 August is exactly that: Leif states it happened
+  // and says nothing about how it went.
+  //
+  // resolution_requested_at is the canonical way to say "somebody
+  // established that nobody knows what happened here", and the existing
+  // reconciler turns it into the one "what happened on this call?"
+  // question — with its own past-tense guard, so a FUTURE booking is
+  // untouched and keeps ordinary booked semantics.
+  const happensInThePast = new Date(input.scheduledAt).getTime() < Date.now();
+  if (happensInThePast) {
+    await dataProvider.update<SalesCall>("sales_calls", {
+      id: salesCall.id,
+      data: { resolution_requested_at: now },
+      previousData: salesCall,
+    });
+  }
+
   const salesId = await resolveDefaultTaskSalesId(dataProvider);
 
   if (input.opportunityId != null) {

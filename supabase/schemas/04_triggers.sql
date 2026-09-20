@@ -62,6 +62,13 @@ create or replace trigger "05_handle_waitlist_entry_saved"
     before insert or update on public.waitlist_entries
     for each row execute function public.handle_waitlist_entry_saved();
 
+-- A call states its INSTANT; what calendar day that lands on is derived
+-- from it, in America/Denver. Making scheduled_on a payload obligation
+-- broke every call-creating path for three days (20260920020000).
+create or replace trigger derive_sales_call_scheduled_on_trigger
+    before insert or update of scheduled_at, schedule_precision on public.sales_calls
+    for each row execute function public.derive_sales_call_scheduled_on();
+
 -- Keep deals.sales_call_at synchronized with sales_calls, the durable
 -- source of truth (Acuity/Sales Call Lifecycle slice).
 create or replace trigger on_sales_call_saved

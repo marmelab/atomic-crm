@@ -1863,6 +1863,26 @@ AS $function$
 $function$
 ;
 
+CREATE OR REPLACE FUNCTION public.derive_sales_call_scheduled_on()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SET search_path TO 'public'
+AS $function$
+begin
+  -- An exact call knows its instant, so the day comes from it. Written
+  -- unconditionally rather than only when null: a reschedule moves the
+  -- instant, and a date left behind pointing at the old day would be a
+  -- quieter bug than the one this replaces.
+  if new.schedule_precision = 'exact' and new.scheduled_at is not null then
+    new.scheduled_on := (new.scheduled_at at time zone 'America/Denver')::date;
+  end if;
+  -- A date-only call has no instant to project; its scheduled_on is the
+  -- fact itself and is left exactly as supplied.
+  return new;
+end;
+$function$
+;
+
 CREATE OR REPLACE FUNCTION public.deal_is_active(p_archived_at timestamp with time zone, p_stage text, p_outcome text)
  RETURNS boolean
  LANGUAGE sql

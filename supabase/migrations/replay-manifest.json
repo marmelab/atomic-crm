@@ -34,7 +34,7 @@
     "second question too."
   ],
   "version": 1,
-  "total_migration_versions": 123,
+  "total_migration_versions": 125,
   "boundary_status": "resolved",
   "clean_room_prerequisites": {
     "$comment": [
@@ -221,6 +221,14 @@
       "classification": "main_only_historical_data_repair",
       "reason": "Rewords Tasks 156 and 157 — Pete Bassett's and Jules Litman-Cleper's cadence Tasks — from a raw ISO date range to the human label their own canonical windows produce, refusing unless the stored sentence and the linked window both match exactly. Display text only; no date, status, link or cadence issue changes.",
       "owns_durable_schema": false
+    },
+    {
+      "version": "20260920030000",
+      "file": "20260920030000_dax_call_and_a_stage_its_own_call_proves.sql",
+      "classification": "main_only_historical_data_repair",
+      "reason": "Records Dax Kara's owner-confirmed 2026-08-01 call on Opportunity 219 as a past call awaiting resolution, and moves Aurelie Boleor's Opportunity 68 to call_booked on the evidence of its own cancelled call. Asserts exact ids, refuses a duplicate call, and leaves all 40 terminal Opportunities in the same class untouched.",
+      "owns_durable_schema": false,
+      "structure_extracted_to": "20260920020000_a_calls_date_is_derived_not_supplied.sql"
     }
   ]
 }

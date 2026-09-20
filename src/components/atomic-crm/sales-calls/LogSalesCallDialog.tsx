@@ -15,6 +15,20 @@ import { Label } from "@/components/ui/label";
 import type { Identifier } from "ra-core";
 import { bookSalesCall } from "./bookSalesCall";
 
+// What actually went wrong, in one sentence, from wherever the provider
+// put it. Falls back to the generic line only when there is genuinely
+// nothing to report.
+const messageFor = (error: unknown): string => {
+  const candidate = error as
+    | { body?: { message?: unknown }; message?: unknown }
+    | null
+    | undefined;
+  const detail = candidate?.body?.message ?? candidate?.message;
+  return typeof detail === "string" && detail.trim() !== ""
+    ? `Could not log the call — ${detail}`
+    : "Could not log the call.";
+};
+
 // Human-acceptance repair pass, §Repair 2: recovery action for a legacy/
 // inconsistent Opportunity — a Call Booked (or later) stage with no
 // sales_calls record behind it (Judy Holloway's fixture predated the
@@ -67,8 +81,13 @@ export const LogSalesCallDialog = ({
       });
       handleOpenChange(false);
       refresh();
-    } catch {
-      notify("ra.notification.http_error", { type: "error" });
+    } catch (error) {
+      // "Server communication error" is what Leif saw when this failed,
+      // and it told him nothing — the real answer was a not-null
+      // violation on a column the payload never sent. A message that
+      // names the problem is the difference between a bug report and a
+      // dead end, so whatever the database actually said is shown.
+      notify(messageFor(error), { type: "error" });
     } finally {
       setIsSubmitting(false);
     }
