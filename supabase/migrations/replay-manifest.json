@@ -34,7 +34,7 @@
     "second question too."
   ],
   "version": 1,
-  "total_migration_versions": 122,
+  "total_migration_versions": 123,
   "boundary_status": "resolved",
   "clean_room_prerequisites": {
     "$comment": [
@@ -213,6 +213,13 @@
       "file": "20260919200000_daniel_alexanders_deposit_belongs_to_the_agreement.sql",
       "classification": "main_only_historical_data_repair",
       "reason": "Records Daniel Alexander's owner-stated agreed total of $3,998.00 on Opportunity 80 — his $500.00 deposit plus the six $583.00 payments his Stripe schedule already holds — asserting the exact payment intent, the exact plan, and that no money moved.",
+      "owns_durable_schema": false
+    },
+    {
+      "version": "20260920010000",
+      "file": "20260920010000_two_tasks_still_say_the_dates_in_iso.sql",
+      "classification": "main_only_historical_data_repair",
+      "reason": "Rewords Tasks 156 and 157 — Pete Bassett's and Jules Litman-Cleper's cadence Tasks — from a raw ISO date range to the human label their own canonical windows produce, refusing unless the stored sentence and the linked window both match exactly. Display text only; no date, status, link or cadence issue changes.",
       "owns_durable_schema": false
     }
   ]

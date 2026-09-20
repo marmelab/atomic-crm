@@ -1,4 +1,11 @@
-// How a week window is said to a human.
+// How a week window is said to a human — the Deno half.
+//
+// The calendar sync runs here, and it is what WROTE the ugly labels into
+// Task text in the first place, so this is the copy that actually had the
+// bug. Mirrors src/components/atomic-crm/sessions/cadenceWeekLabel.ts
+// exactly; the two test files pin the same cases and the same expected
+// strings, which is how drift between them gets caught. Edge Functions
+// never import from src/, hence two files rather than one.
 //
 // Pete Bassett's Task read
 //
@@ -8,9 +15,7 @@
 // was never a rendering problem: the calendar sync's detection pass built
 // the label out of raw ISO strings and stored it in the Task text, so the
 // words were already wrong by the time anything displayed them. This
-// module is the one place that decides, and the Deno half of the
-// detection pass mirrors it (supabase/functions/_shared/cadenceWeekLabel.ts,
-// same cases, same expected strings, pinned by tests on both sides).
+// module is the one place the detection pass decides.
 //
 // window_end is EXCLUSIVE — Google Calendar's own all-day semantics — so
 // the last day actually inside a window is the day before it. Every

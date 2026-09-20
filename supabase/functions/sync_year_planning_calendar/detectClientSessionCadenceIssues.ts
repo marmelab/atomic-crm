@@ -1,4 +1,5 @@
 import { supabaseAdmin } from "../_shared/supabaseAdmin.ts";
+import { formatCadenceWeekLabel } from "../_shared/cadenceWeekLabel.ts";
 
 const RESOLVE_CADENCE_TASK_TYPE = "resolve_client_session_cadence";
 
@@ -191,11 +192,14 @@ export const detectClientSessionCadenceIssues = async (
         .maybeSingle();
       const contactName =
         `${contact?.first_name ?? ""} ${contact?.last_name ?? ""}`.trim();
-      // window_end is exclusive — the last real day in the slot is one
-      // day before it.
-      const lastDay = new Date(`${slot.window_end}T00:00:00.000Z`);
-      lastDay.setUTCDate(lastDay.getUTCDate() - 1);
-      const weekLabel = `${slot.window_start}–${lastDay.toISOString().slice(0, 10)}`;
+      // Said the way a person reads it — "Sep 13–16", not the raw ISO
+      // pair this used to paste together. The label is stored in the
+      // Task text, so getting it right here is the only way it is ever
+      // right; window_end being exclusive is handled by the formatter.
+      const weekLabel = formatCadenceWeekLabel(
+        slot.window_start,
+        slot.window_end,
+      );
 
       await supabaseAdmin.from("tasks").insert({
         contact_id: deal.contact_id,
