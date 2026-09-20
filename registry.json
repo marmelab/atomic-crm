@@ -1286,6 +1286,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/deals/callProvesCallBooked.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/deals/applyDealStageDrop.ts",
           "type": "registry:component"
         },
