@@ -582,17 +582,35 @@ grant all on sequence public.deal_stage_events_id_seq to service_role;
 -- genuinely needs anon access still can — just explicitly, in its own
 -- migration, the same way every other deliberate anon grant in this file
 -- already is.
+-- Sequences and functions are narrowed to owner-only
+-- (20260920120000_security_posture_covers_sequences_and_functions.sql), the
+-- other half of the hardening MAIN carried without the repository knowing.
+-- A rebuilt database was handing clients UPDATE on 23 sequences and EXECUTE
+-- on five privileged functions — merging contacts, writing external
+-- identity, and the three reconcilers — none of which a browser may call on
+-- MAIN. Anything a client genuinely needs is granted explicitly, in the
+-- migration that knows why.
 alter default privileges for role postgres in schema public grant all on sequences to postgres;
-alter default privileges for role postgres in schema public grant all on sequences to authenticated;
-alter default privileges for role postgres in schema public grant all on sequences to service_role;
+alter default privileges for role postgres in schema public
+  revoke all on sequences from anon, authenticated, service_role;
 
 alter default privileges for role postgres in schema public grant all on functions to postgres;
-alter default privileges for role postgres in schema public grant all on functions to authenticated;
-alter default privileges for role postgres in schema public grant all on functions to service_role;
+alter default privileges for role postgres in schema public
+  revoke all on functions from anon, authenticated, service_role;
 
+-- Tables are narrowed further (20260919175000_security_posture_is_deterministic.sql).
+-- MAIN had this hardening applied by hand and it was never written down, so
+-- replaying this chain into an empty database produced a materially more
+-- permissive result than production: 23 over-grants across 12 relations,
+-- including client INSERT on the outcome audit trail. A table now arrives
+-- with no read or write for any client role and must be granted what it
+-- needs explicitly, which is what every recent migration already does.
+-- TRUNCATE/REFERENCES/TRIGGER (and MAINTAIN from PG16) are what MAIN keeps.
 alter default privileges for role postgres in schema public grant all on tables to postgres;
-alter default privileges for role postgres in schema public grant all on tables to authenticated;
-alter default privileges for role postgres in schema public grant all on tables to service_role;
+alter default privileges for role postgres in schema public
+  revoke all on tables from anon, authenticated, service_role;
+alter default privileges for role postgres in schema public
+  grant truncate, references, trigger on tables to authenticated, service_role;
 
 -- Historical Migration slice: historical_import_records is never meant to be
 -- reached by anon/authenticated at all (RLS above already enables it with
