@@ -191,7 +191,9 @@ describe("ClientShow — offboarding hierarchy", () => {
     });
     const screen = await render(element);
 
-    await expect.element(screen.getByText("Tasks")).toBeVisible();
+    await expect
+      .element(screen.getByRole("heading", { name: "Tasks" }))
+      .toBeVisible();
     await expect.element(screen.getByText("Start offboarding")).toBeVisible();
   });
 
@@ -238,7 +240,9 @@ describe("ClientShow — offboarding hierarchy", () => {
     });
     const screen = await render(element);
 
-    await expect.element(screen.getByText("Tasks")).toBeVisible();
+    await expect
+      .element(screen.getByRole("heading", { name: "Tasks" }))
+      .toBeVisible();
     expect(pageText(screen).includes("Offboarding")).toBe(false);
   });
 

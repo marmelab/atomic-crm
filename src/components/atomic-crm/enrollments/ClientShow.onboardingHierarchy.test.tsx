@@ -157,9 +157,15 @@ describe("ClientShow — onboarding-hierarchy repair", () => {
     });
     const screen = await render(element);
 
-    // Waits for the LAST thing on the page to commit before reading raw
-    // textContent — otherwise this reads the page mid-load.
-    await expect.element(screen.getByText("Tasks")).toBeVisible();
+    // Waits for every section this test measures to commit before
+    // reading raw textContent, otherwise it reads the page mid-load.
+    // The Onboarding header is the one that arrives last here, so it is
+    // the barrier; waiting on Tasks proved too early and left
+    // onboardingIndex at -1.
+    await expect.element(screen.getByText("Onboarding 3/4")).toBeVisible();
+    await expect
+      .element(screen.getByRole("heading", { name: "Tasks" }))
+      .toBeVisible();
 
     const text = pageText(screen);
     const paymentIndex = text.indexOf("Payment");
