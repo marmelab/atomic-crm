@@ -4,6 +4,22 @@
 
 Atomic CRM is a full-featured CRM built with React, shadcn-admin-kit, and Supabase. It provides contact management, task tracking, notes, email capture, and deal management with a Kanban board.
 
+**Before starting work, read [HANDOFF.md](HANDOFF.md)** — current project state,
+domain invariants and where they live in code, production/deployment facts,
+what is waiting on the owner, and the next planned phase. [MEMORY.md](MEMORY.md)
+holds the durable per-slice reasoning behind those decisions. This file
+(AGENTS.md) stays what it is: how to build, test and deploy the thing.
+
+**A feature is not complete until the owner has actually used it.** Build →
+automated proof → deploy to a usable environment → **owner try-run while the
+feature is still open** → repair → repeat as needed → *only then* accept and
+seal. Post-deploy smoke verifies deployment identity and critical invariants;
+it is not the first time product behavior is discovered. Passing tests,
+replaying migrations and an agent's report of internal consistency establish
+that the code does what it was written to do — not that what it was written to
+do is right. **No large batch of hidden work between acceptance points.** The
+full rule, and the regression that produced it, are in HANDOFF.md §2.
+
 ## Development Commands
 
 ### Setup
