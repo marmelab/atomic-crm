@@ -41,7 +41,7 @@ const opensViteBrowser = (c) =>
 const BROWSER_RULES = [
   [
     opensHeadedPlaywright,
-    "Playwright must always use --headless. Add --headless to the command.",
+    "Playwright must run headless (this sandbox has no display). Remove the flag that opens a window; headless is already the default.",
   ],
   [
     opensViteBrowser,

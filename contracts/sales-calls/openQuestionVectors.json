@@ -61,7 +61,7 @@
     },
     {
       "id": "unmatched-future-booking",
-      "description": "THE REGRESSION VECTOR. Anna Howard's 29 October booking. Nobody knows whose it is; that outranks every other question. It is emphatically not an attendance question — the call has not happened.",
+      "description": "THE REGRESSION VECTOR. A booking five weeks out that nobody can attribute. Which sales attempt owns it outranks every other question, and it is emphatically not an attendance question — the call has not happened. Four real bookings reached the Dashboard asking exactly that, in late October and November 2026.",
       "call": {
         "opportunity_id": null,
         "dismissed_at": null,

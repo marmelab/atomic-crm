@@ -167,8 +167,17 @@ async function createContact({
       title,
       company_id,
       sales_id,
-      first_seen: new Date().toISOString(),
-      last_seen: new Date().toISOString(),
+      // Deliberately a minute in the past, not `now()`. A client-generated
+      // "now" lands marginally ahead of the database clock, which makes
+      // last_seen a FUTURE time — a thing the domain forbids, and which
+      // clamp_contact_last_seen() correctly refuses to let stand. Its
+      // repair path reads contact_external_identities as the calling role,
+      // and service_role has no SELECT there (on MAIN as well as here), so
+      // the fixture's own bad value surfaced as "permission denied".
+      // Writing an honest timestamp is the fix; widening the grant would
+      // have been the clean room drifting from production again.
+      first_seen: new Date(Date.now() - 60_000).toISOString(),
+      last_seen: new Date(Date.now() - 60_000).toISOString(),
       has_newsletter: false,
       tags: [],
       gender: "unknown",
