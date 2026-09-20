@@ -202,13 +202,29 @@ async function createContact({
   return data;
 }
 
-const getMenuMethod = ({ page }: { page: Page; isMobile: boolean }) => ({
+// Mobile navigates differently, and the helper used to pretend otherwise.
+// It took `isMobile` and ignored it, so every mobile spec that tried to
+// reach Contacts waited five seconds for a link that is not on the bottom
+// bar at all — Contacts lives behind "More" there (MobileNavigation.tsx's
+// MORE_PATHS), while the Dashboard is the home button.
+const getMenuMethod = ({
+  page,
+  isMobile,
+}: {
+  page: Page;
+  isMobile: boolean;
+}) => ({
   goToDashboard: async () => {
     await page.getByRole("link", { name: "Dashboard" }).click();
     await page.waitForLoadState("networkidle");
   },
   goToContacts: async () => {
-    await page.getByRole("link", { name: "Contacts" }).click();
+    if (isMobile) {
+      await page.getByRole("button", { name: "More" }).click();
+      await page.getByRole("menuitem", { name: "Contacts" }).click();
+    } else {
+      await page.getByRole("link", { name: "Contacts" }).click();
+    }
     await page.waitForLoadState("networkidle");
   },
 });
