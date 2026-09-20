@@ -1,4 +1,4 @@
-import type { PaymentTruth } from "./paymentTruth";
+import { CENTS, TOLERANCE, type PaymentTruth } from "./paymentTruth";
 
 // How payment truth is said, once, so two surfaces cannot word the same
 // facts into different claims.
@@ -52,7 +52,20 @@ export const describeAgreedTerms = (truth: PaymentTruth): string | null => {
     truth.agreedInstallmentCount > 1 &&
     truth.agreedInstallmentAmount != null
   ) {
-    return `${total} — ${truth.agreedInstallmentCount} × ${formatMoney(truth.agreedInstallmentAmount)}`;
+    const plan = `${truth.agreedInstallmentCount} × ${formatMoney(truth.agreedInstallmentAmount)}`;
+    // Only say the total IS the installments when it is. Daniel Alexander
+    // agreed $3,998 as a $500 deposit and then six months of $583, and
+    // "$3,998.00 — 6 × $583.00" invites the reader to multiply and find
+    // it wrong. The plan is part of the agreement, not the whole of it,
+    // and there is a way to say that.
+    const installmentsCover =
+      Math.abs(
+        CENTS(truth.agreedInstallmentCount * truth.agreedInstallmentAmount) -
+          CENTS(truth.agreedTotal!),
+      ) <= TOLERANCE;
+    return installmentsCover
+      ? `${total} — ${plan}`
+      : `${total}, including ${plan}`;
   }
   return `${total} — single payment`;
 };

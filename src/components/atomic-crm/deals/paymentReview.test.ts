@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { assessPaymentTruth } from "./paymentTruth";
 import { canMarkReviewed, reviewResolution } from "./paymentReview";
+import { describeAgreedTerms } from "./paymentPresentation";
 import type { Deal, DealPaymentScheduleItem } from "../types";
 
 // A review action has to mean something durable.
@@ -136,5 +137,39 @@ describe("no review at all", () => {
     const truth = truthFor({ selected_payment_total: 4000 } as Partial<Deal>);
     expect(reviewResolution(truth)).toEqual({ kind: "none" });
     expect(canMarkReviewed(truth)).toBe(false);
+  });
+});
+
+describe("a total that is a deposit plus a plan", () => {
+  it("does not claim the installments add up to it", () => {
+    // Daniel Alexander: $500 down, then 6 × $583. Both facts are true and
+    // 6 × $583 is $3,498, not $3,998 — so the sentence must not put an
+    // em dash between them and invite the reader to multiply.
+    const truth = truthFor(
+      {
+        selected_payment_total: 3998,
+        selected_payment_total_source: "owner_confirmed",
+        selected_installment_count: 6,
+        selected_installment_amount: 583,
+      } as Partial<Deal>,
+      [paid(500)],
+    );
+
+    expect(describeAgreedTerms(truth)).toBe("$3,998.00, including 6 × $583.00");
+    expect(truth.collected).toBe(500);
+    expect(truth.remaining).toBe(3498);
+    // The deposit is not one of the six.
+    expect(truth.installmentsSatisfied).toBe(0);
+    expect(truth.state).toBe("active_plan");
+  });
+
+  it("still joins them when the installments genuinely are the total", () => {
+    const truth = truthFor({
+      selected_payment_total: 4000,
+      selected_installment_count: 4,
+      selected_installment_amount: 1000,
+    } as Partial<Deal>);
+
+    expect(describeAgreedTerms(truth)).toBe("$4,000.00 — 4 × $1,000.00");
   });
 });

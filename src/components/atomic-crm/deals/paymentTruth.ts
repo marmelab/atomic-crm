@@ -88,9 +88,9 @@ export type PaymentTruth = {
 
 // Money compares in cents. Floating point on decimal currency is how a
 // $700.00 payment against a $700 agreement fails to be paid in full.
-const CENTS = (value: number): number => Math.round(value * 100);
+export const CENTS = (value: number): number => Math.round(value * 100);
 // Half a cent, so arithmetic noise never decides a verdict.
-const TOLERANCE = 0.5;
+export const TOLERANCE = 0.5;
 
 const number = (value: unknown): number | null => {
   if (value == null) return null;
