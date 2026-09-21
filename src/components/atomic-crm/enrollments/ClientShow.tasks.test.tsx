@@ -115,6 +115,23 @@ describe("ClientShow — manual Task creation (Manual Task UX repair)", () => {
     const { element, dataProvider } = buildTestCrm();
     const screen = await render(element);
 
+    // Let the page settle before reaching into it.
+    //
+    // The test above already waits for this button; this one used to click
+    // the instant render() returned. .click() waits only for the element to
+    // EXIST, and the button appears as soon as the Contact resolves — while
+    // ClientShow is still mounting the rest of a large tree. The dialog then
+    // mounts and animates in against that, and on a two-core runner the 5s
+    // matcher for the title lost the race: green on every machine fast
+    // enough, red on GitHub's.
+    //
+    // Waiting for the button to be VISIBLE, not merely present, is the same
+    // readiness the sibling test uses, and it costs nothing when the page is
+    // quick.
+    await expect
+      .element(screen.getByRole("button", { name: "Create task" }))
+      .toBeVisible();
+
     await screen.getByRole("button", { name: "Create task" }).click();
     await expect
       .element(screen.getByText("Create task for Maya Chen"))
