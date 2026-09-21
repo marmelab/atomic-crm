@@ -3,7 +3,7 @@ import get from "lodash/get";
 import type { ExtractRecordPaths, HintedString } from "ra-core";
 import { useFieldValue, useTranslate } from "ra-core";
 import { cn } from "@/lib/utils";
-import type { FieldProps } from "@/lib/field.type";
+import type { FieldProps } from "@/lib/field.type.ts";
 
 /**
  * Displays a downloadable file link with customizable title and target.

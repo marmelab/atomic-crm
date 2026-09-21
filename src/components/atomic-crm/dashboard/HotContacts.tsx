@@ -42,17 +42,17 @@ export const HotContacts = () => {
         </h2>
         <TooltipProvider>
           <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="ml-auto text-muted-foreground"
-                asChild
-              >
-                <Link to="/contacts/create">
-                  <Plus className="w-4 h-4 text-primary" />
-                </Link>
-              </Button>
+            <TooltipTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="ml-auto text-muted-foreground"
+                  render={<Link to="/contacts/create" />}
+                />
+              }
+            >
+              <Plus className="w-4 h-4 text-primary" />
             </TooltipTrigger>
             <TooltipContent>
               {translate("resources.contacts.action.create")}

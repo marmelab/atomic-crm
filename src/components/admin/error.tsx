@@ -44,10 +44,7 @@ export const Error = (props: InternalErrorProps & {}) => {
       </div>
       {process.env.NODE_ENV !== "production" && (
         <>
-          <Accordion
-            type="multiple"
-            className="mt-1 p-2 bg-secondary w-full lg:w-150"
-          >
+          <Accordion multiple className="mt-1 p-2 bg-secondary w-full lg:w-150">
             <AccordionItem value="error">
               <AccordionTrigger className="py-2">
                 <Translate i18nKey={errorMessage}>{errorMessage}</Translate>

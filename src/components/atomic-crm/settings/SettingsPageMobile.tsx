@@ -451,6 +451,11 @@ const LanguageRow = () => {
 
   if (locales.length <= 1) return null;
 
+  const localeItems = locales.map(({ locale, name }) => ({
+    value: locale,
+    label: name,
+  }));
+
   return (
     <Item size="sm">
       <ItemContent>
@@ -459,7 +464,7 @@ const LanguageRow = () => {
         </ItemTitle>
       </ItemContent>
       <ItemActions>
-        <Select value={locale} onValueChange={setLocale}>
+        <Select value={locale} onValueChange={setLocale} items={localeItems}>
           <SelectTrigger
             size="sm"
             className="w-auto !h-auto py-0 border-none shadow-none"
@@ -489,9 +494,8 @@ const ThemeRow = () => {
         {translate("crm.theme.label", { _: "Theme" })}
       </ItemTitle>
       <ToggleGroup
-        type="single"
-        value={theme}
-        onValueChange={(value) =>
+        value={theme ? [theme] : []}
+        onValueChange={([value]) =>
           value && setTheme(value as "light" | "dark" | "system")
         }
         size="lg"
@@ -577,17 +581,19 @@ const AboutSection = () => {
     <div>
       <SectionLabel>{translate("crm.settings.about")}</SectionLabel>
       <ItemGroup className="rounded-lg border overflow-hidden">
-        <Item asChild size="sm" className="cursor-pointer">
-          <Link to={ChangelogPage.path}>
-            <ItemContent>
-              <ItemTitle className="font-normal">
-                {translate("crm.changelog.title")}
-              </ItemTitle>
-            </ItemContent>
-            <ItemActions>
-              <ChevronRight className="size-4 text-muted-foreground" />
-            </ItemActions>
-          </Link>
+        <Item
+          size="sm"
+          className="cursor-pointer"
+          render={<Link to={ChangelogPage.path} />}
+        >
+          <ItemContent>
+            <ItemTitle className="font-normal">
+              {translate("crm.changelog.title")}
+            </ItemTitle>
+          </ItemContent>
+          <ItemActions>
+            <ChevronRight className="size-4 text-muted-foreground" />
+          </ItemActions>
         </Item>
       </ItemGroup>
     </div>
@@ -608,23 +614,25 @@ const CopyPasteRow = ({ value }: { value: string }) => {
   return (
     <TooltipProvider>
       <Tooltip>
-        <TooltipTrigger asChild>
-          <Item
-            size="sm"
-            className="cursor-pointer flex-nowrap"
-            onClick={handleCopy}
-          >
-            <ItemContent className="overflow-hidden">
-              <ItemTitle className="font-normal truncate">{value}</ItemTitle>
-            </ItemContent>
-            <ItemActions className="shrink-0">
-              {copied ? (
-                <Check className="size-4 text-muted-foreground" />
-              ) : (
-                <Copy className="size-4 text-muted-foreground" />
-              )}
-            </ItemActions>
-          </Item>
+        <TooltipTrigger
+          render={
+            <Item
+              size="sm"
+              className="cursor-pointer flex-nowrap"
+              onClick={handleCopy}
+            />
+          }
+        >
+          <ItemContent className="overflow-hidden">
+            <ItemTitle className="font-normal truncate">{value}</ItemTitle>
+          </ItemContent>
+          <ItemActions className="shrink-0">
+            {copied ? (
+              <Check className="size-4 text-muted-foreground" />
+            ) : (
+              <Copy className="size-4 text-muted-foreground" />
+            )}
+          </ItemActions>
         </TooltipTrigger>
         <TooltipContent>
           <p>

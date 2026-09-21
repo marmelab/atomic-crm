@@ -15,13 +15,11 @@ import {
   warning,
 } from "ra-core";
 import { Loader2, Save } from "lucide-react";
-import * as LabelPrimitive from "@radix-ui/react-label";
-import { Slot } from "@radix-ui/react-slot";
 import { FormProvider, useFormContext, useFormState } from "react-hook-form";
 import type { UseMutationOptions } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button.tsx";
 
 const Form = FormProvider;
 
@@ -80,7 +78,7 @@ type FormItemProps = Omit<React.ComponentProps<"div">, "id"> & {
 function FormLabel({
   className,
   ...props
-}: React.ComponentProps<typeof LabelPrimitive.Root>) {
+}: React.ComponentProps<typeof Label>) {
   const { error, formItemId } = useFormField();
 
   return (
@@ -94,23 +92,42 @@ function FormLabel({
   );
 }
 
-function FormControl({ ...props }: React.ComponentProps<typeof Slot>) {
+/**
+ * Wires the field's id and aria attributes onto its single child input.
+ *
+ * `aria-describedby` is the exception: the child's value is kept and the
+ * field's ids are appended to it, which Slot would have overwritten.
+ */
+function FormControl({
+  children,
+  ...props
+}: React.HTMLAttributes<HTMLElement> & { children: React.ReactElement }) {
   const { error, formItemId, formDescriptionId, formMessageId } =
     useFormField();
+  const fieldDescribedBy = !error
+    ? formDescriptionId
+    : `${formDescriptionId} ${formMessageId}`;
 
-  return (
-    <Slot
-      data-slot="form-control"
-      id={formItemId}
-      aria-describedby={
-        !error
-          ? `${formDescriptionId}`
-          : `${formDescriptionId} ${formMessageId}`
-      }
-      aria-invalid={!!error}
-      {...props}
-    />
-  );
+  if (!React.isValidElement(children)) {
+    return children;
+  }
+
+  const child = children as React.ReactElement<Record<string, unknown>>;
+  const childDescribedBy =
+    typeof child.props["aria-describedby"] === "string"
+      ? child.props["aria-describedby"]
+      : undefined;
+  const describedBy = [childDescribedBy, fieldDescribedBy]
+    .filter(Boolean)
+    .join(" ");
+
+  return React.cloneElement(child, {
+    ...(props as Record<string, unknown>),
+    "data-slot": "form-control",
+    id: formItemId,
+    "aria-describedby": describedBy,
+    "aria-invalid": !!error,
+  });
 }
 
 function FormDescription({ className, ...props }: React.ComponentProps<"p">) {

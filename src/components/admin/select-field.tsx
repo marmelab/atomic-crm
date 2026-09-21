@@ -2,7 +2,7 @@ import type { HTMLAttributes } from "react";
 import type { ChoicesProps } from "ra-core";
 import { genericMemo, useChoices, useFieldValue, useTranslate } from "ra-core";
 
-import type { FieldProps } from "@/lib/field.type";
+import type { FieldProps } from "@/lib/field.type.ts";
 
 /**
  * Displays a value from an enumeration by mapping it to a human-readable label.

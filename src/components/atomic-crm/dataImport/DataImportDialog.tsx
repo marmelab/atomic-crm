@@ -127,6 +127,10 @@ export function DataImportDialog({
                   value={resource.name}
                   onValueChange={handleResourceChange}
                   disabled={importer.state !== "idle"}
+                  items={resources.map(({ name }) => ({
+                    value: name,
+                    label: getResourceLabel(name, 2),
+                  }))}
                 >
                   <SelectTrigger id="data-import-resource" className="w-full">
                     <SelectValue />
@@ -201,13 +205,17 @@ export function DataImportDialog({
                 <Alert>
                   <AlertDescription className="flex flex-col gap-4">
                     {translate("crm.data_import.sample_hint")}
-                    <Button asChild variant="outline" size="sm">
-                      <Link
-                        to={sampleUrl}
-                        download={sampleFileName(resource.name)}
-                      >
-                        {translate("crm.data_import.sample_download")}
-                      </Link>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      render={
+                        <Link
+                          to={sampleUrl}
+                          download={sampleFileName(resource.name)}
+                        />
+                      }
+                    >
+                      {translate("crm.data_import.sample_download")}
                     </Button>
                   </AlertDescription>
                 </Alert>

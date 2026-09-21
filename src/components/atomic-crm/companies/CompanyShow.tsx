@@ -245,15 +245,20 @@ const CreateRelatedContactButton = () => {
   const translate = useTranslate();
   const company = useRecordContext<Company>();
   return (
-    <Button variant="outline" asChild size="sm" className="h-9">
-      <RouterLink
-        to="/contacts/create"
-        state={company ? { record: { company_id: company.id } } : undefined}
-        className="flex items-center gap-2"
-      >
-        <UserPlus className="h-4 w-4" />
-        {translate("resources.contacts.action.add")}
-      </RouterLink>
+    <Button
+      variant="outline"
+      size="sm"
+      className="h-9"
+      render={
+        <RouterLink
+          to="/contacts/create"
+          state={company ? { record: { company_id: company.id } } : undefined}
+          className="flex items-center gap-2"
+        />
+      }
+    >
+      <UserPlus className="h-4 w-4" />
+      {translate("resources.contacts.action.add")}
     </Button>
   );
 };

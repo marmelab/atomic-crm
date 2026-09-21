@@ -100,15 +100,18 @@ export const DashboardStepper = ({
                         {addContactLabel}
                       </Button>
                     ) : (
-                      <Button asChild className="w-fit">
-                        <Link
-                          to={createPath({
-                            resource: "contacts",
-                            type: "create",
-                          })}
-                        >
-                          {addContactLabel}
-                        </Link>
+                      <Button
+                        className="w-fit"
+                        render={
+                          <Link
+                            to={createPath({
+                              resource: "contacts",
+                              type: "create",
+                            })}
+                          />
+                        }
+                      >
+                        {addContactLabel}
                       </Button>
                     )}
                   </div>
@@ -139,18 +142,22 @@ export const DashboardStepper = ({
                       })}
                     </Button>
                   ) : (
-                    <Button asChild disabled={step < 2} className="w-fit">
-                      <Link
-                        to={createPath({
-                          resource: "contacts",
-                          type: "show",
-                          id: contactId,
-                        })}
-                      >
-                        {translate("resources.notes.action.add", {
-                          _: "Add note",
-                        })}
-                      </Link>
+                    <Button
+                      disabled={step < 2}
+                      className="w-fit"
+                      render={
+                        <Link
+                          to={createPath({
+                            resource: "contacts",
+                            type: "show",
+                            id: contactId,
+                          })}
+                        />
+                      }
+                    >
+                      {translate("resources.notes.action.add", {
+                        _: "Add note",
+                      })}
                     </Button>
                   )}
                 </div>

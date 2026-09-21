@@ -1,14 +1,16 @@
-import {
-  useState,
-  useEffect,
-  Children,
-  type ComponentProps,
-  type ReactNode,
-} from "react";
+import type { ComponentProps, ReactNode } from "react";
+import { useState, useEffect, Children } from "react";
 import { createPortal } from "react-dom";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import * as diacritic from "diacritic";
+import type {
+  RaRecord,
+  Identifier,
+  SortPayload,
+  HintedString,
+  ExtractRecordPaths,
+} from "ra-core";
 import {
   useDataTableStoreContext,
   useStore,
@@ -19,14 +21,8 @@ import {
   useTranslateLabel,
   DataTableColumnRankContext,
   DataTableColumnFilterContext,
-  type RaRecord,
-  type Identifier,
-  type SortPayload,
-  type HintedString,
-  type ExtractRecordPaths,
 } from "ra-core";
 import { Columns, Search } from "lucide-react";
-import * as PopoverPrimitive from "@radix-ui/react-popover";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,9 +30,14 @@ import { FieldToggle } from "@/components/admin/field-toggle";
 import {
   Tooltip,
   TooltipContent,
+  TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Popover, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 
 /**
@@ -78,40 +79,43 @@ export const ColumnsButton = (props: ColumnsButtonProps) => {
   return (
     <span className={cn("inline-flex", className)}>
       <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          {isMobile ? (
+        {isMobile ? (
+          // Base UI defaults tooltips to a 600ms open delay; the provider keeps
+          // them instant without app-level setup.
+          <TooltipProvider delay={0}>
             <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  aria-label={title}
-                  {...rest}
-                >
-                  <Columns className="size-4" />
-                </Button>
-              </TooltipTrigger>
+              <PopoverTrigger
+                render={
+                  <TooltipTrigger
+                    render={
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label={title}
+                        {...rest}
+                      />
+                    }
+                  />
+                }
+              >
+                <Columns className="size-4" />
+              </PopoverTrigger>
               <TooltipContent>{title}</TooltipContent>
             </Tooltip>
-          ) : (
-            <Button variant="outline" className="cursor-pointer" {...rest}>
-              <Columns />
-              {title}
-            </Button>
-          )}
-        </PopoverTrigger>
-        <PopoverPrimitive.Portal forceMount>
-          <div className={open ? "block" : "hidden"}>
-            <PopoverPrimitive.Content
-              data-slot="popover-content"
-              sideOffset={4}
-              align="start"
-              className="bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 w-72 origin-(--radix-popover-content-transform-origin) rounded-md border shadow-md outline-hidden p-0 min-w-[200px]"
-            >
-              <div id={`${storeKey}-columnsSelector`} className="p-2" />
-            </PopoverPrimitive.Content>
-          </div>
-        </PopoverPrimitive.Portal>
+          </TooltipProvider>
+        ) : (
+          <PopoverTrigger
+            render={
+              <Button variant="outline" className="cursor-pointer" {...rest} />
+            }
+          >
+            <Columns />
+            {title}
+          </PopoverTrigger>
+        )}
+        <PopoverContent align="start" className="w-72 min-w-[200px] p-0">
+          <div id={`${storeKey}-columnsSelector`} className="p-2" />
+        </PopoverContent>
       </Popover>
     </span>
   );
@@ -139,30 +143,36 @@ export const ColumnsSelector = ({ children }: ColumnsSelectorProps) => {
   );
   const elementId = `${storeKey}-columnsSelector`;
 
-  const [container, setContainer] = useState<HTMLElement | null>(() =>
-    typeof document !== "undefined" ? document.getElementById(elementId) : null,
-  );
+  const [container, setContainer] = useState<HTMLElement | null>(null);
 
-  // on first mount, we don't have the container yet, so we wait for it
+  // Track the portal container across popover mount/unmount cycles.
   useEffect(() => {
-    if (
-      container &&
-      typeof document !== "undefined" &&
-      document.body.contains(container)
-    )
-      return;
-    // look for the container in the DOM every 100ms
-    const interval = setInterval(() => {
+    if (typeof document === "undefined") return;
+
+    const resolveContainer = () => {
       const target = document.getElementById(elementId);
-      if (target) setContainer(target);
-    }, 100);
-    // stop looking after 500ms
-    const timeout = setTimeout(() => clearInterval(interval), 500);
-    return () => {
-      clearInterval(interval);
-      clearTimeout(timeout);
+      setContainer((current) => {
+        if (target === current) return current;
+        if (target) return target;
+        if (current && !document.body.contains(current)) return null;
+        return current;
+      });
     };
-  }, [elementId, container]);
+
+    resolveContainer();
+
+    const observer = new MutationObserver(resolveContainer);
+
+    // The popover renders its content in a portal appended to <body>, so
+    // watching body's direct children is enough to catch it opening and
+    // closing. Watching the whole subtree instead would run this on every DOM
+    // mutation of the list for as long as the view is mounted.
+    observer.observe(document.body, { childList: true });
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [elementId]);
 
   const [columnFilter, setColumnFilter] = useState<string>("");
 

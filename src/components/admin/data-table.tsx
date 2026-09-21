@@ -26,8 +26,8 @@ import {
   useStore,
   useTranslate,
   useTranslateLabel,
+  useNavigate,
 } from "ra-core";
-import { useNavigate } from "react-router";
 import { ArrowDownAZ, ArrowUpZA } from "lucide-react";
 import get from "lodash/get";
 import { cn } from "@/lib/utils";
@@ -380,36 +380,30 @@ function DataTableHeadCell<
       {handleSort && sort && !disableSort && source ? (
         <TooltipProvider>
           <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="-ml-3 -mr-3 h-8 data-[state=open]:bg-accent cursor-pointer"
-                data-field={source}
-                onClick={handleSort}
-              >
-                {headerClassName?.includes("text-right") ? null : (
-                  <FieldTitle
-                    label={label}
-                    source={source}
-                    resource={resource}
-                  />
-                )}
-                {sort.field === source ? (
-                  sort.order === "ASC" ? (
-                    <ArrowDownAZ className="ml-2 h-6 w-6" />
-                  ) : (
-                    <ArrowUpZA className="ml-2 h-6 w-6" />
-                  )
-                ) : null}
-                {headerClassName?.includes("text-right") ? (
-                  <FieldTitle
-                    label={label}
-                    source={source}
-                    resource={resource}
-                  />
-                ) : null}
-              </Button>
+            <TooltipTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="-ml-3 -mr-3 h-8 data-[state=open]:bg-accent cursor-pointer"
+                  data-field={source}
+                  onClick={handleSort}
+                />
+              }
+            >
+              {headerClassName?.includes("text-right") ? null : (
+                <FieldTitle label={label} source={source} resource={resource} />
+              )}
+              {sort.field === source ? (
+                sort.order === "ASC" ? (
+                  <ArrowDownAZ className="ml-2 h-6 w-6" />
+                ) : (
+                  <ArrowUpZA className="ml-2 h-6 w-6" />
+                )
+              ) : null}
+              {headerClassName?.includes("text-right") ? (
+                <FieldTitle label={label} source={source} resource={resource} />
+              ) : null}
             </TooltipTrigger>
             <TooltipContent>
               <p>{sortLabel}</p>

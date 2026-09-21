@@ -283,18 +283,20 @@ export const AddItemButton = (props: React.ComponentProps<"button">) => {
   return (
     <TooltipProvider>
       <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={() => add()}
-            aria-label={translate("ra.action.add")}
-            className={cn("button-add", `button-add-${source}`, className)}
-            {...rest}
-          >
-            <PlusCircle className="h-5 w-5" />
-          </Button>
+        <TooltipTrigger
+          render={
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => add()}
+              aria-label={translate("ra.action.add")}
+              className={cn("button-add", `button-add-${source}`, className)}
+              {...rest}
+            />
+          }
+        >
+          <PlusCircle className="h-5 w-5" />
         </TooltipTrigger>
         <TooltipContent>{translate("ra.action.add")}</TooltipContent>
       </Tooltip>
@@ -404,10 +406,12 @@ export const ClearArrayButton = (props: React.ComponentProps<"button">) => {
   return (
     <TooltipProvider>
       <Tooltip>
-        <TooltipTrigger asChild>
-          <Button type="button" variant="ghost" size="icon" {...props}>
-            <Trash className="h-5 w-5 text-red-500" />
-          </Button>
+        <TooltipTrigger
+          render={
+            <Button type="button" variant="ghost" size="icon" {...props} />
+          }
+        >
+          <Trash className="h-5 w-5 text-red-500" />
         </TooltipTrigger>
         <TooltipContent>
           {translate("ra.action.clear_array_input")}
@@ -441,21 +445,23 @@ export const RemoveItemButton = (props: React.ComponentProps<"button">) => {
   return (
     <TooltipProvider>
       <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={() => remove()}
-            className={cn(
-              "button-remove",
-              `button-remove-${source}-${index}`,
-              className,
-            )}
-            {...rest}
-          >
-            <XCircle className="h-5 w-5 text-red-500" />
-          </Button>
+        <TooltipTrigger
+          render={
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => remove()}
+              className={cn(
+                "button-remove",
+                `button-remove-${source}-${index}`,
+                className,
+              )}
+              {...rest}
+            />
+          }
+        >
+          <XCircle className="h-5 w-5 text-red-500" />
         </TooltipTrigger>
         <TooltipContent>{translate("ra.action.remove")}</TooltipContent>
       </Tooltip>

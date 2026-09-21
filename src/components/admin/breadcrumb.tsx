@@ -9,7 +9,7 @@ import {
   BreadcrumbList,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import {
   Drawer,
   DrawerClose,
@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/drawer";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Translate } from "ra-core";
+import { cn } from "@/lib/utils";
 
 /**
  * A breadcrumb navigation component with mobile drawer support.
@@ -37,17 +38,16 @@ import { Translate } from "ra-core";
  *
  * @example
  * import { Edit, Breadcrumb, SimpleForm } from "@/components/admin";
- * import { RecordRepresentation } from 'ra-core';
- * import { Link } from "react-router";
+ * import { LinkBase, RecordRepresentation } from 'ra-core';
  *
  * const PostEdit = () => (
  *   <Edit disableBreadcrumb>
  *     <Breadcrumb>
- *       <Breadcrumb.Item><Link to="/">Home</Link></Breadcrumb.Item>
- *       <Breadcrumb.Item><Link to="/posts">Articles</Link></Breadcrumb.Item>
+ *       <Breadcrumb.Item><LinkBase to="/">Home</LinkBase></Breadcrumb.Item>
+ *       <Breadcrumb.Item><LinkBase to="/posts">Articles</LinkBase></Breadcrumb.Item>
  *       <Breadcrumb.PageItem>
  *         Edit Article "<RecordRepresentation />"
- *       </Breadcrumb.Item>
+ *       </Breadcrumb.PageItem>
  *     </Breadcrumb>
  *     <SimpleForm>
  *       ...
@@ -63,7 +63,6 @@ export const Breadcrumb = ({ children, ref }: BreadcrumbProps) => {
   return createPortal(
     <>
       <Separator
-        decorative
         orientation="vertical"
         className="data-[orientation=vertical]:h-4 mr-4"
       />
@@ -95,10 +94,10 @@ export const Breadcrumb = ({ children, ref }: BreadcrumbProps) => {
                         .map((item) => item)}
                     </ol>
                     <DrawerFooter className="pt-4">
-                      <DrawerClose asChild>
-                        <Button variant="outline">
-                          <Translate i18nKey="ra.action.close">Close</Translate>
-                        </Button>
+                      <DrawerClose
+                        className={cn(buttonVariants({ variant: "outline" }))}
+                      >
+                        <Translate i18nKey="ra.action.close">Close</Translate>
                       </DrawerClose>
                     </DrawerFooter>
                   </DrawerContent>

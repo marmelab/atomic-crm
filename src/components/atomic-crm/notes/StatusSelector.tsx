@@ -82,18 +82,28 @@ export const StatusSelector = ({
   }
 
   /**
-   * Radix's Select component doesn't allow empty string as value, so we use a placeholder value and convert it back to empty string on change
-   * @see https://github.com/radix-ui/primitives/issues/2706
+   * "No status" needs a selectable item of its own, and an item cannot carry an empty
+   * value, so it uses a sentinel that is converted back to an empty string on change.
    */
   const handleValueChange = (value: string) => {
     setStatus(value === NONE_VALUE ? "" : value);
   };
+
+  // <SelectValue> renders the trigger label from this map, not from the items' children.
+  const items = [
+    { value: NONE_VALUE, label: noneLabel },
+    ...noteStatuses.map((statusOption) => ({
+      value: statusOption.value,
+      label: <StatusOption {...statusOption} />,
+    })),
+  ];
 
   return (
     <Select
       disabled={disabled}
       value={status || NONE_VALUE}
       onValueChange={handleValueChange}
+      items={items}
     >
       <SelectTrigger className={cn("w-32", triggerClassName)}>
         <SelectValue placeholder={noneLabel} />
@@ -106,16 +116,20 @@ export const StatusSelector = ({
         </SelectItem>
         {noteStatuses.map((statusOption) => (
           <SelectItem key={statusOption.value} value={statusOption.value}>
-            <div className="flex items-center gap-2">
-              <span
-                className="inline-block w-2.5 h-2.5 rounded-full"
-                style={{ backgroundColor: statusOption.color }}
-              />
-              {statusOption.label}
-            </div>
+            <StatusOption {...statusOption} />
           </SelectItem>
         ))}
       </SelectContent>
     </Select>
   );
 };
+
+const StatusOption = ({ color, label }: { color: string; label: string }) => (
+  <div className="flex items-center gap-2">
+    <span
+      className="inline-block w-2.5 h-2.5 rounded-full"
+      style={{ backgroundColor: color }}
+    />
+    {label}
+  </div>
+);

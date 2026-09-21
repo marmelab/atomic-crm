@@ -94,17 +94,15 @@ const NavigationButton = ({
   isActive: boolean;
 }) => (
   <Button
-    asChild
     variant="ghost"
     className={cn(
       "flex-col gap-1 h-auto py-2 px-1 rounded-md w-16",
       isActive ? null : "text-muted-foreground",
     )}
+    render={<Link to={href} />}
   >
-    <Link to={href}>
-      <Icon className="size-6" />
-      <span className="text-[0.6rem] font-medium">{label}</span>
-    </Link>
+    <Icon className="size-6" />
+    <span className="text-[0.6rem] font-medium">{label}</span>
   </Button>
 );
 
@@ -132,20 +130,22 @@ const CreateButton = () => {
         contact_id={contact_id}
       />
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="default"
-            size="icon"
-            className="h-16 w-16 rounded-full -mt-3"
-            aria-label={translate("ra.action.create")}
-          >
-            <Plus className="size-10" />
-          </Button>
+        <DropdownMenuTrigger
+          render={
+            <Button
+              variant="default"
+              size="icon"
+              className="h-16 w-16 rounded-full -mt-3"
+              aria-label={translate("ra.action.create")}
+            />
+          }
+        >
+          <Plus className="size-10" />
         </DropdownMenuTrigger>
         <DropdownMenuContent>
           <DropdownMenuItem
             className="h-12 px-4 text-base"
-            onSelect={() => {
+            onClick={() => {
               setContactCreateOpen(true);
             }}
           >
@@ -153,7 +153,7 @@ const CreateButton = () => {
           </DropdownMenuItem>
           <DropdownMenuItem
             className="h-12 px-4 text-base"
-            onSelect={() => {
+            onClick={() => {
               setNoteCreateOpen(true);
             }}
           >
@@ -161,7 +161,7 @@ const CreateButton = () => {
           </DropdownMenuItem>
           <DropdownMenuItem
             className="h-12 px-4 text-base"
-            onSelect={() => {
+            onClick={() => {
               setTaskCreateOpen(true);
             }}
           >
