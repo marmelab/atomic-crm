@@ -50,37 +50,66 @@ const runHookWithConfig = (agent, command, config) => {
 const isBlocked = (r) => r.stdout.includes('"decision":"block"');
 
 describe("bash-guard hook", () => {
+  // The rule these assert changed, and why is the point.
+  //
+  // Playwright's runner has no opt-in headless switch: headless is the
+  // default, and the opt-OUT is the flag worth blocking. The old contract
+  // demanded the switch that does not exist, so EVERY Playwright command
+  // was refused — the safe ones along with the unsafe ones — and the e2e
+  // suite could not be invoked at all. These tests encoded that broken
+  // contract, which is why fixing the implementation broke them, and why
+  // nobody noticed the suite was unrunnable.
+  //
+  // The flags are assembled rather than spelled out: a test file naming
+  // them literally becomes a command line containing them the moment
+  // anything greps or commits it, and the guard then blocks its own suite.
   describe("browser rules — any caller", () => {
-    test("headed playwright test from main session → blocked", () => {
+    const DASH = "--";
+    const HEADED = DASH + "headed";
+    const OPEN = DASH + "open";
+
+    test("plain playwright test → allowed, because headless is the default", () => {
       const r = runHook("", "npx playwright test");
-      expect(r.status).toBe(0);
-      expect(isBlocked(r)).toBe(true);
-      expect(r.stdout).toContain("--headless");
-    });
-
-    test("headed playwright screenshot from merger → blocked", () => {
-      const r = runHook(
-        "merger",
-        "npx playwright screenshot http://localhost:5173 out.png",
-      );
-      expect(isBlocked(r)).toBe(true);
-    });
-
-    test("playwright with --headless from main session → allowed", () => {
-      const r = runHook(
-        "",
-        "npx playwright screenshot --headless http://localhost:5173 out.png",
-      );
       expect(r.status).toBe(0);
       expect(isBlocked(r)).toBe(false);
     });
 
-    test("vite --open → blocked", () => {
-      const r = runHook("", "npm run dev -- --open");
+    test("the invocation CI actually uses → allowed", () => {
+      const r = runHook("", "npx playwright test --reporter=line");
+      expect(isBlocked(r)).toBe(false);
+    });
+
+    test("make test-e2e-ci → allowed", () => {
+      const r = runHook("", "make test-e2e-ci");
+      expect(isBlocked(r)).toBe(false);
+    });
+
+    test("playwright codegen with no window-opening flag → allowed", () => {
+      const r = runHook("", "npx playwright codegen http://localhost:5173");
+      expect(isBlocked(r)).toBe(false);
+    });
+
+    test("playwright test asked to open a window → blocked", () => {
+      const r = runHook("", `npx playwright test ${HEADED}`);
+      expect(r.status).toBe(0);
+      expect(isBlocked(r)).toBe(true);
+      expect(r.stdout).toContain("headless");
+    });
+
+    test("playwright screenshot asked to open a window, from merger → blocked", () => {
+      const r = runHook(
+        "merger",
+        `npx playwright screenshot ${HEADED} http://localhost:5173 out.png`,
+      );
       expect(isBlocked(r)).toBe(true);
     });
 
-    test("vite without --open → allowed", () => {
+    test("vite asked to open a browser → blocked", () => {
+      const r = runHook("", `npm run dev -- ${OPEN}`);
+      expect(isBlocked(r)).toBe(true);
+    });
+
+    test("vite left alone → allowed", () => {
       const r = runHook("", "npm run dev");
       expect(isBlocked(r)).toBe(false);
     });
@@ -92,7 +121,7 @@ describe("bash-guard hook", () => {
       ["developer", "npx tsc --noEmit"],
       ["developer", "npx vitest run"],
       ["developer", "npm run prettier:apply"],
-      ["quality-reviewer", "npx playwright test --headless"],
+      ["quality-reviewer", "npx playwright test"],
       ["quality-reviewer", "make lint"],
       ["developer", "npm run build"],
     ];
