@@ -774,7 +774,7 @@
           "type": "registry:component"
         },
         {
-          "path": "src/components/atomic-crm/programs/upcomingOpenings.ts",
+          "path": "src/components/atomic-crm/programs/UpcomingOpeningsSection.tsx",
           "type": "registry:component"
         },
         {
@@ -1722,6 +1722,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/cohorts/cohortDates.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/cohorts/cohortConstants.ts",
           "type": "registry:component"
         },
@@ -1751,6 +1755,46 @@
         },
         {
           "path": "src/components/atomic-crm/cohorts/CohortCapacityBadge.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/capacity/useSessionWeeks.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/capacity/testCalendar.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/capacity/syncYearTracking.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/capacity/slotOccupancy.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/capacity/slotHolder.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/capacity/sessionWeeks.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/capacity/occupancyLedger.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/capacity/monthLabel.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/capacity/individualCapacity.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/capacity/SyncCalendarButton.tsx",
           "type": "registry:component"
         },
         {

@@ -109,3 +109,91 @@ describe("one schedule truth", () => {
     expect(client).not.toMatch(/x-cron-secret/i);
   });
 });
+
+describe("Growing Yourself Up is not the Living Example", () => {
+  // Two programmes, two scheduling models, and they must not borrow each
+  // other's rules. A group round runs to published cohort dates that
+  // everybody shares; the Living Example runs twelve sessions across
+  // Leif's available `1:1s` weeks. A GYU round with a summer in the middle
+  // of it does not get longer, and an LE container with a bank holiday in
+  // it does.
+  const COHORT_DATES = "src/components/atomic-crm/cohorts/cohortDates.ts";
+
+  test("cohort dates never consult the Year Tracking calendar", () => {
+    const source = read(COHORT_DATES);
+    expect(source).not.toMatch(/expected_session_windows/);
+    expect(source).not.toMatch(/sessionWeeks/);
+    expect(source).not.toMatch(/eligibleWeeksFrom|computeExpectedEnd/);
+    expect(source).not.toMatch(/SESSIONS_PER_CONTAINER|\b12\b/);
+  });
+
+  test("the twelve-week engine never reads a cohort's duration", () => {
+    const source = read("src/components/atomic-crm/capacity/sessionWeeks.ts");
+    expect(source).not.toMatch(/duration_value|duration_unit|cohort/i);
+  });
+
+  test("a cohort's length is structured, never parsed from the Offer's prose", () => {
+    const source = read(COHORT_DATES);
+    expect(source).toMatch(/duration_value/);
+    // The free-text field is for display and is never read here.
+    expect(source).not.toMatch(/\.duration\b/);
+  });
+});
+
+describe("program rules belong to the program TYPE, never to a name", () => {
+  // The Living Example is the current 1:1 program and Growing Yourself Up
+  // the current group one, but neither name may appear in a branch. A
+  // second 1:1 program must inherit the individual architecture on the day
+  // it is created, without anybody editing a condition.
+  const BEHAVIOURAL = [
+    "src/components/atomic-crm/capacity/sessionWeeks.ts",
+    "src/components/atomic-crm/capacity/occupancyLedger.ts",
+    "src/components/atomic-crm/capacity/individualCapacity.ts",
+    "src/components/atomic-crm/capacity/useSessionWeeks.ts",
+    "src/components/atomic-crm/cohorts/cohortDates.ts",
+    "src/components/atomic-crm/dashboard/livingExampleCapacity.ts",
+    "src/components/atomic-crm/dashboard/useLivingExampleCapacityData.ts",
+    "src/components/atomic-crm/dashboard/comingUpProjection.ts",
+    "src/components/atomic-crm/dashboard/useComingUpItems.ts",
+    "src/components/atomic-crm/programs/useIndividualProgramData.ts",
+    "supabase/migrations/20260921150000_a_session_schedule_is_derived.sql",
+    "supabase/migrations/20260921170000_a_cohort_has_a_structured_duration.sql",
+  ];
+
+  test.each(BEHAVIOURAL)("%s branches on no program name", (path) => {
+    // Comments may name the real programs — that is how the reasoning gets
+    // recorded. Code may not.
+    const code = path.endsWith(".sql")
+      ? statementsOf(path)
+      : read(path)
+          .split("\n")
+          .filter((line) => {
+            const t = line.trimStart();
+            return (
+              !t.startsWith("//") && !t.startsWith("*") && !t.startsWith("/*")
+            );
+          })
+          .join("\n");
+    expect(code).not.toMatch(/Living Example/i);
+    expect(code).not.toMatch(/Growing Yourself/i);
+    // Nor an offer id standing in for one.
+    expect(code).not.toMatch(/offer_id\s*=\s*\d/);
+    expect(code).not.toMatch(/offerId\s*===\s*\d/);
+  });
+
+  test("the individual schedule rebuild selects on type", () => {
+    expect(
+      statementsOf(
+        "supabase/migrations/20260921150000_a_session_schedule_is_derived.sql",
+      ),
+    ).toMatch(/o\.type = 'individual'/);
+  });
+
+  test("the cohort duration backfill selects on type", () => {
+    expect(
+      statementsOf(
+        "supabase/migrations/20260921170000_a_cohort_has_a_structured_duration.sql",
+      ),
+    ).toMatch(/o\.type = 'group'/);
+  });
+});

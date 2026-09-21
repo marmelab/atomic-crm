@@ -96,7 +96,8 @@ export const useComingUpItems = (): {
     );
 
     return buildComingUpItems({
-      leOfferId: leOffer?.id ?? null,
+      individualOfferId: leOffer?.id ?? null,
+      individualOfferName: leOffer?.name ?? "",
       openingsMonths: leOffer ? (futureOpenings?.months ?? []) : [],
       cohortEvents,
       limit: MAX_ITEMS,

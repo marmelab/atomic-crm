@@ -304,7 +304,7 @@ describe("Dashboard — Coming Up", () => {
     // October an opening while four people arrived in November. An
     // opening is a running total or it is not safe to act on.
     await expect
-      .element(screen.getByText("11 Living Example openings from then"))
+      .element(screen.getByText("11 openings in The Living Example from then"))
       .toBeInTheDocument();
     await expect
       .element(screen.getByText("September GYU Cohort starts"))
@@ -401,7 +401,7 @@ describe("Dashboard — Coming Up", () => {
       .element(screen.getByText("Dave Kim + Julia Chen complete"))
       .toBeInTheDocument();
     await expect
-      .element(screen.getByText("10 Living Example openings from then"))
+      .element(screen.getByText("10 openings in The Living Example from then"))
       .toBeInTheDocument();
     // Not rendered as two separate rows.
     await expect

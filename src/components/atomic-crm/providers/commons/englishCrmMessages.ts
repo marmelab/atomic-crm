@@ -795,7 +795,7 @@ export const englishCrmMessages = {
       coming_up_today: "Today",
       coming_up_le_completes: "%{names} completes |||| %{names} complete",
       coming_up_le_opening_detail:
-        "%{count} Living Example opening from then |||| %{count} Living Example openings from then",
+        "%{count} opening in %{program} from then |||| %{count} openings in %{program} from then",
       coming_up_cohort_starts: "%{name} starts",
       coming_up_cohort_ends: "%{name} ends",
       coming_up_cohort_applications_open: "%{name} — Applications open",

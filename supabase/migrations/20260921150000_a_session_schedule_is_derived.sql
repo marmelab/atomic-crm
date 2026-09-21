@@ -253,7 +253,10 @@ begin
       from enrollments e
       join deals d on d.id = e.opportunity_id
       join offers o on o.id = d.offer_id
-     where o.client_session_acuity_appointment_type_id is not null
+     -- Branch on the PROGRAM TYPE, never on a name or an id. Any 1:1
+     -- program schedules this way; a group program runs to its
+     -- cohort's own published dates and must never reach here.
+     where o.type = 'individual'
        and e.status in ('onboarding', 'active', 'offboarding')
        and e.start_date is not null
      order by e.id

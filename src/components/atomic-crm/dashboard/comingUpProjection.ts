@@ -16,6 +16,10 @@ export type NextUpItem =
       type: "living_example_opening";
       date: string; // YYYY-MM-01 — the month, positioned for sorting
       month: string; // YYYY-MM
+      // The programme's own name. Carried rather than written into the
+      // message, because the rule belongs to the program TYPE and any 1:1
+      // program uses this row.
+      programName: string;
       destination: string;
       clientNames: string[];
       openingCount: number;
@@ -63,18 +67,20 @@ const cohortEventKindToItemType: Record<
 // clients finish and two already-booked clients start frees nothing, and
 // announcing it as an opening would invite Leif to sell a slot twice.
 export const buildComingUpItems = ({
-  leOfferId,
+  individualOfferId,
+  individualOfferName,
   openingsMonths,
   cohortEvents,
   limit,
 }: {
-  leOfferId: Identifier | null;
+  individualOfferId: Identifier | null;
+  individualOfferName: string;
   openingsMonths: OpeningsMonth[];
   cohortEvents: CohortEvent[];
   limit: number;
 }): NextUpItem[] => {
   const leItems: NextUpItem[] =
-    leOfferId == null
+    individualOfferId == null
       ? []
       : openingsMonths
           .filter(
@@ -82,13 +88,14 @@ export const buildComingUpItems = ({
               month.openings.status === "known" && month.openings.openings > 0,
           )
           .map((month) => ({
-            id: `le-opening-${month.month}`,
+            id: `individual-opening-${month.month}`,
+            programName: individualOfferName,
             type: "living_example_opening",
             // A projection is a month, not a day — it sorts from the
             // month's first day and renders as the month.
             date: `${month.month}-01`,
             month: month.month,
-            destination: `/programs/individual/${leOfferId}#upcoming-openings`,
+            destination: `/programs/individual/${individualOfferId}#upcoming-openings`,
             clientNames: month.freeing.map((holder) => holder.name),
             openingCount:
               month.openings.status === "known" ? month.openings.openings : 0,

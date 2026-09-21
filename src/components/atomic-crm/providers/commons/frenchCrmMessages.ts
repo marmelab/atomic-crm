@@ -804,7 +804,7 @@ export const frenchCrmMessages = {
       coming_up_today: "Aujourd'hui",
       coming_up_le_completes: "%{names} termine |||| %{names} terminent",
       coming_up_le_opening_detail:
-        "%{count} place Living Example disponible à partir de là |||| %{count} places Living Example disponibles à partir de là",
+        "%{count} place disponible dans %{program} à partir de là |||| %{count} places disponibles dans %{program} à partir de là",
       coming_up_cohort_starts: "%{name} commence",
       coming_up_cohort_ends: "%{name} se termine",
       coming_up_cohort_applications_open: "%{name} — Candidatures ouvertes",

@@ -212,7 +212,12 @@ export type Cohort = {
   applications_open_at?: string | null;
   applications_close_at?: string | null;
   program_start_at?: string | null;
+  // Authoritative when set; otherwise derived from start + duration.
   program_end_at?: string | null;
+  // The round's length as a number and a unit. The parent Offer's own
+  // `duration` is free text for display and is never parsed.
+  duration_value?: number | null;
+  duration_unit?: "weeks" | "months" | null;
   minimum_capacity?: number | null;
   target_capacity?: number | null;
   maximum_capacity?: number | null;

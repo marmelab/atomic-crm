@@ -58,7 +58,8 @@ describe("buildComingUpItems", () => {
     ];
 
     const items = buildComingUpItems({
-      leOfferId: 1,
+      individualOfferId: 1,
+      individualOfferName: "The Living Example",
       openingsMonths,
       cohortEvents,
       limit: 10,
@@ -73,7 +74,8 @@ describe("buildComingUpItems", () => {
 
   test("one client completing produces exactly one Living Example event, not a separate opening row", () => {
     const items = buildComingUpItems({
-      leOfferId: 1,
+      individualOfferId: 1,
+      individualOfferName: "The Living Example",
       openingsMonths: [openingsMonth("2026-10", [holder("Kathy Reyes", 1)], 1)],
       cohortEvents: [],
       limit: 10,
@@ -89,7 +91,8 @@ describe("buildComingUpItems", () => {
 
   test("two completions in one month stay grouped as one event with count 2", () => {
     const items = buildComingUpItems({
-      leOfferId: 1,
+      individualOfferId: 1,
+      individualOfferName: "The Living Example",
       openingsMonths: [
         openingsMonth(
           "2026-12",
@@ -110,7 +113,8 @@ describe("buildComingUpItems", () => {
 
   test("no Living Example events are produced when there is no LE Offer", () => {
     const items = buildComingUpItems({
-      leOfferId: null,
+      individualOfferId: null,
+      individualOfferName: "The Living Example",
       openingsMonths: [openingsMonth("2026-10", [holder("Kathy Reyes", 1)], 1)],
       cohortEvents: [],
       limit: 10,
@@ -120,7 +124,8 @@ describe("buildComingUpItems", () => {
 
   test("Living Example destination points at the Program page's Upcoming Openings anchor", () => {
     const items = buildComingUpItems({
-      leOfferId: 7,
+      individualOfferId: 7,
+      individualOfferName: "The Living Example",
       openingsMonths: [openingsMonth("2026-10", [holder("Kathy Reyes", 1)], 1)],
       cohortEvents: [],
       limit: 10,
@@ -132,7 +137,8 @@ describe("buildComingUpItems", () => {
 
   test("Cohort event destination points at that Cohort's own page", () => {
     const items = buildComingUpItems({
-      leOfferId: null,
+      individualOfferId: null,
+      individualOfferName: "The Living Example",
       openingsMonths: [],
       cohortEvents: [cohortEvent({ cohortId: 5 })],
       limit: 10,
@@ -150,7 +156,8 @@ describe("buildComingUpItems", () => {
     );
 
     const items = buildComingUpItems({
-      leOfferId: null,
+      individualOfferId: null,
+      individualOfferName: "The Living Example",
       openingsMonths: [],
       cohortEvents,
       limit: 8,
@@ -166,7 +173,8 @@ describe("buildComingUpItems", () => {
     // in October. Nothing is free, so nothing is offered — announcing it
     // would invite Leif to sell a slot he has already sold.
     const items = buildComingUpItems({
-      leOfferId: 1,
+      individualOfferId: 1,
+      individualOfferName: "The Living Example",
       openingsMonths: [
         openingsMonth("2026-10", [holder("Adriano", 1), holder("Jess", 2)], 0, [
           holder("Ava", 3),
@@ -186,7 +194,8 @@ describe("buildComingUpItems", () => {
 
   test("an opening carries the month it belongs to, not a day nobody promised", () => {
     const items = buildComingUpItems({
-      leOfferId: 1,
+      individualOfferId: 1,
+      individualOfferName: "The Living Example",
       openingsMonths: [openingsMonth("2026-10", [holder("Kathy Reyes", 1)], 1)],
       cohortEvents: [],
       limit: 10,
@@ -199,7 +208,8 @@ describe("buildComingUpItems", () => {
 
   test("each Cohort event kind maps to a distinct item type", () => {
     const items = buildComingUpItems({
-      leOfferId: null,
+      individualOfferId: null,
+      individualOfferName: "The Living Example",
       openingsMonths: [],
       cohortEvents: [
         cohortEvent({ kind: "applications_open", date: "2026-09-01" }),

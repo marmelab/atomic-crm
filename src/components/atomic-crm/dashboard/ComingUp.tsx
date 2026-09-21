@@ -110,9 +110,10 @@ const comingUpRowText = (
       names,
     });
     const detail = translate("crm.dashboard.coming_up_le_opening_detail", {
-      _: "%{count} Living Example opening from then |||| %{count} Living Example openings from then",
+      _: "%{count} opening in %{program} from then |||| %{count} openings in %{program} from then",
       smart_count: item.openingCount,
       count: item.openingCount,
+      program: item.programName,
     });
     return { title, detail };
   }

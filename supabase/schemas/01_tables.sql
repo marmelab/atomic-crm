@@ -226,7 +226,14 @@ create table public.cohorts (
     applications_open_at date,
     applications_close_at date,
     program_start_at date,
+    -- Authoritative when set. A round that overran, or took a week off, is
+    -- a fact about that round — never an error in the arithmetic below.
     program_end_at date,
+    -- The round's length, as a NUMBER, so Start + Duration can produce an
+    -- End. The parent Offer's own `duration` is free text for display and
+    -- must never be parsed: "eight weeks" would silently break the maths.
+    duration_value smallint,
+    duration_unit text,
     minimum_capacity smallint,
     target_capacity smallint,
     maximum_capacity smallint,
@@ -245,7 +252,11 @@ create table public.cohorts (
     acuity_appointment_type_id text,
     created_at timestamp with time zone not null default now(),
     updated_at timestamp with time zone not null default now(),
-    constraint cohorts_status_check check (status in ('draft', 'applications_open', 'applications_closed', 'active', 'completed'))
+    constraint cohorts_status_check check (status in ('draft', 'applications_open', 'applications_closed', 'active', 'completed')),
+    constraint cohorts_duration_unit_check check (duration_unit is null or duration_unit in ('weeks', 'months')),
+    constraint cohorts_duration_value_check check (duration_value is null or duration_value > 0),
+    -- A number without a unit is not a duration, and vice versa.
+    constraint cohorts_duration_is_complete_check check ((duration_value is null) = (duration_unit is null))
 );
 
 create table public.deals (
