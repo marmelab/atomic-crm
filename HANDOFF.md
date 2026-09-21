@@ -4,7 +4,7 @@
 ledger — why each sealed slice decided what it decided. This file is the other
 half: what is true today, where the rules live in code, and what is waiting.
 
-Written 2026-09-20 at `451f0af0`. **The repository, the database and production
+Written 2026-09-20 at `451f0af0`, updated 2026-09-21 at `7bb47194`. **The repository, the database and production
 are the authority. Where this prose disagrees with them, they win — say so
 rather than quietly picking one.**
 
@@ -95,9 +95,15 @@ has not exercised is not evidence of anything, however much of it there is.
   before any larger feature.
 
 **Intended sequence:** (1) finish current small workflow UX loose ends →
-(2) tight reliability layer → (3) Gmail → (4) Gmail production acceptance →
-(5) Instagram/Meta → (6) Instagram production acceptance → (7) accumulated UX +
-maturity sprint → (8) Openings Planner.
+(2) ~~tight reliability layer~~ **SEALED 2026-09-21, see §8** →
+(3) **Capacity + Waitlist** → (4) Gmail → (5) Gmail production acceptance →
+(6) Instagram/Meta → (7) Instagram production acceptance → (8) accumulated UX +
+maturity sprint → (9) Openings Planner.
+
+Capacity + Waitlist moved ahead of Gmail deliberately: Gmail will want to say
+something true about openings, and neither the Living Example capacity maths
+nor the waitlist is operational yet. Build the truth before the thing that
+announces it.
 
 ---
 
@@ -106,11 +112,12 @@ maturity sprint → (8) Openings Planner.
 | | |
 |---|---|
 | repo | `git@github.com:leifariel/leif-crm-atomic.git`, branch `main` |
-| HEAD | `451f0af0` (== `origin/main`) |
+| HEAD | `7bb47194` (== `origin/main`) |
 | frontend | Vercel project `leif-ariel/leif-crm` → **crm.leifariel.com** |
 | database | Supabase `xlyywsguftyvomeretju` ("leif-crm", us-west-2) |
-| migrations | **126** local files == 126 remote versions |
-| boundary | **103 deterministic + 23 MAIN-only** (`node scripts/historical-import/replayBoundary.mjs` exits 0) |
+| migrations | **129** local files == 129 remote versions |
+| boundary | **106 deterministic + 23 MAIN-only** (`node scripts/historical-import/replayBoundary.mjs` exits 0) |
+| CI | `✅ Check` **green** on the real runner at `7bb47194` — Build, Typecheck, lint, unit (1932 tests / 239 files across every Vitest project) and `e2e-test` all pass |
 
 **Two independent deploy paths, and confusing them costs a slice.** Vercel
 builds the frontend on push to `main`. **Supabase Edge Functions deploy from
@@ -383,6 +390,9 @@ rollback; rows do not.
 | Aurelie: `approved` while holding a `cancelled` call | `callProvesCallBooked.ts` + an assertion in `20260920030000` that **no active Opportunity** contradicts its own call. |
 | **`scheduled_on` NOT NULL broke every Sales Call INSERT for three days** | Column is now **derived** by trigger, not a payload obligation. FakeRest does not enforce NOT NULL, so the entire app suite passed while production rejected every insert — this is the origin of §2's write-path rule. |
 | **Four future bookings asked "What happened on this call?", and matching them left the Task open forever** | The Acuity webhook kept the `resolve_sales_call` literal from *before* `20260918030000` split the type in two, so an unattributable booking became an attendance question about a call weeks away — and both closers key on the matching type, so the Task survived being answered and its own destination then said "This call is already resolved." Fixed at the source *and* made unrepeatable: `sales_call_open_question()` + a two-directional `reconcile_sales_call_tasks()` (`20260920100000`). Three new invariants in §3 would each have caught it. `aBookingIsNotAQuestion.test.ts` (21), plus ingestion-contract tests for the deterministic, ambiguous, terminal-prior and future-call shapes. **This is the defect that produced §2's acceptance loop.** |
+| **A rebuilt database was more permissive than MAIN** | MAIN's privilege posture had been applied by hand and never written down: 23 table over-grants across 12 relations, 23 sequences, 5 privileged functions. Now transcribed into the deterministic chain (`20260919175000`, `20260920120000`) and asserted from the outside by [securityPosture.spec.ts](e2e/securityPosture.spec.ts), which asks what a signed-in client and `anon` can actually do by **trying it**. |
+| **Writing a Contact required the right to read identity rows** | `clamp_contact_last_seen()` read `contact_external_identities` as the caller while repairing a future `last_seen`, and `service_role` cannot — so an Edge Function creating a first-time caller's Contact could fail with 42501, intermittently. The trigger is SECURITY DEFINER with a pinned `search_path` (`20260920130000`); nothing else was elevated. |
+| **The Add Task dialog called people by their job title** | `useGetRecordRepresentation("contacts")` fell through ra-core's chain (`name → title → label → reference → #id`) before the resource registry filled in, said *"Create task for CTO"*, and never corrected itself because the representation is captured in a `useCallback`. [AddTask](src/components/atomic-crm/tasks/AddTask.tsx) now names the Contact it already holds via `contactDisplayName`, and says plain "Create task" rather than inventing one. [AddTaskTitleName.test.tsx](src/components/atomic-crm/tasks/AddTaskTitleName.test.tsx) mounts it with **no resource definitions registered at all** — the state the old code could not survive, and the state the ordinary `<CRM>` harness could never reproduce. |
 
 ---
 
@@ -403,6 +413,13 @@ rollback; rows do not.
 Afterwards: 0 wrong-question Tasks, 0 appointment Tasks, 0 future attendance
 Tasks, 200 Sales Calls unchanged. **The loop that could not close now closes,
 proven by use rather than by assertion.**
+
+**Reliability Pass 1 — ACCEPTED / SEALED 2026-09-21** at `7bb47194`. Not a
+try-run: this pass built no product surface for Leif to exercise, so acceptance
+rested on the evidence instead — the real GitHub runner green on the pushed
+commit, zero privilege divergences between MAIN and a database rebuilt from
+empty, and RED/GREEN proofs against real Postgres for both historical failure
+classes. **Full record, and the tooling debt carried forward, in §8.**
 
 ---
 
@@ -448,35 +465,107 @@ Both are non-blocking.
 
 ---
 
-## 8. Next phase — reliability
+## 8. Reliability Pass 1 — ACCEPTED / SEALED 2026-09-21
 
-**Why:** the 2026-09-17 `scheduled_on` migration broke **every** Sales Call
-INSERT — app and Acuity webhook alike — and the full test suite stayed green,
-because FakeRest does not enforce database constraints. Nobody noticed for
-three days, because only *creation* broke and cancel/reschedule/no-show are
-UPDATEs. Four real client bookings would have been lost had it run longer.
+Sealed at `7bb47194` on Leif's acceptance, after the real GitHub runner went
+green. **Do not redo this work.**
 
-**And then it happened again, differently.** The Acuity task regression (§5)
-was not a constraint the tests could not see — it was a rule that existed in
-two runtimes, where one copy silently stopped matching the other. Same shape of
-failure: everything green, production wrong. Both belong to this pass.
+**Why it existed.** Two failures of the same family reached production with a
+fully green suite behind them. The 2026-09-17 `scheduled_on` migration broke
+*every* Sales Call INSERT for three days, app and Acuity webhook alike, and
+nothing saw it because FakeRest enforces no database constraint. Then a rule
+that lived in two runtimes drifted — the Acuity handler kept a task-type
+literal a migration had split — and four real bookings asked what had happened
+on calls weeks away. Everything green, production wrong, both times.
 
-**Keep this tight.** It is a reliability layer, not an architecture project.
+### The accepted guarantees
 
-Expected areas: critical-workflow contract tests · migration-impact /
-write-path tests · **drift detection for rules that must exist in two runtimes**
-(Deno Edge Functions cannot import from `src/`, so the mirrors are real and
-permanent) · production error visibility · small post-deploy canaries · an
-explicit inventory of critical production write paths.
+1. **Rebuild safety.** The repository rebuilds a database from empty using
+   legitimate environment prerequisites and the deterministic chain only, with
+   **no hidden manual security configuration**. Proven by comparison against
+   MAIN: zero privilege divergences across table grants, function EXECUTE,
+   effective sequence privileges and default ACLs.
+2. **Write-path safety.** A `scheduled_on`-class schema break is caught by
+   real-Postgres writer contracts — every supported Sales Call writer replayed
+   with its real payload under its real role — locally **and in CI**.
+3. **Cross-runtime safety.** Drift between the app, the database and the
+   Acuity Edge Function is caught by one checked-in set of vectors driven
+   through all three arms, locally **and in CI**.
+4. **Healthy code produces a green Check workflow.** That property is the
+   point: a permanently red pipeline is not a reliability signal.
+5. **The clean-room / e2e CI path works on the real runner.** It had been dead
+   since 2026-09-06 and nobody knew.
+6. **MAIN is aligned with the repository**, and production is healthy.
 
-Do not design the implementation before starting it. **And schedule Leif's
-try-run into it** — §2's loop applies to reliability work too, even though its
-output is mostly invisible; the human-facing part is what an error looks like
-when something breaks.
+### Where it lives
+
+| | |
+|---|---|
+| `contracts/sales-calls/writers.json` | every supported Sales Call **creation** path, machine-checked: each writer is executed and the payload it really sends is compared against what it claims |
+| `contracts/sales-calls/openQuestionVectors.json` | the canonical cross-runtime vectors — one set of cases, three runtimes, one fixed instant |
+| `contracts/sales-calls/creationSchemaContract.json` | the pinned creation contract, with **what fills each NOT NULL column**: writer / identity / default / trigger |
+| `e2e/salesCallWriteContracts.spec.ts` | the writers replayed against real Postgres |
+| `e2e/securityPosture.spec.ts` | what a signed-in client and `anon` can actually do, asked by trying it |
+| `scripts/cleanRoomBootstrap.mjs` | `make start-supabase-e2e` — prerequisites, deterministic-only replay, throwaway secrets |
+| `20260919175000`, `20260920120000` | MAIN's privilege posture, transcribed into the chain |
+| `20260920130000` | the Contact-write fix (below) |
+
+### What it found on the way
+
+Reliability work is supposed to find things, and it did:
+
+- **MAIN carried security configuration the repository did not.** An
+  `ALTER DEFAULT PRIVILEGES` applied by hand, never written down. A rebuilt
+  database was more permissive than production in 23 table grants across 12
+  relations, 23 sequences and 5 functions — a client could have forged outcome
+  history, rewritten immutable Application answers and called
+  `merge_contacts_safely()` directly. MAIN was never exposed; the *rebuild*
+  was, and AGENTS.md promises the rebuild.
+- **Writing a Contact required the right to read identity rows.**
+  `clamp_contact_last_seen()` repaired a future `last_seen` by reading
+  `contact_external_identities` as the caller, and `service_role` cannot. Any
+  Edge Function creating a first-time caller's Contact could fail with 42501,
+  intermittently. Fixed by elevating the trigger and nothing else.
+- **The Add Task dialog called people by their job title.** Before the resource
+  registry filled in, ra-core's fallback chain reached `record.title` — so the
+  dialog said *"Create task for CTO"*, or *"Create task for #1"*. It never
+  corrected itself.
+- **The e2e substrate had been unrunnable since 2026-09-06** — missing
+  environment prerequisites, MAIN-only repairs replayed into an empty database,
+  and Postgres pinned to 15 while MAIN runs 17.
+- **A guard demanded a flag that does not exist**, making every Playwright
+  command unwritable, which is part of why nobody noticed the suite was dead.
+- **`commands.setTimezone` never changed the timezone** — the CDP session was
+  detached immediately, reverting the override. Every test that "forced" a zone
+  ran in whatever zone the machine had, so results depended on the hour.
+
+### Carried forward as non-blocking tooling debt
+
+- Occasional local **browser-process death** on repeated long serial runs
+  (`[birpc] rpc is closed`, zero test failures) — a machine-resource artifact;
+  stop the disposable stack before a full suite.
+- The dedicated **Functions step is redundant** — `Unit Tests on App` already
+  runs every project. `if: always()` would make it independently observable.
+- **Supabase CLI is pinned nowhere**; `npx supabase` resolves whatever is
+  newest. A dependency-management decision, not a blocker.
+- **GitHub Pages deploy fails** in the demo/supabase jobs, and has on every run
+  since well before this pass. Unrelated to CRM production.
+- **If `ClientShow.tasks` times out in CI again, treat it as fresh evidence.**
+  The readiness fix was reasoned from the runner's own failure output, not from
+  a local reproduction — this machine runs the same 1932 tests in 125s where
+  the runner takes 272s. Do not assume the current fix covers every timing
+  case; go and look.
+
+### The next slice is Capacity + Waitlist
+
+Not started, and deliberately not designed here — Leif has not scoped it yet.
+What is settled is only the ordering: it comes **before** Gmail (§2), because
+Gmail will want to say something true about openings and nothing currently
+computes them.
 
 ---
 
-## 9. Gmail (after the reliability pass)
+## 9. Gmail (after Capacity + Waitlist)
 
 **Must be communication-provider-neutral so Instagram reuses it.** Model a
 communication fact with: provider · direction · **immutable external message
@@ -566,3 +655,10 @@ production and only returns the **last statement's** result; feed it SQL on
 **stdin** (`< file.sql`), because `--file` hangs. `python3` is OOM-killed on
 this machine — use `node`. Run the app suite serially
 (`--maxWorkers=1 --fileParallelism=false`).
+
+The reliability tooling from §8 is part of the baseline now:
+`make start-supabase-e2e` builds a clean room from empty and
+`make test-e2e-ci` runs the real-Postgres contracts against it. Stop that
+stack (`make stop-e2e`) before running the
+full browser suite — ten containers and a serial browser run compete for the
+same machine.
