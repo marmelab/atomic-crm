@@ -14,19 +14,19 @@ import {
 import type { Deal, Enrollment, Offer } from "../types";
 
 // The Living Example program page, against the real shape of Leif's
-// practice on 2026-09-21: twelve people he is working with, six more who
-// have agreed and not started, and not one end_date anywhere.
+// practice on 2026-09-21 and his real Year Tracking calendar.
 //
-// The page used to say "18 / 12 active · 0 openings" and "No upcoming
-// openings." Both numbers came from the same rows, and both were wrong in
-// the same way — a status column read without its dates.
+// The page has been wrong here twice. It said "18 / 12 active · 0
+// openings", adding six people who had not started to the twelve who had.
+// Then it worked out ends with start + four months, which on this calendar
+// is wrong by months: there is no eligible `1:1s` week at all between 2
+// July and 13 September 2026.
 
 const livingExample: Offer = {
   id: 1,
   name: "The Living Example",
   type: "individual",
   duration: "4 months",
-  duration_months: 4,
   current_price: 4000,
   max_active_clients: 12,
   is_active: true,
@@ -34,34 +34,51 @@ const livingExample: Offer = {
   updated_at: "2026-01-01T00:00:00.000Z",
 };
 
-// start date -> the person, exactly as production had them.
-//
-// All eighteen Start Weeks are owner-stated. Four of them had to be
-// corrected off the values the CRM inferred from first bookings, which is
-// why inference was the wrong rule: Jules 24 Jun -> 20 May, Gigi 19 Jul ->
-// 20 Jul, Mackenzie 29 Jul -> 3 Aug, Denise 30 Sep -> 5 Oct.
+// Leif's own `1:1s` weeks, from production. Note the summer gap, and that
+// the calendar stops on 24 January 2027.
+const CALENDAR_WEEKS: [string, string][] = [
+  ["2026-05-17", "2026-05-21"],
+  ["2026-06-14", "2026-06-18"],
+  ["2026-06-21", "2026-06-25"],
+  ["2026-06-28", "2026-07-02"],
+  ["2026-09-13", "2026-09-17"],
+  ["2026-09-20", "2026-09-24"],
+  ["2026-09-27", "2026-10-01"],
+  ["2026-10-04", "2026-10-08"],
+  ["2026-10-11", "2026-10-15"],
+  ["2026-10-18", "2026-10-22"],
+  ["2026-11-08", "2026-11-12"],
+  ["2026-11-15", "2026-11-19"],
+  ["2026-11-29", "2026-12-03"],
+  ["2026-12-06", "2026-12-10"],
+  ["2026-12-13", "2026-12-17"],
+  ["2027-01-03", "2027-01-07"],
+  ["2027-01-10", "2027-01-14"],
+  ["2027-01-24", "2027-01-28"],
+];
+
+// Start Date -> the person. All eighteen are owner-stated.
 const OCCUPIED: [string, string][] = [
   ["2026-05-20", "Jules Litman-Cleper"],
   ["2026-06-14", "Adriano Castro"],
   ["2026-06-14", "Jess Beauchamp"],
+  ["2026-07-20", "Emily Loeb"],
   ["2026-07-20", "Gigi George"],
   ["2026-07-20", "Mia Cosme"],
-  ["2026-07-20", "Emily Loeb"],
   ["2026-07-20", "Morgan Schenkeveld"],
   ["2026-08-03", "Mackenzie Stabler"],
-  ["2026-08-17", "Sarah Monast"],
   ["2026-08-17", "Erik Amundson"],
+  ["2026-08-17", "Sarah Monast"],
   ["2026-09-10", "Pete Bassett"],
   ["2026-09-16", "Gina McNamara"],
 ];
-// Owner-stated: Leif confirmed every one of these Start Weeks.
 const COMMITTED: [string, string][] = [
-  ["2026-10-05", "Denise Cormier"],
   ["2026-10-05", "Ava Frotton"],
+  ["2026-10-05", "Denise Cormier"],
   ["2026-11-08", "Daniel Alexander"],
+  ["2026-11-08", "Emma Wijns"],
   ["2026-11-08", "Heidi Elias"],
   ["2026-11-08", "Linda Turner"],
-  ["2026-11-08", "Emma Wijns"],
 ];
 
 const buildTestCrm = () => {
@@ -99,7 +116,6 @@ const buildTestCrm = () => {
     status: "active",
     start_date: start,
     end_date: null,
-    // Every one of the eighteen is owner-stated now.
     start_date_source: "owner" as const,
     created_at: "2026-01-01T00:00:00.000Z",
     updated_at: "2026-01-01T00:00:00.000Z",
@@ -111,6 +127,20 @@ const buildTestCrm = () => {
       offers: [livingExample],
       deals,
       enrollments,
+      expected_session_windows: CALENDAR_WEEKS.map(([start, end], i) => ({
+        id: i + 1,
+        offer_id: 1,
+        external_calendar_id: "year-tracking",
+        external_event_id: `week-${i + 1}`,
+        raw_title: "1:1s",
+        window_start: start,
+        window_end: end,
+        deleted_at: null,
+        synced_at: "2026-09-20T00:00:00.000Z",
+        created_at: "2026-01-01T00:00:00.000Z",
+        updated_at: "2026-09-20T00:00:00.000Z",
+      })),
+      client_session_cadence_issues: [],
       waitlist_entries: [
         {
           id: 1,
@@ -170,81 +200,78 @@ describe("Living Example program page — capacity Leif can plan around", () => 
     await expect
       .element(screen.getByText("6 starting later", { exact: false }))
       .toBeVisible();
-    // Daniel Alexander starts on 8 November. He is under Starting Later,
-    // not among the current clients — the exact row whose seven-week-early
+    // Daniel Alexander starts on 8 November — under Starting Later, not
+    // among the current clients. The exact row whose seven-week-early
     // appearance under Current Clients started all of this.
-    const startingLater = screen.container.ownerDocument.body.textContent ?? "";
-    const currentClientsBlock = startingLater.slice(
-      startingLater.indexOf("Current Clients"),
-      startingLater.indexOf("Starting Later"),
+    const text = screen.container.ownerDocument.body.textContent ?? "";
+    const currentBlock = text.slice(
+      text.indexOf("Current Clients"),
+      text.indexOf("Starting Later"),
     );
-    expect(currentClientsBlock).not.toContain("Daniel Alexander");
-    await expect
-      .element(screen.getByRole("link", { name: "Daniel Alexander" }))
-      .toBeVisible();
+    expect(currentBlock).not.toContain("Daniel Alexander");
   });
 
-  it("shows a projected finish for a client whose end date nobody recorded", async () => {
+  it("shows a final session week worked out from the calendar, not from four months", async () => {
     const screen = await render(buildTestCrm());
 
-    // Adriano started 14 June; four months is October. The month, and the
-    // word "expected" — never a precise-looking day nobody promised.
+    // Jules started 20 May. Four calendar months is 20 September — the old
+    // model had already ended him. His twelve eligible `1:1s` weeks run to
+    // the week of 15 November, because the summer contains none.
     await expect
       .element(
         screen
-          .getByText("expected to end October 2026", { exact: false })
+          .getByText("expected final session week", { exact: false })
           .first(),
       )
       .toBeVisible();
-  });
-
-  it("reports openings by month, net of the starts already sold", async () => {
-    const screen = await render(buildTestCrm());
-
-    await expect
-      .element(screen.getByRole("heading", { name: "Upcoming Openings" }))
-      .toBeVisible();
-
-    const text = screen.container.textContent ?? "";
-
-    // Two clients finish in October and four in November, and neither
-    // month is an opening: sixteen people are in the programme on 8
-    // November. Anybody started before then would have been the
-    // seventeenth in a practice that holds twelve — the exact number
-    // the first version of this page got wrong in Leif's favour.
-    expect(text).toContain("October 2026");
-    expect(text).toContain("November 2026 — no opening");
-    expect(text).toContain("4 over capacity at its peak");
-    expect(text).toContain("Peak 16 in the programme");
-
-    // January is the first month he could safely start somebody.
-    expect(text).toContain("December 2026 — no opening");
-    expect(text).toContain("January 2027 — 3 openings");
-  });
-
-  it("says who is past their projected four months and still current", async () => {
-    // Jules started on 20 May; four months ran out yesterday, and Leif
-    // still considers him a current client. He keeps his slot — and
-    // that single fact is why December shows no opening, so the page
-    // has to say it rather than leave Leif wondering.
-    const screen = await render(buildTestCrm());
-
-    await expect
-      .element(screen.getByRole("heading", { name: "Upcoming Openings" }))
-      .toBeVisible();
-    const text = screen.container.textContent ?? "";
-    expect(text).toContain(
-      "Past their projected four months and still current: Jules Litman-Cleper",
+    expect(screen.container.textContent).toContain(
+      "expected final session week Nov 15, 2026",
     );
-    expect(text).toContain("They keep their slot until you record an end.");
-
-    // Every Start Week is confirmed, so nothing is flagged provisional.
-    expect(text).not.toContain("start weeks to confirm");
-    expect(text).not.toContain("Start week not confirmed");
   });
+
+  it("refuses to offer an opening it cannot stand behind", async () => {
+    const screen = await render(buildTestCrm());
+
+    await expect
+      .element(screen.getByRole("heading", { name: "Upcoming Openings" }))
+      .toBeVisible();
+    const text = screen.container.textContent ?? "";
+
+    // Eighteen people are in the programme on 8 November — six over.
+    expect(text).toContain("Peak 18 in the programme");
+    // And no month can be answered at all: Year Tracking stops on 24
+    // January, so a new client starting in any of them has nowhere to put
+    // their twelfth session week. "Unknown", never "0 openings".
+    expect(text).toContain("session weeks exist for a new client");
+    expect(text).not.toContain("1 opening");
+  });
+
+  it("says whose end the calendar cannot reach, and how far it goes", async () => {
+    const screen = await render(buildTestCrm());
+
+    await expect
+      .element(screen.getByRole("heading", { name: "Upcoming Openings" }))
+      .toBeVisible();
+    const text = screen.container.textContent ?? "";
+    expect(text).toContain("Year Tracking reaches 2027-01-28");
+    for (const [, name] of COMMITTED) expect(text).toContain(name);
+  });
+
+  it("offers Sync Calendar where the dates come from", async () => {
+    const screen = await render(buildTestCrm());
+
+    await expect
+      .element(screen.getByRole("button", { name: /Sync Calendar/ }))
+      .toBeVisible();
+  });
+
   it("states availability beside the waitlist, and offers no way to act on it", async () => {
     const screen = await render(buildTestCrm());
 
+    // Somebody starting TODAY could be scheduled — thirteen eligible
+    // weeks still remain, so their twelve exist. There is simply no room.
+    // "Full" is the right answer here, and it is a different answer from
+    // the months below, where the calendar runs out first.
     await expect
       .element(screen.getByText("Full — 12 of 12 slots filled."))
       .toBeVisible();
@@ -257,16 +284,12 @@ describe("Living Example program page — capacity Leif can plan around", () => 
 
   it("puts + Add to Waitlist at the waitlist itself", async () => {
     // Leif adds people arriving from Instagram by hand. The control used
-    // to live only in the page header, four sections above the list it
-    // adds to.
+    // to live only in the page header, four sections above the list.
     const screen = await render(buildTestCrm());
 
     const button = screen.getByRole("button", { name: "Add to Waitlist" });
     await expect.element(button).toBeVisible();
 
-    const heading = screen.container.ownerDocument.body.textContent ?? "";
-    expect(heading).toContain("Waitlist");
-    // The button and the Waitlist heading share a row.
     const buttonEl = await button.element();
     expect(buttonEl.closest("div")?.parentElement?.textContent).toContain(
       "Waitlist",

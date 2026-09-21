@@ -29,6 +29,7 @@ const SURFACES = [
 
 // The modules allowed to work the answer out. Everything else consumes it.
 const AUTHORITIES = [
+  "src/components/atomic-crm/capacity/sessionWeeks.ts",
   "src/components/atomic-crm/capacity/occupancyLedger.ts",
   "src/components/atomic-crm/capacity/individualCapacity.ts",
 ];
@@ -41,6 +42,11 @@ describe("one capacity answer, consumed everywhere", () => {
     // The arithmetic that produced three different answers: a ceiling
     // minus a count, anywhere outside capacity/.
     expect(source).not.toMatch(/max_active_clients\s*-\s/);
+    // And the end-date arithmetic the calendar replaced. Nobody derives a
+    // finishing date from the Offer's "4 months" any more — the container
+    // is twelve eligible `1:1s` weeks, and only sessionWeeks.ts says so.
+    expect(source).not.toMatch(/duration_months/);
+    expect(source).not.toMatch(/addMonths\(/);
     expect(source).not.toMatch(/\bmax\s*-\s*(active|occupied|capacity\.)/);
     // Nor its own notion of which statuses occupy a slot.
     expect(source).not.toMatch(/ACTIVE_ENROLLMENT_STATUSES/);
@@ -56,12 +62,23 @@ describe("one capacity answer, consumed everywhere", () => {
     expect(source).not.toMatch(/buildSlotEvents\(/);
   });
 
-  test("the ledger and the summary are the only authorities", () => {
+  test("the calendar engine, the ledger and the summary are the only authorities", () => {
     for (const path of AUTHORITIES) {
-      expect(read(path)).toMatch(/max|occupied/);
+      expect(read(path)).toMatch(/max|occupied|weeks/);
     }
-    // And the ledger is where the definition of an opening actually lives.
-    expect(read(AUTHORITIES[0]!)).toMatch(/safeOpeningsStartingOn/);
+    // The twelve-week rule lives in exactly one place.
+    expect(read(AUTHORITIES[0]!)).toMatch(/SESSIONS_PER_CONTAINER = 12/);
+    // And the definition of an opening in exactly one other.
+    expect(read(AUTHORITIES[1]!)).toMatch(/safeOpeningsStartingOn/);
+  });
+
+  test.each(SURFACES)("%s does not count session weeks itself", (path) => {
+    const source = read(path);
+    // Twelve is the business model, and a second copy of it anywhere is
+    // how the CRM ends up with two different finishing weeks for one
+    // person.
+    expect(source).not.toMatch(/\b12\b\s*(-|\*|weeks)/);
+    expect(source).not.toMatch(/SESSIONS_PER_CONTAINER\s*=/);
   });
 
   test("the dashboard's next opening is the ledger's first month with an opening", () => {
@@ -71,13 +88,17 @@ describe("one capacity answer, consumed everywhere", () => {
     const source = read(
       "src/components/atomic-crm/dashboard/livingExampleCapacity.ts",
     );
-    expect(source).toMatch(/months\.find\(\(month\) => month\.openings > 0\)/);
+    expect(source).toMatch(
+      /months\.find\(\s*\(month\) =>\s*month\.openings\.status === "known" && month\.openings\.openings > 0,?\s*\)/,
+    );
   });
 
   test("Coming Up announces only months that are actually open", () => {
     const source = read(
       "src/components/atomic-crm/dashboard/comingUpProjection.ts",
     );
-    expect(source).toMatch(/\.filter\(\(month\) => month\.openings > 0\)/);
+    expect(source).toMatch(
+      /month\.openings\.status === "known" && month\.openings\.openings > 0/,
+    );
   });
 });

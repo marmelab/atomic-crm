@@ -1,7 +1,7 @@
 import type { Identifier } from "ra-core";
 
 import type { Enrollment } from "../types";
-import type { ProjectedEnd } from "./projectedEnd";
+import type { ExpectedEnd } from "./sessionWeeks";
 
 // One Enrollment's claim on one of an individual Offer's slots, carrying
 // enough identity to name the human being on a page.
@@ -10,15 +10,22 @@ export type SlotHolder = {
   contactId: Identifier | null;
   name: string;
   status: Enrollment["status"];
-  // The Start Week, as recorded. Null when nobody has set one.
+  // The Start Date — the week of Session #1, set by Leif. Null when he
+  // has not set one, which is a question for him and never something to
+  // infer from a booking.
   startDate: string | null;
-  // Whether Leif actually said so. A session-derived or unexplained date
-  // is still shown and still counted — refusing to plan around the only
-  // dates the CRM has would be worse — but it is marked everywhere it
-  // appears, and the forecast says how much of itself rests on them.
+  // Whether Leif actually said so. A date inferred from a client's first
+  // booked session is not a Start Date; it is a guess that happens to be
+  // written down.
   startWeekConfirmed: boolean;
   startDateSource: Enrollment["start_date_source"];
-  end: ProjectedEnd;
+  // Derived from the Year Tracking calendar: the 12th eligible `1:1s`
+  // week, plus one more week per cross-week reschedule. Null when there
+  // is no Start Date to count from; `incomplete` when Leif has not filled
+  // the calendar far enough ahead to reach the 12th week.
+  end: ExpectedEnd | null;
+  // Cross-week reschedules recorded against this Enrollment.
+  extensions: number;
 };
 
 export type SlotEnrollment = Pick<
@@ -28,6 +35,9 @@ export type SlotEnrollment = Pick<
   start_date_source?: Enrollment["start_date_source"];
   contactId?: Identifier | null;
   name?: string;
+  // Cadence-issue classifications recorded against this Enrollment. Only
+  // 'rescheduled' extends a container; see sessionWeeks.ts.
+  cadenceClassifications?: (string | null)[];
 };
 
 export const isStartWeekConfirmed = (enrollment: SlotEnrollment): boolean =>

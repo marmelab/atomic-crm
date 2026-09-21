@@ -95,17 +95,6 @@ create table public.offers (
     -- concurrent active clients). Group offers manage capacity per-Cohort
     -- instead, so this stays null for them.
     max_active_clients smallint,
-    -- How long the programme runs, as a NUMBER, for deriving when a client
-    -- is expected to finish. `duration` above is free text for display
-    -- ("4 months", "8 weeks", "Varies (historical)") and capacity maths
-    -- must not parse prose: an Offer edited to read "Four months" would
-    -- silently stop projecting end dates.
-    --
-    -- Null means the length is not expressed in whole months, and is the
-    -- honest value for most Offers: a group Offer runs to its Cohort
-    -- dates, and the legacy 1:1 Offer genuinely varied. Null produces an
-    -- "unknown" projected end rather than an invented one.
-    duration_months smallint,
     is_active boolean not null default true,
     -- Acuity/Sales Call Lifecycle slice: durable mapping to the Acuity
     -- appointment type whose bookings are this Offer's sales calls. For an
@@ -137,8 +126,7 @@ create table public.offers (
     client_session_acuity_appointment_type_id text,
     created_at timestamp with time zone not null default now(),
     updated_at timestamp with time zone not null default now(),
-    constraint offers_type_check check (type in ('individual', 'group')),
-    constraint offers_duration_months_check check (duration_months is null or duration_months > 0)
+    constraint offers_type_check check (type in ('individual', 'group'))
 );
 
 -- Queryable, structured payment plans for an Offer (not a prose blob), so a

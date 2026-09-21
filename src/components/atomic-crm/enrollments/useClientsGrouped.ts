@@ -1,4 +1,11 @@
 import { useGetList, useGetMany } from "ra-core";
+
+import { useSessionWeeks } from "../capacity/useSessionWeeks";
+import {
+  computeExpectedEnd,
+  crossWeekReschedules,
+  type ExpectedEnd,
+} from "../capacity/sessionWeeks";
 import type { Identifier } from "ra-core";
 
 import type {
@@ -33,6 +40,11 @@ export type ClientRow = {
   // When the CRM was told this engagement ended. Null when no terminal
   // event was ever recorded — most of the imported rows.
   terminalEventAt: string | null;
+  // The twelfth eligible `1:1s` week from this client's Start Date,
+  // plus one per cross-week reschedule. Read from the same Year
+  // Tracking calendar the capacity board uses; null when there is no
+  // Start Date to count from.
+  expectedEnd: ExpectedEnd | null;
 };
 
 export type CohortGroup = {
@@ -76,6 +88,19 @@ export const useClientsGrouped = (): {
       sort: { field: "entered_at", order: "DESC" },
     });
 
+  // The Living Example's own Year Tracking weeks, and the cross-week
+  // reschedules recorded against each Enrollment. Both feed the same
+  // expected-end engine the capacity board uses — the Clients list and
+  // the dashboard must never work out different finishing weeks.
+
+  const { data: cadenceIssues, isPending: issuesPending } = useGetList(
+    "client_session_cadence_issues",
+    {
+      pagination: { page: 1, perPage: 1000 },
+      sort: { field: "id", order: "ASC" },
+    },
+  );
+
   const dealIds = [
     ...new Set((enrollments ?? []).map((e) => e.opportunity_id)),
   ];
@@ -92,6 +117,10 @@ export const useClientsGrouped = (): {
     { enabled: offerIds.length > 0 },
   );
 
+  const leOfferId = (offers ?? []).find(
+    (offer) => offer.type === "individual" && offer.max_active_clients != null,
+  )?.id;
+  const { isPending: weeksPending, weeks } = useSessionWeeks(leOfferId);
   const cohortIds = [
     ...new Set(
       (deals ?? [])
@@ -108,6 +137,8 @@ export const useClientsGrouped = (): {
   const isPending =
     enrollmentsPending ||
     statusEventsPending ||
+    issuesPending ||
+    weeksPending ||
     (dealIds.length > 0 &&
       (dealsPending ||
         (offerIds.length > 0 && offersPending) ||
@@ -138,6 +169,21 @@ export const useClientsGrouped = (): {
     }
   }
 
+  // Cross-week reschedules per Enrollment — the only thing that lengthens
+  // a container. See capacity/sessionWeeks.ts for why a same-week change
+  // never appears here.
+  const classificationsByEnrollment = new Map<string, (string | null)[]>();
+  for (const issue of (cadenceIssues ?? []) as {
+    enrollment_id: number | string;
+    classification: string | null;
+  }[]) {
+    const key = String(issue.enrollment_id);
+    classificationsByEnrollment.set(key, [
+      ...(classificationsByEnrollment.get(key) ?? []),
+      issue.classification ?? null,
+    ]);
+  }
+
   const livingExample: Record<EnrollmentPhase, ClientRow[]> = {
     upcoming: [],
     current: [],
@@ -154,6 +200,16 @@ export const useClientsGrouped = (): {
       enrollment,
       contactId: deal?.contact_id ?? undefined,
       offer,
+      expectedEnd:
+        offer?.id === leOfferId
+          ? computeExpectedEnd(
+              weeks,
+              enrollment.start_date ?? null,
+              crossWeekReschedules(
+                classificationsByEnrollment.get(String(enrollment.id)) ?? [],
+              ),
+            )
+          : null,
       cohort:
         deal?.cohort_id != null
           ? cohortById.get(String(deal.cohort_id))

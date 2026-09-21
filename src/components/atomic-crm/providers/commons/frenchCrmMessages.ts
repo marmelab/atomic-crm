@@ -881,8 +881,17 @@ export const frenchCrmMessages = {
       opening_none: "aucune place",
       opening_peak: "Pic de %{peak} dans le programme",
       opening_provisional: "semaines de début non confirmées",
-      openings_overdue_projection:
-        "Au-delà des quatre mois prévus et toujours en cours : %{names}. Leur place reste occupée jusqu'à ce que vous enregistriez une fin.",
+      sync_calendar: "Synchroniser le calendrier",
+      sync_calendar_running: "Synchronisation…",
+      sync_calendar_last: "Dernière synchronisation %{when}",
+      sync_calendar_done:
+        "Year Tracking synchronisé : %{upserted} semaines lues, %{assigned} semaines de séance attribuées.",
+      sync_calendar_still_short:
+        "%{count} clients n'ont toujours pas de date de fin — Year Tracking n'atteint pas encore leur douzième semaine de séance.",
+      openings_need_calendar:
+        "Year Tracking va jusqu'au %{horizon}. Tant qu'il ne va pas plus loin, aucune fin ne peut être calculée pour : %{names}.",
+      waitlist_needs_calendar:
+        "%{active} sur %{max} occupées — disponibilité inconnue tant que Year Tracking ne couvre pas %{required} semaines de séance (%{scheduled} pour l'instant).",
       openings_unconfirmed_starts:
         "Provisoire : %{count} semaines de début ci-dessous ne sont pas confirmées.",
       start_week: "Semaine de début",
@@ -895,7 +904,14 @@ export const frenchCrmMessages = {
       starting_later: "À venir",
       runs_until: "se termine le %{end}",
       runs_expected: "fin prévue en %{month}",
-      start_week_of: "Semaine du %{start}",
+      starts_on: "Début le %{start}",
+      final_session_week: "dernière séance prévue la semaine du %{week}",
+      end_unavailable:
+        "fin indisponible — %{scheduled} semaines de séance sur %{required} programmées",
+      reschedule_extensions:
+        "+%{count} semaine pour un report |||| +%{count} semaines pour des reports",
+      opening_needs_calendar:
+        "inconnu — seulement %{scheduled} semaines de séance sur %{required} existent pour un nouveau client",
       start_weeks_to_confirm: "%{count} semaines de début à confirmer",
       waitlist_openings_now:
         "%{count} place disponible maintenant (%{active} sur %{max} occupées).",

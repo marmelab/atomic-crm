@@ -1,6 +1,12 @@
 import { useGetList } from "ra-core";
 
-import type { Deal, Enrollment, Offer } from "../types";
+import { useSessionWeeks } from "../capacity/useSessionWeeks";
+import type {
+  ClientSessionCadenceIssue,
+  Deal,
+  Enrollment,
+  Offer,
+} from "../types";
 import { computeLivingExampleCapacity } from "./livingExampleCapacity";
 
 // Finds "the" individual Offer with a capacity ceiling — Living Example
@@ -27,6 +33,22 @@ export const useLivingExampleCapacityData = () => {
     { enabled: offer != null },
   );
 
+  const {
+    isPending: weeksPending,
+    weeks,
+    lastSyncedAt,
+  } = useSessionWeeks(offer?.id);
+
+  const { data: cadenceIssues, isPending: issuesPending } =
+    useGetList<ClientSessionCadenceIssue>(
+      "client_session_cadence_issues",
+      {
+        pagination: { page: 1, perPage: 1000 },
+        sort: { field: "id", order: "ASC" },
+      },
+      { enabled: offer != null },
+    );
+
   const dealIds = deals?.map((deal) => deal.id) ?? [];
   const { data: enrollments, isPending: enrollmentsPending } =
     useGetList<Enrollment>(
@@ -40,19 +62,40 @@ export const useLivingExampleCapacityData = () => {
     );
 
   const isPending =
-    offersPending || (offer != null && (dealsPending || enrollmentsPending));
+    offersPending ||
+    (offer != null &&
+      (dealsPending || enrollmentsPending || weeksPending || issuesPending));
 
   if (isPending || !offer) {
-    return { isPending, offer: offer ?? null, capacity: null };
+    return {
+      isPending,
+      offer: offer ?? null,
+      capacity: null,
+      lastSyncedAt: null,
+    };
+  }
+
+  const classificationsByEnrollment = new Map<string, (string | null)[]>();
+  for (const issue of cadenceIssues ?? []) {
+    const key = String(issue.enrollment_id);
+    classificationsByEnrollment.set(key, [
+      ...(classificationsByEnrollment.get(key) ?? []),
+      issue.classification ?? null,
+    ]);
   }
 
   return {
     isPending: false,
     offer,
+    lastSyncedAt,
     capacity: computeLivingExampleCapacity(
-      enrollments ?? [],
+      (enrollments ?? []).map((enrollment) => ({
+        ...enrollment,
+        cadenceClassifications:
+          classificationsByEnrollment.get(String(enrollment.id)) ?? [],
+      })),
       offer.max_active_clients ?? null,
-      offer.duration_months ?? null,
+      weeks,
     ),
   };
 };

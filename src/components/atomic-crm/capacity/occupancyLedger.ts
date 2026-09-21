@@ -1,5 +1,5 @@
 import type { SlotHolder } from "./slotHolder";
-import { addMonths } from "./projectedEnd";
+import { computeExpectedEnd, type SessionWeek } from "./sessionWeeks";
 
 // How many people are in the programme, at every moment the CRM knows
 // about — and from that, the only question Leif actually asks a capacity
@@ -7,26 +7,28 @@ import { addMonths } from "./projectedEnd";
 //
 //     "When could I safely promise somebody a start?"
 //
-// The first version of this file answered a different question and did
-// not notice. It counted the containers projected to finish in a month,
-// subtracted the ones already booked to start in that month, and reported
-// the running difference as "openings". Two things were wrong with that,
-// and they pointed in opposite directions.
+// This file has been wrong twice, in opposite directions, and both are
+// worth remembering because they are the two ways a capacity board lies.
 //
-// It never gave a committed client their slot BACK. A future start was a
-// permanent +1: Denise Cormier starts on 30 September and finishes around
-// 30 January, but only currently-occupied containers were scanned for end
-// dates, so her own finish was invisible. January read 6 when the ledger
-// says 7.
+// It never gave a committed client their slot BACK: only occupied
+// containers were scanned for end dates, so a future start was a permanent
+// +1 and every month after it came out one short. And it called a month an
+// opening whenever departures outnumbered arrivals inside it — October
+// netted +1 while four people arrived in November, so filling that
+// "opening" would have meant telling somebody their start was cancelled.
 //
-// And it called October an opening. One slot does come free on 24 October
-// — and on 8 November four people arrive, taking the practice to fifteen.
-// A slot that is swallowed before anybody could use it is not an opening.
-// Leif filling that "opening" would have made it sixteen.
+// An opening now means what it has to mean to be safe, and there are two
+// halves to it, because promising somebody a start is promising two
+// different things:
 //
-// So occupancy is simulated over time, every known arrival and departure
-// in one ledger, and an opening means what it has to mean to be safe:
-// somebody could start then AND still be there at the end.
+//   1. the practice stays within its ceiling for as long as they are in
+//      it, and
+//   2. their own twelve session weeks actually exist on the calendar.
+//
+// The second half is not a technicality. Year Tracking currently stops on
+// 24 January 2027; a client started in December has nowhere to put
+// sessions 4 through 12, and no amount of headroom makes that a real
+// opening.
 
 export type SlotEvent = {
   date: string;
@@ -49,8 +51,8 @@ export type LedgerEntry = SlotEvent & {
 // A container ending on the 14th and another starting on the 14th is a
 // handover, not a moment when the practice held one extra person. Ordering
 // arrivals first would invent a one-day spike and refuse a start that is
-// genuinely fine. Nothing in Leif's data collides today; the rule is
-// written down so it cannot be decided differently by accident later.
+// genuinely fine. The rule is written down so it cannot be decided
+// differently by accident later.
 const KIND_ORDER = { end: 0, start: 1 } as const;
 
 const byDateThenKind = (a: SlotEvent, b: SlotEvent): number =>
@@ -61,40 +63,34 @@ const byDateThenKind = (a: SlotEvent, b: SlotEvent): number =>
 // Every future arrival and departure the CRM can derive, in order.
 //
 // A currently-occupied container contributes only its departure — it is
-// already inside the opening count. A committed one contributes both, and
-// that symmetry is the bug fix: capacity it takes on its start date, it
-// gives back on its end date.
+// already inside the occupancy count. A committed one contributes both,
+// and that symmetry is the bug fix: capacity it takes on its Start Date,
+// it gives back when its final session week is over.
 //
-// A container with no computable end contributes no departure at all. It
+// A container whose end cannot be computed contributes NO departure. It
 // holds its slot for the whole horizon, which is the honest consequence of
-// not knowing when it finishes, and those people are named separately
-// rather than quietly excluded.
-//
-// So does one whose PROJECTION has already run out. Jules Litman-Cleper
-// started on 20 May; four months lands on 20 September, and on 21
-// September Leif still considers him a current client. A projected end is
-// arithmetic, not an event — it is not evidence that anything ended, and
-// releasing his slot on it would hand Leif an opening that does not exist.
-// A container is retired by a recorded end date or a terminal status, both
-// of which are decisions somebody made. Until then it holds its slot and
-// is surfaced for Leif.
+// not knowing when it finishes, and those people are named rather than
+// quietly excluded. That covers both a missing Start Date and a Year
+// Tracking calendar that stops before the 12th week.
 export const buildSlotEvents = (
   occupied: SlotHolder[],
   committed: SlotHolder[],
   today: string,
 ): SlotEvent[] => {
   const events: SlotEvent[] = [];
+  const freesOn = (holder: SlotHolder) =>
+    holder.end?.status === "known" ? holder.end.freesOn : null;
 
   for (const holder of occupied) {
-    if (holder.end.date && holder.end.date >= today) {
-      events.push({ date: holder.end.date, holder, kind: "end" });
-    }
+    const date = freesOn(holder);
+    if (date && date >= today) events.push({ date, holder, kind: "end" });
   }
   for (const holder of committed) {
     if (!holder.startDate) continue;
     events.push({ date: holder.startDate, holder, kind: "start" });
-    if (holder.end.date && holder.end.date > holder.startDate) {
-      events.push({ date: holder.end.date, holder, kind: "end" });
+    const date = freesOn(holder);
+    if (date && date > holder.startDate) {
+      events.push({ date, holder, kind: "end" });
     }
   }
 
@@ -131,9 +127,6 @@ export const occupancyOn = (
   );
 
 // The most people in the programme at any moment in [from, to].
-//
-// Only event dates can change the count, so the candidates are the start
-// of the window plus every event inside it.
 export const peakOccupancyBetween = (
   events: SlotEvent[],
   occupiedToday: number,
@@ -151,30 +144,52 @@ export const peakOccupancyBetween = (
   return peak;
 };
 
-// How many NEW clients could start on `date` and stay for the whole
-// programme without the practice ever going over its ceiling.
-//
-// This is the number the word "opening" has to mean. Anything smaller —
-// "a slot is free that day", "the month nets out positive" — invites Leif
-// to promise a start he will have to take back, which is the one failure a
-// capacity board exists to prevent.
-//
-// An unknown programme length means the window cannot be drawn, so the
-// honest answer is the occupancy on the day itself rather than a
-// projection over an interval nobody can size.
+export type OpeningsAnswer =
+  | { status: "known"; openings: number; peakOccupancy: number }
+  // The calendar does not reach far enough to seat a new client's own
+  // twelve weeks, so whether they could start is not a question the CRM
+  // can answer yet. Never rendered as a zero, and never as an opening.
+  | {
+      status: "unknown";
+      reason: "calendar_too_short";
+      weeksScheduled: number;
+      weeksRequired: number;
+    };
+
+// How many NEW clients could start on `date` — meaning both halves: the
+// ceiling holds for the whole of their container, and their twelve session
+// weeks exist.
 export const safeOpeningsStartingOn = (
   events: SlotEvent[],
   occupiedToday: number,
   max: number,
   date: string,
-  durationMonths: number | null,
-): number => {
-  const windowEnd =
-    durationMonths != null && durationMonths > 0
-      ? addMonths(date, durationMonths)
-      : date;
-  const peak = peakOccupancyBetween(events, occupiedToday, date, windowEnd);
-  // A new client is one more person for the whole window, so the ceiling
-  // has to hold with them in it.
-  return Math.max(max - peak, 0);
+  weeks: SessionWeek[],
+): OpeningsAnswer => {
+  // Could this person even be scheduled? Asked first, because a practice
+  // with ten free slots and no calendar still cannot take anybody.
+  const newContainer = computeExpectedEnd(weeks, date, 0);
+  if (!newContainer || newContainer.status === "incomplete") {
+    return {
+      status: "unknown",
+      reason: "calendar_too_short",
+      weeksScheduled: newContainer?.weeksScheduled ?? 0,
+      weeksRequired: newContainer?.weeksRequired ?? 12,
+    };
+  }
+
+  // A new client is one more person for the whole of their own container,
+  // so the ceiling has to hold with them in it, right through to the end
+  // of their twelfth session week.
+  const peak = peakOccupancyBetween(
+    events,
+    occupiedToday,
+    date,
+    newContainer.freesOn,
+  );
+  return {
+    status: "known",
+    openings: Math.max(max - peak, 0),
+    peakOccupancy: peak,
+  };
 };

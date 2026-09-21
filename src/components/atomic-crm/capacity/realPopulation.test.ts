@@ -5,30 +5,69 @@ import {
   computeIndividualCapacity,
   type SlotEnrollment,
 } from "./individualCapacity";
+import { computeExpectedEnd, type SessionWeek } from "./sessionWeeks";
 
 // The Living Example, as it really stands on 21 September 2026.
 //
-// A golden scenario, not an illustration. Every name, every date and every
-// provenance below is what production holds after Leif confirmed the six
-// future Start Weeks; the assertions are the exact occupancy at every
-// boundary through the end of January. If the arithmetic ever drifts, this
-// is the file that says so in terms Leif can check by eye.
+// A golden scenario, not an illustration. The calendar below is Leif's own
+// Year Tracking `1:1s` weeks as production holds them, and the Start Dates
+// are the eighteen he has stated. The assertions are the exact occupancy at
+// every boundary. If the engine ever drifts, this is the file that says so
+// in terms Leif can check by eye.
 //
 // It exists because the first version of this maths produced four numbers
 // that could not all be true at once, and nothing in the suite noticed.
 
 const NOW = new Date("2026-09-21T12:00:00Z");
 const MAX = 12;
-const FOUR_MONTHS = 4;
 
-// The twelve people Leif is working with, with the Start Weeks he has
-// stated. Three of these differ from what the CRM had inferred from their
-// first booked session, and the differences move real slots:
-//
-//   Jules Litman-Cleper  24 Jun -> 20 May   (his projection is now
-//                                            already overdue)
-//   Gigi George          19 Jul -> 20 Jul
-//   Mackenzie Stabler    29 Jul ->  3 Aug
+// Every live `1:1s` window on the Year Tracking calendar, from production.
+// Note the gap: there is no eligible week at all between 2 July and 13
+// September 2026, and the calendar stops on 24 January 2027.
+const CALENDAR: SessionWeek[] = [
+  ["2025-09-07", "2025-09-11"],
+  ["2025-09-21", "2025-09-25"],
+  ["2025-10-05", "2025-10-09"],
+  ["2025-10-19", "2025-10-23"],
+  ["2025-11-02", "2025-11-06"],
+  ["2025-11-09", "2025-11-13"],
+  ["2025-11-30", "2025-12-04"],
+  ["2025-12-14", "2025-12-18"],
+  ["2026-01-11", "2026-01-15"],
+  ["2026-01-18", "2026-01-22"],
+  ["2026-02-08", "2026-02-12"],
+  ["2026-02-15", "2026-02-19"],
+  ["2026-03-08", "2026-03-12"],
+  ["2026-03-22", "2026-03-26"],
+  ["2026-03-29", "2026-04-02"],
+  ["2026-04-12", "2026-04-16"],
+  ["2026-04-19", "2026-04-23"],
+  ["2026-04-26", "2026-04-30"],
+  ["2026-04-29", "2026-04-30"],
+  ["2026-05-03", "2026-05-07"],
+  ["2026-05-10", "2026-05-14"],
+  ["2026-05-17", "2026-05-21"],
+  ["2026-06-14", "2026-06-18"],
+  ["2026-06-21", "2026-06-25"],
+  ["2026-06-28", "2026-07-02"],
+  ["2026-09-13", "2026-09-17"],
+  ["2026-09-20", "2026-09-24"],
+  ["2026-09-27", "2026-10-01"],
+  ["2026-10-04", "2026-10-08"],
+  ["2026-10-11", "2026-10-15"],
+  ["2026-10-18", "2026-10-22"],
+  ["2026-11-08", "2026-11-12"],
+  ["2026-11-15", "2026-11-19"],
+  ["2026-11-29", "2026-12-03"],
+  ["2026-12-06", "2026-12-10"],
+  ["2026-12-13", "2026-12-17"],
+  ["2027-01-03", "2027-01-07"],
+  ["2027-01-10", "2027-01-14"],
+  ["2027-01-24", "2027-01-28"],
+].map(([start, end]) => ({ start: start!, end: end!, title: "1:1s" }));
+
+// The twelve Leif is working with, and the six who have agreed to start.
+// Every Start Date is owner-stated.
 const OCCUPIED: [string, string][] = [
   ["2026-05-20", "Jules Litman-Cleper"],
   ["2026-06-14", "Adriano Castro"],
@@ -43,10 +82,6 @@ const OCCUPIED: [string, string][] = [
   ["2026-09-10", "Pete Bassett"],
   ["2026-09-16", "Gina McNamara"],
 ];
-
-// The six Leif has stated. Denise's is the one that moved: her Enrollment
-// said 30 September, which was her first booked session, and her Start
-// Week is the first week of October.
 const COMMITTED: [string, string][] = [
   ["2026-10-05", "Ava Frotton"],
   ["2026-10-05", "Denise Cormier"],
@@ -56,8 +91,15 @@ const COMMITTED: [string, string][] = [
   ["2026-11-08", "Linda Turner"],
 ];
 
-const population: SlotEnrollment[] = [
-  ...OCCUPIED.map(([start, name], i) => ({
+// The two cadence issues on record are both `known_skip` — Jules and
+// Pete. Neither extends a container.
+const CLASSIFICATIONS: Record<string, string[]> = {
+  "Jules Litman-Cleper": ["known_skip"],
+  "Pete Bassett": ["known_skip"],
+};
+
+const population: SlotEnrollment[] = [...OCCUPIED, ...COMMITTED].map(
+  ([start, name], i) => ({
     id: i + 1,
     status: "active" as const,
     start_date: start,
@@ -65,20 +107,12 @@ const population: SlotEnrollment[] = [
     start_date_source: "owner" as const,
     name,
     contactId: i + 1,
-  })),
-  ...COMMITTED.map(([start, name], i) => ({
-    id: 100 + i,
-    status: "active" as const,
-    start_date: start,
-    end_date: null,
-    start_date_source: "owner" as const,
-    name,
-    contactId: 100 + i,
-  })),
-];
+    cadenceClassifications: CLASSIFICATIONS[name] ?? [],
+  }),
+);
 
 const capacity = () =>
-  computeIndividualCapacity(population, MAX, FOUR_MONTHS, NOW);
+  computeIndividualCapacity(population, MAX, CALENDAR, NOW);
 
 describe("the real Living Example, 21 September 2026", () => {
   test("twelve active, six committed, every Start Week owner-stated", () => {
@@ -86,162 +120,184 @@ describe("the real Living Example, 21 September 2026", () => {
     expect(c.active).toBe(12);
     expect(c.committed).toHaveLength(6);
     expect(c.overCapacityBy).toBe(0);
-    // Leif has now stated all eighteen, so nothing in the forecast rests
-    // on a date inferred from a booking.
     expect(c.unconfirmedStartWeek).toHaveLength(0);
-    expect(c.unknownEnd).toHaveLength(0);
   });
 
-  test("a projection that has run out does not end anybody", () => {
-    // Jules started on 20 May. Four months lands on 20 September, which
-    // was yesterday, and Leif still considers him a current client.
-    // Arithmetic is not an event: he keeps his slot until a real end
-    // date or a terminal status says otherwise, and he is named so the
-    // question reaches Leif instead of silently freeing a slot.
+  test("Jules is a current client, and the calendar says so", () => {
+    // The acceptance case. Four calendar months from 20 May lands on 20
+    // September — the old model had already ended him. His twelve
+    // eligible `1:1s` weeks run to the week of 15 November, because there
+    // is no eligible week at all between 2 July and 13 September.
+    //
+    // Nothing about him is special-cased: this is the general rule
+    // applied to his own Start Date.
+    const end = computeExpectedEnd(CALENDAR, "2026-05-20", 0)!;
+    expect(end.status).toBe("known");
+    if (end.status !== "known") throw new Error("unreachable");
+    // His Start Date falls inside the week of 17 May, which is Session
+    // Week #1 — not the next week after it.
+    expect(end.finalWeek.start).toBe("2026-11-15");
+    expect(end.freesOn).toBe("2026-11-19");
+    // His recorded cadence issue is a known skip, which forfeits the
+    // session and extends nothing.
+    expect(end.extensions).toBe(0);
+  });
+
+  test("every current client's final session week", () => {
+    const byName = Object.fromEntries(
+      capacity().occupied.map((holder) => [
+        holder.name,
+        holder.end?.status === "known"
+          ? holder.end.finalWeek.start
+          : holder.end?.status,
+      ]),
+    );
+    expect(byName).toEqual({
+      "Jules Litman-Cleper": "2026-11-15",
+      "Adriano Castro": "2026-11-29",
+      "Jess Beauchamp": "2026-11-29",
+      "Emily Loeb": "2027-01-03",
+      "Gigi George": "2027-01-03",
+      "Mia Cosme": "2027-01-03",
+      "Morgan Schenkeveld": "2027-01-03",
+      "Mackenzie Stabler": "2027-01-03",
+      "Erik Amundson": "2027-01-03",
+      "Sarah Monast": "2027-01-03",
+      "Pete Bassett": "2027-01-03",
+      "Gina McNamara": "2027-01-03",
+    });
+  });
+
+  test("not one committed client's end can be worked out yet", () => {
+    // Year Tracking stops on 24 January 2027. None of the six reaches a
+    // twelfth eligible week inside it, so none of them has an end — and
+    // an unknown end holds its slot for the whole horizon.
     const c = capacity();
-    expect(c.endProjectionOverdue.map((h) => h.name)).toEqual([
-      "Jules Litman-Cleper",
-    ]);
-    expect(c.active).toBe(12);
-
-    const { ledger } = computeFutureOpenings(c, NOW);
-    expect(
-      ledger.some((entry) => entry.holder.name === "Jules Litman-Cleper"),
-    ).toBe(false);
+    expect(c.needsCalendar.map((h) => h.name).sort()).toEqual(
+      COMMITTED.map(([, name]) => name).sort(),
+    );
+    const ava = c.committed.find((h) => h.name === "Ava Frotton")!;
+    expect(ava.end).toMatchObject({
+      status: "incomplete",
+      weeksScheduled: 11,
+      weeksRequired: 12,
+    });
+    const daniel = c.committed.find((h) => h.name === "Daniel Alexander")!;
+    expect(daniel.end).toMatchObject({
+      status: "incomplete",
+      weeksScheduled: 8,
+      weeksRequired: 12,
+    });
+    expect(c.calendarHorizon).toBe("2027-01-28");
   });
 
-  test("the event-by-event ledger, today through 31 January", () => {
+  test("the event-by-event ledger, today onward", () => {
     const { ledger } = computeFutureOpenings(capacity(), NOW);
 
-    const throughJanuary = ledger
-      .filter((entry) => entry.date <= "2027-01-31")
-      .map((entry) => [
+    expect(
+      ledger.map((entry) => [
         entry.date,
         entry.holder.name,
         entry.kind,
         entry.occupiedAfter,
-        entry.remainingAfter,
         entry.overCapacityAfter,
-      ]);
-
-    expect(throughJanuary).toEqual([
-      // Two arrive in the first week of October. Nobody has left.
-      ["2026-10-05", "Ava Frotton", "start", 13, 0, 1],
-      ["2026-10-05", "Denise Cormier", "start", 14, 0, 2],
-      // The June starters finish.
-      ["2026-10-14", "Adriano Castro", "end", 13, 0, 1],
-      ["2026-10-14", "Jess Beauchamp", "end", 12, 0, 0],
-      // Four on one day — the peak of the whole picture, and four over.
-      ["2026-11-08", "Daniel Alexander", "start", 13, 0, 1],
-      ["2026-11-08", "Emma Wijns", "start", 14, 0, 2],
-      ["2026-11-08", "Heidi Elias", "start", 15, 0, 3],
-      ["2026-11-08", "Linda Turner", "start", 16, 0, 4],
-      // The four who started together on 20 July finish together.
-      ["2026-11-20", "Emily Loeb", "end", 15, 0, 3],
-      ["2026-11-20", "Gigi George", "end", 14, 0, 2],
-      ["2026-11-20", "Mia Cosme", "end", 13, 0, 1],
-      ["2026-11-20", "Morgan Schenkeveld", "end", 12, 0, 0],
-      ["2026-12-03", "Mackenzie Stabler", "end", 11, 1, 0],
-      ["2026-12-17", "Erik Amundson", "end", 10, 2, 0],
-      ["2026-12-17", "Sarah Monast", "end", 9, 3, 0],
-      ["2027-01-10", "Pete Bassett", "end", 8, 4, 0],
-      ["2027-01-16", "Gina McNamara", "end", 7, 5, 0],
+      ]),
+    ).toEqual([
+      // The six arrive; nobody has left yet.
+      ["2026-10-05", "Ava Frotton", "start", 13, 1],
+      ["2026-10-05", "Denise Cormier", "start", 14, 2],
+      ["2026-11-08", "Daniel Alexander", "start", 15, 3],
+      ["2026-11-08", "Emma Wijns", "start", 16, 4],
+      ["2026-11-08", "Heidi Elias", "start", 17, 5],
+      ["2026-11-08", "Linda Turner", "start", 18, 6],
+      // Then the current containers finish.
+      ["2026-11-19", "Jules Litman-Cleper", "end", 17, 5],
+      ["2026-12-03", "Adriano Castro", "end", 16, 4],
+      ["2026-12-03", "Jess Beauchamp", "end", 15, 3],
+      ["2027-01-07", "Emily Loeb", "end", 14, 2],
+      ["2027-01-07", "Erik Amundson", "end", 13, 1],
+      ["2027-01-07", "Gigi George", "end", 12, 0],
+      ["2027-01-07", "Gina McNamara", "end", 11, 0],
+      ["2027-01-07", "Mackenzie Stabler", "end", 10, 0],
+      ["2027-01-07", "Mia Cosme", "end", 9, 0],
+      ["2027-01-07", "Morgan Schenkeveld", "end", 8, 0],
+      ["2027-01-07", "Pete Bassett", "end", 7, 0],
+      ["2027-01-07", "Sarah Monast", "end", 6, 0],
     ]);
   });
 
-  test("a committed client gives their slot back when they finish", () => {
-    // The bug this test exists for: the first ledger only scanned
-    // currently-occupied containers for end dates, so a future start was
-    // a permanent +1 and every month after it came out one short.
+  test("eighteen people in the programme on 8 November", () => {
+    // Six over the ceiling, on owner-stated Start Dates. Not a modelling
+    // artefact and not something the CRM may round away.
     const { ledger } = computeFutureOpenings(capacity(), NOW);
-    const denise = ledger.filter(
-      (entry) => entry.holder.name === "Denise Cormier",
-    );
-    expect(denise.map((entry) => [entry.date, entry.kind])).toEqual([
-      ["2026-10-05", "start"],
-      ["2027-02-05", "end"],
+    const peak = Math.max(...ledger.map((entry) => entry.occupiedAfter));
+    expect(peak).toBe(18);
+  });
+
+  test("no opening can be offered at all, and the reason is the calendar", () => {
+    // Both halves fail. There is no headroom until well into 2027, and a
+    // new client starting today has nowhere to put sessions 4 through 12
+    // — Year Tracking only reaches 24 January.
+    const c = capacity();
+
+    // Somebody starting TODAY could be scheduled — thirteen eligible
+    // weeks remain, so their twelve exist. There is simply no room:
+    // eighteen people are in the programme on 8 November.
+    expect(c.openings).toEqual({
+      status: "known",
+      openings: 0,
+      peakOccupancy: 18,
+    });
+
+    // Every month after that fails the OTHER half. A client starting in
+    // October has only eleven eligible weeks left in the calendar, in
+    // November eight, in December five. Not "no openings" — not knowable,
+    // and the board says which.
+    const { months } = computeFutureOpenings(c, NOW);
+    expect(
+      months.map((month) => [
+        month.month,
+        month.openings.status === "unknown"
+          ? month.openings.weeksScheduled
+          : "known",
+      ]),
+    ).toEqual([
+      ["2026-10", 11],
+      ["2026-11", 8],
+      // Six, not five: the week of 29 November runs to 3 December, so it
+      // is still eligible for a client starting on the 1st.
+      ["2026-12", 6],
+      ["2027-01", 3],
     ]);
   });
 
-  test("no opening until January, and January is three", () => {
-    // Two containers finish in October and four in November, and neither
-    // month is an opening: sixteen people are in the programme on 8
-    // November, so anybody started before then would have been the
-    // seventeenth. December is not one either — occupancy is still at
-    // twelve on the 1st.
-    const { months } = computeFutureOpenings(capacity(), NOW);
-    const byMonth = Object.fromEntries(months.map((m) => [m.month, m]));
+  test("extending Year Tracking is what changes the answer", () => {
+    // Twelve more weekly `1:1s` weeks after the current horizon. The six
+    // committed containers gain ends, and the board can finally speak.
+    const extended = [...CALENDAR];
+    const cursor = new Date("2027-01-31T00:00:00Z");
+    for (let i = 0; i < 16; i++) {
+      const start = cursor.toISOString().slice(0, 10);
+      const end = new Date(`${start}T00:00:00Z`);
+      end.setUTCDate(end.getUTCDate() + 5);
+      extended.push({
+        start,
+        end: end.toISOString().slice(0, 10),
+        title: "1:1s",
+      });
+      cursor.setUTCDate(cursor.getUTCDate() + 7);
+    }
 
-    expect(byMonth["2026-10"]!.openings).toBe(0);
-    expect(byMonth["2026-11"]!.openings).toBe(0);
-    expect(byMonth["2026-12"]!.openings).toBe(0);
-    expect(byMonth["2027-01"]!.openings).toBe(3);
+    const c = computeIndividualCapacity(population, MAX, extended, NOW);
+    expect(c.needsCalendar).toHaveLength(0);
+    expect(c.openings).toMatchObject({ status: "known" });
 
-    // And the reason is on the row, not buried in the arithmetic.
-    expect(byMonth["2026-11"]!.peakOccupancy).toBe(16);
-    expect(byMonth["2026-11"]!.overCapacityBy).toBe(4);
-  });
-
-  test("nothing can be started today either", () => {
-    const c = capacity();
-    expect(c.openings).toBe(0);
-    // Not an over-capacity practice — a full one, with a November that
-    // has to be got through.
-    expect(c.active).toBe(12);
-    expect(c.overCapacityBy).toBe(0);
-  });
-
-  test("Jules is the difference between no December opening and one", () => {
-    // The single most valuable thing on the board for Leif right now.
-    // Jules holds a slot indefinitely because his projection ran out and
-    // nobody has recorded a real end. Give him one and December opens.
-    const withJulesEnded = population.map((enrollment) =>
-      enrollment.name === "Jules Litman-Cleper"
-        ? {
-            ...enrollment,
-            end_date: "2026-09-20",
-            status: "completed" as const,
-          }
-        : enrollment,
+    // And with every end known, the ledger finds real openings.
+    const { months } = computeFutureOpenings(c, NOW);
+    const firstOpen = months.find(
+      (month) =>
+        month.openings.status === "known" && month.openings.openings > 0,
     );
-    const after = computeFutureOpenings(
-      computeIndividualCapacity(withJulesEnded, MAX, FOUR_MONTHS, NOW),
-      NOW,
-    );
-    expect(after.months.find((m) => m.month === "2026-12")!.openings).toBe(1);
-  });
-
-  test("the four imported dates that were wrong each moved a real slot", () => {
-    // What the forecast would have said on the values the CRM inferred
-    // from first bookings. Not a hypothetical: this is what would have
-    // shipped.
-    const imported: Record<string, string> = {
-      "Jules Litman-Cleper": "2026-06-24",
-      "Gigi George": "2026-07-19",
-      "Mackenzie Stabler": "2026-07-29",
-      "Denise Cormier": "2026-09-30",
-    };
-    const asImported = population.map((enrollment) =>
-      imported[enrollment.name!]
-        ? { ...enrollment, start_date: imported[enrollment.name!]! }
-        : enrollment,
-    );
-    const before = computeFutureOpenings(
-      computeIndividualCapacity(asImported, MAX, FOUR_MONTHS, NOW),
-      NOW,
-    );
-    const beforeByMonth = Object.fromEntries(
-      before.months.map((m) => [m.month, m.openings]),
-    );
-    // It would have promised two openings in December that do not exist,
-    // and invented an over-committed September that never happened.
-    expect(beforeByMonth["2026-12"]).toBe(2);
-    expect(
-      before.months.find((m) => m.month === "2026-09")?.overCapacityBy,
-    ).toBe(1);
-
-    const now = computeFutureOpenings(capacity(), NOW);
-    expect(now.months.find((m) => m.month === "2026-12")!.openings).toBe(0);
-    expect(now.months.find((m) => m.month === "2026-09")).toBeUndefined();
+    expect(firstOpen?.month).toBe("2027-02");
   });
 });

@@ -5,26 +5,36 @@ import {
   computeIndividualCapacity,
   type SlotEnrollment,
 } from "../capacity/individualCapacity";
+import { useSessionWeeks } from "../capacity/useSessionWeeks";
 import { contactDisplayName } from "../contacts/contactDisplayName";
-import type { Contact, Deal, Enrollment, Offer } from "../types";
+import type {
+  ClientSessionCadenceIssue,
+  Contact,
+  Deal,
+  Enrollment,
+  Offer,
+} from "../types";
 
 // Backs the Living Example / any 1:1 Offer's program page: real Offer/
 // Deal/Enrollment/Contact data only, no hard-coded numbers or names.
-// Generalized over `offerId` rather than hardcoding "the" individual
-// offer, so any future 1:1 program reuses this same page.
 //
-// It used to keep its own third copy of "which statuses are active",
-// status-only, and its own openings calculation that read end_date — a
-// column no Living Example Enrollment has ever carried, so the Upcoming
-// Openings section was permanently empty while six people were in fact
-// due to finish before Christmas. Both now come from capacity/, which is
-// the one place either question is answered.
+// It used to keep its own copy of "which statuses are active", and its own
+// openings calculation that read end_date — a column no Living Example
+// Enrollment has ever carried. Both now come from capacity/, which is the
+// one place either question is answered, and the end dates come from the
+// Year Tracking calendar rather than from month arithmetic.
 export const useIndividualProgramData = (offerId?: Identifier) => {
   const { data: offer, isPending: offerPending } = useGetOne<Offer>(
     "offers",
     { id: offerId! },
     { enabled: offerId != null },
   );
+
+  const {
+    isPending: weeksPending,
+    weeks,
+    lastSyncedAt,
+  } = useSessionWeeks(offerId);
 
   const { data: deals, isPending: dealsPending } = useGetList<Deal>(
     "deals",
@@ -48,19 +58,34 @@ export const useIndividualProgramData = (offerId?: Identifier) => {
       { enabled: !dealsPending && offerId != null },
     );
 
-  const contactIds = [...new Set((deals ?? []).map((deal) => deal.contact_id))];
+  // Cross-week reschedules, which are the only thing that lengthens a
+  // container. A cadence issue exists only for an eligible week that
+  // closed with no session inside it, so a same-week time change never
+  // produces one — see capacity/sessionWeeks.ts.
+  const { data: cadenceIssues, isPending: issuesPending } =
+    useGetList<ClientSessionCadenceIssue>(
+      "client_session_cadence_issues",
+      {
+        pagination: { page: 1, perPage: 1000 },
+        sort: { field: "id", order: "ASC" },
+      },
+      { enabled: offerId != null },
+    );
+
   const { data: contacts, isPending: contactsPending } = useGetMany<Contact>(
     "contacts",
-    { ids: contactIds },
-    { enabled: contactIds.length > 0 },
+    { ids: [...new Set((deals ?? []).map((deal) => deal.contact_id))] },
+    { enabled: (deals ?? []).length > 0 },
   );
 
   const isPending =
     offerPending ||
     (offerId != null &&
-      (dealsPending ||
+      (weeksPending ||
+        dealsPending ||
         enrollmentsPending ||
-        (contactIds.length > 0 && contactsPending)));
+        issuesPending ||
+        ((deals ?? []).length > 0 && contactsPending)));
 
   if (isPending || !offer) {
     return {
@@ -68,6 +93,7 @@ export const useIndividualProgramData = (offerId?: Identifier) => {
       offer: offer ?? null,
       capacity: null,
       futureOpenings: null,
+      lastSyncedAt: null,
     };
   }
 
@@ -77,6 +103,14 @@ export const useIndividualProgramData = (offerId?: Identifier) => {
   const contactById = new Map(
     (contacts ?? []).map((contact) => [String(contact.id), contact]),
   );
+  const classificationsByEnrollment = new Map<string, (string | null)[]>();
+  for (const issue of cadenceIssues ?? []) {
+    const key = String(issue.enrollment_id);
+    classificationsByEnrollment.set(key, [
+      ...(classificationsByEnrollment.get(key) ?? []),
+      issue.classification ?? null,
+    ]);
+  }
 
   const withPerson = (enrollment: Enrollment): SlotEnrollment => {
     const deal = dealById.get(String(enrollment.opportunity_id));
@@ -84,16 +118,16 @@ export const useIndividualProgramData = (offerId?: Identifier) => {
     return {
       ...enrollment,
       contactId: deal?.contact_id ?? null,
-      // contactDisplayName never invents a name; an unnamed Contact shows
-      // as blank rather than as "#212" or a job title.
       name: contactDisplayName(contact ?? null) ?? "",
+      cadenceClassifications:
+        classificationsByEnrollment.get(String(enrollment.id)) ?? [],
     };
   };
 
   const capacity = computeIndividualCapacity(
     (enrollments ?? []).map(withPerson),
     offer.max_active_clients ?? null,
-    offer.duration_months ?? null,
+    weeks,
   );
 
   return {
@@ -101,5 +135,6 @@ export const useIndividualProgramData = (offerId?: Identifier) => {
     offer,
     capacity,
     futureOpenings: computeFutureOpenings(capacity),
+    lastSyncedAt,
   };
 };

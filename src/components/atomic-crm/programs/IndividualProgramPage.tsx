@@ -4,7 +4,6 @@ import { useLocation, useParams } from "react-router";
 import { Badge } from "@/components/ui/badge";
 
 import type { SlotHolder } from "../capacity/individualCapacity";
-import { monthLabel } from "../capacity/monthLabel";
 import { PageHeader, PersonCard, Section } from "../misc/ProgramLayout";
 import { formatISODateString } from "../deals/dealUtils";
 import { enrollmentStatusLabels } from "../enrollments/enrollmentConstants";
@@ -23,7 +22,7 @@ export const IndividualProgramPage = () => {
   const { offerId } = useParams();
   const location = useLocation();
   const translate = useTranslate();
-  const { isPending, offer, capacity, futureOpenings } =
+  const { isPending, offer, capacity, futureOpenings, lastSyncedAt } =
     useIndividualProgramData(offerId);
   const { isPending: waitlistPending, entries: waitlist } = useWaitlistEntries({
     offerId,
@@ -158,7 +157,10 @@ export const IndividualProgramPage = () => {
       )}
 
       {futureOpenings != null && (
-        <UpcomingOpeningsSection futureOpenings={futureOpenings} />
+        <UpcomingOpeningsSection
+          futureOpenings={futureOpenings}
+          lastSyncedAt={lastSyncedAt}
+        />
       )}
 
       <WaitlistSection
@@ -179,16 +181,13 @@ export const IndividualProgramPage = () => {
   );
 };
 
-// A Start Week, said the way Leif thinks about it.
+// A Start Week and a final session week, said the way Leif works.
 //
-// The programme begins in a week, not on a minute. Printing a precise day
-// implies precision the CRM does not have and — until Leif confirms it —
-// has no evidence for: nineteen of these dates are a client's first booked
-// session, which the owner has ruled out as a statement about when
-// anything began.
-//
-// So the row says the week, marks an unconfirmed one as unconfirmed, and
-// never quietly presents a guess as a plan.
+// The Living Example is twelve sessions across his available `1:1s`
+// weeks, so the end is a WEEK on the Year Tracking calendar, not a date
+// four months after the start. When the calendar has not been filled far
+// enough ahead the row says exactly that, with the count, rather than
+// showing a date nobody can stand behind.
 const startWeekLine = (
   client: SlotHolder,
   translate: ReturnType<typeof useTranslate>,
@@ -198,39 +197,45 @@ const startWeekLine = (
       _: "Start week not set",
     });
   }
-  const start = translate("crm.programs.start_week_of", {
-    _: "Week of %{start}",
-    start: formatISODateString(weekStart(client.startDate)),
-  });
-  const end =
-    client.end.basis === "recorded"
-      ? translate("crm.programs.runs_until", {
-          _: "ends %{end}",
-          end: formatISODateString(client.end.date!),
-        })
-      : client.end.basis === "projected"
-        ? translate("crm.programs.runs_expected", {
-            _: "expected to end %{month}",
-            month: monthLabel(client.end.date!.slice(0, 7)),
-          })
-        : null;
-  const parts = [start, end].filter(Boolean) as string[];
+  const parts = [
+    translate("crm.programs.starts_on", {
+      _: "Starts %{start}",
+      start: formatISODateString(client.startDate),
+    }),
+  ];
+  if (client.end?.status === "known") {
+    parts.push(
+      translate("crm.programs.final_session_week", {
+        _: "expected final session week %{week}",
+        week: formatISODateString(client.end.finalWeek.start),
+      }),
+    );
+    if (client.end.extensions > 0) {
+      parts.push(
+        translate("crm.programs.reschedule_extensions", {
+          _: "+%{count} week for a reschedule |||| +%{count} weeks for reschedules",
+          smart_count: client.end.extensions,
+          count: client.end.extensions,
+        }),
+      );
+    }
+  } else if (client.end?.status === "incomplete") {
+    parts.push(
+      translate("crm.programs.end_unavailable", {
+        _: "end unavailable — %{scheduled} of %{required} session weeks scheduled",
+        scheduled: client.end.weeksScheduled,
+        required: client.end.weeksRequired,
+      }),
+    );
+  }
   if (!client.startWeekConfirmed) {
     parts.push(
       translate("crm.programs.start_week_unconfirmed", {
-        _: "Start week not confirmed",
+        _: "start week not confirmed",
       }),
     );
   }
   return parts.join(" · ");
-};
-
-// The Monday on or before a date. Weeks are what Leif plans in.
-const weekStart = (isoDate: string): string => {
-  const date = new Date(isoDate + "T00:00:00Z");
-  const shift = (date.getUTCDay() + 6) % 7;
-  date.setUTCDate(date.getUTCDate() - shift);
-  return date.toISOString().slice(0, 10);
 };
 const SlotPersonCard = ({ client }: { client: SlotHolder }) => {
   const translate = useTranslate();
@@ -269,10 +274,22 @@ const availabilityLine = (
       over: capacity.overCapacityBy,
     });
   }
-  if (capacity.openings != null && capacity.openings > 0) {
+  if (capacity.openings?.status === "unknown") {
+    // Full or not, nobody can be started until the calendar reaches far
+    // enough to hold their twelve session weeks. Saying "Full" here would
+    // be the wrong reason for the right answer.
+    return translate("crm.programs.waitlist_needs_calendar", {
+      _: "%{active} of %{max} filled — availability unknown until Year Tracking covers %{required} session weeks (%{scheduled} so far).",
+      active: capacity.active,
+      max: capacity.max,
+      scheduled: capacity.openings.weeksScheduled,
+      required: capacity.openings.weeksRequired,
+    });
+  }
+  if (capacity.openings != null && capacity.openings.openings > 0) {
     return translate("crm.programs.waitlist_openings_now", {
       _: "%{count} opening now (%{active} of %{max} filled).",
-      count: capacity.openings,
+      count: capacity.openings.openings,
       active: capacity.active,
       max: capacity.max,
     });

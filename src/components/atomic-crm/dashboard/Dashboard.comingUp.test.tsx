@@ -57,7 +57,6 @@ const livingExample: Offer = {
   name: "The Living Example",
   type: "individual",
   duration: "4 months",
-  duration_months: 4,
   current_price: 4000,
   max_active_clients: 12,
   is_active: true,
@@ -97,6 +96,36 @@ const task = (
   ...overrides,
 });
 
+// Year Tracking: a year of weekly `1:1s` weeks from a Monday well before
+// anything these fixtures do. Every end date and every opening is derived
+// from this calendar now, so a fixture without one is a practice whose
+// availability genuinely cannot be computed — which is its own test,
+// below, rather than the default for all of them.
+const yearTrackingWeeks = (count = 60) => {
+  const weeks = [];
+  const cursor = new Date("2026-01-05T00:00:00Z");
+  for (let i = 0; i < count; i++) {
+    const start = cursor.toISOString().slice(0, 10);
+    const end = new Date(`${start}T00:00:00Z`);
+    end.setUTCDate(end.getUTCDate() + 5);
+    weeks.push({
+      id: i + 1,
+      offer_id: 1,
+      external_calendar_id: "year-tracking",
+      external_event_id: `week-${i + 1}`,
+      raw_title: "1:1s",
+      window_start: start,
+      window_end: end.toISOString().slice(0, 10),
+      deleted_at: null,
+      synced_at: "2026-09-20T00:00:00.000Z",
+      created_at: "2026-01-01T00:00:00.000Z",
+      updated_at: "2026-09-20T00:00:00.000Z",
+    });
+    cursor.setUTCDate(cursor.getUTCDate() + 7);
+  }
+  return weeks;
+};
+
 const buildTestCrm = (
   initialEntries: string[],
   overrides: Partial<Db> = {},
@@ -113,8 +142,10 @@ const buildTestCrm = (
       deals: [],
       waitlist_entries: [],
       tasks: [],
+      expected_session_windows: yearTrackingWeeks(),
+      client_session_cadence_issues: [],
       ...overrides,
-    }),
+    } as any),
     silent: true,
     latency: 0,
   });

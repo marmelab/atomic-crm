@@ -11,7 +11,15 @@ const holder = (name: string, id: number): SlotHolder => ({
   startDate: "2026-06-30",
   startWeekConfirmed: true,
   startDateSource: "owner",
-  end: { date: "2026-10-30", basis: "projected" },
+  extensions: 0,
+  end: {
+    status: "known",
+    finalWeek: { start: "2026-10-26", end: "2026-10-31" },
+    lastDay: "2026-10-30",
+    freesOn: "2026-10-31",
+    weeksRequired: 12,
+    extensions: 0,
+  },
 });
 
 const openingsMonth = (
@@ -23,7 +31,7 @@ const openingsMonth = (
   month,
   freeing,
   committing,
-  openings,
+  openings: { status: "known", openings, peakOccupancy: 12 - openings },
   peakOccupancy: 12 - openings,
   overCapacityBy: 0,
   restsOnUnconfirmedDates: false,

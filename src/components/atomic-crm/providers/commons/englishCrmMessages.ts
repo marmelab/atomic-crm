@@ -875,8 +875,17 @@ export const englishCrmMessages = {
       opening_none: "no opening",
       opening_peak: "Peak %{peak} in the programme",
       opening_provisional: "start weeks unconfirmed",
-      openings_overdue_projection:
-        "Past their projected four months and still current: %{names}. They keep their slot until you record an end.",
+      sync_calendar: "Sync Calendar",
+      sync_calendar_running: "Syncing…",
+      sync_calendar_last: "Last synced %{when}",
+      sync_calendar_done:
+        "Year Tracking synced: %{upserted} weeks read, %{assigned} session weeks assigned.",
+      sync_calendar_still_short:
+        "%{count} clients still have no end date — Year Tracking does not yet reach their twelfth session week.",
+      openings_need_calendar:
+        "Year Tracking reaches %{horizon}. Until it goes further, no end can be worked out for: %{names}.",
+      waitlist_needs_calendar:
+        "%{active} of %{max} filled — availability unknown until Year Tracking covers %{required} session weeks (%{scheduled} so far).",
       openings_unconfirmed_starts:
         "Provisional: %{count} start weeks below have not been confirmed by you.",
       start_week: "Start week",
@@ -890,7 +899,14 @@ export const englishCrmMessages = {
       starting_later: "Starting Later",
       runs_until: "ends %{end}",
       runs_expected: "expected to end %{month}",
-      start_week_of: "Week of %{start}",
+      starts_on: "Starts %{start}",
+      final_session_week: "expected final session week %{week}",
+      end_unavailable:
+        "end unavailable — %{scheduled} of %{required} session weeks scheduled",
+      reschedule_extensions:
+        "+%{count} week for a reschedule |||| +%{count} weeks for reschedules",
+      opening_needs_calendar:
+        "unknown — only %{scheduled} of %{required} session weeks exist for a new client",
       start_weeks_to_confirm: "%{count} start weeks to confirm",
       waitlist_openings_now:
         "%{count} opening now (%{active} of %{max} filled).",

@@ -10,8 +10,6 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { ReferenceField } from "@/components/admin/reference-field";
 
-import { monthLabel } from "../capacity/monthLabel";
-import { projectedEndDate } from "../capacity/projectedEnd";
 import { isStartWeekConfirmed } from "../capacity/slotHolder";
 import { formatISODateString } from "../deals/dealUtils";
 import { enrollmentStatusLabels } from "./enrollmentConstants";
@@ -185,52 +183,41 @@ const CollapsedGroup = ({
 // The container's dates belong on the row. Leif should not have to open a
 // client to find out when their programme runs.
 //
-// A Start Week, not a start date: the programme begins in a week, and
-// nineteen of the dates in this database are a client's first booked
-// session rather than anything Leif said. Those are marked, because a
-// date the CRM inferred and a date the owner stated are not the same
-// fact and a row that renders them identically is lying quietly.
+// A Start Week, not a start date: the programme begins in a week, and it
+// is a week Leif chooses. A client may book Session #1 early, late, or
+// not at all, and none of that moves it.
 //
-// Every Living Example row used to read "End date not set", because no LE
-// Enrollment has ever carried an end_date — twelve current clients, twelve
-// blanks, and no way to see who was finishing first. The programme is four
-// months long, so the month is derivable, and it is shown as what it is.
+// The end comes from the Year Tracking calendar, not from arithmetic on
+// months. The Living Example is twelve sessions across Leif's available
+// `1:1s` weeks, so the container ends when the twelfth of those weeks is
+// over — plus one more week for each cross-week reschedule. There are no
+// eligible weeks at all between 2 July and 13 September 2026, which is
+// exactly the kind of gap a four-month calculation cannot see.
 //
-// A date somebody wrote down gets a day. A month the CRM worked out gets a
-// month, and says "Expected". The CRM never prints a projected day: the
-// arithmetic is exact, the premise behind it is not, and a precise-looking
-// date is the kind of thing a person plans around.
+// When Year Tracking has not been filled far enough ahead the row says
+// so, with the count, rather than showing a date nobody can stand behind.
 const containerDates = (row: ClientRow): string => {
   if (!row.enrollment.start_date) {
     // Not a blank, and not a guess. An Enrollment with no Start Week is
     // waiting on Leif, and the row says so.
     return "Start week not set";
   }
-  const parts = [
-    `Week of ${formatISODateString(weekStart(row.enrollment.start_date))}`,
-  ];
-  const projected = projectedEndDate(
-    row.enrollment,
-    row.offer?.duration_months ?? null,
-  );
-  if (projected.basis === "recorded") {
-    parts.push(`ends ${formatISODateString(projected.date!)}`);
-  } else if (projected.basis === "projected") {
-    parts.push(`expected to end ${monthLabel(projected.date!.slice(0, 7))}`);
+  const parts = [`Starts ${formatISODateString(row.enrollment.start_date)}`];
+  const end = row.expectedEnd ?? null;
+  if (end?.status === "known") {
+    parts.push(
+      `final session week of ${formatISODateString(end.finalWeek.start)}`,
+    );
+  } else if (end?.status === "incomplete") {
+    parts.push(
+      `end unavailable — ${end.weeksScheduled} of ${end.weeksRequired} session weeks scheduled`,
+    );
   }
   if (!isStartWeekConfirmed(row.enrollment)) {
     parts.push("start week not confirmed");
   }
   return parts.join(" · ");
 };
-
-// The Monday on or before a date — the week Leif actually plans in.
-const weekStart = (isoDate: string): string => {
-  const date = new Date(isoDate + "T00:00:00Z");
-  date.setUTCDate(date.getUTCDate() - ((date.getUTCDay() + 6) % 7));
-  return date.toISOString().slice(0, 10);
-};
-
 const ClientRows = ({ rows }: { rows: ClientRow[] }) => (
   <Card className="p-0">
     <CardContent className="p-0 divide-y">

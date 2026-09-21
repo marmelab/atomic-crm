@@ -7,6 +7,7 @@ import type {
   SlotHolder,
 } from "../capacity/individualCapacity";
 import { monthLabel } from "../capacity/monthLabel";
+import { SyncCalendarButton } from "../capacity/SyncCalendarButton";
 import { Section } from "../misc/ProgramLayout";
 
 // When Leif could safely commit another client.
@@ -34,12 +35,19 @@ const names = (holders: SlotHolder[]) =>
 
 export const UpcomingOpeningsSection = ({
   futureOpenings,
+  lastSyncedAt,
 }: {
   futureOpenings: FutureOpenings;
+  lastSyncedAt?: string | null;
 }) => {
   const translate = useTranslate();
-  const { months, unknownEnd, unconfirmedStartWeek, endProjectionOverdue } =
-    futureOpenings;
+  const {
+    months,
+    unknownEnd,
+    unconfirmedStartWeek,
+    needsCalendar,
+    calendarHorizon,
+  } = futureOpenings;
 
   return (
     <Section
@@ -47,6 +55,14 @@ export const UpcomingOpeningsSection = ({
       title={translate("crm.programs.upcoming_openings", {
         _: "Upcoming Openings",
       })}
+      // Every date below comes from Year Tracking, so the control that
+      // refreshes it belongs here rather than somewhere else on the page.
+      action={
+        <SyncCalendarButton
+          lastSyncedAt={lastSyncedAt}
+          stillShortFor={needsCalendar.length}
+        />
+      }
     >
       {unconfirmedStartWeek.length > 0 && (
         // The forecast is arithmetic on dates, and most of these dates
@@ -61,16 +77,17 @@ export const UpcomingOpeningsSection = ({
           })}
         </p>
       )}
-      {endProjectionOverdue.length > 0 && (
-        // The single most useful thing on this section for Leif. A
-        // container whose four months have run out keeps its slot,
-        // because arithmetic is not an event — and while it does, it is
-        // usually the reason a month shows no opening. One recorded end
-        // date changes the whole forecast.
+      {needsCalendar.length > 0 && (
+        // The single most actionable thing on this section. Year Tracking
+        // stops before these containers reach their twelfth session week,
+        // so their ends are genuinely unknown — and an unknown end holds a
+        // slot, which is usually why a month below shows no opening. A few
+        // more `1:1s` weeks in the calendar answers all of it at once.
         <p className="text-sm text-muted-foreground">
-          {translate("crm.programs.openings_overdue_projection", {
-            _: "Past their projected four months and still current: %{names}. They keep their slot until you record an end.",
-            names: names(endProjectionOverdue),
+          {translate("crm.programs.openings_need_calendar", {
+            _: "Year Tracking reaches %{horizon}. Until it goes further, no end can be worked out for: %{names}.",
+            horizon: calendarHorizon ?? "—",
+            names: names(needsCalendar),
           })}
         </p>
       )}
@@ -109,11 +126,22 @@ const MonthRow = ({ month }: { month: OpeningsMonth }) => {
         <p className="text-sm font-medium">
           {monthLabel(month.month)}
           {" — "}
-          {month.openings > 0 ? (
+          {month.openings.status === "unknown" ? (
+            // Not zero. Whether somebody could start here is a question
+            // the CRM cannot answer until Year Tracking reaches far
+            // enough to seat their own twelve session weeks.
+            <span>
+              {translate("crm.programs.opening_needs_calendar", {
+                _: "unknown — only %{scheduled} of %{required} session weeks exist for a new client",
+                scheduled: month.openings.weeksScheduled,
+                required: month.openings.weeksRequired,
+              })}
+            </span>
+          ) : month.openings.openings > 0 ? (
             translate("crm.programs.opening_count", {
               _: "%{count} opening |||| %{count} openings",
-              smart_count: month.openings,
-              count: month.openings,
+              smart_count: month.openings.openings,
+              count: month.openings.openings,
             })
           ) : month.overCapacityBy > 0 ? (
             <span className="text-destructive">
