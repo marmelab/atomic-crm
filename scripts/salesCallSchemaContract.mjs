@@ -50,16 +50,73 @@ select jsonb_build_object(
      where tgrelid = 'public.sales_calls'::regclass and not tgisinternal)
 ) as contract;`;
 
+// Pull the JSON out of a command's stdout, and say something useful when
+// there isn't any.
+//
+// The first version did `JSON.parse(raw.slice(raw.indexOf("{")))`. When
+// stdout carries no JSON at all, indexOf returns -1, slice(-1) hands back
+// the trailing newline, and JSON.parse reports "Unexpected end of JSON
+// input" — which names neither the command that produced nothing nor what
+// it actually said. That is exactly how this failed in CI and nowhere
+// else, and the message was useless for a week's worth of guessing.
+const parseJsonFrom = (raw, what) => {
+  const start = raw.indexOf("{");
+  if (start !== -1) {
+    try {
+      return JSON.parse(raw.slice(start));
+    } catch {
+      /* fall through to the explicit failure below */
+    }
+  }
+  throw new Error(
+    `${what} produced no JSON on stdout. It printed:\n${raw.trim() || "(nothing)"}`,
+  );
+};
+
+// The clean room is read through psql in its own container, not through
+// `supabase db query`.
+//
+// The CLI is pinned nowhere — it is not a dependency, so `npx supabase`
+// resolves whatever is newest at the moment it runs, and CI and a laptop
+// need not agree. Its stdout format is not a contract, and this script was
+// parsing it as though it were: on the GitHub runner the command exited 0
+// having printed only "Connecting to local database...", and the schema
+// contract test failed there while passing everywhere else.
+//
+// docker exec + psql is the same mechanism cleanRoomBootstrap.mjs already
+// uses to build the clean room, so it is proven in both environments by
+// the time this runs, and `psql -t -A` emits the jsonb value and nothing
+// else. The linked path still uses the CLI: it is for a human reading
+// production by hand, never for CI.
 const readLive = (useE2e) => {
-  const args = useE2e
-    ? ["supabase", "db", "query", "--workdir", ".supabase-e2e", "--local"]
-    : ["supabase", "db", "query", "--linked"];
-  const raw = execFileSync("npx", args, {
+  if (useE2e) {
+    const raw = execFileSync(
+      "docker",
+      [
+        "exec",
+        "-i",
+        "supabase_db_atomic-crm-e2e",
+        "psql",
+        "-v",
+        "ON_ERROR_STOP=1",
+        "-t",
+        "-A",
+        "-U",
+        "postgres",
+        "-d",
+        "postgres",
+      ],
+      { input: SQL, encoding: "utf8", cwd: REPO_ROOT },
+    );
+    return parseJsonFrom(raw, "psql in the clean-room container");
+  }
+
+  const raw = execFileSync("npx", ["supabase", "db", "query", "--linked"], {
     input: SQL,
     encoding: "utf8",
     cwd: REPO_ROOT,
   });
-  return JSON.parse(raw.slice(raw.indexOf("{"))).rows[0].contract;
+  return parseJsonFrom(raw, "supabase db query --linked").rows[0].contract;
 };
 
 // Four ways a column gets a value on INSERT, and they are not
@@ -130,35 +187,48 @@ const build = (live) => {
   };
 };
 
-const useE2e = process.argv.includes("--e2e");
-const contract = build(readLive(useE2e));
-const serialized = JSON.stringify(contract, null, 2) + "\n";
+// Exported so the parse guard can be tested without a database. Running
+// the script is gated on being the entry point, so importing it does not
+// go looking for one.
+export { parseJsonFrom };
 
-if (process.argv.includes("--write")) {
-  writeFileSync(SNAPSHOT, serialized);
-  process.stdout.write(`wrote ${path.relative(REPO_ROOT, SNAPSHOT)}\n`);
+const isEntryPoint =
+  process.argv[1] &&
+  path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+
+if (!isEntryPoint) {
+  // Imported for its helpers; nothing else to do.
 } else {
-  process.stdout.write(serialized);
+  const useE2e = process.argv.includes("--e2e");
+  const contract = build(readLive(useE2e));
+  const serialized = JSON.stringify(contract, null, 2) + "\n";
 
-  // Compared as VALUES, not as bytes. Prettier collapses short arrays onto
-  // one line and JSON.stringify does not, so a byte comparison would
-  // report drift every time the repo formatter had touched the snapshot —
-  // a check that cries wolf is a check people learn to ignore.
-  const committed = (() => {
-    try {
-      return JSON.parse(readFileSync(SNAPSHOT, "utf8"));
-    } catch {
-      return null;
-    }
-  })();
+  if (process.argv.includes("--write")) {
+    writeFileSync(SNAPSHOT, serialized);
+    process.stdout.write(`wrote ${path.relative(REPO_ROOT, SNAPSHOT)}\n`);
+  } else {
+    process.stdout.write(serialized);
 
-  if (committed !== null) {
-    const stable = (value) => JSON.stringify(value);
-    if (stable(committed) !== stable(contract)) {
-      console.error(
-        "\nThe live schema differs from contracts/sales-calls/creationSchemaContract.json. Re-run with --write, read the diff, and re-run the Sales Call writer contracts before committing it.",
-      );
-      process.exitCode = 1;
+    // Compared as VALUES, not as bytes. Prettier collapses short arrays onto
+    // one line and JSON.stringify does not, so a byte comparison would
+    // report drift every time the repo formatter had touched the snapshot —
+    // a check that cries wolf is a check people learn to ignore.
+    const committed = (() => {
+      try {
+        return JSON.parse(readFileSync(SNAPSHOT, "utf8"));
+      } catch {
+        return null;
+      }
+    })();
+
+    if (committed !== null) {
+      const stable = (value) => JSON.stringify(value);
+      if (stable(committed) !== stable(contract)) {
+        console.error(
+          "\nThe live schema differs from contracts/sales-calls/creationSchemaContract.json. Re-run with --write, read the diff, and re-run the Sales Call writer contracts before committing it.",
+        );
+        process.exitCode = 1;
+      }
     }
   }
 }
