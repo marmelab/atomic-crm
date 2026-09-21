@@ -200,8 +200,32 @@ describe("ClientShow — Tasks section (Manual Task UX repair, round 2)", () => 
     await expect
       .element(screen.getByText("Ask Jerry about scheduling"))
       .toBeVisible();
+
+    // Settle before asserting an absence.
+    //
+    // This used to assert the completed Task was not in the DOCUMENT, and
+    // that is not what the product does: TasksListByDueDate keeps finished
+    // work behind a collapsed "Completed tasks (N)" disclosure and never
+    // deletes it — see this file's sibling, "preserves completed Task
+    // history behind a collapsed disclosure, never deleting it", which
+    // asserts exactly that and then clicks the summary open.
+    //
+    // So the old assertion was false about the accepted UI, and passed
+    // only by winning a race: expect.element retries until it holds, and
+    // early in the render — before the Tasks list has resolved — the text
+    // is genuinely absent, so the first poll succeeded and the test
+    // finished before the thing it was testing had rendered. On a loaded
+    // machine the first poll landed after the list was there, found the
+    // row, and the test failed. That is why it rotated between runs and
+    // never reproduced in isolation.
+    //
+    // The disclosure label is the settlement signal: it cannot render
+    // until the list has loaded and classified the Task as completed. Wait
+    // for that, then assert what is actually guaranteed — present, and out
+    // of the way.
+    await expect.element(screen.getByText("Completed tasks (1)")).toBeVisible();
     await expect
       .element(screen.getByText("Long-finished follow-up"))
-      .not.toBeInTheDocument();
+      .not.toBeVisible();
   });
 });
