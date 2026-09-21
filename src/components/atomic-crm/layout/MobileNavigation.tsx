@@ -100,6 +100,7 @@ const NavigationButton = ({
       isActive ? null : "text-muted-foreground",
     )}
     render={<Link to={href} />}
+    nativeButton={false}
   >
     <Icon className="size-6" />
     <span className="text-[0.6rem] font-medium">{label}</span>

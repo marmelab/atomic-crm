@@ -214,6 +214,7 @@ export function DataImportDialog({
                           download={sampleFileName(resource.name)}
                         />
                       }
+                      nativeButton={false}
                     >
                       {translate("crm.data_import.sample_download")}
                     </Button>

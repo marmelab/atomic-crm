@@ -256,6 +256,7 @@ const CreateRelatedContactButton = () => {
           className="flex items-center gap-2"
         />
       }
+      nativeButton={false}
     >
       <UserPlus className="h-4 w-4" />
       {translate("resources.contacts.action.add")}

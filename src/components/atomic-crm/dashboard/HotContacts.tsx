@@ -49,6 +49,7 @@ export const HotContacts = () => {
                   size="sm"
                   className="ml-auto text-muted-foreground"
                   render={<Link to="/contacts/create" />}
+                  nativeButton={false}
                 />
               }
             >

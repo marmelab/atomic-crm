@@ -110,6 +110,7 @@ export const DashboardStepper = ({
                             })}
                           />
                         }
+                        nativeButton={false}
                       >
                         {addContactLabel}
                       </Button>
@@ -154,6 +155,7 @@ export const DashboardStepper = ({
                           })}
                         />
                       }
+                      nativeButton={false}
                     >
                       {translate("resources.notes.action.add", {
                         _: "Add note",

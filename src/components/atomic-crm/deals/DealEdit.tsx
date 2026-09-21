@@ -79,6 +79,7 @@ function EditHeader() {
             variant="outline"
             className="h-9"
             render={<Link to={`/deals/${deal.id}/show`} />}
+            nativeButton={false}
           >
             {translate("resources.deals.action.back_to_deal")}
           </Button>
