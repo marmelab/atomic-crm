@@ -260,18 +260,20 @@ describe("Dashboard — Coming Up", () => {
     await expect
       .element(screen.getByText("Kathy Reyes completes"))
       .toBeInTheDocument();
-    // Twelve, not one.
+    // Eleven, not one.
     //
     // The count used to be the event's own delta — "Kathy leaves, so
     // that is one opening" — computed with no reference to the rest of
-    // the practice. It is now what Leif can actually do: eleven slots are
-    // free already in this fixture, and Kathy's finish makes twelve.
+    // the practice. It is now how many clients Leif could actually start
+    // from that month: eleven of the twelve slots are free in this
+    // fixture, and nobody is booked to arrive.
     //
     // The delta was the number that let the dashboard say "0 openings"
-    // while six people were waiting to start. Capacity is a running
-    // total or it is not trustworthy.
+    // while six people were waiting to start, and that would have called
+    // October an opening while four people arrived in November. An
+    // opening is a running total or it is not safe to act on.
     await expect
-      .element(screen.getByText("12 Living Example openings"))
+      .element(screen.getByText("11 Living Example openings from then"))
       .toBeInTheDocument();
     await expect
       .element(screen.getByText("September GYU Cohort starts"))
@@ -368,7 +370,7 @@ describe("Dashboard — Coming Up", () => {
       .element(screen.getByText("Dave Kim + Julia Chen complete"))
       .toBeInTheDocument();
     await expect
-      .element(screen.getByText("2 Living Example openings"))
+      .element(screen.getByText("10 Living Example openings from then"))
       .toBeInTheDocument();
     // Not rendered as two separate rows.
     await expect

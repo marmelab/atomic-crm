@@ -422,7 +422,10 @@ export const frenchCrmMessages = {
         cohort: "Cohorte",
         opportunity: "Opportunité",
         status: "Statut",
-        start_date: "Début",
+        start_date: "Semaine de début",
+        start_week: "Semaine de début",
+        start_week_help:
+          "La semaine où ce client commence. C'est vous qui la décidez — une séance réservée ne la définit ni ne la déplace jamais.",
         end_date: "Fin",
       },
       empty: "Aucun client pour le moment.",
@@ -801,7 +804,7 @@ export const frenchCrmMessages = {
       coming_up_today: "Aujourd'hui",
       coming_up_le_completes: "%{names} termine |||| %{names} terminent",
       coming_up_le_opening_detail:
-        "%{count} place Living Example disponible |||| %{count} places Living Example disponibles",
+        "%{count} place Living Example disponible à partir de là |||| %{count} places Living Example disponibles à partir de là",
       coming_up_cohort_starts: "%{name} commence",
       coming_up_cohort_ends: "%{name} se termine",
       coming_up_cohort_applications_open: "%{name} — Candidatures ouvertes",
@@ -874,16 +877,26 @@ export const frenchCrmMessages = {
       upcoming_openings: "Prochaines places disponibles",
       no_upcoming_openings: "Aucune place à venir.",
       opening_over_committed:
-        "%{count} de plus commencent qu'il n'y a de place",
+        "aucune place — %{count} au-dessus de la capacité au pic",
+      opening_none: "aucune place",
+      opening_peak: "Pic de %{peak} dans le programme",
+      opening_provisional: "semaines de début non confirmées",
+      openings_overdue_projection:
+        "Au-delà des quatre mois prévus et toujours en cours : %{names}. Leur place reste occupée jusqu'à ce que vous enregistriez une fin.",
+      openings_unconfirmed_starts:
+        "Provisoire : %{count} semaines de début ci-dessous ne sont pas confirmées.",
+      start_week: "Semaine de début",
+      start_week_unconfirmed: "Semaine de début non confirmée",
+      start_week_not_set: "Semaine de début non renseignée",
       opening_starts: "%{names} déjà prévus au démarrage",
       openings_unknown_end:
         "Non inclus : %{names} — aucune date de fin, et aucune durée de programme permettant de la calculer.",
       unnamed_client: "un client sans nom",
       starting_later: "À venir",
-      runs_until: "%{start} — se termine le %{end}",
-      runs_expected: "%{start} — fin prévue en %{month}",
-      starts_only: "Début le %{start}",
-      no_start_recorded: "Date de début non renseignée",
+      runs_until: "se termine le %{end}",
+      runs_expected: "fin prévue en %{month}",
+      start_week_of: "Semaine du %{start}",
+      start_weeks_to_confirm: "%{count} semaines de début à confirmer",
       waitlist_openings_now:
         "%{count} place disponible maintenant (%{active} sur %{max} occupées).",
       waitlist_full: "Complet — %{active} places sur %{max} occupées.",

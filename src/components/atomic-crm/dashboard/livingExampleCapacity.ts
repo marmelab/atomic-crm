@@ -16,12 +16,13 @@ import {
 } from "../capacity/individualCapacity";
 
 export type NextOpening = {
-  // YYYY-MM of the first month in which a slot actually becomes free.
+  // YYYY-MM of the first month in which Leif could safely start somebody
+  // new.
   month: string;
-  // Slots free once that month's departures AND its already-agreed
-  // arrivals have both happened. Never a promise Leif has already made to
-  // somebody else.
+  // How many he could start that month.
   count: number;
+  // Whether that answer depends on a Start Week nobody has confirmed.
+  restsOnUnconfirmedDates: boolean;
 };
 
 export type LivingExampleCapacity = IndividualCapacity & {
@@ -30,6 +31,8 @@ export type LivingExampleCapacity = IndividualCapacity & {
   // different fact from "active", and conflating them is what broke this
   // card.
   committedCount: number;
+  // How many Start Weeks in the picture Leif has never stated.
+  unconfirmedStartWeekCount: number;
 };
 
 export const computeLivingExampleCapacity = (
@@ -46,16 +49,25 @@ export const computeLivingExampleCapacity = (
   );
   const { months } = computeFutureOpenings(capacity, now);
 
-  // The first month that leaves Leif with somewhere to put somebody. A
-  // month where two clients finish and two others start frees nothing, and
-  // saying otherwise would invite him to sell a slot twice.
-  const firstFree = months.find((month) => month.netAvailableAfter > 0);
+  // The first month Leif could actually start somebody new and still be
+  // within the ceiling for the whole of their programme — not the first
+  // month a slot happens to come free. Three containers finish in October
+  // 2026 and none of them is an opening, because four people arrive on 8
+  // November.
+  const firstFree = months.find((month) => month.openings > 0);
 
   return {
     ...capacity,
     committedCount: capacity.committed.length,
+    unconfirmedStartWeekCount: capacity.unconfirmedStartWeek.length,
     nextOpening: firstFree
-      ? { month: firstFree.month, count: firstFree.netAvailableAfter }
+      ? {
+          month: firstFree.month,
+          count: firstFree.openings,
+          restsOnUnconfirmedDates: months
+            .slice(0, months.indexOf(firstFree) + 1)
+            .some((month) => month.restsOnUnconfirmedDates),
+        }
       : null,
   };
 };

@@ -9,15 +9,25 @@ const holder = (name: string, id: number): SlotHolder => ({
   name,
   status: "active",
   startDate: "2026-06-30",
+  startWeekConfirmed: true,
+  startDateSource: "owner",
   end: { date: "2026-10-30", basis: "projected" },
 });
 
 const openingsMonth = (
   month: string,
   freeing: SlotHolder[],
-  netAvailableAfter: number,
+  openings: number,
   committing: SlotHolder[] = [],
-): OpeningsMonth => ({ month, freeing, committing, netAvailableAfter });
+): OpeningsMonth => ({
+  month,
+  freeing,
+  committing,
+  openings,
+  peakOccupancy: 12 - openings,
+  overCapacityBy: 0,
+  restsOnUnconfirmedDates: false,
+});
 
 const cohortEvent = (overrides: Partial<CohortEvent> = {}): CohortEvent => ({
   cohortId: 1,

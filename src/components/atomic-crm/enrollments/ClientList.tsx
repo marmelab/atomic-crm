@@ -12,6 +12,7 @@ import { ReferenceField } from "@/components/admin/reference-field";
 
 import { monthLabel } from "../capacity/monthLabel";
 import { projectedEndDate } from "../capacity/projectedEnd";
+import { isStartWeekConfirmed } from "../capacity/slotHolder";
 import { formatISODateString } from "../deals/dealUtils";
 import { enrollmentStatusLabels } from "./enrollmentConstants";
 import type { ClientRow, CohortGroup } from "./useClientsGrouped";
@@ -184,6 +185,12 @@ const CollapsedGroup = ({
 // The container's dates belong on the row. Leif should not have to open a
 // client to find out when their programme runs.
 //
+// A Start Week, not a start date: the programme begins in a week, and
+// nineteen of the dates in this database are a client's first booked
+// session rather than anything Leif said. Those are marked, because a
+// date the CRM inferred and a date the owner stated are not the same
+// fact and a row that renders them identically is lying quietly.
+//
 // Every Living Example row used to read "End date not set", because no LE
 // Enrollment has ever carried an end_date — twelve current clients, twelve
 // blanks, and no way to see who was finishing first. The programme is four
@@ -194,20 +201,34 @@ const CollapsedGroup = ({
 // arithmetic is exact, the premise behind it is not, and a precise-looking
 // date is the kind of thing a person plans around.
 const containerDates = (row: ClientRow): string => {
-  const start = row.enrollment.start_date
-    ? `Starts ${formatISODateString(row.enrollment.start_date)}`
-    : "Start date not set";
+  if (!row.enrollment.start_date) {
+    // Not a blank, and not a guess. An Enrollment with no Start Week is
+    // waiting on Leif, and the row says so.
+    return "Start week not set";
+  }
+  const parts = [
+    `Week of ${formatISODateString(weekStart(row.enrollment.start_date))}`,
+  ];
   const projected = projectedEndDate(
     row.enrollment,
     row.offer?.duration_months ?? null,
   );
-  const end =
-    projected.basis === "recorded"
-      ? `Ends ${formatISODateString(projected.date!)}`
-      : projected.basis === "projected"
-        ? `Expected to end ${monthLabel(projected.date!.slice(0, 7))}`
-        : "End date not set";
-  return `${start} · ${end}`;
+  if (projected.basis === "recorded") {
+    parts.push(`ends ${formatISODateString(projected.date!)}`);
+  } else if (projected.basis === "projected") {
+    parts.push(`expected to end ${monthLabel(projected.date!.slice(0, 7))}`);
+  }
+  if (!isStartWeekConfirmed(row.enrollment)) {
+    parts.push("start week not confirmed");
+  }
+  return parts.join(" · ");
+};
+
+// The Monday on or before a date — the week Leif actually plans in.
+const weekStart = (isoDate: string): string => {
+  const date = new Date(isoDate + "T00:00:00Z");
+  date.setUTCDate(date.getUTCDate() - ((date.getUTCDay() + 6) % 7));
+  return date.toISOString().slice(0, 10);
 };
 
 const ClientRows = ({ rows }: { rows: ClientRow[] }) => (

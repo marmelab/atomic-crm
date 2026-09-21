@@ -77,7 +77,7 @@ export const buildComingUpItems = ({
     leOfferId == null
       ? []
       : openingsMonths
-          .filter((month) => month.netAvailableAfter > 0)
+          .filter((month) => month.openings > 0)
           .map((month) => ({
             id: `le-opening-${month.month}`,
             type: "living_example_opening",
@@ -87,7 +87,7 @@ export const buildComingUpItems = ({
             month: month.month,
             destination: `/programs/individual/${leOfferId}#upcoming-openings`,
             clientNames: month.freeing.map((holder) => holder.name),
-            openingCount: month.netAvailableAfter,
+            openingCount: month.openings,
           }));
 
   const cohortItems: NextUpItem[] = cohortEvents.map((event) => ({

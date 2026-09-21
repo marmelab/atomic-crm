@@ -35,22 +35,28 @@ const livingExample: Offer = {
 };
 
 // start date -> the person, exactly as production had them.
+//
+// All eighteen Start Weeks are owner-stated. Four of them had to be
+// corrected off the values the CRM inferred from first bookings, which is
+// why inference was the wrong rule: Jules 24 Jun -> 20 May, Gigi 19 Jul ->
+// 20 Jul, Mackenzie 29 Jul -> 3 Aug, Denise 30 Sep -> 5 Oct.
 const OCCUPIED: [string, string][] = [
+  ["2026-05-20", "Jules Litman-Cleper"],
   ["2026-06-14", "Adriano Castro"],
   ["2026-06-14", "Jess Beauchamp"],
-  ["2026-06-24", "Jules Litman-Cleper"],
-  ["2026-07-19", "Gigi George"],
+  ["2026-07-20", "Gigi George"],
   ["2026-07-20", "Mia Cosme"],
   ["2026-07-20", "Emily Loeb"],
   ["2026-07-20", "Morgan Schenkeveld"],
-  ["2026-07-29", "Mackenzie Stabler"],
+  ["2026-08-03", "Mackenzie Stabler"],
   ["2026-08-17", "Sarah Monast"],
   ["2026-08-17", "Erik Amundson"],
   ["2026-09-10", "Pete Bassett"],
   ["2026-09-16", "Gina McNamara"],
 ];
+// Owner-stated: Leif confirmed every one of these Start Weeks.
 const COMMITTED: [string, string][] = [
-  ["2026-09-30", "Denise Cormier"],
+  ["2026-10-05", "Denise Cormier"],
   ["2026-10-05", "Ava Frotton"],
   ["2026-11-08", "Daniel Alexander"],
   ["2026-11-08", "Heidi Elias"],
@@ -93,6 +99,8 @@ const buildTestCrm = () => {
     status: "active",
     start_date: start,
     end_date: null,
+    // Every one of the eighteen is owner-stated now.
+    start_date_source: "owner" as const,
     created_at: "2026-01-01T00:00:00.000Z",
     updated_at: "2026-01-01T00:00:00.000Z",
   }));
@@ -198,14 +206,42 @@ describe("Living Example program page — capacity Leif can plan around", () => 
       .toBeVisible();
 
     const text = screen.container.textContent ?? "";
-    // September: nobody finishes and Denise starts on the 30th.
-    expect(text).toContain("September 2026");
-    expect(text).toContain("1 more starting than there is room for");
-    // November: five finish, four already-booked arrive, two left over.
-    expect(text).toContain("November 2026");
-    expect(text).toContain("2 openings");
+
+    // Two clients finish in October and four in November, and neither
+    // month is an opening: sixteen people are in the programme on 8
+    // November. Anybody started before then would have been the
+    // seventeenth in a practice that holds twelve — the exact number
+    // the first version of this page got wrong in Leif's favour.
+    expect(text).toContain("October 2026");
+    expect(text).toContain("November 2026 — no opening");
+    expect(text).toContain("4 over capacity at its peak");
+    expect(text).toContain("Peak 16 in the programme");
+
+    // January is the first month he could safely start somebody.
+    expect(text).toContain("December 2026 — no opening");
+    expect(text).toContain("January 2027 — 3 openings");
   });
 
+  it("says who is past their projected four months and still current", async () => {
+    // Jules started on 20 May; four months ran out yesterday, and Leif
+    // still considers him a current client. He keeps his slot — and
+    // that single fact is why December shows no opening, so the page
+    // has to say it rather than leave Leif wondering.
+    const screen = await render(buildTestCrm());
+
+    await expect
+      .element(screen.getByRole("heading", { name: "Upcoming Openings" }))
+      .toBeVisible();
+    const text = screen.container.textContent ?? "";
+    expect(text).toContain(
+      "Past their projected four months and still current: Jules Litman-Cleper",
+    );
+    expect(text).toContain("They keep their slot until you record an end.");
+
+    // Every Start Week is confirmed, so nothing is flagged provisional.
+    expect(text).not.toContain("start weeks to confirm");
+    expect(text).not.toContain("Start week not confirmed");
+  });
   it("states availability beside the waitlist, and offers no way to act on it", async () => {
     const screen = await render(buildTestCrm());
 

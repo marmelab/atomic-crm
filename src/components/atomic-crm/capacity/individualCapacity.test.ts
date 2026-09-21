@@ -142,7 +142,7 @@ describe("openings", () => {
     expect(capacity.overCapacityBy).toBe(0);
   });
 
-  test("under capacity reports the difference", () => {
+  test("under capacity, with nothing booked, openings is the plain difference", () => {
     const capacity = computeIndividualCapacity(
       Array.from({ length: 9 }, () => started()),
       MAX,
@@ -150,6 +150,31 @@ describe("openings", () => {
       NOW,
     );
     expect(capacity.openings).toBe(3);
+  });
+
+  test("a committed future start is subtracted from today's openings", () => {
+    // The failure this prevents: nine in the programme, three slots
+    // apparently free, and four people already booked to arrive next
+    // month. "3 openings" would be an invitation to overbook by one.
+    const capacity = computeIndividualCapacity(
+      [
+        // Still in the programme in October, so the two groups overlap —
+        // with a 1 June start they would all have finished twelve days
+        // before the arrivals, and three openings would be correct.
+        ...Array.from({ length: 9 }, () =>
+          started({ start_date: "2026-09-01" }),
+        ),
+        ...Array.from({ length: 4 }, () =>
+          enrollment({ start_date: "2026-10-12" }),
+        ),
+      ],
+      MAX,
+      FOUR_MONTHS,
+      NOW,
+    );
+    expect(capacity.active).toBe(9);
+    expect(capacity.committed).toHaveLength(4);
+    expect(capacity.openings).toBe(0);
   });
 
   test("over capacity never reports negative openings — it reports being over", () => {
@@ -223,7 +248,7 @@ describe("future openings", () => {
     const october = months.find((month) => month.month === "2026-10")!;
     expect(october.freeing).toHaveLength(2);
     expect(october.committing).toHaveLength(2);
-    expect(october.netAvailableAfter).toBe(0);
+    expect(october.openings).toBe(0);
   });
 
   test("more booked starts than departures shows as over-commitment, and carries forward", () => {
@@ -242,13 +267,19 @@ describe("future openings", () => {
     const { months } = computeFutureOpenings(capacity, NOW);
 
     const october = months.find((month) => month.month === "2026-10")!;
-    expect(october.netAvailableAfter).toBe(-2);
-    // January: the twelve started in September finish, netting back up.
+    // Fourteen people in a practice that holds twelve.
+    expect(october.peakOccupancy).toBe(14);
+    expect(october.overCapacityBy).toBe(2);
+    expect(october.openings).toBe(0);
+    // January: the twelve started in September have finished, and the
+    // two October arrivals are still in. Ten free, and a new client
+    // starting in January would not breach the ceiling at any point
+    // during their own four months.
     const january = months.find((month) => month.month === "2027-01")!;
-    expect(january.netAvailableAfter).toBe(10);
+    expect(january.openings).toBe(10);
   });
 
-  test("the running total starts from the openings available today", () => {
+  test("a month's answer accounts for everyone already in the programme", () => {
     const capacity = computeIndividualCapacity(
       [
         started({ start_date: "2026-06-14" }),
@@ -259,8 +290,14 @@ describe("future openings", () => {
       NOW,
     );
     const { months } = computeFutureOpenings(capacity, NOW);
-    // Ten free now, one more frees in October.
-    expect(months[0]!.netAvailableAfter).toBe(11);
+    // Two in the programme and nobody booked to arrive, so ten could
+    // start today. October is also ten, not eleven: a client starting on
+    // the 1st overlaps BOTH of them, and the one finishing on the 14th
+    // frees their slot too late to help. The month is answered from the
+    // day somebody could actually begin, never from its best moment.
+    expect(capacity.openings).toBe(10);
+    expect(months[0]!.month).toBe("2026-10");
+    expect(months[0]!.openings).toBe(10);
   });
 
   test("a recorded end date wins over the four-month projection", () => {
@@ -348,73 +385,5 @@ describe("future openings", () => {
       NOW,
     );
     expect(computeFutureOpenings(capacity, NOW).months).toHaveLength(0);
-  });
-});
-
-describe("the real Living Example population, as it stood on 2026-09-21", () => {
-  // The eighteen rows the dashboard was adding up. Start dates are the
-  // real ones; names are the real clients'. This is the regression test
-  // for the number Leif actually saw.
-  const REAL_STARTS_OCCUPIED = [
-    "2026-06-14",
-    "2026-06-14",
-    "2026-06-24",
-    "2026-07-19",
-    "2026-07-20",
-    "2026-07-20",
-    "2026-07-20",
-    "2026-07-29",
-    "2026-08-17",
-    "2026-08-17",
-    "2026-09-10",
-    "2026-09-16",
-  ];
-  const REAL_STARTS_COMMITTED = [
-    "2026-09-30",
-    "2026-10-05",
-    "2026-11-08",
-    "2026-11-08",
-    "2026-11-08",
-    "2026-11-08",
-  ];
-
-  const population = [...REAL_STARTS_OCCUPIED, ...REAL_STARTS_COMMITTED].map(
-    (start_date) => enrollment({ status: "active", start_date }),
-  );
-
-  test("reports twelve active, not eighteen", () => {
-    const capacity = computeIndividualCapacity(
-      population,
-      MAX,
-      FOUR_MONTHS,
-      NOW,
-    );
-    expect(capacity.active).toBe(12);
-    expect(capacity.committed).toHaveLength(6);
-    expect(capacity.openings).toBe(0);
-    expect(capacity.overCapacityBy).toBe(0);
-  });
-
-  test("shows the practice as over-committed before it shows an opening", () => {
-    // September is the month that matters: nobody finishes, and somebody
-    // is already booked to start on the 30th. The practice is a person
-    // over its ceiling before a single slot frees, which is precisely
-    // what "0 openings" on the old card could never have said.
-    const capacity = computeIndividualCapacity(
-      population,
-      MAX,
-      FOUR_MONTHS,
-      NOW,
-    );
-    const { months } = computeFutureOpenings(capacity, NOW);
-    const byMonth = Object.fromEntries(
-      months.map((month) => [month.month, month.netAvailableAfter]),
-    );
-
-    expect(byMonth["2026-09"]).toBe(-1);
-    expect(byMonth["2026-10"]).toBe(1);
-    expect(byMonth["2026-11"]).toBe(2);
-    expect(byMonth["2026-12"]).toBe(4);
-    expect(byMonth["2027-01"]).toBe(6);
   });
 });

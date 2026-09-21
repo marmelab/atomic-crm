@@ -96,8 +96,16 @@ export const activateEnrollment = async (
       // finished and active service begins. Never overwrites an
       // already-set date (idempotent, and never rewrites a genuine
       // Cohort-derived date).
+      // Leif clicking Activate IS the statement that this client is
+      // starting now, so the date it writes is owner-stated — the same
+      // standing as a Start Week he types in by hand, and the opposite of
+      // the session-derived dates migration 20260921130000 had to mark as
+      // needing confirmation.
       ...(enrollment.start_date == null
-        ? { start_date: new Date().toISOString().split("T")[0] }
+        ? {
+            start_date: new Date().toISOString().split("T")[0],
+            start_date_source: "owner",
+          }
         : {}),
     },
     previousData: enrollment,

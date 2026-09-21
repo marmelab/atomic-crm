@@ -1,49 +1,57 @@
-import type { Identifier } from "ra-core";
-
-import type { Enrollment } from "../types";
-import { projectedEndDate, type ProjectedEnd } from "./projectedEnd";
+import { projectedEndDate } from "./projectedEnd";
+import {
+  buildSlotEvents,
+  computeLedger,
+  occupancyOn,
+  safeOpeningsStartingOn,
+  type LedgerEntry,
+  type SlotEvent,
+} from "./occupancyLedger";
+import {
+  isStartWeekConfirmed,
+  type SlotEnrollment,
+  type SlotHolder,
+} from "./slotHolder";
 import { slotPhaseOf, toDateKey } from "./slotOccupancy";
 
-// One Enrollment's claim on one of an individual Offer's slots, carrying
-// enough identity to name the human being on a page.
-export type SlotHolder = {
-  enrollmentId: Identifier;
-  contactId: Identifier | null;
-  name: string;
-  status: Enrollment["status"];
-  startDate: string | null;
-  end: ProjectedEnd;
-};
-
-export type SlotEnrollment = Pick<
-  Enrollment,
-  "id" | "status" | "start_date" | "end_date"
-> & {
-  contactId?: Identifier | null;
-  name?: string;
-};
+export type { SlotEnrollment, SlotHolder } from "./slotHolder";
 
 export type IndividualCapacity = {
   max: number | null;
-  // People Leif is working with right now.
+  // People in the programme today.
   active: number;
-  // max - active, never below zero. An over-capacity database is a real
-  // condition with a real name; it is not "minus two openings".
+  // How many NEW clients Leif could start TODAY and still be within the
+  // ceiling for the whole of their programme. Not `max - active`: twelve
+  // free slots today mean nothing if four people are already booked into
+  // them next month. See occupancyLedger.ts for why this is the only
+  // definition of "opening" that is safe to act on.
   openings: number | null;
-  // How far past the ceiling the current occupancy actually is. Zero
-  // unless something has gone wrong, and then the number is the whole
-  // point — it is what makes the situation legible instead of clamped
-  // away.
+  // Today's occupancy past the ceiling. A present fact, separate from the
+  // forecast, and zero unless something has gone wrong.
   overCapacityBy: number;
   occupied: SlotHolder[];
-  // Agreed and set up, not started. A real obligation against a future
-  // slot, and deliberately NOT counted as active: these are the six rows
-  // that made the dashboard say eighteen.
+  // Agreed and set up, not started. Real obligations against future
+  // capacity — these are the six rows that made the dashboard say
+  // eighteen, and they are counted in the ledger from their Start Week.
   committed: SlotHolder[];
-  // Occupied slots whose finish nobody can compute. They hold a slot now,
-  // so they count toward `active`, but they cannot appear in the future
-  // openings maths without inventing a date.
+  // Occupied containers with no computable end. They hold a slot for the
+  // whole horizon, which is what not knowing actually implies.
   unknownEnd: SlotHolder[];
+  // Occupied containers whose projected finish has already passed while
+  // the client is still current. They keep their slot — arithmetic does
+  // not end an engagement — and they are the single biggest reason a
+  // future month can show no opening, so they are named rather than
+  // buried.
+  endProjectionOverdue: SlotHolder[];
+  // Holders whose Start Week Leif has not stated — inferred from a booked
+  // session, or carrying no traceable basis at all. They are still in
+  // every number above; this is what says how much of the forecast is
+  // resting on a guess.
+  unconfirmedStartWeek: SlotHolder[];
+  events: SlotEvent[];
+  // Today, as the maths saw it. Keeps every consumer on one clock.
+  today: string;
+  durationMonths: number | null;
 };
 
 const toSlotHolder = (
@@ -55,6 +63,8 @@ const toSlotHolder = (
   name: enrollment.name ?? "",
   status: enrollment.status,
   startDate: enrollment.start_date ?? null,
+  startWeekConfirmed: isStartWeekConfirmed(enrollment),
+  startDateSource: enrollment.start_date_source ?? null,
   end: projectedEndDate(enrollment, durationMonths),
 });
 
@@ -75,15 +85,32 @@ export const computeIndividualCapacity = (
     (phase === "occupied" ? occupied : committed).push(holder);
   }
 
+  occupied.sort(byEndThenName);
+  committed.sort(byStartThenName);
+
   const active = occupied.length;
+  const events = buildSlotEvents(occupied, committed, today);
+
   return {
     max,
     active,
-    openings: max == null ? null : Math.max(max - active, 0),
+    openings:
+      max == null
+        ? null
+        : safeOpeningsStartingOn(events, active, max, today, durationMonths),
     overCapacityBy: max == null ? 0 : Math.max(active - max, 0),
-    occupied: occupied.sort(byEndThenName),
-    committed: committed.sort(byStartThenName),
+    occupied,
+    committed,
     unknownEnd: occupied.filter((holder) => holder.end.basis === "unknown"),
+    endProjectionOverdue: occupied.filter(
+      (holder) => holder.end.date != null && holder.end.date < today,
+    ),
+    unconfirmedStartWeek: [...occupied, ...committed].filter(
+      (holder) => !holder.startWeekConfirmed,
+    ),
+    events,
+    today,
+    durationMonths,
   };
 };
 
@@ -120,79 +147,115 @@ export type OpeningsMonth = {
   freeing: SlotHolder[];
   // Already-agreed containers starting in this month.
   committing: SlotHolder[];
-  // Slots free once this month's departures and arrivals have both
-  // happened. Negative means Leif has promised more starts than he will
-  // have room for — a fact worth seeing, not a number to clamp.
-  netAvailableAfter: number;
+  // The most people in the programme at any point during the month.
+  peakOccupancy: number;
+  // How far that peak goes past the ceiling. Zero unless the month is
+  // over-committed.
+  overCapacityBy: number;
+  // How many NEW clients could start in this month and stay for the whole
+  // programme without the ceiling ever being breached. THE number: see
+  // occupancyLedger.ts.
+  openings: number;
+  // Whether every date this month's answer depends on was stated by Leif.
+  restsOnUnconfirmedDates: boolean;
 };
 
 export type FutureOpenings = {
   months: OpeningsMonth[];
-  // Occupied containers with no computable end date. They are absent from
-  // every month above, so the projection is knowingly incomplete by
-  // exactly this many people, and says so.
+  // The event-by-event ledger the months are derived from. Nothing
+  // recomputes it; a page that wants the detail reads this.
+  ledger: LedgerEntry[];
   unknownEnd: SlotHolder[];
+  unconfirmedStartWeek: SlotHolder[];
+  endProjectionOverdue: SlotHolder[];
 };
 
-// When occupied slots become available, netted against what has already
-// been promised.
+const monthOf = (date: string) => date.slice(0, 7);
+const firstDayOf = (month: string) => `${month}-01`;
+const lastDayOf = (month: string) => {
+  const [year, m] = month.split("-").map(Number);
+  return `${month}-${String(new Date(Date.UTC(year!, m!, 0)).getUTCDate()).padStart(2, "0")}`;
+};
+
+// When Leif could safely commit another client, month by month.
 //
-// "Two openings in November" is a useful sentence only if it is still true
-// after the people already booked to start in November have started. Leif
-// has six future starts agreed; a board that showed departures alone would
-// have invited him to sell slots he had already sold. So arrivals and
-// departures are counted in the same ledger, and the running total is what
-// the page reports.
-//
-// Months with nothing happening are omitted rather than padded — this is a
-// list of changes, not a calendar.
+// Every month carries its own answer to one question: if a new client
+// started in this month, would the practice stay within its ceiling for
+// the whole four months they were in it? That is the only reading of
+// "opening" that cannot mislead — and it is the reading under which
+// October 2026 is NOT an opening, despite three containers finishing in
+// it, because four people arrive on 8 November and take the practice to
+// fifteen.
 export const computeFutureOpenings = (
   capacity: IndividualCapacity,
   now: Date = new Date(),
 ): FutureOpenings => {
-  if (capacity.max == null) return { months: [], unknownEnd: [] };
+  const surfaced = {
+    unknownEnd: capacity.unknownEnd,
+    unconfirmedStartWeek: capacity.unconfirmedStartWeek,
+    endProjectionOverdue: capacity.endProjectionOverdue,
+  };
+  if (capacity.max == null) {
+    return { months: [], ledger: [] as LedgerEntry[], ...surfaced };
+  }
 
   const today = toDateKey(now);
+  const { events, active, max, durationMonths } = capacity;
+  const ledger = computeLedger(events, active, max);
+
   const byMonth = new Map<
     string,
     { freeing: SlotHolder[]; committing: SlotHolder[] }
   >();
   const bucket = (month: string) => {
-    const existing = byMonth.get(month);
-    if (existing) return existing;
-    const created = { freeing: [], committing: [] } as {
-      freeing: SlotHolder[];
-      committing: SlotHolder[];
-    };
-    byMonth.set(month, created);
-    return created;
+    let entry = byMonth.get(month);
+    if (!entry) {
+      entry = { freeing: [], committing: [] };
+      byMonth.set(month, entry);
+    }
+    return entry;
   };
 
-  for (const holder of capacity.occupied) {
-    // A container whose computed end is already behind us frees nothing
-    // in the future — it is either about to be closed out by hand, or its
-    // projection has simply been overtaken. Either way it is not a date
-    // to plan around.
-    if (!holder.end.date || holder.end.date < today) continue;
-    bucket(holder.end.date.slice(0, 7)).freeing.push(holder);
-  }
-  for (const holder of capacity.committed) {
-    if (!holder.startDate) continue;
-    bucket(holder.startDate.slice(0, 7)).committing.push(holder);
+  for (const event of events) {
+    const entry = bucket(monthOf(event.date));
+    (event.kind === "end" ? entry.freeing : entry.committing).push(
+      event.holder,
+    );
   }
 
-  let running = Math.max(capacity.max - capacity.active, 0);
   const months = [...byMonth.entries()]
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([month, entry]) => {
-      running += entry.freeing.length - entry.committing.length;
+      // A candidate start cannot be in the past, so the current month is
+      // evaluated from today.
+      const candidateStart =
+        firstDayOf(month) < today ? today : firstDayOf(month);
+      const monthEnd = lastDayOf(month);
+      const peakOccupancy = Math.max(
+        occupancyOn(events, active, candidateStart),
+        ...ledger
+          .filter((e) => e.date >= candidateStart && e.date <= monthEnd)
+          .map((e) => e.occupiedAfter),
+      );
+
       return {
         month,
-        freeing: entry.freeing.sort(byEndThenName),
-        committing: entry.committing.sort(byStartThenName),
-        netAvailableAfter: running,
+        freeing: entry.freeing.slice().sort(byEndThenName),
+        committing: entry.committing.slice().sort(byStartThenName),
+        peakOccupancy,
+        overCapacityBy: Math.max(peakOccupancy - max, 0),
+        openings: safeOpeningsStartingOn(
+          events,
+          active,
+          max,
+          candidateStart,
+          durationMonths,
+        ),
+        restsOnUnconfirmedDates: [...entry.freeing, ...entry.committing].some(
+          (holder) => !holder.startWeekConfirmed,
+        ),
       };
     });
 
-  return { months, unknownEnd: capacity.unknownEnd };
+  return { months, ledger, ...surfaced };
 };

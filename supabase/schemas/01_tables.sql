@@ -484,6 +484,14 @@ create table public.enrollments (
     opportunity_id bigint not null,
     status text not null default 'onboarding',
     start_date date,
+    -- WHERE start_date came from, because an owner-stated Start Week and a
+    -- date inferred from a booking are not the same fact and capacity
+    -- planning cannot treat them alike. 'owner' is the only value that
+    -- makes a date canonical for a future-capacity commitment;
+    -- 'session_derived' marks the 19 rows migration 20260918180000
+    -- back-filled from each client's first booked session, an inference
+    -- the owner has since ruled out. Null only when start_date is null.
+    start_date_source text,
     end_date date,
     created_at timestamp with time zone not null default now(),
     updated_at timestamp with time zone not null default now(),
@@ -497,7 +505,11 @@ create table public.enrollments (
     constraint enrollments_status_check check (status in ('onboarding', 'active', 'offboarding', 'completed', 'withdrawn', 'ended')),
     -- A container cannot finish before it starts. Only where both dates
     -- are known: a missing date is not permission to invent one.
-    constraint enrollments_end_after_start_check check (start_date is null or end_date is null or end_date >= start_date)
+    constraint enrollments_end_after_start_check check (start_date is null or end_date is null or end_date >= start_date),
+    constraint enrollments_start_date_source_check check (start_date_source is null or start_date_source in ('owner', 'session_derived', 'unknown')),
+    -- A start date with no provenance cannot be used as a commitment, so
+    -- one may never exist without the other.
+    constraint enrollments_start_date_has_a_source_check check ((start_date is null) = (start_date_source is null))
 );
 
 -- Whether the CRM is expected to KNOW this Enrollment's onboarding.

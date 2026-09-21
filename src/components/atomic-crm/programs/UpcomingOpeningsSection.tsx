@@ -4,28 +4,42 @@ import { Card, CardContent } from "@/components/ui/card";
 import type {
   FutureOpenings,
   OpeningsMonth,
+  SlotHolder,
 } from "../capacity/individualCapacity";
 import { monthLabel } from "../capacity/monthLabel";
 import { Section } from "../misc/ProgramLayout";
 
-// When slots actually become available.
+// When Leif could safely commit another client.
 //
-// The old version of this section read Enrollment.end_date and grouped it
-// by exact day. No Living Example Enrollment has ever carried an end_date,
-// so it rendered "No upcoming openings." permanently, while two clients
-// were due to finish in October.
+// This section has now been wrong in two different directions, and both
+// are worth remembering because they are the two ways a capacity board
+// lies.
 //
-// It also counted only departures. Leif has six people already agreed to
-// start — "two openings in October" would have been an invitation to sell
-// a slot he had already sold. Arrivals and departures are now in the same
-// ledger, and what the row reports is what is left afterwards.
+// It read Enrollment.end_date, which is null for every Living Example
+// client, so it said "No upcoming openings." forever while three people
+// were due to finish in October — a board that under-reports until you
+// stop believing it.
+//
+// Then it counted departures net of arrivals month by month and called
+// the running total an opening. October came out at +1. Four people start
+// on 8 November; filling that "opening" would have taken the practice to
+// sixteen — a board that over-reports, which is worse, because acting on
+// it means telling somebody their start is cancelled.
+//
+// So a month shows an opening only if a client could start in it AND be
+// there at the end of their four months without the ceiling ever
+// breaking.
+const names = (holders: SlotHolder[]) =>
+  holders.map((holder) => holder.name).join(", ");
+
 export const UpcomingOpeningsSection = ({
   futureOpenings,
 }: {
   futureOpenings: FutureOpenings;
 }) => {
   const translate = useTranslate();
-  const { months, unknownEnd } = futureOpenings;
+  const { months, unknownEnd, unconfirmedStartWeek, endProjectionOverdue } =
+    futureOpenings;
 
   return (
     <Section
@@ -34,6 +48,32 @@ export const UpcomingOpeningsSection = ({
         _: "Upcoming Openings",
       })}
     >
+      {unconfirmedStartWeek.length > 0 && (
+        // The forecast is arithmetic on dates, and most of these dates
+        // were inferred from a booked session — something the owner has
+        // ruled out as evidence of when a programme begins. Saying so
+        // above the months is the difference between a projection and a
+        // claim.
+        <p className="text-sm text-muted-foreground">
+          {translate("crm.programs.openings_unconfirmed_starts", {
+            _: "Provisional: %{count} start weeks below have not been confirmed by you.",
+            count: unconfirmedStartWeek.length,
+          })}
+        </p>
+      )}
+      {endProjectionOverdue.length > 0 && (
+        // The single most useful thing on this section for Leif. A
+        // container whose four months have run out keeps its slot,
+        // because arithmetic is not an event — and while it does, it is
+        // usually the reason a month shows no opening. One recorded end
+        // date changes the whole forecast.
+        <p className="text-sm text-muted-foreground">
+          {translate("crm.programs.openings_overdue_projection", {
+            _: "Past their projected four months and still current: %{names}. They keep their slot until you record an end.",
+            names: names(endProjectionOverdue),
+          })}
+        </p>
+      )}
       {months.length === 0 ? (
         <p className="text-sm text-muted-foreground">
           {translate("crm.programs.no_upcoming_openings", {
@@ -49,20 +89,10 @@ export const UpcomingOpeningsSection = ({
       )}
       {unknownEnd.length > 0 && (
         // The projection is knowingly incomplete, and says by how much.
-        // Silently leaving these people out would make the months above
-        // look more certain than they are.
         <p className="mt-2 text-xs text-muted-foreground">
           {translate("crm.programs.openings_unknown_end", {
             _: "Not included: %{names} — no end date, and no programme length to work one out from.",
-            names: unknownEnd
-              .map(
-                (holder) =>
-                  holder.name ||
-                  translate("crm.programs.unnamed_client", {
-                    _: "an unnamed client",
-                  }),
-              )
-              .join(", "),
+            names: names(unknownEnd),
           })}
         </p>
       )}
@@ -72,7 +102,6 @@ export const UpcomingOpeningsSection = ({
 
 const MonthRow = ({ month }: { month: OpeningsMonth }) => {
   const translate = useTranslate();
-  const overCommitted = month.netAvailableAfter < 0;
 
   return (
     <Card className="p-0">
@@ -80,26 +109,28 @@ const MonthRow = ({ month }: { month: OpeningsMonth }) => {
         <p className="text-sm font-medium">
           {monthLabel(month.month)}
           {" — "}
-          {overCommitted ? (
+          {month.openings > 0 ? (
+            translate("crm.programs.opening_count", {
+              _: "%{count} opening |||| %{count} openings",
+              smart_count: month.openings,
+              count: month.openings,
+            })
+          ) : month.overCapacityBy > 0 ? (
             <span className="text-destructive">
               {translate("crm.programs.opening_over_committed", {
-                _: "%{count} more starting than there is room for",
-                count: -month.netAvailableAfter,
+                _: "no opening — %{count} over capacity at its peak",
+                count: month.overCapacityBy,
               })}
             </span>
           ) : (
-            translate("crm.programs.opening_count", {
-              _: "%{count} opening |||| %{count} openings",
-              smart_count: month.netAvailableAfter,
-              count: month.netAvailableAfter,
-            })
+            translate("crm.programs.opening_none", { _: "no opening" })
           )}
         </p>
         {month.freeing.length > 0 && (
           <p className="text-xs text-muted-foreground truncate">
             {translate("crm.programs.opening_completes", {
               _: "%{names} expected to finish",
-              names: month.freeing.map((holder) => holder.name).join(", "),
+              names: names(month.freeing),
             })}
           </p>
         )}
@@ -107,10 +138,26 @@ const MonthRow = ({ month }: { month: OpeningsMonth }) => {
           <p className="text-xs text-muted-foreground truncate">
             {translate("crm.programs.opening_starts", {
               _: "%{names} already booked to start",
-              names: month.committing.map((holder) => holder.name).join(", "),
+              names: names(month.committing),
             })}
           </p>
         )}
+        {/* Why a month with three people finishing can still be no
+            opening: the peak is what the ceiling has to survive. */}
+        <p className="text-xs text-muted-foreground">
+          {translate("crm.programs.opening_peak", {
+            _: "Peak %{peak} in the programme",
+            peak: month.peakOccupancy,
+          })}
+          {month.restsOnUnconfirmedDates && (
+            <>
+              {" · "}
+              {translate("crm.programs.opening_provisional", {
+                _: "start weeks unconfirmed",
+              })}
+            </>
+          )}
+        </p>
       </CardContent>
     </Card>
   );

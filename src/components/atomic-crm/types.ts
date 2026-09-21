@@ -422,6 +422,12 @@ export type Enrollment = {
   status: EnrollmentStatus;
   onboarding_tracking: OnboardingTracking;
   start_date?: string | null;
+  // Where start_date came from. "owner" is the only value that makes it a
+  // canonical Start Week — a date Leif stated. "session_derived" marks the
+  // rows back-filled from a client's first booked session, an inference
+  // the owner has ruled out; "unknown" a date with no traceable basis.
+  // Null only when start_date is null.
+  start_date_source?: "owner" | "session_derived" | "unknown" | null;
   end_date?: string | null;
   created_at: string;
   updated_at: string;

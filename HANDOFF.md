@@ -115,8 +115,8 @@ announces it.
 | HEAD | `7bb47194` (== `origin/main`) |
 | frontend | Vercel project `leif-ariel/leif-crm` → **crm.leifariel.com** |
 | database | Supabase `xlyywsguftyvomeretju` ("leif-crm", us-west-2) |
-| migrations | **129** local files == 129 remote versions |
-| boundary | **106 deterministic + 23 MAIN-only** (`node scripts/historical-import/replayBoundary.mjs` exits 0) |
+| migrations | **132** local files (3 pending on MAIN) |
+| boundary | **108 deterministic + 24 MAIN-only** (`node scripts/historical-import/replayBoundary.mjs` exits 0) |
 | CI | `✅ Check` **green** on the real runner at `7bb47194` — Build, Typecheck, lint, unit (1932 tests / 239 files across every Vitest project) and `e2e-test` all pass |
 
 **Two independent deploy paths, and confusing them costs a slice.** Vercel
@@ -438,33 +438,40 @@ and full history against one side with a single Application and no email at
 all; no shared email, no shared Stripe customer, and no address anywhere in the
 orphan's answers. Nothing deterministic can settle them.
 
-**Living Example dates the CRM cannot settle** (Capacity + Waitlist slice).
-Nothing below has been changed — each is a real record with a real person
-behind it, and the capacity maths reports what is recorded rather than what
-would make the numbers tidy:
+**Living Example Start Weeks — settled 2026-09-21.** A Start Week is Leif’s
+decision. An Acuity booking is a usage fact that follows from it and never
+establishes or moves it: someone may commit and then deliberately wait weeks
+before booking, especially when Leif is booked ahead.
 
-- **Four clients share a start date of 8 November** — Daniel Alexander,
-  Heidi Elias, Linda Turner, Emma Wijns. Linda's is owner-stated
-  (migration `20260918190000`, from Leif directly). The other three carry
-  the same date from the historical import. If any of them is a placeholder
-  rather than a real plan, it is moving four months of projected openings
-  with it.
-- **The practice is committed past twelve at the end of September.** Denise
-  Cormier starts on the 30th and the twelve current containers all project
-  past it, so the CRM shows September as *over-committed by one* rather than
-  inventing an early finish. Either somebody is finishing sooner than four
-  months, or thirteen is the real plan for a few weeks. Both are legitimate;
-  the CRM does not get to choose.
-- **No Living Example Enrollment has ever carried an end date.** Every
-  finish shown is `start + 4 months`, labelled "expected" and reported by
-  month, never by day. Recording a real end date on any container replaces
-  the projection for that person immediately.
+The CRM had this backwards. Migration `20260918180000` set
+`enrollments.start_date` to each client’s earliest booked session, and 19 of
+22 Living Example Enrollments carried exactly that date. Leif has now stated
+all eighteen live Start Weeks (`20260921140000`), and
+`enrollments.start_date_source` records the provenance of every one — a
+constraint makes a start date without a source impossible.
+
+**Four of the inferred dates were wrong**, which is the whole argument
+against inferring them: Jules Litman-Cleper 24 Jun → **20 May**, Gigi George
+19 Jul → 20 Jul, Mackenzie Stabler 29 Jul → **3 Aug**, Denise Cormier 30 Sep
+→ **5 Oct**. Shipped on the imported values, the openings board would have
+promised two December openings that do not exist.
+
+**Still open, and it is the live question:**
+
+- **A projected end must never retire a client.** Jules started 20 May;
+  four months ran out on 20 September and Leif still considers him current.
+  He keeps his slot until a real end date or a terminal status is recorded,
+  and the Upcoming Openings section names him. **He is the single reason
+  December shows no opening** — record his end and December becomes one.
+- **The operational end-date rule is not defined yet.** `Start Week + 4
+  months` is a projection, labelled “expected” and reported by month. Nothing
+  in the repository may close a container on arithmetic alone.
+- **No Living Example Enrollment has ever carried a real end date.**
 
 **Two waitlist Contacts named "Terra Israd"** (Contacts 212 and 213), both
 waiting on the January 2027 GYU cohort. Distinct Contact records, so the
 duplicate-membership guard cannot see them as the same person. Same class as
 the pairs above: merging them is a Leif decision, and merge never deletes.
-
 All are non-blocking.
 
 ---

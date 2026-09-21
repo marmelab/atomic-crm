@@ -100,6 +100,15 @@ export const IndividualProgramPage = () => {
                   })}
                 </span>
               )}
+              {capacity != null && capacity.unconfirmedStartWeek.length > 0 && (
+                <span>
+                  {" · "}
+                  {translate("crm.programs.start_weeks_to_confirm", {
+                    _: "%{count} start weeks to confirm",
+                    count: capacity.unconfirmedStartWeek.length,
+                  })}
+                </span>
+              )}
             </>
           }
         />
@@ -170,6 +179,59 @@ export const IndividualProgramPage = () => {
   );
 };
 
+// A Start Week, said the way Leif thinks about it.
+//
+// The programme begins in a week, not on a minute. Printing a precise day
+// implies precision the CRM does not have and — until Leif confirms it —
+// has no evidence for: nineteen of these dates are a client's first booked
+// session, which the owner has ruled out as a statement about when
+// anything began.
+//
+// So the row says the week, marks an unconfirmed one as unconfirmed, and
+// never quietly presents a guess as a plan.
+const startWeekLine = (
+  client: SlotHolder,
+  translate: ReturnType<typeof useTranslate>,
+): string => {
+  if (!client.startDate) {
+    return translate("crm.programs.start_week_not_set", {
+      _: "Start week not set",
+    });
+  }
+  const start = translate("crm.programs.start_week_of", {
+    _: "Week of %{start}",
+    start: formatISODateString(weekStart(client.startDate)),
+  });
+  const end =
+    client.end.basis === "recorded"
+      ? translate("crm.programs.runs_until", {
+          _: "ends %{end}",
+          end: formatISODateString(client.end.date!),
+        })
+      : client.end.basis === "projected"
+        ? translate("crm.programs.runs_expected", {
+            _: "expected to end %{month}",
+            month: monthLabel(client.end.date!.slice(0, 7)),
+          })
+        : null;
+  const parts = [start, end].filter(Boolean) as string[];
+  if (!client.startWeekConfirmed) {
+    parts.push(
+      translate("crm.programs.start_week_unconfirmed", {
+        _: "Start week not confirmed",
+      }),
+    );
+  }
+  return parts.join(" · ");
+};
+
+// The Monday on or before a date. Weeks are what Leif plans in.
+const weekStart = (isoDate: string): string => {
+  const date = new Date(isoDate + "T00:00:00Z");
+  const shift = (date.getUTCDay() + 6) % 7;
+  date.setUTCDate(date.getUTCDate() - shift);
+  return date.toISOString().slice(0, 10);
+};
 const SlotPersonCard = ({ client }: { client: SlotHolder }) => {
   const translate = useTranslate();
   return (
@@ -183,28 +245,7 @@ const SlotPersonCard = ({ client }: { client: SlotHolder }) => {
       }
       // The dates the row is about, said plainly: a recorded end gets its
       // day, a worked-out one gets its month and the word "expected".
-      meta={
-        client.startDate
-          ? client.end.basis === "recorded"
-            ? translate("crm.programs.runs_until", {
-                _: "%{start} — ends %{end}",
-                start: formatISODateString(client.startDate),
-                end: formatISODateString(client.end.date!),
-              })
-            : client.end.basis === "projected"
-              ? translate("crm.programs.runs_expected", {
-                  _: "%{start} — expected to end %{month}",
-                  start: formatISODateString(client.startDate),
-                  month: monthLabel(client.end.date!.slice(0, 7)),
-                })
-              : translate("crm.programs.starts_only", {
-                  _: "Starts %{start}",
-                  start: formatISODateString(client.startDate),
-                })
-          : translate("crm.programs.no_start_recorded", {
-              _: "Start date not set",
-            })
-      }
+      meta={startWeekLine(client, translate)}
       trailing={
         <Badge variant="outline">{enrollmentStatusLabels[client.status]}</Badge>
       }

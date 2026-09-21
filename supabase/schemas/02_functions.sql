@@ -512,7 +512,7 @@ begin
     -- Idempotent: the unique constraint on enrollments.opportunity_id means
     -- re-saving Won never creates a duplicate. `returning ... into` only
     -- assigns on a genuine insert, so the block below stays replay-safe.
-    insert into enrollments (opportunity_id, status, start_date, end_date, onboarding_tracking)
+    insert into enrollments (opportunity_id, status, start_date, end_date, onboarding_tracking, start_date_source)
     values (
       new.id,
       'onboarding',
@@ -520,7 +520,13 @@ begin
       v_cohort.program_end_at::date,
       -- A sale made today is tracked. legacy_untracked is only ever a
       -- statement about the past, never a default for new work.
-      'tracked'
+      'tracked',
+      -- A Cohort start is a date Leif published when he created the round,
+      -- so a cohort Enrollment begins life with an owner-stated Start Week.
+      -- An individual Offer has no such date to snapshot: the Start Week is
+      -- Leif's to set, and until he does it stays unknown rather than being
+      -- inferred from a booking, a Won date or a payment.
+      case when v_cohort.program_start_at is not null then 'owner' end
     )
     on conflict (opportunity_id) do nothing
     returning id into v_enrollment_id;

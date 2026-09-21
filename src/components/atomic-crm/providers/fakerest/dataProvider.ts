@@ -383,6 +383,12 @@ async function ensureEnrollmentForWonDeal(
         onboarding_tracking: "tracked",
         start_date: cohort?.program_start_at?.split("T")[0] ?? null,
         end_date: cohort?.program_end_at?.split("T")[0] ?? null,
+        // Mirrors handle_deal_won() exactly: a Cohort start is a date Leif
+        // published when he created the round, so it is an owner-stated
+        // Start Week. An individual Offer has none to snapshot, and its
+        // Start Week stays unset until Leif says it — never inferred from
+        // a booking, a Won date or a payment.
+        start_date_source: cohort?.program_start_at != null ? "owner" : null,
       },
     },
   );
