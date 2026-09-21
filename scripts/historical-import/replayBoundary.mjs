@@ -132,11 +132,16 @@ export const REVIEWED_DETERMINISTIC = {
   // Matched "a table of named real clients" on
   //   values ('Won', 'Probe', v_sales)
   // which is a synthetic Contact inserted inside a block the migration
-  // then rolls back. The migration owns a function definition and writes
-  // no business data at all; the row exists only to prove, at deploy time,
-  // that marking an Opportunity Won works for the role the browser
-  // actually uses — the exact thing that had silently stopped working.
-  20260921160000:
+  // then rolls back. The migration owns handle_deal_won()'s definition and
+  // writes no business data at all; the row exists only to prove, at
+  // deploy time, that marking an Opportunity Won works for the role the
+  // browser actually uses — the exact thing that had stopped working.
+  //
+  // This is the ISOLATED hotfix (20260921100000), already live on MAIN.
+  // The Capacity branch carried its own copy at 20260921160000; that one
+  // is gone, because two migrations repairing the same privilege boundary
+  // is how a later reader learns to distrust both.
+  20260921100000:
     "Synthetic Won probe, rolled back. Owns handle_deal_won()'s definition and no data.",
 
   // Matched "a table of named real clients" on

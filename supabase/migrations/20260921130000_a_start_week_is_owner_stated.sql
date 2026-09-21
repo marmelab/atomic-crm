@@ -105,6 +105,14 @@ update public.enrollments e
 CREATE OR REPLACE FUNCTION public.handle_deal_won()
  RETURNS trigger
  LANGUAGE plpgsql
+ -- SECURITY DEFINER carried forward from 20260921100000, deliberately.
+ -- That migration is the live production repair for
+ --   42501 permission denied for function seed_enrollment_onboarding
+ -- and this one redefines the same function AFTER it. Re-stating the body
+ -- without this line would silently revert the fix and stop every paid
+ -- sale creating its Enrollment again. See the assertion at the end of
+ -- this file, and contracts/capacity/wonStaysElevated.test.ts.
+ SECURITY DEFINER
  SET search_path TO 'public'
 AS $function$
 declare
@@ -167,3 +175,25 @@ begin
   return new;
 end;
 $function$;
+
+-- ---------------------------------------------------------------------------
+-- The privilege repair survives this migration
+-- ---------------------------------------------------------------------------
+-- This file redefines handle_deal_won() and applies after 20260921100000,
+-- which is what makes the check worth having: a redefinition that dropped
+-- SECURITY DEFINER would re-break every paid sale, and would do it
+-- silently, at deploy time, with no test failing.
+do $$
+begin
+  if not exists (
+    select 1
+      from pg_proc p
+      join pg_namespace n on n.oid = p.pronamespace
+     where n.nspname = 'public'
+       and p.proname = 'handle_deal_won'
+       and p.prosecdef
+  ) then
+    raise exception
+      'handle_deal_won() is no longer SECURITY DEFINER — this reverts the fix for 42501 on seed_enrollment_onboarding';
+  end if;
+end $$;
