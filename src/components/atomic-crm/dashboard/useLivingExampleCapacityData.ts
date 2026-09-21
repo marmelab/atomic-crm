@@ -52,6 +52,7 @@ export const useLivingExampleCapacityData = () => {
     capacity: computeLivingExampleCapacity(
       enrollments ?? [],
       offer.max_active_clients ?? null,
+      offer.duration_months ?? null,
     ),
   };
 };

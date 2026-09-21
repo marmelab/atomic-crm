@@ -1,7 +1,23 @@
 import { describe, expect, test } from "vitest";
 import { buildComingUpItems } from "./comingUpProjection";
 import type { CohortEvent } from "./cohortEvents";
-import type { UpcomingOpening } from "../programs/upcomingOpenings";
+import type { OpeningsMonth, SlotHolder } from "../capacity/individualCapacity";
+
+const holder = (name: string, id: number): SlotHolder => ({
+  enrollmentId: id,
+  contactId: id,
+  name,
+  status: "active",
+  startDate: "2026-06-30",
+  end: { date: "2026-10-30", basis: "projected" },
+});
+
+const openingsMonth = (
+  month: string,
+  freeing: SlotHolder[],
+  netAvailableAfter: number,
+  committing: SlotHolder[] = [],
+): OpeningsMonth => ({ month, freeing, committing, netAvailableAfter });
 
 const cohortEvent = (overrides: Partial<CohortEvent> = {}): CohortEvent => ({
   cohortId: 1,
@@ -15,12 +31,8 @@ const cohortEvent = (overrides: Partial<CohortEvent> = {}): CohortEvent => ({
 
 describe("buildComingUpItems", () => {
   test("sorts Living Example and Cohort events into one chronological list", () => {
-    const upcomingOpenings: UpcomingOpening[] = [
-      {
-        date: "2026-10-31",
-        count: 1,
-        clients: [{ contactId: 1, name: "Kathy Reyes" }],
-      },
+    const openingsMonths: OpeningsMonth[] = [
+      openingsMonth("2026-10", [holder("Kathy Reyes", 1)], 1),
     ];
     const cohortEvents: CohortEvent[] = [
       cohortEvent({ date: "2026-09-22", kind: "cohort_start" }),
@@ -29,14 +41,14 @@ describe("buildComingUpItems", () => {
 
     const items = buildComingUpItems({
       leOfferId: 1,
-      upcomingOpenings,
+      openingsMonths,
       cohortEvents,
       limit: 10,
     });
 
     expect(items.map((i) => i.date)).toEqual([
       "2026-09-22",
-      "2026-10-31",
+      "2026-10-01",
       "2026-11-10",
     ]);
   });
@@ -44,13 +56,7 @@ describe("buildComingUpItems", () => {
   test("one client completing produces exactly one Living Example event, not a separate opening row", () => {
     const items = buildComingUpItems({
       leOfferId: 1,
-      upcomingOpenings: [
-        {
-          date: "2026-10-31",
-          count: 1,
-          clients: [{ contactId: 1, name: "Kathy Reyes" }],
-        },
-      ],
+      openingsMonths: [openingsMonth("2026-10", [holder("Kathy Reyes", 1)], 1)],
       cohortEvents: [],
       limit: 10,
     });
@@ -63,18 +69,15 @@ describe("buildComingUpItems", () => {
     expect(item.openingCount).toBe(1);
   });
 
-  test("two same-date completions stay grouped as one event with count 2", () => {
+  test("two completions in one month stay grouped as one event with count 2", () => {
     const items = buildComingUpItems({
       leOfferId: 1,
-      upcomingOpenings: [
-        {
-          date: "2026-12-01",
-          count: 2,
-          clients: [
-            { contactId: 1, name: "Dave Kim" },
-            { contactId: 2, name: "Julia Chen" },
-          ],
-        },
+      openingsMonths: [
+        openingsMonth(
+          "2026-12",
+          [holder("Dave Kim", 1), holder("Julia Chen", 2)],
+          2,
+        ),
       ],
       cohortEvents: [],
       limit: 10,
@@ -90,13 +93,7 @@ describe("buildComingUpItems", () => {
   test("no Living Example events are produced when there is no LE Offer", () => {
     const items = buildComingUpItems({
       leOfferId: null,
-      upcomingOpenings: [
-        {
-          date: "2026-10-31",
-          count: 1,
-          clients: [{ contactId: 1, name: "Kathy Reyes" }],
-        },
-      ],
+      openingsMonths: [openingsMonth("2026-10", [holder("Kathy Reyes", 1)], 1)],
       cohortEvents: [],
       limit: 10,
     });
@@ -106,13 +103,7 @@ describe("buildComingUpItems", () => {
   test("Living Example destination points at the Program page's Upcoming Openings anchor", () => {
     const items = buildComingUpItems({
       leOfferId: 7,
-      upcomingOpenings: [
-        {
-          date: "2026-10-31",
-          count: 1,
-          clients: [{ contactId: 1, name: "Kathy Reyes" }],
-        },
-      ],
+      openingsMonths: [openingsMonth("2026-10", [holder("Kathy Reyes", 1)], 1)],
       cohortEvents: [],
       limit: 10,
     });
@@ -124,7 +115,7 @@ describe("buildComingUpItems", () => {
   test("Cohort event destination points at that Cohort's own page", () => {
     const items = buildComingUpItems({
       leOfferId: null,
-      upcomingOpenings: [],
+      openingsMonths: [],
       cohortEvents: [cohortEvent({ cohortId: 5 })],
       limit: 10,
     });
@@ -142,7 +133,7 @@ describe("buildComingUpItems", () => {
 
     const items = buildComingUpItems({
       leOfferId: null,
-      upcomingOpenings: [],
+      openingsMonths: [],
       cohortEvents,
       limit: 8,
     });
@@ -152,10 +143,46 @@ describe("buildComingUpItems", () => {
     expect(items[7]!.date).toBe("2026-09-08");
   });
 
+  test("a month whose departures are already spoken for is not announced as an opening", () => {
+    // Two clients finish in October and two already-agreed clients start
+    // in October. Nothing is free, so nothing is offered — announcing it
+    // would invite Leif to sell a slot he has already sold.
+    const items = buildComingUpItems({
+      leOfferId: 1,
+      openingsMonths: [
+        openingsMonth("2026-10", [holder("Adriano", 1), holder("Jess", 2)], 0, [
+          holder("Ava", 3),
+          holder("Denise", 4),
+        ]),
+        openingsMonth("2026-11", [holder("Gigi", 5)], 1),
+      ],
+      cohortEvents: [],
+      limit: 10,
+    });
+
+    expect(items).toHaveLength(1);
+    const item = items[0]!;
+    if (item.type !== "living_example_opening") throw new Error("unreachable");
+    expect(item.month).toBe("2026-11");
+  });
+
+  test("an opening carries the month it belongs to, not a day nobody promised", () => {
+    const items = buildComingUpItems({
+      leOfferId: 1,
+      openingsMonths: [openingsMonth("2026-10", [holder("Kathy Reyes", 1)], 1)],
+      cohortEvents: [],
+      limit: 10,
+    });
+    const item = items[0]!;
+    if (item.type !== "living_example_opening") throw new Error("unreachable");
+    expect(item.month).toBe("2026-10");
+    expect(item.date).toBe("2026-10-01");
+  });
+
   test("each Cohort event kind maps to a distinct item type", () => {
     const items = buildComingUpItems({
       leOfferId: null,
-      upcomingOpenings: [],
+      openingsMonths: [],
       cohortEvents: [
         cohortEvent({ kind: "applications_open", date: "2026-09-01" }),
         cohortEvent({ kind: "applications_close", date: "2026-09-02" }),

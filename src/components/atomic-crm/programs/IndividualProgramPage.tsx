@@ -2,29 +2,28 @@ import { useEffect } from "react";
 import { useTranslate } from "ra-core";
 import { useLocation, useParams } from "react-router";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
 
+import type { SlotHolder } from "../capacity/individualCapacity";
+import { monthLabel } from "../capacity/monthLabel";
 import { PageHeader, PersonCard, Section } from "../misc/ProgramLayout";
-import { formatMonthDayString } from "../deals/dealUtils";
+import { formatISODateString } from "../deals/dealUtils";
 import { enrollmentStatusLabels } from "../enrollments/enrollmentConstants";
 import { CopyApplicationLinkButton } from "../public-application/CopyApplicationLinkButton";
 import { LivingExampleApplicationPage } from "../public-application/LivingExampleApplicationPage";
 import { AddToWaitlistButton } from "../waitlist/AddToWaitlistButton";
 import { WaitlistSection } from "../waitlist/WaitlistSection";
 import { useWaitlistEntries } from "../waitlist/useWaitlistEntries";
+import { UpcomingOpeningsSection } from "./UpcomingOpeningsSection";
 import { useIndividualProgramData } from "./useIndividualProgramData";
 
-// The Living Example (or any future 1:1 Offer's) program page — §8-9 of the
-// Programs + Opportunity UX slice. A real user-facing page over the
-// existing Offer + Enrollment data, not a new "Program" table. Its visual
-// language (PageHeader/Section/PersonCard from misc/ProgramLayout.tsx) is
-// the reference the Runtime + Visual Consistency slice carries to the GYU
-// Cohort page and beyond.
+// The Living Example (or any future 1:1 Offer's) program page — a real
+// user-facing page over the existing Offer + Enrollment data, not a new
+// "Program" table.
 export const IndividualProgramPage = () => {
   const { offerId } = useParams();
   const location = useLocation();
   const translate = useTranslate();
-  const { isPending, offer, capacity, currentClients, upcomingOpenings } =
+  const { isPending, offer, capacity, futureOpenings } =
     useIndividualProgramData(offerId);
   const { isPending: waitlistPending, entries: waitlist } = useWaitlistEntries({
     offerId,
@@ -65,12 +64,30 @@ export const IndividualProgramPage = () => {
               {capacity?.active}
               {capacity?.max != null && <span> / {capacity.max}</span>}{" "}
               {translate("crm.dashboard.capacity_active", { _: "active" })}
-              {capacity?.openings != null && (
+              {capacity != null && capacity.overCapacityBy > 0 && (
+                <span className="text-destructive">
+                  {" · "}
+                  {translate("crm.dashboard.capacity_over", {
+                    _: "%{count} over capacity",
+                    count: capacity.overCapacityBy,
+                  })}
+                </span>
+              )}
+              {capacity?.overCapacityBy === 0 && capacity.openings != null && (
                 <span>
                   {" · "}
                   {translate("crm.dashboard.capacity_openings", {
                     _: "%{count} openings",
                     count: capacity.openings,
+                  })}
+                </span>
+              )}
+              {capacity != null && capacity.committed.length > 0 && (
+                <span>
+                  {" · "}
+                  {translate("crm.dashboard.capacity_committed", {
+                    _: "%{count} starting later",
+                    count: capacity.committed.length,
                   })}
                 </span>
               )}
@@ -91,7 +108,6 @@ export const IndividualProgramPage = () => {
             path={LivingExampleApplicationPage.path}
             label={offer.name}
           />
-          <AddToWaitlistButton offerId={offer.id} cohortId={null} />
         </div>
       </div>
 
@@ -100,7 +116,7 @@ export const IndividualProgramPage = () => {
           _: "Current Clients",
         })}
       >
-        {currentClients.length === 0 ? (
+        {capacity == null || capacity.occupied.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             {translate("crm.programs.no_current_clients", {
               _: "No current clients.",
@@ -108,73 +124,123 @@ export const IndividualProgramPage = () => {
           </p>
         ) : (
           <div className="flex flex-col gap-2">
-            {currentClients.map((client) => (
-              <PersonCard
-                key={client.enrollmentId}
-                contactId={client.contactId}
-                name={client.name}
-                trailing={
-                  <Badge variant="outline">
-                    {enrollmentStatusLabels[client.status]}
-                  </Badge>
-                }
-              />
+            {capacity.occupied.map((client) => (
+              <SlotPersonCard key={client.enrollmentId} client={client} />
             ))}
           </div>
         )}
       </Section>
 
-      <Section
-        id="upcoming-openings"
-        title={translate("crm.programs.upcoming_openings", {
-          _: "Upcoming Openings",
-        })}
-      >
-        {upcomingOpenings.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            {translate("crm.programs.no_upcoming_openings", {
-              _: "No upcoming openings.",
-            })}
-          </p>
-        ) : (
+      {/* Agreed and set up, not started. Kept visually separate from
+          Current Clients for the same reason the header no longer adds
+          them together: an obligation is not an occupancy. */}
+      {capacity != null && capacity.committed.length > 0 && (
+        <Section
+          title={translate("crm.programs.starting_later", {
+            _: "Starting Later",
+          })}
+        >
           <div className="flex flex-col gap-2">
-            {upcomingOpenings.map((opening) => (
-              <Card key={opening.date} className="p-0">
-                <CardContent className="px-4 py-2.5">
-                  <p className="text-sm font-medium">
-                    {formatMonthDayString(opening.date)}
-                    {" — "}
-                    {translate("crm.programs.opening_count", {
-                      _: "%{count} opening |||| %{count} openings",
-                      smart_count: opening.count,
-                      count: opening.count,
-                    })}
-                  </p>
-                  <p className="text-xs text-muted-foreground truncate">
-                    {opening.clients
-                      .map((client) =>
-                        translate("crm.programs.opening_completes", {
-                          _: "%{name} completes",
-                          name: client.name,
-                        }),
-                      )
-                      .join(", ")}
-                  </p>
-                </CardContent>
-              </Card>
+            {capacity.committed.map((client) => (
+              <SlotPersonCard key={client.enrollmentId} client={client} />
             ))}
           </div>
-        )}
-      </Section>
+        </Section>
+      )}
+
+      {futureOpenings != null && (
+        <UpcomingOpeningsSection futureOpenings={futureOpenings} />
+      )}
 
       <WaitlistSection
         entries={waitlist}
         offerId={offer.id}
         offerName={offer.name}
         cohortId={null}
+        // The waitlist is where Leif adds the person who just messaged him
+        // on Instagram, so the control belongs at the waitlist, not only
+        // in the page header three sections up.
+        action={<AddToWaitlistButton offerId={offer.id} cohortId={null} />}
+        // Availability, stated beside the people waiting for it, because
+        // the two questions are always asked together. It reports and
+        // never acts: nobody is invited, moved, or emailed from here.
+        availability={availabilityLine(capacity, translate)}
       />
     </div>
   );
+};
+
+const SlotPersonCard = ({ client }: { client: SlotHolder }) => {
+  const translate = useTranslate();
+  return (
+    <PersonCard
+      contactId={client.contactId}
+      // The CRM never invents a name; when it genuinely does not know
+      // one, it says so rather than rendering a blank row.
+      name={
+        client.name ||
+        translate("crm.programs.unnamed_client", { _: "an unnamed client" })
+      }
+      // The dates the row is about, said plainly: a recorded end gets its
+      // day, a worked-out one gets its month and the word "expected".
+      meta={
+        client.startDate
+          ? client.end.basis === "recorded"
+            ? translate("crm.programs.runs_until", {
+                _: "%{start} — ends %{end}",
+                start: formatISODateString(client.startDate),
+                end: formatISODateString(client.end.date!),
+              })
+            : client.end.basis === "projected"
+              ? translate("crm.programs.runs_expected", {
+                  _: "%{start} — expected to end %{month}",
+                  start: formatISODateString(client.startDate),
+                  month: monthLabel(client.end.date!.slice(0, 7)),
+                })
+              : translate("crm.programs.starts_only", {
+                  _: "Starts %{start}",
+                  start: formatISODateString(client.startDate),
+                })
+          : translate("crm.programs.no_start_recorded", {
+              _: "Start date not set",
+            })
+      }
+      trailing={
+        <Badge variant="outline">{enrollmentStatusLabels[client.status]}</Badge>
+      }
+    />
+  );
+};
+
+// One short sentence about whether there is room, for the top of the
+// waitlist. Deliberately a fact and nothing more — see Part I: who gets an
+// opening is Leif's decision, and this line never makes it.
+const availabilityLine = (
+  capacity: ReturnType<typeof useIndividualProgramData>["capacity"],
+  translate: ReturnType<typeof useTranslate>,
+): string | null => {
+  if (capacity == null || capacity.max == null) return null;
+  if (capacity.overCapacityBy > 0) {
+    return translate("crm.programs.waitlist_over_capacity", {
+      _: "%{active} of %{max} slots filled — %{over} over capacity.",
+      active: capacity.active,
+      max: capacity.max,
+      over: capacity.overCapacityBy,
+    });
+  }
+  if (capacity.openings != null && capacity.openings > 0) {
+    return translate("crm.programs.waitlist_openings_now", {
+      _: "%{count} opening now (%{active} of %{max} filled).",
+      count: capacity.openings,
+      active: capacity.active,
+      max: capacity.max,
+    });
+  }
+  return translate("crm.programs.waitlist_full", {
+    _: "Full — %{active} of %{max} slots filled.",
+    active: capacity.active,
+    max: capacity.max,
+  });
 };
 
 IndividualProgramPage.path = "/programs/individual/:offerId";

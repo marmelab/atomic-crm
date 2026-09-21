@@ -41,11 +41,31 @@ export const IndividualProgramCard = ({ offer }: { offer: Offer }) => {
               {translate("crm.dashboard.capacity_active", { _: "active" })}
             </span>
           </p>
-          {capacity.openings != null && (
+          {capacity.overCapacityBy > 0 ? (
+            <p className="text-sm text-destructive">
+              {translate("crm.dashboard.capacity_over", {
+                _: "%{count} over capacity",
+                count: capacity.overCapacityBy,
+              })}
+            </p>
+          ) : (
+            capacity.openings != null && (
+              <p className="text-sm text-muted-foreground">
+                {translate("crm.dashboard.capacity_openings", {
+                  _: "%{count} openings",
+                  count: capacity.openings,
+                })}
+              </p>
+            )
+          )}
+          {/* Agreed and not started. The hub shows the same two numbers
+              the Dashboard does, because a card that shows only occupancy
+              is the card that said "0 openings" with six people booked. */}
+          {capacity.committed.length > 0 && (
             <p className="text-sm text-muted-foreground">
-              {translate("crm.dashboard.capacity_openings", {
-                _: "%{count} openings",
-                count: capacity.openings,
+              {translate("crm.dashboard.capacity_committed", {
+                _: "%{count} starting later",
+                count: capacity.committed.length,
               })}
             </p>
           )}

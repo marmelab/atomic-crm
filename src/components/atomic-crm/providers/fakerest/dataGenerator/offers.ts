@@ -19,6 +19,9 @@ export const generateOffers = (): {
       name: "The Living Example",
       type: "individual",
       duration: "4 months",
+      // The same four months as a number — capacity maths reads this, not
+      // the display string above.
+      duration_months: 4,
       current_price: 4000,
       // Scholarship Pricing + Capacity slice: locked, Leif-approved total.
       scholarship_price: 3000,
@@ -32,6 +35,9 @@ export const generateOffers = (): {
       name: "Growing Yourself Up",
       type: "group",
       duration: "8 weeks",
+      // Null on purpose: GYU runs to its Cohort dates, not to a per-person
+      // month count.
+      duration_months: null,
       current_price: 1400,
       scholarship_price: 700,
       max_active_clients: null,

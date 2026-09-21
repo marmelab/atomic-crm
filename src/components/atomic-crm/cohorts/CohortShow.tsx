@@ -128,7 +128,6 @@ const CohortShowContent = () => {
             )}
             label={record.name}
           />
-          <AddToWaitlistButton offerId={record.offer_id} cohortId={record.id} />
           <EditButton />
         </div>
       </div>
@@ -229,6 +228,9 @@ const CohortShowContent = () => {
         offerName={offer?.name ?? ""}
         cohortId={record.id}
         cohortName={record.name}
+        action={
+          <AddToWaitlistButton offerId={record.offer_id} cohortId={record.id} />
+        }
       />
 
       <Section

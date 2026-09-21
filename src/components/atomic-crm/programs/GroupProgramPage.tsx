@@ -39,7 +39,6 @@ export const GroupProgramPage = () => {
     <div className="flex flex-col gap-8 mt-1 p-1 max-w-3xl">
       <div className="flex items-start justify-between gap-4">
         <PageHeader title={offer.name} summary={offer.duration} />
-        <AddToWaitlistButton offerId={offer.id} cohortId={null} />
       </div>
 
       <WaitlistSection
@@ -47,6 +46,7 @@ export const GroupProgramPage = () => {
         offerId={offer.id}
         offerName={offer.name}
         cohortId={null}
+        action={<AddToWaitlistButton offerId={offer.id} cohortId={null} />}
       />
 
       <Section

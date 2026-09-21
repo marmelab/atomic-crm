@@ -438,7 +438,34 @@ and full history against one side with a single Application and no email at
 all; no shared email, no shared Stripe customer, and no address anywhere in the
 orphan's answers. Nothing deterministic can settle them.
 
-Both are non-blocking.
+**Living Example dates the CRM cannot settle** (Capacity + Waitlist slice).
+Nothing below has been changed — each is a real record with a real person
+behind it, and the capacity maths reports what is recorded rather than what
+would make the numbers tidy:
+
+- **Four clients share a start date of 8 November** — Daniel Alexander,
+  Heidi Elias, Linda Turner, Emma Wijns. Linda's is owner-stated
+  (migration `20260918190000`, from Leif directly). The other three carry
+  the same date from the historical import. If any of them is a placeholder
+  rather than a real plan, it is moving four months of projected openings
+  with it.
+- **The practice is committed past twelve at the end of September.** Denise
+  Cormier starts on the 30th and the twelve current containers all project
+  past it, so the CRM shows September as *over-committed by one* rather than
+  inventing an early finish. Either somebody is finishing sooner than four
+  months, or thirteen is the real plan for a few weeks. Both are legitimate;
+  the CRM does not get to choose.
+- **No Living Example Enrollment has ever carried an end date.** Every
+  finish shown is `start + 4 months`, labelled "expected" and reported by
+  month, never by day. Recording a real end date on any container replaces
+  the projection for that person immediately.
+
+**Two waitlist Contacts named "Terra Israd"** (Contacts 212 and 213), both
+waiting on the January 2027 GYU cohort. Distinct Contact records, so the
+duplicate-membership guard cannot see them as the same person. Same class as
+the pairs above: merging them is a Leif decision, and merge never deletes.
+
+All are non-blocking.
 
 ---
 
@@ -462,6 +489,22 @@ Both are non-blocking.
   this machine. Proven pre-existing by running them against a clean checkout of
   HEAD; unrelated to application code, and out of scope until somebody chooses
   to look at the harness itself.
+
+**Deferred out of the Capacity + Waitlist slice, deliberately** — the maths
+and the waitlist had to become trustworthy before anything acted on them:
+
+- Mass-select + email waitlist people; automated waitlist email sequences;
+  a "spot opened" automatic send. The bulk-invite UI already exists behind
+  `waitlistInviteFeature.ts` and stays hidden until Gmail delivery is real —
+  a prepared batch must never be presented as though people were invited.
+- Automated prioritisation of which waitlisted person gets an opening.
+  **Opening availability is a fact; inviting someone is Leif's decision**, and
+  nothing in this slice narrows that.
+- The full Openings Planner. This slice built the arithmetic it will read.
+- Gmail and Instagram integration.
+- Broader application-page cleanup; the Application Received pipeline
+  lightbox.
+- Reliability Pass 2.
 
 ---
 

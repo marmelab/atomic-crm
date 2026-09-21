@@ -1,27 +1,24 @@
 import { useGetList, useGetMany, useGetOne, type Identifier } from "ra-core";
 
-import { computeLivingExampleCapacity } from "../dashboard/livingExampleCapacity";
+import {
+  computeFutureOpenings,
+  computeIndividualCapacity,
+  type SlotEnrollment,
+} from "../capacity/individualCapacity";
+import { contactDisplayName } from "../contacts/contactDisplayName";
 import type { Contact, Deal, Enrollment, Offer } from "../types";
-import { computeUpcomingOpenings } from "./upcomingOpenings";
 
-const ACTIVE_ENROLLMENT_STATUSES: ReadonlySet<Enrollment["status"]> = new Set([
-  "onboarding",
-  "active",
-  "offboarding",
-]);
-
-export type CurrentClient = {
-  enrollmentId: Identifier;
-  contactId: Identifier;
-  name: string;
-  status: Enrollment["status"];
-};
-
-// Backs the Living Example / any 1:1 Offer's program page (§8-9 of the
-// Programs + Opportunity UX slice): real Offer/Deal/Enrollment/Contact data
-// only, no hard-coded numbers or names. Generalized over `offerId` rather
-// than hardcoding "the" individual offer, so any future 1:1 program reuses
-// this same page.
+// Backs the Living Example / any 1:1 Offer's program page: real Offer/
+// Deal/Enrollment/Contact data only, no hard-coded numbers or names.
+// Generalized over `offerId` rather than hardcoding "the" individual
+// offer, so any future 1:1 program reuses this same page.
+//
+// It used to keep its own third copy of "which statuses are active",
+// status-only, and its own openings calculation that read end_date — a
+// column no Living Example Enrollment has ever carried, so the Upcoming
+// Openings section was permanently empty while six people were in fact
+// due to finish before Christmas. Both now come from capacity/, which is
+// the one place either question is answered.
 export const useIndividualProgramData = (offerId?: Identifier) => {
   const { data: offer, isPending: offerPending } = useGetOne<Offer>(
     "offers",
@@ -70,8 +67,7 @@ export const useIndividualProgramData = (offerId?: Identifier) => {
       isPending,
       offer: offer ?? null,
       capacity: null,
-      currentClients: [] as CurrentClient[],
-      upcomingOpenings: [] as ReturnType<typeof computeUpcomingOpenings>,
+      futureOpenings: null,
     };
   }
 
@@ -82,46 +78,28 @@ export const useIndividualProgramData = (offerId?: Identifier) => {
     (contacts ?? []).map((contact) => [String(contact.id), contact]),
   );
 
-  const nameForDeal = (dealId: Identifier) => {
-    const deal = dealById.get(String(dealId));
+  const withPerson = (enrollment: Enrollment): SlotEnrollment => {
+    const deal = dealById.get(String(enrollment.opportunity_id));
     const contact = deal ? contactById.get(String(deal.contact_id)) : null;
-    return contact ? `${contact.first_name} ${contact.last_name}` : "";
+    return {
+      ...enrollment,
+      contactId: deal?.contact_id ?? null,
+      // contactDisplayName never invents a name; an unnamed Contact shows
+      // as blank rather than as "#212" or a job title.
+      name: contactDisplayName(contact ?? null) ?? "",
+    };
   };
-  const contactIdForDeal = (dealId: Identifier): Identifier => {
-    const deal = dealById.get(String(dealId));
-    return deal?.contact_id ?? "";
-  };
 
-  const activeEnrollments = (enrollments ?? []).filter((enrollment) =>
-    ACTIVE_ENROLLMENT_STATUSES.has(enrollment.status),
-  );
-
-  const currentClients: CurrentClient[] = activeEnrollments
-    .map((enrollment) => ({
-      enrollmentId: enrollment.id,
-      contactId: contactIdForDeal(enrollment.opportunity_id),
-      name: nameForDeal(enrollment.opportunity_id),
-      status: enrollment.status,
-    }))
-    .sort((a, b) => a.name.localeCompare(b.name));
-
-  const upcomingOpenings = computeUpcomingOpenings(
-    activeEnrollments.map((enrollment) => ({
-      endDate: enrollment.end_date ?? null,
-      contactId: contactIdForDeal(enrollment.opportunity_id),
-      name: nameForDeal(enrollment.opportunity_id),
-    })),
-    new Date(),
+  const capacity = computeIndividualCapacity(
+    (enrollments ?? []).map(withPerson),
+    offer.max_active_clients ?? null,
+    offer.duration_months ?? null,
   );
 
   return {
     isPending: false,
     offer,
-    capacity: computeLivingExampleCapacity(
-      enrollments ?? [],
-      offer.max_active_clients ?? null,
-    ),
-    currentClients,
-    upcomingOpenings,
+    capacity,
+    futureOpenings: computeFutureOpenings(capacity),
   };
 };

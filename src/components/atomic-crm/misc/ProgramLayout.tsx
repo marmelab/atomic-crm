@@ -34,30 +34,38 @@ export const PageHeader = ({
 // for a Section nested under a more important heading of its own (e.g. a
 // Cohort's Section nested under its parent Offer's heading) — smaller and
 // muted, so the parent stays visually primary.
+// `action` puts a control on the heading row itself — the place a
+// section-level "+ Add…" button belongs, rather than in a page header far
+// above the list it acts on.
 export const Section = ({
   title,
   id,
   emphasis = "primary",
+  action,
   children,
 }: {
   title: string;
   id?: string;
   emphasis?: "primary" | "secondary";
+  action?: ReactNode;
   children: ReactNode;
 }) => (
   <div
     id={id}
     className={id ? "flex flex-col gap-3 scroll-mt-4" : "flex flex-col gap-3"}
   >
-    <h2
-      className={
-        emphasis === "secondary"
-          ? "text-base font-medium text-muted-foreground"
-          : "text-xl font-semibold"
-      }
-    >
-      {title}
-    </h2>
+    <div className="flex items-center justify-between gap-3">
+      <h2
+        className={
+          emphasis === "secondary"
+            ? "text-base font-medium text-muted-foreground"
+            : "text-xl font-semibold"
+        }
+      >
+        {title}
+      </h2>
+      {action}
+    </div>
     {children}
   </div>
 );
@@ -85,7 +93,10 @@ export const PersonCard = ({
   meta,
   trailing,
 }: {
-  contactId: string | number;
+  // Empty/null when the Opportunity carries no Contact — deals.contact_id
+  // is nullable, and a row that links to /contacts//show is worse than a
+  // row that simply does not link.
+  contactId: string | number | null | undefined;
   to?: string;
   name: string;
   meta?: ReactNode;
@@ -94,12 +105,17 @@ export const PersonCard = ({
   <Card className="p-0">
     <CardContent className="flex items-center justify-between gap-3 px-4 py-2.5">
       <div className="flex min-w-0 flex-col">
-        <Link
-          to={to ?? `/contacts/${contactId}/show`}
-          className="text-sm font-medium hover:underline truncate"
-        >
-          {name}
-        </Link>
+        {to ||
+        (contactId !== null && contactId !== undefined && contactId !== "") ? (
+          <Link
+            to={to ?? `/contacts/${contactId}/show`}
+            className="text-sm font-medium hover:underline truncate"
+          >
+            {name}
+          </Link>
+        ) : (
+          <span className="text-sm font-medium truncate">{name}</span>
+        )}
         {meta && (
           <span className="text-xs text-muted-foreground truncate">{meta}</span>
         )}

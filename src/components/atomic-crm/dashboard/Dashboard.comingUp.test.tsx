@@ -57,6 +57,7 @@ const livingExample: Offer = {
   name: "The Living Example",
   type: "individual",
   duration: "4 months",
+  duration_months: 4,
   current_price: 4000,
   max_active_clients: 12,
   is_active: true,
@@ -259,8 +260,18 @@ describe("Dashboard — Coming Up", () => {
     await expect
       .element(screen.getByText("Kathy Reyes completes"))
       .toBeInTheDocument();
+    // Twelve, not one.
+    //
+    // The count used to be the event's own delta — "Kathy leaves, so
+    // that is one opening" — computed with no reference to the rest of
+    // the practice. It is now what Leif can actually do: eleven slots are
+    // free already in this fixture, and Kathy's finish makes twelve.
+    //
+    // The delta was the number that let the dashboard say "0 openings"
+    // while six people were waiting to start. Capacity is a running
+    // total or it is not trustworthy.
     await expect
-      .element(screen.getByText("1 Living Example opening"))
+      .element(screen.getByText("12 Living Example openings"))
       .toBeInTheDocument();
     await expect
       .element(screen.getByText("September GYU Cohort starts"))

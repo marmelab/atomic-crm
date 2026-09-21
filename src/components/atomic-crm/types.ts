@@ -154,6 +154,14 @@ export type Offer = {
   // Only meaningful for individual offers; group offers manage capacity
   // per-Cohort instead.
   max_active_clients?: number | null;
+  // Programme length in whole months, for deriving when a client is
+  // expected to finish. `duration` above is free text for display;
+  // capacity maths reads this, because an Offer edited to say "Four
+  // months" must not silently stop projecting end dates. Null when the
+  // length is not whole months — a cohort Offer runs to its Cohort dates,
+  // and the legacy 1:1 Offer genuinely varied — and yields an "unknown"
+  // projected end rather than an invented one.
+  duration_months?: number | null;
   is_active: boolean;
   // Acuity/Sales Call Lifecycle slice: only meaningful for an individual
   // Offer (e.g. The Living Example) — a group Offer maps per-Cohort

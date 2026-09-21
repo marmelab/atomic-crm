@@ -1,6 +1,6 @@
 import type { Identifier } from "ra-core";
 
-import type { UpcomingOpening } from "../programs/upcomingOpenings";
+import type { OpeningsMonth } from "../capacity/individualCapacity";
 import type { CohortEvent } from "./cohortEvents";
 
 // Next Up / Coming Up (Dashboard temporal-intelligence slice, §14): the
@@ -14,7 +14,8 @@ export type NextUpItem =
   | {
       id: string;
       type: "living_example_opening";
-      date: string; // YYYY-MM-DD
+      date: string; // YYYY-MM-01 — the month, positioned for sorting
+      month: string; // YYYY-MM
       destination: string;
       clientNames: string[];
       openingCount: number;
@@ -49,36 +50,45 @@ const cohortEventKindToItemType: Record<
   cohort_end: "cohort_end",
 };
 
-// Combines the Living Example openings (reusing programs/
-// upcomingOpenings.ts's own grouping — never recomputed here) and Cohort
+// Combines the Living Example openings (reusing capacity/
+// individualCapacity.ts's own grouping — never recomputed here) and Cohort
 // events into ONE chronological projection, nearest first, capped to
 // `limit` (§12/§19: "the next 6-10 meaningful business events", not a
 // dumped year of dates). Each underlying fact produces exactly one row —
 // see this slice's report for the dedupe rules this depends on upstream
-// (computeUpcomingOpenings already merges same-day completions into one
+// (computeFutureOpenings already merges a month's completions into one
 // event; Tasks are never projected here at all).
+//
+// Only months that actually leave a slot free appear. A month where two
+// clients finish and two already-booked clients start frees nothing, and
+// announcing it as an opening would invite Leif to sell a slot twice.
 export const buildComingUpItems = ({
   leOfferId,
-  upcomingOpenings,
+  openingsMonths,
   cohortEvents,
   limit,
 }: {
   leOfferId: Identifier | null;
-  upcomingOpenings: UpcomingOpening[];
+  openingsMonths: OpeningsMonth[];
   cohortEvents: CohortEvent[];
   limit: number;
 }): NextUpItem[] => {
   const leItems: NextUpItem[] =
     leOfferId == null
       ? []
-      : upcomingOpenings.map((opening) => ({
-          id: `le-opening-${opening.date}`,
-          type: "living_example_opening",
-          date: opening.date,
-          destination: `/programs/individual/${leOfferId}#upcoming-openings`,
-          clientNames: opening.clients.map((client) => client.name),
-          openingCount: opening.count,
-        }));
+      : openingsMonths
+          .filter((month) => month.netAvailableAfter > 0)
+          .map((month) => ({
+            id: `le-opening-${month.month}`,
+            type: "living_example_opening",
+            // A projection is a month, not a day — it sorts from the
+            // month's first day and renders as the month.
+            date: `${month.month}-01`,
+            month: month.month,
+            destination: `/programs/individual/${leOfferId}#upcoming-openings`,
+            clientNames: month.freeing.map((holder) => holder.name),
+            openingCount: month.netAvailableAfter,
+          }));
 
   const cohortItems: NextUpItem[] = cohortEvents.map((event) => ({
     id: `cohort-${event.cohortId}-${event.kind}`,

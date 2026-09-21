@@ -2,6 +2,7 @@ import { useTranslate } from "ra-core";
 import { Link } from "react-router";
 import { Card, CardContent } from "@/components/ui/card";
 
+import { monthLabel } from "../capacity/monthLabel";
 import { formatMonthDayString } from "../deals/dealUtils";
 import { getDenverDateString } from "./artOracle/selectDailyArtwork";
 import type { NextUpItem } from "./comingUpProjection";
@@ -51,17 +52,22 @@ export const ComingUp = () => {
 const ComingUpRow = ({ item }: { item: NextUpItem }) => {
   const translate = useTranslate();
   const { title, detail } = comingUpRowText(item, translate);
+  // A Living Example opening is a projection, so it is dated to its month
+  // and labelled as one. Everything else here is a date somebody actually
+  // set, and keeps its day.
   const dateLabel =
-    item.date === getDenverDateString()
-      ? translate("crm.dashboard.coming_up_today", { _: "Today" })
-      : formatMonthDayString(item.date);
+    item.type === "living_example_opening"
+      ? monthLabel(item.month)
+      : item.date === getDenverDateString()
+        ? translate("crm.dashboard.coming_up_today", { _: "Today" })
+        : formatMonthDayString(item.date);
 
   return (
     <Link
       to={item.destination}
       className="flex items-start gap-3 px-4 py-2.5 hover:bg-accent/50 transition-colors"
     >
-      <span className="text-xs text-muted-foreground w-12 shrink-0 pt-0.5">
+      <span className="text-xs text-muted-foreground w-20 shrink-0 pt-0.5">
         {dateLabel}
       </span>
       <div className="flex min-w-0 flex-col">

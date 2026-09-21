@@ -1,55 +1,61 @@
-import type { Enrollment } from "../types";
-
-// Enrollment lifecycle statuses that occupy a Living Example client slot.
-// Mirrors cohorts/cohortCapacity.ts's ACTIVE_ENROLLMENT_STATUSES exactly —
-// "Completed" never occupies capacity, here or there.
-const ACTIVE_ENROLLMENT_STATUSES: ReadonlySet<Enrollment["status"]> = new Set([
-  "onboarding",
-  "active",
-  "offboarding",
-]);
+// The dashboard's view of an individual Offer's capacity.
+//
+// This file used to hold its own copy of "active" — a set of three status
+// strings, dates ignored. It was one of three such copies, and the reason
+// the dashboard reported "18 / 12 active · 0 openings" from the same rows
+// the Clients list was correctly showing as twelve current clients and six
+// people who had not started yet.
+//
+// There is one rule now, in capacity/slotOccupancy.ts, and everything
+// asks it. What remains here is only the shaping the dashboard card needs.
+import {
+  computeFutureOpenings,
+  computeIndividualCapacity,
+  type IndividualCapacity,
+  type SlotEnrollment,
+} from "../capacity/individualCapacity";
 
 export type NextOpening = {
-  date: string;
-  // How many active Enrollments end in the same calendar month as `date`.
-  countInMonth: number;
+  // YYYY-MM of the first month in which a slot actually becomes free.
+  month: string;
+  // Slots free once that month's departures AND its already-agreed
+  // arrivals have both happened. Never a promise Leif has already made to
+  // somebody else.
+  count: number;
 };
 
-export type LivingExampleCapacity = {
-  active: number;
-  max: number | null;
-  openings: number | null;
+export type LivingExampleCapacity = IndividualCapacity & {
   nextOpening: NextOpening | null;
+  // Agreed, set up, not started. Shown as its own number because it is a
+  // different fact from "active", and conflating them is what broke this
+  // card.
+  committedCount: number;
 };
 
-// Pure so the "how full is my 1:1 practice" math is unit-testable without a
-// data provider. `now` is injectable for deterministic tests.
 export const computeLivingExampleCapacity = (
-  enrollments: Pick<Enrollment, "status" | "end_date">[],
+  enrollments: SlotEnrollment[],
   max: number | null,
+  durationMonths: number | null,
   now: Date = new Date(),
 ): LivingExampleCapacity => {
-  const activeEnrollments = enrollments.filter((enrollment) =>
-    ACTIVE_ENROLLMENT_STATUSES.has(enrollment.status),
+  const capacity = computeIndividualCapacity(
+    enrollments,
+    max,
+    durationMonths,
+    now,
   );
-  const active = activeEnrollments.length;
-  const openings = max != null ? Math.max(max - active, 0) : null;
+  const { months } = computeFutureOpenings(capacity, now);
 
-  const futureEndDates = activeEnrollments
-    .map((enrollment) => enrollment.end_date)
-    .filter((date): date is string => !!date)
-    .filter((date) => new Date(date) >= now)
-    .sort();
+  // The first month that leaves Leif with somewhere to put somebody. A
+  // month where two clients finish and two others start frees nothing, and
+  // saying otherwise would invite him to sell a slot twice.
+  const firstFree = months.find((month) => month.netAvailableAfter > 0);
 
-  let nextOpening: NextOpening | null = null;
-  if (futureEndDates.length > 0) {
-    const earliest = futureEndDates[0]!;
-    const earliestMonth = earliest.slice(0, 7); // YYYY-MM
-    const countInMonth = futureEndDates.filter(
-      (date) => date.slice(0, 7) === earliestMonth,
-    ).length;
-    nextOpening = { date: earliest, countInMonth };
-  }
-
-  return { active, max, openings, nextOpening };
+  return {
+    ...capacity,
+    committedCount: capacity.committed.length,
+    nextOpening: firstFree
+      ? { month: firstFree.month, count: firstFree.netAvailableAfter }
+      : null,
+  };
 };

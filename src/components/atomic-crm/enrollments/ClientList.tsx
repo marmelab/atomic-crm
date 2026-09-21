@@ -10,6 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { ReferenceField } from "@/components/admin/reference-field";
 
+import { monthLabel } from "../capacity/monthLabel";
+import { projectedEndDate } from "../capacity/projectedEnd";
 import { formatISODateString } from "../deals/dealUtils";
 import { enrollmentStatusLabels } from "./enrollmentConstants";
 import type { ClientRow, CohortGroup } from "./useClientsGrouped";
@@ -180,15 +182,31 @@ const CollapsedGroup = ({
 );
 
 // The container's dates belong on the row. Leif should not have to open a
-// client to find out when their programme runs, and an unset end date says
-// so rather than being left blank or invented.
+// client to find out when their programme runs.
+//
+// Every Living Example row used to read "End date not set", because no LE
+// Enrollment has ever carried an end_date — twelve current clients, twelve
+// blanks, and no way to see who was finishing first. The programme is four
+// months long, so the month is derivable, and it is shown as what it is.
+//
+// A date somebody wrote down gets a day. A month the CRM worked out gets a
+// month, and says "Expected". The CRM never prints a projected day: the
+// arithmetic is exact, the premise behind it is not, and a precise-looking
+// date is the kind of thing a person plans around.
 const containerDates = (row: ClientRow): string => {
   const start = row.enrollment.start_date
     ? `Starts ${formatISODateString(row.enrollment.start_date)}`
     : "Start date not set";
-  const end = row.enrollment.end_date
-    ? `Ends ${formatISODateString(row.enrollment.end_date)}`
-    : "End date not set";
+  const projected = projectedEndDate(
+    row.enrollment,
+    row.offer?.duration_months ?? null,
+  );
+  const end =
+    projected.basis === "recorded"
+      ? `Ends ${formatISODateString(projected.date!)}`
+      : projected.basis === "projected"
+        ? `Expected to end ${monthLabel(projected.date!.slice(0, 7))}`
+        : "End date not set";
   return `${start} · ${end}`;
 };
 

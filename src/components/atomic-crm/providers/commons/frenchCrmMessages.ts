@@ -778,8 +778,9 @@ export const frenchCrmMessages = {
         "Un aperçu rapide de la capacité client et des programmes en cours.",
       capacity_active: "actifs",
       capacity_openings: "%{count} places disponibles",
-      next_opening: "Prochaine place : %{date}",
-      next_openings_in_month: "%{count} places disponibles en %{month}",
+      capacity_over: "%{count} au-dessus de la capacité",
+      capacity_committed: "%{count} à venir",
+      next_opening_month: "Prochaine place : %{month}",
       capacity_enrolled: "inscrits",
       seats_remaining: "%{count} places restantes",
       people_deciding_count:
@@ -872,8 +873,24 @@ export const frenchCrmMessages = {
       no_current_clients: "Aucun client actuel.",
       upcoming_openings: "Prochaines places disponibles",
       no_upcoming_openings: "Aucune place à venir.",
+      opening_over_committed:
+        "%{count} de plus commencent qu'il n'y a de place",
+      opening_starts: "%{names} déjà prévus au démarrage",
+      openings_unknown_end:
+        "Non inclus : %{names} — aucune date de fin, et aucune durée de programme permettant de la calculer.",
+      unnamed_client: "un client sans nom",
+      starting_later: "À venir",
+      runs_until: "%{start} — se termine le %{end}",
+      runs_expected: "%{start} — fin prévue en %{month}",
+      starts_only: "Début le %{start}",
+      no_start_recorded: "Date de début non renseignée",
+      waitlist_openings_now:
+        "%{count} place disponible maintenant (%{active} sur %{max} occupées).",
+      waitlist_full: "Complet — %{active} places sur %{max} occupées.",
+      waitlist_over_capacity:
+        "%{active} places sur %{max} occupées — %{over} au-dessus de la capacité.",
       opening_count: "%{count} place |||| %{count} places",
-      opening_completes: "%{name} termine",
+      opening_completes: "%{names} devraient terminer",
       individual_not_found: "Ce programme est introuvable.",
       group_not_found: "Ce programme est introuvable.",
       cohorts_section: "Cohortes",

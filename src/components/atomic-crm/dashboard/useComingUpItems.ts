@@ -20,7 +20,8 @@ const MAX_ITEMS = 8;
 // upcomingOpenings is not recomputed here), Cohorts via one list query plus
 // one Deals query and one Enrollments query scoped to those Cohorts'
 // Opportunities (computeEnrolledCountByCohort aggregates all of them in one
-// pass — never one useCohortCapacity call per Cohort).
+// pass — never one useCohortCapacity call per Cohort). Its openings months
+// are not recomputed here.
 export const useComingUpItems = (): {
   isPending: boolean;
   items: NextUpItem[];
@@ -38,7 +39,7 @@ export const useComingUpItems = (): {
   // name/id.
   const leOffer = offers?.find((offer) => offer.max_active_clients != null);
 
-  const { isPending: leProgramPending, upcomingOpenings } =
+  const { isPending: leProgramPending, futureOpenings } =
     useIndividualProgramData(leOffer?.id);
 
   const { data: cohorts, isPending: cohortsPending } = useGetList<Cohort>(
@@ -96,7 +97,7 @@ export const useComingUpItems = (): {
 
     return buildComingUpItems({
       leOfferId: leOffer?.id ?? null,
-      upcomingOpenings: leOffer ? upcomingOpenings : [],
+      openingsMonths: leOffer ? (futureOpenings?.months ?? []) : [],
       cohortEvents,
       limit: MAX_ITEMS,
     });
@@ -106,7 +107,7 @@ export const useComingUpItems = (): {
     cohortDeals,
     cohortEnrollments,
     leOffer,
-    upcomingOpenings,
+    futureOpenings,
   ]);
 
   return { isPending, items };

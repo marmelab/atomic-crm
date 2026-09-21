@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { useTranslate, type Identifier } from "ra-core";
 import { Link } from "react-router";
 import { Search, X } from "lucide-react";
@@ -48,6 +48,16 @@ export const WaitlistSection = ({
   // Defaults to the feature flag; an explicit value lets tests exercise
   // both the production (hidden) and post-Gmail (visible) states.
   enableBulkInvite = isBulkInviteDeliveryEnabled(),
+  // A control rendered with the section heading — "+ Add to Waitlist".
+  // Leif adds people who arrive through Instagram by hand, several at a
+  // time, and the button for it lived only in the page header, three
+  // sections above the list it adds to.
+  action,
+  // One short factual sentence about whether there is room, shown above
+  // the list because "who is waiting" and "is there space" are always
+  // asked together. It states and never acts: no invitation, no move, no
+  // email follows from reading it.
+  availability = null,
 }: {
   entries: WaitlistEntryRow[];
   // Optional so a caller that has not been given batch-invite context yet
@@ -57,6 +67,8 @@ export const WaitlistSection = ({
   cohortId?: Identifier | null;
   cohortName?: string | null;
   enableBulkInvite?: boolean;
+  action?: ReactNode;
+  availability?: string | null;
 }) => {
   const translate = useTranslate();
   const [expanded, setExpanded] = useState(false);
@@ -123,7 +135,10 @@ export const WaitlistSection = ({
   })} · ${entries.length}`;
 
   return (
-    <Section title={title}>
+    <Section title={title} action={action}>
+      {availability && (
+        <p className="text-sm text-muted-foreground -mt-1">{availability}</p>
+      )}
       {canInvite && invitableEntries.length > 0 && (
         <div className="mb-2 flex items-center justify-between gap-3">
           <Button
