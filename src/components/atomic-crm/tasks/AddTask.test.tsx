@@ -99,13 +99,32 @@ describe("AddTask", () => {
       .fill("Follow up about payment plan");
 
     const saveButton = screen.getByRole("button", { name: "Save" });
-    // Two clicks fired concurrently (not sequenced one-mutation-then-the-
-    // next) — the real shape of a duplicate-click race. react-hook-form's
-    // own isSubmitting flips the button to `disabled` synchronously with
-    // the first click, before the second can be handled as a second
-    // submit.
-    await Promise.all([saveButton.click(), saveButton.click()]);
+    const saveElement = (await saveButton.element()) as HTMLButtonElement;
 
+    // A real double click: two events, in two ticks, with the product
+    // given the chance to react to the first — which is the whole
+    // mechanism under test.
+    //
+    // This used to be Promise.all([saveButton.click(), saveButton.click()])
+    // and could only pass by winning a race against the behaviour it was
+    // checking. The driver's click waits for the element to be "visible,
+    // enabled and stable", and the first submit is what disables the
+    // button — so the second click waited on a button the product had
+    // correctly just disabled, retried until the dialog closed, and failed
+    // with "element was detached from the DOM". On a fast machine the
+    // second click sometimes landed first and it passed.
+    saveElement.click();
+
+    // The named guarantee, waited for rather than raced: the button takes
+    // itself out of service. Nothing here assumes WHEN React flushes that
+    // — only that it does.
+    await expect.element(saveButton).toBeDisabled();
+
+    // Now the second click, dispatched raw so it is never gated on
+    // actionability. It lands on a disabled button and the DOM drops it.
+    // If the guard ever regressed this event would reach the handler and
+    // create a second Task, so the assertion below still catches it.
+    saveElement.click();
     await expect
       .poll(async () => {
         const { data } = await dataProvider!.getList("tasks", {

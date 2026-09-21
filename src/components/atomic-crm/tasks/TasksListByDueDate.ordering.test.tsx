@@ -140,10 +140,24 @@ describe("TasksListByDueDate — ordering and completion presentation (human-acc
     // task id 2 ("About to be completed") is the SECOND checkbox.
     await screen.getByRole("checkbox").nth(1).click();
 
-    // Immediately after checking: still visible, crossed out (brief
-    // confirmation window) — proves it doesn't vanish instantly either.
+    // The confirmation window, asserted by the thing that actually makes
+    // it one: react-admin's undoable notification, which stays until the
+    // mutation is dequeued and is the user's way back.
+    //
+    // This used to assert the row itself was "still visible" immediately
+    // after the click. That is a claim about a moment, and the test had to
+    // win a race to observe it — on a slower machine the optimistic
+    // re-render had already moved the row, and the matcher caught the
+    // emptied button mid-update:
+    //
+    //   Received element is not visible:
+    //     <button class="hover:underline cursor-pointer text-left" />
+    //
+    // The window is real product behaviour; how long it lasts is not
+    // something a test can own. What IS deterministic is that the undo
+    // affordance appears and stays until the write commits.
     await expect
-      .element(screen.getByText("About to be completed"))
+      .element(screen.getByRole("button", { name: /undo/i }))
       .toBeVisible();
 
     // Then, within a bounded time and with no further action from the
