@@ -4,7 +4,6 @@ import {
   Form,
   useDataProvider,
   useGetIdentity,
-  useGetRecordRepresentation,
   useNotify,
   useRecordContext,
   useTranslate,
@@ -28,6 +27,7 @@ import {
 } from "@/components/ui/tooltip";
 
 import type { Contact } from "../types";
+import { contactDisplayName } from "../contacts/contactDisplayName";
 import { TaskFormContent } from "./TaskFormContent";
 
 export const AddTask = ({
@@ -56,7 +56,26 @@ export const AddTask = ({
   const handleOpen = () => {
     setOpen(true);
   };
-  const getContactRepresentation = useGetRecordRepresentation("contacts");
+  // The dialog's own title, from the Contact we already hold.
+  //
+  // This used to ask useGetRecordRepresentation("contacts"), which reads
+  // the resource definition out of React Admin's registry. The registry
+  // fills in as the <Resource> tree mounts, and until the `contacts` entry
+  // lands ra-core falls back to its documented default — `#${record.id}`.
+  // Open this dialog before that moment and the title said
+  //
+  //     Create task for #1
+  //
+  // instead of the person's name. Worse, the representation is captured in
+  // a useCallback, so the title never corrected itself afterwards.
+  //
+  // The Contact is right here: ClientShow passes it as a prop, and
+  // everywhere else it comes off record context. contactDisplayName is
+  // what the rest of the CRM already uses, and it never invents a name —
+  // when the CRM genuinely does not know what somebody is called it
+  // returns null, and the title falls back to the same plain "Create task"
+  // the contact-picker variant shows. A wrong name is worse than no name.
+  const contactName = contactDisplayName(contact);
 
   const handleSuccess = async (data: any) => {
     setOpen(false);
@@ -127,9 +146,9 @@ export const AddTask = ({
             <Form className="flex flex-col gap-4">
               <DialogHeader>
                 <DialogTitle>
-                  {!selectContact
+                  {!selectContact && contactName
                     ? translate("resources.tasks.dialog.create_for", {
-                        name: getContactRepresentation(contact!),
+                        name: contactName,
                       })
                     : translate("resources.tasks.dialog.create")}
                 </DialogTitle>
