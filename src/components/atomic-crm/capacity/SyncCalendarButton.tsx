@@ -42,12 +42,25 @@ export const SyncCalendarButton = ({
     }
     notify(
       translate("crm.programs.sync_calendar_done", {
-        _: "Year Tracking synced: %{upserted} weeks read, %{assigned} session weeks assigned.",
+        _: "Year Tracking synced: %{upserted} weeks read, %{assigned} session weeks added, %{renumbered} renumbered.",
         upserted: result.windowsUpserted,
         assigned: result.assignmentsCreated,
+        renumbered: result.slotsRenumbered,
       }),
       { type: "info" },
     );
+    if (result.slotsRetiredWithHistory > 0) {
+      // A week left somebody's schedule while carrying a decision Leif
+      // made about it. The row is kept, never deleted — but he should
+      // know, because it is the one case the rebuild cannot settle alone.
+      notify(
+        translate("crm.programs.sync_calendar_retired", {
+          _: "%{count} session weeks left a schedule while carrying your own notes. They are kept for you to review.",
+          count: result.slotsRetiredWithHistory,
+        }),
+        { type: "warning" },
+      );
+    }
     if (stillShortFor && stillShortFor > 0) {
       notify(
         translate("crm.programs.sync_calendar_still_short", {

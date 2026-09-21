@@ -491,6 +491,7 @@ $$;
 CREATE OR REPLACE FUNCTION public.handle_deal_won()
  RETURNS trigger
  LANGUAGE plpgsql
+ SECURITY DEFINER
  SET search_path TO 'public'
 AS $function$
 declare

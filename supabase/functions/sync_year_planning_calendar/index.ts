@@ -4,7 +4,7 @@ import { corsHeaders, OptionsMiddleware } from "../_shared/cors.ts";
 import { createErrorResponse } from "../_shared/utils.ts";
 import { supabaseAdmin } from "../_shared/supabaseAdmin.ts";
 import { syncExpectedSessionWindows } from "./syncExpectedSessionWindows.ts";
-import { assignEnrollmentExpectedSessions } from "./assignEnrollmentExpectedSessions.ts";
+import { rebuildEnrollmentExpectedSessions } from "./rebuildEnrollmentExpectedSessions.ts";
 import { detectClientSessionCadenceIssues } from "./detectClientSessionCadenceIssues.ts";
 
 // Client + Session Operations cadence correction — the read-only Google
@@ -57,7 +57,7 @@ import { detectClientSessionCadenceIssues } from "./detectClientSessionCadenceIs
 // Never logged, never echoed back in any response.
 //
 // Three steps, in order, every run: (1) syncExpectedSessionWindows
-// upserts the shared calendar windows; (2) assignEnrollmentExpectedSessions
+// upserts the shared calendar windows; (2) the session-week rebuild
 // turns those into each active Enrollment's own frozen, sequential
 // 12-slot Service Period cadence (append-only — see its own header for
 // why calendar edits/deletions never reshuffle an already-assigned
@@ -113,7 +113,12 @@ const runSync = async () => {
     );
   }
 
-  const assignment = await assignEnrollmentExpectedSessions();
+  // Rebuild, not append. The calendar the previous step just refreshed
+  // IS the schedule authority, so every live container is recomputed
+  // from it and from its owner-stated Start Date. Leaving already-
+  // assigned weeks alone was what allowed a corrected Start Date to
+  // produce a capacity board and a session plan that disagreed.
+  const assignment = await rebuildEnrollmentExpectedSessions();
   const detection = await detectClientSessionCadenceIssues();
 
   return { syncResults, assignment, detection };
@@ -123,6 +128,24 @@ Deno.serve(async (req: Request) =>
   OptionsMiddleware(req, async (req) => {
     if (req.method !== "POST") {
       return createErrorResponse(405, "Method Not Allowed");
+    }
+
+    // Two legitimate callers, and neither may impersonate the other.
+    //
+    // The scheduled job carries the shared cron secret, because pg_net
+    // has no user session. Leif pressing Sync Calendar carries his own
+    // Supabase JWT and no secret at all — the browser must never hold
+    // one. Either proves the caller; nothing else does.
+    const authorization = req.headers.get("Authorization") ?? "";
+    if (authorization.startsWith("Bearer ")) {
+      const { data, error } = await supabaseAdmin.auth.getUser(
+        authorization.slice("Bearer ".length),
+      );
+      if (error || !data?.user) {
+        return createErrorResponse(401, "Unauthorized");
+      }
+      const result = await runSync();
+      return jsonResponse(result);
     }
 
     const cronSecret = Deno.env.get("CRON_INVOKE_SECRET");

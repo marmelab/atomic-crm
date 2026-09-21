@@ -885,7 +885,9 @@ export const frenchCrmMessages = {
       sync_calendar_running: "Synchronisation…",
       sync_calendar_last: "Dernière synchronisation %{when}",
       sync_calendar_done:
-        "Year Tracking synchronisé : %{upserted} semaines lues, %{assigned} semaines de séance attribuées.",
+        "Year Tracking synchronisé : %{upserted} semaines lues, %{assigned} semaines de séance ajoutées, %{renumbered} renumérotées.",
+      sync_calendar_retired:
+        "%{count} semaines de séance ont quitté un planning tout en portant vos propres notes. Elles sont conservées pour révision.",
       sync_calendar_still_short:
         "%{count} clients n'ont toujours pas de date de fin — Year Tracking n'atteint pas encore leur douzième semaine de séance.",
       openings_need_calendar:

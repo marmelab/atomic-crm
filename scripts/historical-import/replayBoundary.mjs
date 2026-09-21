@@ -130,6 +130,16 @@ export const REVIEW_THRESHOLD = 2;
  */
 export const REVIEWED_DETERMINISTIC = {
   // Matched "a table of named real clients" on
+  //   values ('Won', 'Probe', v_sales)
+  // which is a synthetic Contact inserted inside a block the migration
+  // then rolls back. The migration owns a function definition and writes
+  // no business data at all; the row exists only to prove, at deploy time,
+  // that marking an Opportunity Won works for the role the browser
+  // actually uses — the exact thing that had silently stopped working.
+  20260921160000:
+    "Synthetic Won probe, rolled back. Owns handle_deal_won()'s definition and no data.",
+
+  // Matched "a table of named real clients" on
   //   values ('Zz', 'Exit Probe', now(), now())
   // which is a synthetic Contact, inserted inside a subtransaction that
   // the block then rolls back. The migration owns a function definition

@@ -879,7 +879,9 @@ export const englishCrmMessages = {
       sync_calendar_running: "Syncing…",
       sync_calendar_last: "Last synced %{when}",
       sync_calendar_done:
-        "Year Tracking synced: %{upserted} weeks read, %{assigned} session weeks assigned.",
+        "Year Tracking synced: %{upserted} weeks read, %{assigned} session weeks added, %{renumbered} renumbered.",
+      sync_calendar_retired:
+        "%{count} session weeks left a schedule while carrying your own notes. They are kept for you to review.",
       sync_calendar_still_short:
         "%{count} clients still have no end date — Year Tracking does not yet reach their twelfth session week.",
       openings_need_calendar:
