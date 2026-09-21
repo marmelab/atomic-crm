@@ -44,12 +44,32 @@ export default defineConfig({
             commands: {
               // Uses Chrome DevTools Protocol to override the timezone at runtime,
               // since process.env.TZ has no effect in a real browser environment.
+              //
+              // The session is deliberately NOT detached. Emulation overrides
+              // live for the lifetime of the CDP session that set them, so
+              // detaching immediately reverted the timezone before the test
+              // could observe it — the command was a no-op that reported
+              // success. Every test that "forced" a timezone was in fact
+              // running in whatever timezone the machine already had, which
+              // is why they passed on a Denver laptop and failed in CI: the
+              // forcing was never needed locally and never worked anywhere
+              // else. Proven with a probe that read Intl before and after
+              // and saw UTC both times.
+              //
+              // One session per page is kept and reused, so repeated calls
+              // do not leak sessions.
               async setTimezone({ context, page }, timezoneId: string) {
-                const session = await context.newCDPSession(page);
-                await session.send("Emulation.setTimezoneOverride", {
-                  timezoneId,
-                });
-                await session.detach();
+                const pageWithSession = page as typeof page & {
+                  __timezoneCdpSession?: Awaited<
+                    ReturnType<typeof context.newCDPSession>
+                  >;
+                };
+                pageWithSession.__timezoneCdpSession ??=
+                  await context.newCDPSession(page);
+                await pageWithSession.__timezoneCdpSession.send(
+                  "Emulation.setTimezoneOverride",
+                  { timezoneId },
+                );
               },
             },
           },
