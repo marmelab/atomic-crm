@@ -15,6 +15,7 @@ import { Card, CardContent } from "@/components/ui/card";
 
 import type { CrmDataProvider } from "../providers/types";
 import type { Sale, SalesFormData } from "../types";
+import { getSalesErrorNotification } from "./salesErrorNotification";
 import { SalesInputs } from "./SalesInputs";
 
 function EditToolbar() {
@@ -54,12 +55,14 @@ export function SalesEdit() {
         },
       });
     },
-    onError: () => {
-      notify("resources.sales.edit.error", {
+    onError: (error) => {
+      const { message, args } = getSalesErrorNotification(
+        error,
+        "resources.sales.edit.error",
+      );
+      notify(message, {
         type: "error",
-        messageArgs: {
-          _: "An error occurred. Please try again.",
-        },
+        messageArgs: { ...args, _: "An error occurred. Please try again." },
       });
     },
   });

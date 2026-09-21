@@ -5,7 +5,7 @@ import { Plus } from "lucide-react";
 import { useTranslate } from "ra-core";
 
 import useAppBarHeight from "../misc/useAppBarHeight";
-import { ContactImportButton } from "./ContactImportButton";
+import { DataImportButton } from "../dataImport/DataImportButton";
 import { ContactCreateSheet } from "./ContactCreateSheet";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -48,7 +48,7 @@ export const ContactEmpty = () => {
           ) : (
             <>
               <CreateButton label="resources.contacts.action.new" />
-              <ContactImportButton />
+              <DataImportButton resource="contacts" />
             </>
           )}
         </div>

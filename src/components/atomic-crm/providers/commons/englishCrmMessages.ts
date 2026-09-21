@@ -27,6 +27,9 @@ export const englishCrmMessages = {
         description: "It seems your company list is empty.",
         title: "No companies found",
       },
+      import: {
+        title: "Import companies",
+      },
       field_categories: {
         contact: "Contact",
         additional_info: "Additional information",
@@ -107,21 +110,6 @@ export const englishCrmMessages = {
       },
       import: {
         title: "Import contacts",
-        button: "Import CSV",
-        complete:
-          "Contacts import complete. Imported %{importCount} contacts, with %{errorCount} errors",
-        progress:
-          "Imported %{importCount} / %{rowCount} contacts, with %{errorCount} errors.",
-        error:
-          "Failed to import this file, please make sure your provided a valid CSV file.",
-        imported: "Imported",
-        in_progress: "Importing contacts…",
-        remaining_time: "Estimated remaining time:",
-        sample_download: "Download CSV sample",
-        sample_hint: "Here is a sample CSV file you can use as a template",
-        stop: "Stop import",
-        csv_file: "CSV File",
-        contacts_label: "contact |||| contacts",
       },
       inputs: {
         genders: {
@@ -232,6 +220,9 @@ export const englishCrmMessages = {
         description: "It seems your deal list is empty.",
         title: "No deals found",
       },
+      import: {
+        title: "Import deals",
+      },
       invalid_date: "Invalid date",
     },
     notes: {
@@ -289,6 +280,8 @@ export const englishCrmMessages = {
         first_name: "First name",
         last_name: "Last name",
         email: "Email",
+        secondary_email: "Secondary email",
+        secondary_emails: "Secondary emails",
         administrator: "Admin",
         disabled: "Disabled",
       },
@@ -439,8 +432,26 @@ export const englishCrmMessages = {
       },
       upcoming_tasks: "Upcoming Tasks",
     },
+    data_import: {
+      button: "Import CSV",
+      complete:
+        "Import complete. Imported %{importCount} records, with %{errorCount} errors",
+      csv_file: "CSV File",
+      error:
+        "Failed to import this file, please make sure you provided a valid CSV file.",
+      in_progress: "Import in progress…",
+      progress:
+        "Imported %{importCount} / %{rowCount} records, with %{errorCount} errors.",
+      remaining_time: "Estimated remaining time:",
+      resource: "Resource",
+      sample_download: "Download CSV sample",
+      sample_hint: "Here is a sample CSV file you can use as a template",
+      start: "Start import",
+      stop: "Stop import",
+      title: "Import data",
+    },
     header: {
-      import_data: "Import data",
+      import_data: "Import from JSON",
     },
     image_editor: {
       change: "Change",
@@ -474,7 +485,7 @@ export const englishCrmMessages = {
         some_failed: "Some records were not imported.",
         table_caption: "Import status",
       },
-      title: "Import Data",
+      title: "Import from JSON",
     },
     settings: {
       about: "About",
@@ -529,6 +540,16 @@ export const englishCrmMessages = {
       label: "CRM navigation",
     },
     profile: {
+      add_secondary_email: "Add an email",
+      email_taken: "%{email} is already used by another user",
+      no_secondary_emails: "None",
+      secondary_email_invalid: "%{email} is not a valid email address",
+      secondary_email_is_primary: "%{email} is already your main address",
+      secondary_email_taken: "%{email} is already used by another user",
+      too_many_secondary_emails:
+        "You cannot add more than 10 secondary email addresses",
+      secondary_emails_help:
+        "Other addresses you send emails from. Leave one empty to remove it.",
       inbound: {
         description:
           "You can start sending emails to your server's inbound email address, e.g. by adding it to the %{field} field. Atomic CRM will process the emails and add notes to the corresponding contacts.",

@@ -10,7 +10,7 @@ import {
 import { toast } from "sonner";
 
 import { StoryWrapper } from "@/test/StoryWrapper";
-import { ContactImportButton } from "./ContactImportButton";
+import { DataImportButton } from "./DataImportButton";
 
 const ROW_COUNT = 80;
 
@@ -36,7 +36,11 @@ const UnmountableImportControls = () => {
   return (
     <>
       <button onClick={() => setIsMounted(false)}>unmount contact list</button>
-      {isMounted ? <ContactImportButton /> : <p>contact list unmounted</p>}
+      {isMounted ? (
+        <DataImportButton resource="contacts" />
+      ) : (
+        <p>contact list unmounted</p>
+      )}
     </>
   );
 };
@@ -56,7 +60,7 @@ const ImportHarness = ({ children }: { children?: ReactNode }) => (
   >
     {children ?? (
       <>
-        <ContactImportButton />
+        <DataImportButton resource="contacts" />
         <NotifyTrigger />
       </>
     )}
@@ -79,7 +83,7 @@ const selectCsvFile = () => {
 const submitImportDialog = (screen: Screen) =>
   screen
     .getByRole("toolbar")
-    .getByRole("button", { name: /import csv/i })
+    .getByRole("button", { name: /start import/i })
     .click();
 
 const startImport = async (screen: Screen) => {
@@ -87,7 +91,7 @@ const startImport = async (screen: Screen) => {
   await selectCsvFile();
   await submitImportDialog(screen);
   await expect
-    .element(screen.getByText(/Importing contacts/))
+    .element(screen.getByText(/Import in progress/))
     .toBeInTheDocument();
 };
 
@@ -118,14 +122,14 @@ afterEach(() => {
   toast.dismiss();
 });
 
-describe("contact import", () => {
+describe("data import", () => {
   it("reports progress in a snackbar and notifies when the import ends", async () => {
     const screen = await render(<ImportHarness />);
 
     await startImport(screen);
 
     await expect
-      .element(screen.getByText(new RegExp(`/ ${ROW_COUNT} contacts`)))
+      .element(screen.getByText(new RegExp(`/ ${ROW_COUNT} records`)))
       .toBeInTheDocument();
 
     finishRemainingBatchesFast();
@@ -133,12 +137,12 @@ describe("contact import", () => {
     await expect
       .element(
         screen.getByText(
-          `Contacts import complete. Imported ${ROW_COUNT} contacts, with 0 errors`,
+          `Import complete. Imported ${ROW_COUNT} records, with 0 errors`,
         ),
       )
       .toBeInTheDocument();
     await expect
-      .element(screen.getByText(/Importing contacts/))
+      .element(screen.getByText(/Import in progress/))
       .not.toBeInTheDocument();
   });
 
@@ -154,7 +158,7 @@ describe("contact import", () => {
     await expect
       .element(
         screen.getByText(
-          `Contacts import complete. Imported ${ROW_COUNT} contacts, with 0 errors`,
+          `Import complete. Imported ${ROW_COUNT} records, with 0 errors`,
         ),
       )
       .toBeInTheDocument();
@@ -173,7 +177,7 @@ describe("contact import", () => {
     finishRemainingBatchesFast();
 
     await expect
-      .element(screen.getByText(/Contacts import complete/))
+      .element(screen.getByText(/Import complete/))
       .toBeInTheDocument();
     await expect
       .element(screen.getByRole("button", { name: /import csv/i }))
@@ -192,7 +196,7 @@ describe("contact import", () => {
     finishRemainingBatchesFast();
 
     await expect
-      .element(screen.getByText(/Contacts import complete/))
+      .element(screen.getByText(/Import complete/))
       .toBeInTheDocument();
 
     expect(dispatchBeforeUnload().defaultPrevented).toBe(false);
@@ -208,7 +212,7 @@ describe("contact import", () => {
 
     const positions = getToasterPositions();
     const progressStack = positions.find((stack) =>
-      /Importing contacts/.test(stack.text),
+      /Import in progress/.test(stack.text),
     );
     const notificationStack = positions.find((stack) =>
       /Contact updated/.test(stack.text),
@@ -220,7 +224,7 @@ describe("contact import", () => {
 
     finishRemainingBatchesFast();
     await expect
-      .element(screen.getByText(/Contacts import complete/))
+      .element(screen.getByText(/Import complete/))
       .toBeInTheDocument();
   });
 
@@ -242,7 +246,7 @@ describe("contact import", () => {
       .not.toBeInTheDocument();
 
     await expect
-      .element(screen.getByText(/Importing contacts/))
+      .element(screen.getByText(/Import in progress/))
       .toBeInTheDocument();
 
     finishRemainingBatchesFast();
@@ -250,7 +254,7 @@ describe("contact import", () => {
     await expect
       .element(
         screen.getByText(
-          `Contacts import complete. Imported ${ROW_COUNT} contacts, with 0 errors`,
+          `Import complete. Imported ${ROW_COUNT} records, with 0 errors`,
         ),
       )
       .toBeInTheDocument();
@@ -267,7 +271,7 @@ describe("contact import", () => {
       .element(
         screen
           .getByRole("toolbar")
-          .getByRole("button", { name: /import csv/i }),
+          .getByRole("button", { name: /start import/i }),
       )
       .toBeDisabled();
   });
@@ -280,12 +284,12 @@ describe("contact import", () => {
     await screen.getByRole("button", { name: /stop import/i }).click();
 
     await expect
-      .element(screen.getByText(/Importing contacts/))
+      .element(screen.getByText(/Import in progress/))
       .not.toBeInTheDocument();
 
     const createdWhenStopped = createdCount;
     await expect
-      .element(screen.getByText(/Contacts import complete/))
+      .element(screen.getByText(/Import complete/))
       .not.toBeInTheDocument();
     expect(createdWhenStopped).toBeLessThan(ROW_COUNT);
   });

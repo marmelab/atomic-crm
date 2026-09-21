@@ -1,6 +1,7 @@
 import { CreateButton } from "@/components/admin/create-button";
 import { useTranslate } from "ra-core";
 
+import { DataImportButton } from "../dataImport/DataImportButton";
 import useAppBarHeight from "../misc/useAppBarHeight";
 
 export const CompanyEmpty = () => {
@@ -33,6 +34,7 @@ export const CompanyEmpty = () => {
       </div>
       <div className="flex space-x-2">
         <CreateButton label="resources.companies.action.create" />
+        <DataImportButton resource="companies" />
       </div>
     </div>
   );

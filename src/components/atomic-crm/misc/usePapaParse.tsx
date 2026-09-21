@@ -28,12 +28,16 @@ type usePapaParseProps<T> = {
   // The import batch size
   batchSize?: number;
 
+  // Columns to keep as text, because a leading zero is meaningful there
+  textColumns?: string[];
+
   // processBatch returns the number of imported items
-  processBatch(batch: T[]): Promise<void>;
+  processBatch(batch: T[]): Promise<number>;
 };
 
 export function usePapaParse<T>({
   batchSize = 10,
+  textColumns,
   processBatch,
 }: usePapaParseProps<T>) {
   const importIdRef = useRef<number>(0);
@@ -81,18 +85,25 @@ export function usePapaParse<T>({
             const batch = results.data.slice(i, i + batchSize);
             try {
               const start = Date.now();
-              await processBatch(batch);
+              // A batch reports how many of its rows the backend accepted, so
+              // the rows it refused count as errors while the records that did
+              // land are not reported as failures.
+              const created = await processBatch(batch);
               totalTime += Date.now() - start;
 
               const meanTime = totalTime / (i + batch.length);
               setImporter((previous) => {
                 if (previous.state === "running") {
-                  const importCount = previous.importCount + batch.length;
+                  const importCount = previous.importCount + created;
+                  const errorCount =
+                    previous.errorCount + (batch.length - created);
                   return {
                     ...previous,
                     importCount,
+                    errorCount,
                     remainingTime:
-                      meanTime * (results.data.length - importCount),
+                      meanTime *
+                      (results.data.length - importCount - errorCount),
                   };
                 }
                 return previous;
@@ -127,10 +138,12 @@ export function usePapaParse<T>({
             error,
           });
         },
-        dynamicTyping: true,
+        // Numeric-looking cells are converted, except where a leading zero
+        // carries meaning: a "02134" zipcode would be stored as 2134.
+        dynamicTyping: (field) => !textColumns?.includes(String(field)),
       });
     },
-    [batchSize, processBatch],
+    [batchSize, processBatch, textColumns],
   );
 
   return useMemo(

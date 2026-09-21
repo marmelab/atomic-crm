@@ -16,6 +16,7 @@ import { FilterButton } from "@/components/admin/filter-form";
 import { SearchInput } from "@/components/admin/search-input";
 import { SelectInput } from "@/components/admin/select-input";
 
+import { DataImportButton } from "../dataImport/DataImportButton";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { TopToolbar } from "../layout/TopToolbar";
 import { AccountManagerInput } from "../sales/AccountManagerInput";
@@ -116,6 +117,7 @@ const DealLayout = () => {
 const DealActions = () => (
   <TopToolbar>
     <FilterButton />
+    <DataImportButton resource="deals" />
     <ExportButton />
     <CreateButton label="resources.deals.action.new" />
   </TopToolbar>
