@@ -16,10 +16,13 @@
 -- dated evidence, not a guess", which was a reasonable-sounding rule and is
 -- the wrong rule. Checked against production, 19 of 22 Living Example
 -- Enrollments carry a start_date that is EXACTLY their first booked
--- session. Two carry a date with no sessions behind it at all: Linda
--- Turner's, which Leif stated himself (20260918190000), and Daniel
+-- session. Three carry a date with no sessions behind it at all: Linda
+-- Turner's, which Leif stated himself (20260918190000); Daniel
 -- Alexander's, which has no traceable basis in this CRM — he has never
--- booked anything, and Leif does not recognise the date.
+-- booked anything, and Leif does not recognise the date; and Sigrid
+-- Kipper Thau's 2026-08-05, on an Enrollment that is no longer live.
+-- Rehearsed against production before deployment, these classify as 19
+-- session_derived and 3 unknown, which is the whole of the 22.
 --
 -- Nothing here changes a single recorded date. Rewriting real rows on the
 -- strength of an inference about an inference is how the first mistake
@@ -40,16 +43,6 @@ alter table public.enrollments
     start_date_source is null
     or start_date_source in ('owner', 'session_derived', 'unknown')
   );
-
--- A start date with no provenance is not usable as a commitment, so the
--- column has to be filled wherever a date exists. Null means, and only
--- means, that there is no start date to describe.
-alter table public.enrollments
-  drop constraint if exists enrollments_start_date_has_a_source_check;
-
-alter table public.enrollments
-  add constraint enrollments_start_date_has_a_source_check
-  check ((start_date is null) = (start_date_source is null));
 
 comment on column public.enrollments.start_date_source is
   'Where start_date came from. ''owner'': Leif stated the Start Week — the only value that makes it canonical for capacity commitments. ''session_derived'': back-filled from the client''s first booked session by migration 20260918180000, which is an inference the owner has since ruled out; needs confirming. ''unknown'': a date with no traceable basis. Null only when start_date is null.';
@@ -87,6 +80,48 @@ update public.enrollments e
    and e.start_date is not null
    and e.start_date = ch.program_start_at::date
    and e.start_date_source = 'session_derived';
+
+-- A start date with no provenance is not usable as a commitment, so the
+-- column has to be filled wherever a date exists. Null means, and only
+-- means, that there is no start date to describe.
+--
+-- Added HERE, after the rows above have been classified, and the ordering
+-- is the whole point. `add constraint` validates against existing rows
+-- immediately, so stating this before the classification asks a database
+-- that already holds dated Enrollments to satisfy a rule nothing has yet
+-- had a chance to satisfy. An empty database passes that happily — every
+-- clean-room replay did — and production refused on the first of its
+-- twenty-two dated rows:
+--
+--   ERROR: check constraint "enrollments_start_date_has_a_source_check"
+--   of relation "enrollments" is violated by some row (SQLSTATE 23514)
+--
+-- A migration that only works on an empty database is not deterministic in
+-- the sense this repository means. Structure and backfill have an order,
+-- and it is: column, data, then the rule that binds them.
+alter table public.enrollments
+  drop constraint if exists enrollments_start_date_has_a_source_check;
+
+alter table public.enrollments
+  add constraint enrollments_start_date_has_a_source_check
+  check ((start_date is null) = (start_date_source is null));
+
+-- And prove the backfill actually covered everything, rather than trusting
+-- that the constraint above would have caught it. It would — but a
+-- constraint violation names one row and this names the gap.
+do $$
+declare
+  unsourced bigint;
+begin
+  select count(*) into unsourced
+    from public.enrollments
+   where (start_date is null) <> (start_date_source is null);
+
+  if unsourced > 0 then
+    raise exception
+      '% Enrollment(s) carry a start date with no source, or a source with no start date', unsourced;
+  end if;
+end $$;
 
 -- From here on the CRM supplies its own provenance. An Enrollment created
 -- with a start date and no source is a bug, and the constraint above makes
