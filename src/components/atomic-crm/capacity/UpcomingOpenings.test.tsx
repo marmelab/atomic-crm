@@ -15,7 +15,8 @@ import {
 import { describeAvailability, monthsFromWeeks } from "./openingsNarrative";
 import { dayBefore } from "./sessionWeeks";
 import { weeklyCalendar } from "./testCalendar";
-import { weekCapacities } from "./weekCapacity";
+import { isSafeOpening, weekCapacities } from "./weekCapacity";
+import { monthLabel } from "./monthLabel";
 
 // Upcoming Openings, read the way Leif reads it.
 //
@@ -126,8 +127,13 @@ describe("Upcoming Openings answers the question first", () => {
     const { screen } = await renderSection(twelveFinishingSoon(), 68);
 
     const text = textOf(screen);
-    expect(text).toContain("can start");
-    expect(text).toContain("Earliest safe start: week of");
+    // The WEEK leads, the count qualifies it. It was the other way
+    // round and Leif said the useful half was the one being whispered.
+    const nextOpening = text.slice(text.indexOf("Next opening"));
+    const weekAt = nextOpening.indexOf("Week of");
+    const countAt = nextOpening.indexOf("can start");
+    expect(weekAt).toBeGreaterThanOrEqual(0);
+    expect(countAt).toBeGreaterThan(weekAt);
     // The answer, not the mechanism.
     expect(text).not.toContain("Peak");
   });
@@ -139,11 +145,9 @@ describe("Upcoming Openings answers the question first", () => {
     const { screen } = await renderSection(twelveFinishingSoon(), 49);
 
     const text = textOf(screen);
-    expect(text).toContain("Can't calculate your next opening yet");
+    expect(text).toContain("Can't calculate yet");
     // WHY, in his terms.
-    expect(text).toContain("isn't far enough to see a full 12-session");
-    // DETAIL, underneath rather than instead of the answer.
-    expect(text).toContain("of the 12 1:1 weeks it needs");
+    expect(text).toContain("not far enough to see a full 12-session");
     // ACTION.
     expect(text).toContain("Add more 1:1 weeks to Year Tracking");
     // And the thing it must never say: an absence of calendar is not an
@@ -205,7 +209,7 @@ describe("Upcoming Openings shows its working", () => {
 
     const text = textOf(screen);
     expect(text).toContain("12 active");
-    expect(text).toContain("6 clients already booked to start");
+    expect(text).toContain("6 committed to start");
     expect(text).not.toContain("18 active clients out of");
   });
 
@@ -219,11 +223,51 @@ describe("Upcoming Openings shows its working", () => {
     ];
     const { screen } = await renderSection(holders, 60);
 
+    // Over capacity is never hidden — but it lives in the breakdown now.
+    // On the card it was one more number among five and made a list of
+    // months unreadable.
+    expect(textOf(screen)).not.toContain("Peak 14");
+    await screen
+      .getByRole("button", { name: /November 2026/ })
+      .first()
+      .click();
+    await expect.element(screen.getByRole("dialog")).toBeVisible();
+
     const text = textOf(screen);
     expect(text).toContain("14 active");
     expect(text).toContain("capacity 12");
     expect(text).toContain("2 over");
-    expect(text).not.toContain("Peak 14");
+  });
+
+  it("keeps the month card to the four things it should answer", async () => {
+    const holders = [
+      ...Array.from({ length: 12 }, (_, i) =>
+        enrollment(i + 1, `Current ${i + 1}`, weekStart(38)),
+      ),
+      enrollment(20, "Ava Frotton", weekStart(44)),
+      enrollment(21, "Denise Cormier", weekStart(44)),
+    ];
+    const { screen } = await renderSection(holders, 60);
+
+    const card = await screen
+      .getByRole("button", { name: /November 2026/ })
+      .first()
+      .element();
+    const text = card.textContent ?? "";
+
+    // Is there an opening, what changes capacity, and where to look.
+    expect(text).toMatch(/opening|calculate/i);
+    expect(text).toContain("starting");
+    expect(text).toContain("finishing");
+    expect(text).toContain("View breakdown");
+
+    // And none of what belongs in the breakdown.
+    expect(text).not.toContain("Busiest week");
+    expect(text).not.toContain("capacity 12");
+    expect(text).not.toContain("Peak");
+    expect(text).not.toContain("Ava Frotton");
+    // A card speaks for its own month, never for the whole forecast.
+    expect(text).not.toContain("No opening yet");
   });
 
   it("opens a month and lists who starts and finishes, by name", async () => {
@@ -269,7 +313,7 @@ describe("Upcoming Openings shows its working", () => {
     await expect.element(screen.getByRole("dialog")).toBeVisible();
     const text = textOf(screen);
     // Not "peak 13". The names of the commitments that make it 13.
-    expect(text).toContain("already booked to start");
+    expect(text).toContain("start then");
     expect(text).toContain("Ava Frotton");
   });
 
@@ -391,5 +435,158 @@ describe("the breakdown is reachable without a mouse", () => {
         screen.container.ownerDocument.querySelector('[role="dialog"]'),
       )
       .toBeNull();
+  });
+});
+
+// The week somebody finishes in is still a week they are in.
+//
+// Leif found this by reading three surfaces against each other. Production
+// said, at the same moment:
+//
+//   NEXT OPENING          Earliest safe start: week of Nov 29
+//   Week of Nov 29        11 active · No finishes
+//   Erik Amundson         expected final session week Nov 29, 2026
+//   Sarah Monast          expected final session week Nov 29, 2026
+//
+// Two people were having their twelfth session in a week the drilldown
+// said nobody was finishing in. The arithmetic was right — they were
+// counted in the 11, and a twelfth client genuinely fits — but the
+// drilldown could not show it, because a finish was bucketed by the date
+// the slot is RELEASED (`freesOn`, the day after the final week ends)
+// rather than by the week the final session is in. Year Tracking has gaps
+// between weeks, so that date usually fell into no week at all and
+// "Finishing" was empty on every single week.
+//
+// Shape reproduced exactly: twelve active, two of them finishing in week
+// X, four committed arriving before it, capacity twelve.
+describe("a client occupies their slot through their final session week", () => {
+  const FINAL_WEEK = weekStart(44);
+  const NEXT_WEEK = weekStart(45);
+
+  // Ten who run well past the horizon, plus two whose twelfth session is
+  // in week 44 — the shape of Erik and Sarah.
+  const population = () => [
+    ...Array.from({ length: 10 }, (_, i) =>
+      enrollment(i + 1, `Stays ${i + 1}`, weekStart(40)),
+    ),
+    enrollment(20, "Erik Amundson", weekStart(33)),
+    enrollment(21, "Sarah Monast", weekStart(33)),
+  ];
+
+  const evaluate = () => {
+    const { capacity } = build(population(), 70);
+    return weekCapacities(capacity, TODAY);
+  };
+
+  it("counts them in the week their twelfth session falls in", () => {
+    const weeks = evaluate();
+    const final = weeks.find((week) => week.week.start === FINAL_WEEK)!;
+    const after = weeks.find((week) => week.week.start === NEXT_WEEK)!;
+
+    // Erik and Sarah's twelfth session is in week 44, so they are still
+    // two of the twelve that week — and gone the week after.
+    expect(final.occupancy).toBe(12);
+    expect(after.occupancy).toBe(10);
+  });
+
+  it("names them under Finishing in that same week, and in no other", () => {
+    const weeks = evaluate();
+    const names = (week: (typeof weeks)[number]) =>
+      week.finishing.map((holder) => holder.name).sort();
+
+    expect(names(weeks.find((w) => w.week.start === FINAL_WEEK)!)).toEqual([
+      "Erik Amundson",
+      "Sarah Monast",
+    ]);
+    // Not the week after, where the release DATE falls.
+    expect(names(weeks.find((w) => w.week.start === NEXT_WEEK)!)).toEqual([]);
+    // And exactly once across the whole forecast — the old bucketing lost
+    // them entirely, which is the failure mode this guards.
+    const everyFinish = weeks.flatMap(names);
+    expect(everyFinish.filter((n) => n === "Erik Amundson")).toHaveLength(1);
+  });
+
+  it("agrees with what the client card says their final session week is", () => {
+    const { capacity } = build(population(), 70);
+    const erik = capacity.occupied.find((h) => h.name === "Erik Amundson")!;
+
+    // The card renders end.finalWeek.start. The drilldown buckets by the
+    // last day occupied. These are two views of one week, and this is the
+    // assertion that keeps them that way.
+    expect(erik.end?.status).toBe("known");
+    if (erik.end?.status !== "known") throw new Error("unreachable");
+    expect(erik.end.finalWeek.start).toBe(FINAL_WEEK);
+    // The slot is released the day AFTER that week ends — never shown as
+    // a week, because it is not one.
+    expect(erik.end.freesOn).toBe(erik.end.finalWeek.end);
+    expect(erik.end.lastDay < erik.end.freesOn).toBe(true);
+  });
+
+  it("still lets a twelfth client start in that week, and says so everywhere", async () => {
+    const weeks = evaluate();
+    const final = weeks.find((week) => week.week.start === FINAL_WEEK)!;
+    const horizon = dayBefore(
+      build(population(), 70).capacity.calendarHorizon!,
+    );
+
+    // Twelve active including the two finishing, a ceiling of twelve — so
+    // no room. The answer Leif saw said there WAS room because only
+    // eleven were present; here twelve are, and the answer must be no.
+    expect(final.safeStart.answer).toMatchObject({
+      status: "known",
+      openings: 0,
+    });
+
+    // The week after, when their slots are free, is the opening — and the
+    // headline, the month and the week all name that same week.
+    const after = weeks.find((week) => week.week.start === NEXT_WEEK)!;
+    expect(after.safeStart.answer).toMatchObject({ status: "known" });
+    expect(isSafeOpening(after)).toBe(true);
+
+    const headline = describeAvailability(weeks, horizon);
+    expect(headline.kind).toBe("safe_opening");
+    if (headline.kind !== "safe_opening") throw new Error("unreachable");
+    expect(headline.week.week.start).toBe(NEXT_WEEK);
+
+    const months = monthsFromWeeks(weeks, horizon);
+    const month = months.find((m) => m.month === NEXT_WEEK.slice(0, 7))!;
+    expect(month.availability.kind).toBe("safe_opening");
+  });
+
+  it("tells Leif when the finishing slots actually free up", async () => {
+    const { capacity, futureOpenings } = build(population(), 70);
+    const dataProvider = createDataProvider({
+      db: createCrmDb({}),
+      silent: true,
+      latency: 0,
+    });
+    const screen = await render(
+      <CoreAdminContext
+        dataProvider={dataProvider}
+        authProvider={createTestAuthProvider()}
+        i18nProvider={testI18nProvider}
+        store={memoryStore()}
+      >
+        <UpcomingOpeningsSection
+          capacity={capacity}
+          futureOpenings={futureOpenings}
+          now={TODAY}
+        />
+      </CoreAdminContext>,
+    );
+
+    const month = monthLabel(FINAL_WEEK.slice(0, 7));
+    await screen
+      .getByRole("button", { name: new RegExp(month) })
+      .first()
+      .click();
+    await expect.element(screen.getByRole("dialog")).toBeVisible();
+
+    const text = textOf(screen);
+    expect(text).toContain("Erik Amundson");
+    expect(text).toContain("Sarah Monast");
+    // "Finishing" and "free" are a week apart, and the drilldown says so
+    // rather than leaving Leif to work it out.
+    expect(text).toContain("free from the week of");
   });
 });

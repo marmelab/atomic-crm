@@ -189,3 +189,79 @@ describe("the explanation comes from the evaluation, not beside it", () => {
     expect(line).toMatch(/openings\.status === "unknown"/);
   });
 });
+
+// One week boundary, described the same way wherever it appears.
+//
+// Leif found the CRM saying, on one screen: "Erik Amundson — expected
+// final session week Nov 29", "Week of Nov 29 — no finishes", and
+// "earliest safe start: week of Nov 29". Three surfaces, one week, and
+// they could not all be right.
+//
+// They can disagree because two different dates describe the same ending:
+// the WEEK the twelfth session is in, and the DAY the slot is released —
+// which is the day after that week, by construction. Occupancy needs the
+// second; every sentence shown to a person needs the first.
+describe("a finish is one week, whichever surface names it", () => {
+  const read = (path: string) => readFileSync(path, "utf8");
+
+  test("the release date is the exclusive end of the final session week", () => {
+    // Not "roughly a week later" — exactly that boundary, in one place.
+    const source = read("src/components/atomic-crm/capacity/sessionWeeks.ts");
+    expect(source).toMatch(/lastDay: dayBefore\(finalWeek\.end\)/);
+    expect(source).toMatch(/freesOn: finalWeek\.end/);
+  });
+
+  test("the drilldown buckets a finish by the week, never by the release date", () => {
+    // Bucketing by the release date put every finish outside its own week
+    // and — because Year Tracking has gaps — usually outside every week,
+    // so "Finishing" was empty on all of them.
+    const source = read("src/components/atomic-crm/capacity/weekCapacity.ts");
+    expect(source).toMatch(/lastDayOccupied/);
+    expect(source).toMatch(/holder\.end\.lastDay/);
+    // The old shape: an end event filtered by its own date.
+    expect(source).not.toMatch(/kind === "end" && inWeek\(event\.date/);
+  });
+
+  test("nothing user-facing prints the release date as a week", () => {
+    // `holdsSlotUntil` is the day AFTER the final session week. Rendering
+    // it beside a client card reading "final session week Nov 29" is the
+    // off-by-one this whole pass exists to remove, so the copy reads
+    // `finalWeekStart` instead.
+    const shown = [
+      "src/components/atomic-crm/capacity/WeekBreakdown.tsx",
+      "src/components/atomic-crm/capacity/AvailabilityAnswer.tsx",
+      "src/components/atomic-crm/programs/UpcomingOpeningsSection.tsx",
+    ];
+    for (const path of shown) {
+      expect(read(path)).not.toMatch(/weekLabel\(\s*holdsSlotUntil/);
+    }
+    expect(
+      read("src/components/atomic-crm/capacity/WeekBreakdown.tsx"),
+    ).toMatch(/weekLabel\(finalWeekStart\)/);
+  });
+
+  test("a week Leif is open is counted once, however many events describe it", () => {
+    // Production holds two `1:1s` events for the week of 17 May 2026.
+    // Counting it twice spends two of a client's twelve sessions on one
+    // real week and ends them a week early.
+    const source = read("src/components/atomic-crm/capacity/sessionWeeks.ts");
+    expect(source).toMatch(/new Set<string>\(\)/);
+    expect(source).toMatch(/seen\.has\(key\)/);
+  });
+});
+
+// Two lists, two orders, and neither is the other reversed.
+describe("client lists are ordered by what they are for", () => {
+  const read = (path: string) => readFileSync(path, "utf8");
+
+  test("current clients newest first, people still to start soonest first", () => {
+    const source = read(
+      "src/components/atomic-crm/capacity/individualCapacity.ts",
+    );
+    expect(source).toMatch(/occupied\.sort\(byStartDescThenName\)/);
+    expect(source).toMatch(/committed\.sort\(byStartThenName\)/);
+    // Never by a derived end date: that moves whenever Year Tracking
+    // changes, so the list would silently reorder itself after a sync.
+    expect(source).not.toMatch(/occupied\.sort\(byEndThenName\)/);
+  });
+});

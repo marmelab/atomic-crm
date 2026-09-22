@@ -6,10 +6,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { AvailabilityAnswer } from "../capacity/AvailabilityAnswer";
 import type { FutureOpenings } from "../capacity/individualCapacity";
 import type { IndividualCapacity } from "../capacity/individualCapacity";
-import { monthLabel, weekLabel } from "../capacity/monthLabel";
+import { monthLabel } from "../capacity/monthLabel";
 import { dayBefore } from "../capacity/sessionWeeks";
 import { MonthBreakdownDialog } from "../capacity/MonthBreakdownDialog";
-import { OccupancyBar, OccupancyLabel } from "../capacity/OccupancyBar";
 import {
   capacityNow,
   describeAvailability,
@@ -95,14 +94,26 @@ export const UpcomingOpeningsSection = ({
             })}
           </p>
           {current.max != null && (
-            <>
-              <OccupancyLabel occupancy={current.active} max={current.max} />
-              <OccupancyBar occupancy={current.active} max={current.max} />
-            </>
+            <p className="text-xl font-semibold">
+              {translate("crm.programs.capacity_now_count", {
+                _: "%{active} / %{max} active",
+                active: current.active,
+                max: current.max,
+              })}
+              {current.overBy > 0 && (
+                <span className="text-destructive text-sm font-normal">
+                  {" · "}
+                  {translate("crm.programs.occupancy_over", {
+                    _: "%{count} over",
+                    count: current.overBy,
+                  })}
+                </span>
+              )}
+            </p>
           )}
-          <p className="text-xs text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             {translate("crm.programs.capacity_committed_plain", {
-              _: "%{count} client already booked to start |||| %{count} clients already booked to start",
+              _: "%{count} committed to start |||| %{count} committed to start",
               smart_count: current.committed.length,
               count: current.committed.length,
             })}
@@ -168,7 +179,14 @@ export const UpcomingOpeningsSection = ({
   );
 };
 
-// A month, answered before it is described.
+// A month, answering four things and nothing else: is there an opening,
+// when, what changes capacity, and where to look further.
+//
+// It used to carry the busiest week, an occupancy bar, the ceiling
+// repeated, a paragraph of explanation and a list of names — all of it
+// true, all of it available one click away, and together enough to make a
+// list of five months unreadable. Detail belongs in the breakdown; the
+// card is the index.
 //
 // The whole card is a button. Leif asked to be able to click one of these
 // boxes, and a div with an onClick is not something a keyboard or a screen
@@ -181,7 +199,6 @@ const MonthCard = ({
   onOpen: () => void;
 }) => {
   const translate = useTranslate();
-  const busiest = month.busiest;
 
   return (
     <Card className="p-0">
@@ -201,29 +218,12 @@ const MonthCard = ({
               variant="card"
             />
 
-            {busiest && (
-              <div className="flex flex-wrap items-center gap-2 pt-0.5">
-                <span className="text-xs text-muted-foreground">
-                  {translate("crm.programs.busiest_week", {
-                    _: "Busiest week (%{date}):",
-                    date: weekLabel(busiest.week.start),
-                  })}
-                </span>
-                <OccupancyLabel
-                  occupancy={busiest.occupancy}
-                  max={busiest.max}
-                />
-                <OccupancyBar occupancy={busiest.occupancy} max={busiest.max} />
-              </div>
-            )}
-
             <p className="text-xs text-muted-foreground">
               {translate("crm.programs.month_starts_finishes", {
                 _: "%{starts} starting · %{finishes} finishing",
                 starts: month.starting.length,
                 finishes: month.finishing.length,
               })}
-              {month.starting.length > 0 && ` — ${names(month.starting)}`}
             </p>
 
             <span className="pt-0.5 text-xs font-medium text-primary">

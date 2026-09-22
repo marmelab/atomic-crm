@@ -693,6 +693,40 @@ and stops a month reading as full because its first day happened to be.
 passing tests prove the code does what it was written to do. Only Leif can
 say whether what it was written to do is legible. See §2.
 
+#### The week-boundary invariant — settled 2026-09-22
+
+Leif's second review found three surfaces that could not all be right:
+
+> "Erik Amundson — expected final session week Nov 29, 2026" ·
+> "Week of Nov 29 — 11 active — No finishes" ·
+> "Earliest safe start: week of Nov 29"
+
+**Nov 29 was correct.** The canonical rule, now asserted rather than
+implied:
+
+> A client occupies their slot **through the whole of their final session
+> week**. The slot is released at `finalWeek.end` — the exclusive end,
+> i.e. the first day after that week. `lastDay` is the last day they hold
+> it; `freesOn` is the first day they do not.
+
+So Erik and Sarah *were* two of the eleven in their own final week, and a
+twelfth client genuinely fits beside them.
+
+What was broken was the display. A finish was bucketed by `freesOn`, which
+by construction is never inside the week it belongs to — and because Year
+Tracking has gaps between weeks, it usually fell inside no week at all.
+**"Finishing" was empty on every single week of the forecast.** Fixed by
+bucketing on `lastDay`. Two further boundary faults came out with it: the
+safe-start copy printed `holdsSlotUntil` (the day after the final week) as
+though it were a week, and duplicate `1:1s` events were each counted as an
+eligible week — production holds two for the week of 17 May 2026, which
+spent two of Jules' twelve sessions on one real week and ended him early.
+
+**Three rules to keep straight, because all three sit on one screen:**
+occupancy needs the release DATE; anything shown to a person needs the
+WEEK; and a week Leif is open counts once however many calendar events
+describe it.
+
 **Rehearse against production in a rolled-back transaction** before any
 migration that touches existing rows. Both repairs were proven that way
 first, and the Won path and the January-2027 delete refusal were proven the

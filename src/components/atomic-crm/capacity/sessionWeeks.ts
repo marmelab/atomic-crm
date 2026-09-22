@@ -77,10 +77,30 @@ const byWeek = (a: SessionWeek, b: SessionWeek): number =>
 //
 // `end` is exclusive, so "the week containing the Start Date, or else the
 // next one" is exactly `end > startDate`.
+// Identical windows are counted once. Year Tracking currently holds two
+// separate `1:1s` events for the week of 17 May 2026, and what is being
+// counted here is WEEKS Leif is open, not calendar entries.
+//
+// Counting that week twice spends two of a client's twelve sessions on one
+// real week, so the twelfth lands a week EARLY and the container is
+// credited with a session that had nowhere to happen. Against production
+// it ended Jules a week before he should have. Whether the duplicate event
+// should exist is a question for Leif; miscounting it is not.
 export const eligibleWeeksFrom = (
   weeks: SessionWeek[],
   startDate: string,
-): SessionWeek[] => weeks.filter((week) => week.end > startDate).sort(byWeek);
+): SessionWeek[] => {
+  const seen = new Set<string>();
+  return weeks
+    .filter((week) => {
+      if (week.end <= startDate) return false;
+      const key = `${week.start}..${week.end}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .sort(byWeek);
+};
 
 // The 12-eligible-week rule, plus deterministic extensions.
 //

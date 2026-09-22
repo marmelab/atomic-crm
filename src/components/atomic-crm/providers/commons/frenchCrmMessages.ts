@@ -893,24 +893,23 @@ export const frenchCrmMessages = {
       opening_provisional: "semaines de début non confirmées",
       capacity_now: "Actuellement",
       capacity_next: "Prochaine place",
+      capacity_now_count: "%{active} / %{max} actifs",
       capacity_committed_plain:
-        "%{count} client déjà prévu au démarrage |||| %{count} clients déjà prévus au démarrage",
-      availability_open_headline:
-        "%{count} nouveau client peut commencer |||| %{count} nouveaux clients peuvent commencer",
-      availability_open_card: "%{count} place sûre |||| %{count} places sûres",
-      availability_open_when: "Début sûr au plus tôt : semaine du %{date}",
+        "%{count} prévu au démarrage |||| %{count} prévus au démarrage",
+      availability_open_week: "Semaine du %{date}",
+      availability_open_count:
+        "%{count} client peut commencer |||| %{count} clients peuvent commencer",
+      availability_open_card: "%{count} place |||| %{count} places",
       availability_none: "Aucune place pour l'instant",
+      availability_none_month: "Aucune place ce mois-ci",
       availability_none_why:
         "Vos clients actuels et déjà prévus maintiennent le programme à pleine capacité jusqu'au %{date}.",
       availability_none_horizon:
-        "Les semaines suivantes ne peuvent pas encore être vérifiées — le suivi annuel s'arrête le %{horizon}.",
-      availability_unknown_headline:
-        "Impossible de calculer votre prochaine place pour l'instant",
-      availability_unknown_card: "Calcul impossible pour l'instant",
+        "Les semaines suivantes ne peuvent pas encore être vérifiées — le suivi annuel s'arrête le %{horizon}. Ajoutez des semaines 1:1, puis synchronisez le calendrier.",
+      availability_unknown_headline: "Calcul impossible pour l'instant",
+      availability_unknown_card: "Calcul impossible ce mois-ci",
       availability_unknown_why:
-        "Le suivi annuel s'arrête le %{horizon}, ce qui ne permet pas de voir un programme complet de 12 séances pour un début maintenant.",
-      availability_unknown_detail:
-        "La semaine la plus proche dispose de %{scheduled} des %{required} semaines 1:1 nécessaires.",
+        "Le suivi annuel s'arrête le %{horizon} — pas assez loin pour voir un programme complet de 12 séances pour un début maintenant.",
       availability_unknown_action:
         "Ajoutez des semaines 1:1 au suivi annuel, puis synchronisez le calendrier.",
       occupancy_active: "%{count} actifs",
@@ -932,18 +931,20 @@ export const frenchCrmMessages = {
       week_finishing: "Fins",
       week_no_starts: "Aucun démarrage",
       week_no_finishes: "Aucune fin",
+      week_frees_from:
+        "Leurs places se libèrent à partir de la semaine du %{date}.",
+      week_frees_after: "Leurs places se libèrent après cette semaine.",
       session_weeks_found:
         "Semaines de séance disponibles pour un début cette semaine",
       session_weeks_of: "%{scheduled} semaines de séance sur %{required}",
       safe_start_yes: "Un nouveau client pourrait commencer cette semaine",
       safe_start_yes_why:
-        "Il reste à %{max} clients actifs ou moins chaque semaine jusqu'à sa 12e séance, qui se termine le %{until}.",
-      safe_start_no:
-        "Non — un nouveau client ne pourrait pas commencer cette semaine",
+        "Reste dans la limite de %{max} chaque semaine jusqu'à sa 12e séance, la semaine du %{until}.",
+      safe_start_no: "Aucune place",
       safe_start_no_why_names:
-        "Un début ici atteindrait %{peak} clients actifs la semaine du %{when}, car %{names} %{verb} déjà prévus au démarrage.",
+        "Atteindrait %{peak} actifs la semaine du %{when} — %{names} commencent alors.",
       safe_start_no_why_full:
-        "Le programme est déjà à %{peak} clients actifs sur %{max} pendant la totalité de ses 12 séances.",
+        "Déjà à %{peak} sur %{max} pendant la totalité de ses 12 séances.",
       safe_start_unknown:
         "Impossible de dire pour l'instant si quelqu'un pourrait commencer cette semaine",
       safe_start_unknown_action:

@@ -43,10 +43,32 @@ export type WeekCapacity = {
   // Could ONE more client start this week and stay inside the ceiling for
   // the whole of their own twelve session weeks? With the working.
   safeStart: SafeStartExplanation;
+  // The next `1:1s` week after this one, when there is one.
+  //
+  // Needed because somebody finishing in this week holds their slot for
+  // the whole of it: the slot is free FROM here, not during. Saying so
+  // beside the names is the difference between "two people are leaving"
+  // and "two slots are available now", which are a week apart.
+  nextWeekStart: string | null;
 };
 
-const inWeek = (event: SlotEvent, week: SessionWeek) =>
-  event.date >= week.start && event.date < week.end;
+const inWeek = (date: string, week: SessionWeek) =>
+  date >= week.start && date < week.end;
+
+// The last day a holder still occupies their slot.
+//
+// NOT the date of their ledger `end` event. That event is dated `freesOn`
+// — the exclusive end of their final session week, i.e. the first day the
+// slot is free — which is deliberate and correct for occupancy, and wrong
+// for saying which week somebody finishes IN.
+//
+// Bucketing the event by its own date put every finish outside the week it
+// belonged to, and, because Year Tracking has gaps between weeks, usually
+// outside every week: the drilldown showed "No finishes" on all thirteen
+// weeks while a client card three sections up said "expected final session
+// week Nov 29". That was the inconsistency Leif found.
+const lastDayOccupied = (holder: SlotHolder): string | null =>
+  holder.end?.status === "known" ? holder.end.lastDay : null;
 
 // Just enough of a practice to evaluate it, named structurally rather
 // than as IndividualCapacity so that individualCapacity.ts can use this
@@ -72,34 +94,45 @@ export const weekCapacities = (
 
   const today = toDateKey(now);
 
-  return weeks
+  const upcoming = weeks
     .filter((week) => week.end > today)
     .slice()
     .sort(
       (a, b) => a.start.localeCompare(b.start) || a.end.localeCompare(b.end),
-    )
-    .map((week) => {
-      const lastDay = dayBefore(week.end);
-      const peak = peakBetween(events, active, week.start, lastDay);
-      // A candidate cannot start in the past, so the week containing today
-      // is tested from today rather than from its Monday.
-      const candidateStart = week.start < today ? today : week.start;
+    );
 
-      return {
-        week,
-        lastDay,
-        occupancy: peak.peak,
-        max,
-        overBy: Math.max(peak.peak - max, 0),
-        starting: events
-          .filter((event) => event.kind === "start" && inWeek(event, week))
-          .map((event) => event.holder),
-        finishing: events
-          .filter((event) => event.kind === "end" && inWeek(event, week))
-          .map((event) => event.holder),
-        safeStart: explainSafeStart(events, active, max, candidateStart, weeks),
-      };
-    });
+  return upcoming.map((week, index) => {
+    const lastDay = dayBefore(week.end);
+    const peak = peakBetween(events, active, week.start, lastDay);
+    // A candidate cannot start in the past, so the week containing today
+    // is tested from today rather than from its Monday.
+    const candidateStart = week.start < today ? today : week.start;
+
+    return {
+      week,
+      lastDay,
+      occupancy: peak.peak,
+      max,
+      overBy: Math.max(peak.peak - max, 0),
+      // A start is bucketed by its own date, because a Start Date IS the
+      // day they begin.
+      starting: events
+        .filter((event) => event.kind === "start" && inWeek(event.date, week))
+        .map((event) => event.holder),
+      // A finish is bucketed by the last day they hold the slot, which
+      // is inside their final session week. Read off the same ledger
+      // events, so nobody can appear here who is not actually leaving.
+      finishing: events
+        .filter((event) => event.kind === "end")
+        .map((event) => event.holder)
+        .filter((holder) => {
+          const lastDay = lastDayOccupied(holder);
+          return lastDay != null && inWeek(lastDay, week);
+        }),
+      safeStart: explainSafeStart(events, active, max, candidateStart, weeks),
+      nextWeekStart: upcoming[index + 1]?.start ?? null,
+    };
+  });
 };
 
 // Whether a week is one Leif could actually sell.

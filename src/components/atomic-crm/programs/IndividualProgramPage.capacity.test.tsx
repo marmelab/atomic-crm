@@ -185,10 +185,14 @@ describe("Living Example program page — capacity Leif can plan around", () => 
   it("counts the twelve people Leif is working with, not the eighteen agreements", async () => {
     const screen = await render(buildTestCrm());
 
+    // Twice on the page now — the header and the "Right now" panel — and
+    // both have to say twelve. Six people have agreed to start; an
+    // agreement is not an occupancy.
     await expect
-      .element(screen.getByText("12 / 12 active", { exact: false }))
+      .element(screen.getByText("12 / 12 active", { exact: false }).first())
       .toBeVisible();
     expect(screen.container.textContent).not.toContain("18 / 12");
+    expect(screen.container.textContent).toContain("6 committed to start");
   });
 
   it("names the six who have agreed but not started, under their own heading", async () => {
@@ -237,23 +241,31 @@ describe("Living Example program page — capacity Leif can plan around", () => 
       .toBeVisible();
     const text = screen.container.textContent ?? "";
 
-    // Eighteen people are in the programme in the week of 8 November —
-    // six over. Said with its unit and its ceiling, because "Peak 18 in
-    // the programme" was read as "do I have 18 people enrolled?".
-    expect(text).toContain("18 active");
-    expect(text).toContain("capacity 12");
-    expect(text).toContain("6 over");
-    expect(text).not.toContain("Peak 18");
-
-    // And no month can be answered at all: Year Tracking stops on 24
-    // January, so a new client starting in any of them has nowhere to put
-    // their twelfth session week. That is "can't calculate", which is a
+    // No month can be answered at all: Year Tracking stops on 24 January,
+    // so a new client starting in any of them has nowhere to put their
+    // twelfth session week. That is "can't calculate", which is a
     // different thing from "no openings" — and never "0 openings".
     expect(text).toContain("Can't calculate");
     expect(text).not.toContain("1 opening");
+    expect(text).not.toContain("Peak 18");
+
+    // Eighteen people are in the programme in the week of 8 November —
+    // six over — and that detail lives in the breakdown now rather than on
+    // every month card. Said with its unit and its ceiling, because "Peak
+    // 18 in the programme" was read as "do I have 18 people enrolled?".
+    await screen
+      .getByRole("button", { name: /November 2026/ })
+      .first()
+      .click();
+    await expect.element(screen.getByRole("dialog")).toBeVisible();
+
+    const dialog = screen.container.ownerDocument.body.textContent ?? "";
+    expect(dialog).toContain("18 active");
+    expect(dialog).toContain("capacity 12");
+    expect(dialog).toContain("6 over");
     // The mechanism is still available, underneath the answer rather than
     // instead of it.
-    expect(text).toContain("of the 12 1:1 weeks it needs");
+    expect(dialog).toContain("session weeks");
   });
 
   it("says whose end the calendar cannot reach, and what to do about it", async () => {
@@ -269,8 +281,66 @@ describe("Living Example program page — capacity Leif can plan around", () => 
     expect(text).toContain("Year Tracking doesn't reach their 12th session");
     expect(text).not.toContain("no programme length");
     // And the one thing Leif can actually do.
-    expect(text).toContain("Add more 1:1 weeks to Year Tracking");
+    expect(text).toContain("Add more 1:1 weeks");
+    expect(text).toContain("Sync Calendar");
     for (const [, name] of COMMITTED) expect(text).toContain(name);
+  });
+
+  it("lists current clients newest first, and future clients soonest first", async () => {
+    // Two lists, two questions. Current Clients is who Leif is working
+    // with now, and the person who joined most recently is the one he is
+    // still learning. Starting Later is a queue, read from the front.
+    //
+    // It used to sort Current Clients by expected END date — derived from
+    // the calendar, so the list silently reordered itself after a sync,
+    // around a projection rather than a fact about the person.
+    const screen = await render(buildTestCrm());
+    await expect
+      .element(screen.getByRole("heading", { name: "Current Clients" }))
+      .toBeVisible();
+
+    const page = screen.container.textContent ?? "";
+    const current = page.slice(
+      page.indexOf("Current Clients"),
+      page.indexOf("Starting Later"),
+    );
+    const later = page.slice(
+      page.indexOf("Starting Later"),
+      page.indexOf("Upcoming Openings"),
+    );
+
+    const order = (section: string, names: string[]) =>
+      names.map((name) => section.indexOf(name));
+    const ascending = (positions: number[]) =>
+      positions.every((n, i) => n >= 0 && (i === 0 || n > positions[i - 1]!));
+
+    // Newest Start Date to oldest, with the name as the tie-break.
+    expect(
+      ascending(
+        order(current, [
+          "Gina McNamara", // Sep 16
+          "Pete Bassett", // Sep 10
+          "Erik Amundson", // Aug 17
+          "Sarah Monast", // Aug 17
+          "Mackenzie Stabler", // Aug 3
+          "Emily Loeb", // Jul 20
+          "Adriano Castro", // Jun 14
+          "Jules Litman-Cleper", // May 20
+        ]),
+      ),
+    ).toBe(true);
+
+    // And the queue runs the other way: the next to arrive is first.
+    expect(
+      ascending(
+        order(later, [
+          "Ava Frotton", // Oct 5
+          "Denise Cormier", // Oct 5
+          "Daniel Alexander", // Nov 8
+          "Emma Wijns", // Nov 8
+        ]),
+      ),
+    ).toBe(true);
   });
 
   it("never prints the openings answer where a count belongs", async () => {

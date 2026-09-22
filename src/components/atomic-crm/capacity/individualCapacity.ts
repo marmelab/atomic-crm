@@ -103,7 +103,20 @@ export const computeIndividualCapacity = (
     (phase === "occupied" ? occupied : committed).push(holder);
   }
 
-  occupied.sort(byEndThenName);
+  // Current clients newest first; people who have not started yet,
+  // soonest first.
+  //
+  // The two lists answer different questions, so they are not the same
+  // sort reversed. Current Clients is who Leif is working with now, and
+  // the person who joined most recently is the one he is still learning —
+  // the ones from May he knows. Starting Later is a queue, and a queue is
+  // read from the front: the next person to arrive is the one that matters.
+  //
+  // Current Clients was ordered by expected END date, which is derived
+  // from a calendar and moves whenever Year Tracking changes — so the list
+  // silently reordered itself after a sync, around a date that is a
+  // projection rather than a fact about the person.
+  occupied.sort(byStartDescThenName);
   committed.sort(byStartThenName);
 
   const active = occupied.length;
@@ -144,6 +157,20 @@ const byEndThenName = (a: SlotHolder, b: SlotHolder): number => {
     if (!aKey) return 1;
     if (!bKey) return -1;
     return aKey.localeCompare(bKey);
+  }
+  return a.name.localeCompare(b.name);
+};
+
+// Newest Start Date first, name ascending within a date so the order is
+// stable. A holder with no Start Date sorts last: they are not newer than
+// everybody, they are unknown, and a question for Leif.
+const byStartDescThenName = (a: SlotHolder, b: SlotHolder): number => {
+  const aKey = a.startDate ?? "";
+  const bKey = b.startDate ?? "";
+  if (aKey !== bKey) {
+    if (!aKey) return 1;
+    if (!bKey) return -1;
+    return bKey.localeCompare(aKey);
   }
   return a.name.localeCompare(b.name);
 };

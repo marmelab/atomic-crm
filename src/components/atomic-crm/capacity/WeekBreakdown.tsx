@@ -47,6 +47,22 @@ export const WeekBreakdown = ({ week }: { week: WeekCapacity }) => {
           _: "No finishes",
         })}
       />
+      {week.finishing.length > 0 && (
+        // They have their twelfth session IN this week, so they hold the
+        // slot for all of it. "Two people are finishing" and "two slots are
+        // free" are a week apart, and that week is exactly the confusion
+        // this drilldown exists to settle.
+        <p className="text-xs text-muted-foreground">
+          {week.nextWeekStart
+            ? translate("crm.programs.week_frees_from", {
+                _: "Their slots are free from the week of %{date}.",
+                date: weekLabel(week.nextWeekStart),
+              })
+            : translate("crm.programs.week_frees_after", {
+                _: "Their slots are free after this week.",
+              })}
+        </p>
+      )}
 
       <SafeStartAnswer week={week} />
     </li>
@@ -76,7 +92,7 @@ const PeopleLine = ({
 // the same evaluation that produced the answer.
 const SafeStartAnswer = ({ week }: { week: WeekCapacity }) => {
   const translate = useTranslate();
-  const { answer, peak, holdsSlotUntil } = week.safeStart;
+  const { answer, peak, finalWeekStart } = week.safeStart;
 
   if (answer.status === "unknown") {
     return (
@@ -113,10 +129,14 @@ const SafeStartAnswer = ({ week }: { week: WeekCapacity }) => {
           })}
         </p>
         <p className="text-xs text-muted-foreground">
+          {/* The WEEK of their twelfth session, not the day after it.
+              `holdsSlotUntil` is that following day, and printing it here
+              said "ends Jan 16" beside a client card reading "final
+              session week Jan 10". */}
           {translate("crm.programs.safe_start_yes_why", {
-            _: "They stay at or below %{max} active clients every week through their 12th session, ending %{until}.",
+            _: "Stays within %{max} every week through their 12th session, in the week of %{until}.",
             max: week.max,
-            until: holdsSlotUntil ? weekLabel(holdsSlotUntil) : "—",
+            until: finalWeekStart ? weekLabel(finalWeekStart) : "—",
           })}
         </p>
       </div>
@@ -125,26 +145,25 @@ const SafeStartAnswer = ({ week }: { week: WeekCapacity }) => {
 
   // No. The reason is always the same shape — somebody already committed
   // would be in the programme at the same time — so it is stated with
-  // their names rather than as a number Leif has to interpret.
+  // their names rather than as a number Leif has to interpret. The rule
+  // itself is not repeated on every week; it is the same rule each time
+  // and saying it thirteen times adds nothing.
   const blockers = peak?.contributors ?? [];
   return (
     <div className="mt-1 border-t pt-2">
       <p className="text-xs font-medium">
-        {translate("crm.programs.safe_start_no", {
-          _: "No — a new client could not start this week",
-        })}
+        {translate("crm.programs.safe_start_no", { _: "No opening" })}
       </p>
       <p className="text-xs text-muted-foreground">
         {blockers.length > 0 && peak?.reachedOn
           ? translate("crm.programs.safe_start_no_why_names", {
-              _: "Starting someone here would reach %{peak} active clients in the week of %{when}, because %{names} %{verb} already booked to start.",
+              _: "Would reach %{peak} active in the week of %{when} — %{names} start then.",
               peak: answer.peakOccupancy,
               when: weekLabel(peak.reachedOn),
               names: blockers.map((person) => person.name).join(", "),
-              verb: blockers.length === 1 ? "is" : "are",
             })
           : translate("crm.programs.safe_start_no_why_full", {
-              _: "The programme is already at %{peak} of %{max} active clients for the whole of their 12 sessions.",
+              _: "Already at %{peak} of %{max} for the whole of their 12 sessions.",
               peak: answer.peakOccupancy,
               max: week.max,
             })}

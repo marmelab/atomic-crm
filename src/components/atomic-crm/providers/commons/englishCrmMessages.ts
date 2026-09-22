@@ -887,24 +887,27 @@ export const englishCrmMessages = {
       // reason, then the mechanism, then what Leif can do about it.
       capacity_now: "Right now",
       capacity_next: "Next opening",
+      capacity_now_count: "%{active} / %{max} active",
       capacity_committed_plain:
-        "%{count} client already booked to start |||| %{count} clients already booked to start",
-      availability_open_headline:
-        "%{count} new client can start |||| %{count} new clients can start",
-      availability_open_card:
-        "%{count} safe opening |||| %{count} safe openings",
-      availability_open_when: "Earliest safe start: week of %{date}",
+        "%{count} committed to start |||| %{count} committed to start",
+      // The week leads at the top of the section; the count leads on a
+      // month card, where the month is already the heading.
+      availability_open_week: "Week of %{date}",
+      availability_open_count:
+        "%{count} client can start |||| %{count} clients can start",
+      availability_open_card: "%{count} opening |||| %{count} openings",
       availability_none: "No opening yet",
+      // A card speaks only for its own month; "yet" belongs to the
+      // forecast as a whole.
+      availability_none_month: "No opening this month",
       availability_none_why:
         "Your current and already-booked clients keep the programme at capacity through %{date}.",
       availability_none_horizon:
-        "Weeks after that can't be checked yet — Year Tracking ends %{horizon}.",
-      availability_unknown_headline: "Can't calculate your next opening yet",
-      availability_unknown_card: "Can't calculate safely yet",
+        "Weeks after that can't be checked yet — Year Tracking ends %{horizon}. Add more 1:1 weeks, then Sync Calendar.",
+      availability_unknown_headline: "Can't calculate yet",
+      availability_unknown_card: "Can't calculate this month yet",
       availability_unknown_why:
-        "Year Tracking ends %{horizon}, which isn't far enough to see a full 12-session schedule for someone starting now.",
-      availability_unknown_detail:
-        "The closest week has %{scheduled} of the %{required} 1:1 weeks it needs.",
+        "Year Tracking ends %{horizon} — not far enough to see a full 12-session schedule for someone starting now.",
       availability_unknown_action:
         "Add more 1:1 weeks to Year Tracking, then Sync Calendar.",
       occupancy_active: "%{count} active",
@@ -926,17 +929,25 @@ export const englishCrmMessages = {
       week_finishing: "Finishing",
       week_no_starts: "No starts",
       week_no_finishes: "No finishes",
+      // Somebody finishing holds their slot for the whole of the week
+      // their twelfth session is in. "Finishing" and "free" are a week
+      // apart, and saying so is the point of this line.
+      week_frees_from: "Their slots are free from the week of %{date}.",
+      week_frees_after: "Their slots are free after this week.",
       session_weeks_found:
         "Session weeks in your calendar for a start this week",
       session_weeks_of: "%{scheduled} of %{required} session weeks",
       safe_start_yes: "A new client could start this week",
+      // Always the WEEK of the twelfth session, never the day after it —
+      // the client card says "final session week", and these two sit on
+      // the same screen.
       safe_start_yes_why:
-        "They stay at or below %{max} active clients every week through their 12th session, ending %{until}.",
-      safe_start_no: "No — a new client could not start this week",
+        "Stays within %{max} every week through their 12th session, in the week of %{until}.",
+      safe_start_no: "No opening",
       safe_start_no_why_names:
-        "Starting someone here would reach %{peak} active clients in the week of %{when}, because %{names} %{verb} already booked to start.",
+        "Would reach %{peak} active in the week of %{when} — %{names} start then.",
       safe_start_no_why_full:
-        "The programme is already at %{peak} of %{max} active clients for the whole of their 12 sessions.",
+        "Already at %{peak} of %{max} for the whole of their 12 sessions.",
       safe_start_unknown:
         "Can't tell yet whether someone could start this week",
       safe_start_unknown_action:

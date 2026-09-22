@@ -203,6 +203,12 @@ export type SafeStartExplanation = {
   // calendar cannot seat them at all, which is when there is no window to
   // test the ceiling over.
   holdsSlotUntil: string | null;
+  // The week their twelfth session falls in. Carried separately because
+  // `holdsSlotUntil` is the day AFTER that week ends, and showing that
+  // date to a person as "ends Jan 16" beside a client card reading
+  // "final session week Jan 10" is the same off-by-one confusion this
+  // pass exists to remove. Anything user-facing says the WEEK.
+  finalWeekStart: string | null;
   // The ceiling test over that window: how high occupancy gets, when, and
   // which already-agreed arrivals take it there.
   peak: PeakDetail | null;
@@ -237,6 +243,7 @@ export const explainSafeStart = (
         weeksRequired: newContainer?.weeksRequired ?? SESSIONS_PER_CONTAINER,
       },
       holdsSlotUntil: null,
+      finalWeekStart: null,
       peak: null,
     };
   }
@@ -252,6 +259,7 @@ export const explainSafeStart = (
       peakOccupancy: peak.peak,
     },
     holdsSlotUntil: newContainer.freesOn,
+    finalWeekStart: newContainer.finalWeek.start,
     peak,
   };
 };
