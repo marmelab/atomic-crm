@@ -882,8 +882,65 @@ export const englishCrmMessages = {
       opening_count: "%{count} opening |||| %{count} openings",
       opening_over_committed: "no opening — %{count} over capacity at its peak",
       opening_none: "no opening",
-      opening_peak: "Peak %{peak} in the programme",
       opening_provisional: "start weeks unconfirmed",
+      // Upcoming Openings, after human acceptance: answer first, then the
+      // reason, then the mechanism, then what Leif can do about it.
+      capacity_now: "Right now",
+      capacity_next: "Next opening",
+      capacity_committed_plain:
+        "%{count} client already booked to start |||| %{count} clients already booked to start",
+      availability_open_headline:
+        "%{count} new client can start |||| %{count} new clients can start",
+      availability_open_card:
+        "%{count} safe opening |||| %{count} safe openings",
+      availability_open_when: "Earliest safe start: week of %{date}",
+      availability_none: "No opening yet",
+      availability_none_why:
+        "Your current and already-booked clients keep the programme at capacity through %{date}.",
+      availability_none_horizon:
+        "Weeks after that can't be checked yet — Year Tracking ends %{horizon}.",
+      availability_unknown_headline: "Can't calculate your next opening yet",
+      availability_unknown_card: "Can't calculate safely yet",
+      availability_unknown_why:
+        "Year Tracking ends %{horizon}, which isn't far enough to see a full 12-session schedule for someone starting now.",
+      availability_unknown_detail:
+        "The closest week has %{scheduled} of the %{required} 1:1 weeks it needs.",
+      availability_unknown_action:
+        "Add more 1:1 weeks to Year Tracking, then Sync Calendar.",
+      occupancy_active: "%{count} active",
+      occupancy_capacity: "capacity %{max}",
+      occupancy_over: "%{count} over",
+      occupancy_bar: "%{occupancy} active clients out of a capacity of %{max}",
+      occupancy_bar_over:
+        "%{occupancy} active clients, %{over} over a capacity of %{max}",
+      busiest_week: "Busiest week (%{date}):",
+      month_starts_finishes: "%{starts} starting · %{finishes} finishing",
+      view_breakdown: "View breakdown",
+      month_breakdown_title: "%{month} — capacity breakdown",
+      month_breakdown_intro:
+        "Week by week, and what each week's answer comes from.",
+      month_no_weeks:
+        "Year Tracking has no 1:1 weeks in this month, so nobody can start or finish in it.",
+      week_of: "Week of %{date}",
+      week_starting: "Starting",
+      week_finishing: "Finishing",
+      week_no_starts: "No starts",
+      week_no_finishes: "No finishes",
+      session_weeks_found:
+        "Session weeks in your calendar for a start this week",
+      session_weeks_of: "%{scheduled} of %{required} session weeks",
+      safe_start_yes: "A new client could start this week",
+      safe_start_yes_why:
+        "They stay at or below %{max} active clients every week through their 12th session, ending %{until}.",
+      safe_start_no: "No — a new client could not start this week",
+      safe_start_no_why_names:
+        "Starting someone here would reach %{peak} active clients in the week of %{when}, because %{names} %{verb} already booked to start.",
+      safe_start_no_why_full:
+        "The programme is already at %{peak} of %{max} active clients for the whole of their 12 sessions.",
+      safe_start_unknown:
+        "Can't tell yet whether someone could start this week",
+      safe_start_unknown_action:
+        "Add %{count} more 1:1 week to Year Tracking, then Sync Calendar. |||| Add %{count} more 1:1 weeks to Year Tracking, then Sync Calendar.",
       sync_calendar: "Sync Calendar",
       sync_calendar_running: "Syncing…",
       sync_calendar_last: "Last synced %{when}",
@@ -904,8 +961,12 @@ export const englishCrmMessages = {
       start_week_not_set: "Start week not set",
       opening_completes: "%{names} expected to finish",
       opening_starts: "%{names} already booked to start",
+      // Not "no programme length to work one out from": a 1:1 programme
+      // has a canonical length and it is twelve sessions. What is missing
+      // is calendar, and the old wording sent Leif looking for the wrong
+      // problem.
       openings_unknown_end:
-        "Not included: %{names} — no end date, and no programme length to work one out from.",
+        "No finish date yet for %{names} — Year Tracking doesn't reach their 12th session week.",
       unnamed_client: "an unnamed client",
       starting_later: "Starting Later",
       runs_until: "ends %{end}",

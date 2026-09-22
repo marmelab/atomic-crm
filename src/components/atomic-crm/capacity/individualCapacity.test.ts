@@ -6,6 +6,7 @@ import {
   type SlotEnrollment,
 } from "./individualCapacity";
 import { weeklyCalendar } from "./testCalendar";
+import { weekCapacities } from "./weekCapacity";
 
 const NOW = new Date("2026-09-21T12:00:00Z");
 const MAX = 12;
@@ -166,10 +167,19 @@ describe("an opening needs room AND a calendar", () => {
     expect(capacity.openings).toMatchObject({ status: "known", openings: 0 });
   });
 
-  test("a month after the departures is an opening; the month of them is not", () => {
-    // Twelve containers all end in the week of 23 November. A client
-    // started in November overlaps every one of them; a client started
-    // in January overlaps only the one person booked to arrive then.
+  test("a month reports its best WEEK, not its first day", () => {
+    // Twelve containers all end in the week of 23 November.
+    //
+    // A client starting at the beginning of November overlaps every one of
+    // them and is refused. A client starting on the 30th overlaps none,
+    // and that is a week Leif could genuinely sell — so November IS an
+    // opening, from the 30th.
+    //
+    // Evaluating a month only on its 1st reported "no opening in
+    // November" and hid the sellable week inside it. Nothing about the
+    // RULE changed here: safeOpeningsStartingOn still decides, and still
+    // refuses the early weeks. Only the candidate dates did, from one
+    // arbitrary day a month to the weeks Year Tracking actually contains.
     const capacity = computeIndividualCapacity(
       [
         ...Array.from({ length: 12 }, () =>
@@ -181,13 +191,24 @@ describe("an opening needs room AND a calendar", () => {
       CALENDAR,
       NOW,
     );
-    const { months } = computeFutureOpenings(capacity, NOW);
-    const byMonth = Object.fromEntries(
-      months.map((m) => [m.month, m.openings]),
-    );
 
-    expect(byMonth["2026-11"]).toMatchObject({ status: "known", openings: 0 });
-    expect(byMonth["2027-01"]).toMatchObject({ status: "known", openings: 11 });
+    // The early weeks are still refused, one at a time.
+    const weeks = weekCapacities(capacity, NOW);
+    const early = weeks.find((week) => week.week.start === "2026-11-02");
+    expect(early?.safeStart.answer).toMatchObject({
+      status: "known",
+      openings: 0,
+    });
+
+    const { months } = computeFutureOpenings(capacity, NOW);
+    const november = months.find((month) => month.month === "2026-11");
+    expect(november?.openings).toMatchObject({ status: "known", openings: 11 });
+    // And the month says WHICH week, because a month is not a date Leif
+    // can offer anybody.
+    expect(november?.earliestSafeStart?.start).toBe("2026-11-30");
+
+    const january = months.find((month) => month.month === "2027-01");
+    expect(january?.openings).toMatchObject({ status: "known", openings: 11 });
   });
 });
 

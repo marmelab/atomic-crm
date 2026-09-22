@@ -890,8 +890,64 @@ export const frenchCrmMessages = {
       opening_over_committed:
         "aucune place — %{count} au-dessus de la capacité au pic",
       opening_none: "aucune place",
-      opening_peak: "Pic de %{peak} dans le programme",
       opening_provisional: "semaines de début non confirmées",
+      capacity_now: "Actuellement",
+      capacity_next: "Prochaine place",
+      capacity_committed_plain:
+        "%{count} client déjà prévu au démarrage |||| %{count} clients déjà prévus au démarrage",
+      availability_open_headline:
+        "%{count} nouveau client peut commencer |||| %{count} nouveaux clients peuvent commencer",
+      availability_open_card: "%{count} place sûre |||| %{count} places sûres",
+      availability_open_when: "Début sûr au plus tôt : semaine du %{date}",
+      availability_none: "Aucune place pour l'instant",
+      availability_none_why:
+        "Vos clients actuels et déjà prévus maintiennent le programme à pleine capacité jusqu'au %{date}.",
+      availability_none_horizon:
+        "Les semaines suivantes ne peuvent pas encore être vérifiées — le suivi annuel s'arrête le %{horizon}.",
+      availability_unknown_headline:
+        "Impossible de calculer votre prochaine place pour l'instant",
+      availability_unknown_card: "Calcul impossible pour l'instant",
+      availability_unknown_why:
+        "Le suivi annuel s'arrête le %{horizon}, ce qui ne permet pas de voir un programme complet de 12 séances pour un début maintenant.",
+      availability_unknown_detail:
+        "La semaine la plus proche dispose de %{scheduled} des %{required} semaines 1:1 nécessaires.",
+      availability_unknown_action:
+        "Ajoutez des semaines 1:1 au suivi annuel, puis synchronisez le calendrier.",
+      occupancy_active: "%{count} actifs",
+      occupancy_capacity: "capacité %{max}",
+      occupancy_over: "%{count} au-dessus",
+      occupancy_bar: "%{occupancy} clients actifs sur une capacité de %{max}",
+      occupancy_bar_over:
+        "%{occupancy} clients actifs, %{over} au-dessus d'une capacité de %{max}",
+      busiest_week: "Semaine la plus chargée (%{date}) :",
+      month_starts_finishes: "%{starts} au démarrage · %{finishes} en fin",
+      view_breakdown: "Voir le détail",
+      month_breakdown_title: "%{month} — détail de la capacité",
+      month_breakdown_intro:
+        "Semaine par semaine, et d'où vient la réponse de chacune.",
+      month_no_weeks:
+        "Le suivi annuel ne contient aucune semaine 1:1 ce mois-ci, donc personne ne peut commencer ni terminer.",
+      week_of: "Semaine du %{date}",
+      week_starting: "Démarrages",
+      week_finishing: "Fins",
+      week_no_starts: "Aucun démarrage",
+      week_no_finishes: "Aucune fin",
+      session_weeks_found:
+        "Semaines de séance disponibles pour un début cette semaine",
+      session_weeks_of: "%{scheduled} semaines de séance sur %{required}",
+      safe_start_yes: "Un nouveau client pourrait commencer cette semaine",
+      safe_start_yes_why:
+        "Il reste à %{max} clients actifs ou moins chaque semaine jusqu'à sa 12e séance, qui se termine le %{until}.",
+      safe_start_no:
+        "Non — un nouveau client ne pourrait pas commencer cette semaine",
+      safe_start_no_why_names:
+        "Un début ici atteindrait %{peak} clients actifs la semaine du %{when}, car %{names} %{verb} déjà prévus au démarrage.",
+      safe_start_no_why_full:
+        "Le programme est déjà à %{peak} clients actifs sur %{max} pendant la totalité de ses 12 séances.",
+      safe_start_unknown:
+        "Impossible de dire pour l'instant si quelqu'un pourrait commencer cette semaine",
+      safe_start_unknown_action:
+        "Ajoutez %{count} semaine 1:1 au suivi annuel, puis synchronisez le calendrier. |||| Ajoutez %{count} semaines 1:1 au suivi annuel, puis synchronisez le calendrier.",
       sync_calendar: "Synchroniser le calendrier",
       sync_calendar_running: "Synchronisation…",
       sync_calendar_last: "Dernière synchronisation %{when}",
@@ -912,7 +968,7 @@ export const frenchCrmMessages = {
       start_week_not_set: "Semaine de début non renseignée",
       opening_starts: "%{names} déjà prévus au démarrage",
       openings_unknown_end:
-        "Non inclus : %{names} — aucune date de fin, et aucune durée de programme permettant de la calculer.",
+        "Pas encore de date de fin pour %{names} — le suivi annuel n'atteint pas leur 12e semaine de séance.",
       unnamed_client: "un client sans nom",
       starting_later: "À venir",
       runs_until: "se termine le %{end}",

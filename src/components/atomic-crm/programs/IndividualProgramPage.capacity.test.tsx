@@ -237,24 +237,53 @@ describe("Living Example program page — capacity Leif can plan around", () => 
       .toBeVisible();
     const text = screen.container.textContent ?? "";
 
-    // Eighteen people are in the programme on 8 November — six over.
-    expect(text).toContain("Peak 18 in the programme");
+    // Eighteen people are in the programme in the week of 8 November —
+    // six over. Said with its unit and its ceiling, because "Peak 18 in
+    // the programme" was read as "do I have 18 people enrolled?".
+    expect(text).toContain("18 active");
+    expect(text).toContain("capacity 12");
+    expect(text).toContain("6 over");
+    expect(text).not.toContain("Peak 18");
+
     // And no month can be answered at all: Year Tracking stops on 24
     // January, so a new client starting in any of them has nowhere to put
-    // their twelfth session week. "Unknown", never "0 openings".
-    expect(text).toContain("session weeks exist for a new client");
+    // their twelfth session week. That is "can't calculate", which is a
+    // different thing from "no openings" — and never "0 openings".
+    expect(text).toContain("Can't calculate");
     expect(text).not.toContain("1 opening");
+    // The mechanism is still available, underneath the answer rather than
+    // instead of it.
+    expect(text).toContain("of the 12 1:1 weeks it needs");
   });
 
-  it("says whose end the calendar cannot reach, and how far it goes", async () => {
+  it("says whose end the calendar cannot reach, and what to do about it", async () => {
     const screen = await render(buildTestCrm());
 
     await expect
       .element(screen.getByRole("heading", { name: "Upcoming Openings" }))
       .toBeVisible();
     const text = screen.container.textContent ?? "";
-    expect(text).toContain("Year Tracking reaches 2027-01-28");
+
+    // Not "no programme length to work one out from": the 1:1 programme
+    // has a length and it is twelve sessions. What is missing is calendar.
+    expect(text).toContain("Year Tracking doesn't reach their 12th session");
+    expect(text).not.toContain("no programme length");
+    // And the one thing Leif can actually do.
+    expect(text).toContain("Add more 1:1 weeks to Year Tracking");
     for (const [, name] of COMMITTED) expect(text).toContain(name);
+  });
+
+  it("never prints the openings answer where a count belongs", async () => {
+    // The defect Leif saw in production, and the third place it lived:
+    // the page header interpolated the ledger ANSWER into "%{count}
+    // openings". Two card call sites were caught by tests; this one was
+    // only caught by reading the rendered page.
+    const screen = await render(buildTestCrm());
+
+    await expect
+      .element(screen.getByRole("heading", { name: "Upcoming Openings" }))
+      .toBeVisible();
+    expect(screen.container.textContent).not.toContain("[object Object]");
   });
 
   it("offers Sync Calendar where the dates come from", async () => {

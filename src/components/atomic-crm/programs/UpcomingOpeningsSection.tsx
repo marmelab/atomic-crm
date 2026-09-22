@@ -1,53 +1,73 @@
+import { useState } from "react";
 import { useTranslate } from "ra-core";
+import { ChevronRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
-import type {
-  FutureOpenings,
-  OpeningsMonth,
-  SlotHolder,
-} from "../capacity/individualCapacity";
-import { monthLabel } from "../capacity/monthLabel";
+import { AvailabilityAnswer } from "../capacity/AvailabilityAnswer";
+import type { FutureOpenings } from "../capacity/individualCapacity";
+import type { IndividualCapacity } from "../capacity/individualCapacity";
+import { monthLabel, weekLabel } from "../capacity/monthLabel";
+import { dayBefore } from "../capacity/sessionWeeks";
+import { MonthBreakdownDialog } from "../capacity/MonthBreakdownDialog";
+import { OccupancyBar, OccupancyLabel } from "../capacity/OccupancyBar";
+import {
+  capacityNow,
+  describeAvailability,
+  monthsFromWeeks,
+  type MonthAvailability,
+} from "../capacity/openingsNarrative";
+import type { SlotHolder } from "../capacity/slotHolder";
 import { SyncCalendarButton } from "../capacity/SyncCalendarButton";
+import { weekCapacities } from "../capacity/weekCapacity";
 import { Section } from "../misc/ProgramLayout";
 
 // When Leif could safely commit another client.
 //
-// This section has now been wrong in two different directions, and both
-// are worth remembering because they are the two ways a capacity board
-// lies.
+// This section has been wrong in three ways now, and the third is the one
+// that is easiest to repeat. It read Enrollment.end_date and said "no
+// upcoming openings" forever. Then it counted departures net of arrivals
+// and offered an opening that four November starts had already taken. Both
+// were arithmetic faults and both were fixed.
 //
-// It read Enrollment.end_date, which is null for every Living Example
-// client, so it said "No upcoming openings." forever while three people
-// were due to finish in October — a board that under-reports until you
-// stop believing it.
+// The third was not. The arithmetic was right and the screen still failed
+// human acceptance, because it published the engine's internal state as
+// the answer: "unknown — only 11 of 12 session weeks exist for a new
+// client", "Peak 14 in the programme". Leif's reaction was the review:
+// "I don't understand if I have any openings available or not, what
+// unknown means, what 11 out of 12 means, or whether peak 14 means I have
+// 14 people enrolled."
 //
-// Then it counted departures net of arrivals month by month and called
-// the running total an opening. October came out at +1. Four people start
-// on 8 November; filling that "opening" would have taken the practice to
-// sixteen — a board that over-reports, which is worse, because acting on
-// it means telling somebody their start is cancelled.
-//
-// So a month shows an opening only if a client could start in it AND be
-// there at the end of their four months without the ceiling ever
-// breaking.
+// So the order is now answer, then reason, then mechanism, then the thing
+// he can do about it — and every month can be opened to see the weeks it
+// was worked out from. None of that is calculated here: this file reads
+// openingsNarrative.ts, which reads weekCapacity.ts, which reads the one
+// occupancy ledger.
 const names = (holders: SlotHolder[]) =>
   holders.map((holder) => holder.name).join(", ");
 
 export const UpcomingOpeningsSection = ({
+  capacity,
   futureOpenings,
   lastSyncedAt,
+  now,
 }: {
+  capacity: IndividualCapacity;
   futureOpenings: FutureOpenings;
   lastSyncedAt?: string | null;
+  now?: Date;
 }) => {
   const translate = useTranslate();
-  const {
-    months,
-    unknownEnd,
-    unconfirmedStartWeek,
-    needsCalendar,
-    calendarHorizon,
-  } = futureOpenings;
+  const [openMonth, setOpenMonth] = useState<MonthAvailability | null>(null);
+  const { unknownEnd, unconfirmedStartWeek, needsCalendar } = futureOpenings;
+
+  const weeks = weekCapacities(capacity, now);
+  // The calendar's own end, not the end of whatever slice is on screen.
+  const horizon = capacity.calendarHorizon
+    ? dayBefore(capacity.calendarHorizon)
+    : null;
+  const availability = describeAvailability(weeks, horizon);
+  const months = monthsFromWeeks(weeks, horizon);
+  const current = capacityNow(capacity);
 
   return (
     <Section
@@ -64,12 +84,42 @@ export const UpcomingOpeningsSection = ({
         />
       }
     >
+      {/* Where the practice is right now. Two numbers, never added
+          together: twelve active plus six booked is not eighteen active,
+          and presenting it as one number is how this board first lied. */}
+      <div className="flex flex-col gap-3 rounded-lg border p-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex flex-col gap-1">
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">
+            {translate("crm.programs.capacity_now", {
+              _: "Right now",
+            })}
+          </p>
+          {current.max != null && (
+            <>
+              <OccupancyLabel occupancy={current.active} max={current.max} />
+              <OccupancyBar occupancy={current.active} max={current.max} />
+            </>
+          )}
+          <p className="text-xs text-muted-foreground">
+            {translate("crm.programs.capacity_committed_plain", {
+              _: "%{count} client already booked to start |||| %{count} clients already booked to start",
+              smart_count: current.committed.length,
+              count: current.committed.length,
+            })}
+          </p>
+        </div>
+        <div className="sm:text-right sm:max-w-[22rem]">
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">
+            {translate("crm.programs.capacity_next", { _: "Next opening" })}
+          </p>
+          <AvailabilityAnswer availability={availability} variant="headline" />
+        </div>
+      </div>
+
       {unconfirmedStartWeek.length > 0 && (
-        // The forecast is arithmetic on dates, and most of these dates
+        // The forecast is arithmetic on dates, and some of these dates
         // were inferred from a booked session — something the owner has
-        // ruled out as evidence of when a programme begins. Saying so
-        // above the months is the difference between a projection and a
-        // claim.
+        // ruled out as evidence of when a programme begins.
         <p className="text-sm text-muted-foreground">
           {translate("crm.programs.openings_unconfirmed_starts", {
             _: "Provisional: %{count} start weeks below have not been confirmed by you.",
@@ -77,20 +127,7 @@ export const UpcomingOpeningsSection = ({
           })}
         </p>
       )}
-      {needsCalendar.length > 0 && (
-        // The single most actionable thing on this section. Year Tracking
-        // stops before these containers reach their twelfth session week,
-        // so their ends are genuinely unknown — and an unknown end holds a
-        // slot, which is usually why a month below shows no opening. A few
-        // more `1:1s` weeks in the calendar answers all of it at once.
-        <p className="text-sm text-muted-foreground">
-          {translate("crm.programs.openings_need_calendar", {
-            _: "Year Tracking reaches %{horizon}. Until it goes further, no end can be worked out for: %{names}.",
-            horizon: calendarHorizon ?? "—",
-            names: names(needsCalendar),
-          })}
-        </p>
-      )}
+
       {months.length === 0 ? (
         <p className="text-sm text-muted-foreground">
           {translate("crm.programs.no_upcoming_openings", {
@@ -100,92 +137,106 @@ export const UpcomingOpeningsSection = ({
       ) : (
         <div className="flex flex-col gap-2">
           {months.map((month) => (
-            <MonthRow key={month.month} month={month} />
+            <MonthCard
+              key={month.month}
+              month={month}
+              onOpen={() => setOpenMonth(month)}
+            />
           ))}
         </div>
       )}
+
       {unknownEnd.length > 0 && (
-        // The projection is knowingly incomplete, and says by how much.
+        // Not "no programme length to work one out from" — the 1:1
+        // programme has a canonical length and it is twelve sessions. What
+        // is missing is calendar, which is a different problem with a
+        // different fix, and the old copy sent Leif looking for the wrong
+        // one.
         <p className="mt-2 text-xs text-muted-foreground">
           {translate("crm.programs.openings_unknown_end", {
-            _: "Not included: %{names} — no end date, and no programme length to work one out from.",
+            _: "No finish date yet for %{names} — Year Tracking doesn't reach their 12th session week.",
             names: names(unknownEnd),
           })}
         </p>
       )}
+
+      <MonthBreakdownDialog
+        month={openMonth}
+        onClose={() => setOpenMonth(null)}
+      />
     </Section>
   );
 };
 
-const MonthRow = ({ month }: { month: OpeningsMonth }) => {
+// A month, answered before it is described.
+//
+// The whole card is a button. Leif asked to be able to click one of these
+// boxes, and a div with an onClick is not something a keyboard or a screen
+// reader can click.
+const MonthCard = ({
+  month,
+  onOpen,
+}: {
+  month: MonthAvailability;
+  onOpen: () => void;
+}) => {
   const translate = useTranslate();
+  const busiest = month.busiest;
 
   return (
     <Card className="p-0">
-      <CardContent className="px-4 py-2.5 flex flex-col gap-0.5">
-        <p className="text-sm font-medium">
-          {monthLabel(month.month)}
-          {" — "}
-          {month.openings.status === "unknown" ? (
-            // Not zero. Whether somebody could start here is a question
-            // the CRM cannot answer until Year Tracking reaches far
-            // enough to seat their own twelve session weeks.
-            <span>
-              {translate("crm.programs.opening_needs_calendar", {
-                _: "unknown — only %{scheduled} of %{required} session weeks exist for a new client",
-                scheduled: month.openings.weeksScheduled,
-                required: month.openings.weeksRequired,
+      <CardContent className="p-0">
+        <button
+          type="button"
+          onClick={onOpen}
+          className="flex w-full items-start gap-3 rounded-xl p-4 text-left transition-colors hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <div className="flex flex-1 flex-col gap-1.5">
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">
+              {monthLabel(month.month)}
+            </p>
+
+            <AvailabilityAnswer
+              availability={month.availability}
+              variant="card"
+            />
+
+            {busiest && (
+              <div className="flex flex-wrap items-center gap-2 pt-0.5">
+                <span className="text-xs text-muted-foreground">
+                  {translate("crm.programs.busiest_week", {
+                    _: "Busiest week (%{date}):",
+                    date: weekLabel(busiest.week.start),
+                  })}
+                </span>
+                <OccupancyLabel
+                  occupancy={busiest.occupancy}
+                  max={busiest.max}
+                />
+                <OccupancyBar occupancy={busiest.occupancy} max={busiest.max} />
+              </div>
+            )}
+
+            <p className="text-xs text-muted-foreground">
+              {translate("crm.programs.month_starts_finishes", {
+                _: "%{starts} starting · %{finishes} finishing",
+                starts: month.starting.length,
+                finishes: month.finishing.length,
+              })}
+              {month.starting.length > 0 && ` — ${names(month.starting)}`}
+            </p>
+
+            <span className="pt-0.5 text-xs font-medium text-primary">
+              {translate("crm.programs.view_breakdown", {
+                _: "View breakdown",
               })}
             </span>
-          ) : month.openings.openings > 0 ? (
-            translate("crm.programs.opening_count", {
-              _: "%{count} opening |||| %{count} openings",
-              smart_count: month.openings.openings,
-              count: month.openings.openings,
-            })
-          ) : month.overCapacityBy > 0 ? (
-            <span className="text-destructive">
-              {translate("crm.programs.opening_over_committed", {
-                _: "no opening — %{count} over capacity at its peak",
-                count: month.overCapacityBy,
-              })}
-            </span>
-          ) : (
-            translate("crm.programs.opening_none", { _: "no opening" })
-          )}
-        </p>
-        {month.freeing.length > 0 && (
-          <p className="text-xs text-muted-foreground truncate">
-            {translate("crm.programs.opening_completes", {
-              _: "%{names} expected to finish",
-              names: names(month.freeing),
-            })}
-          </p>
-        )}
-        {month.committing.length > 0 && (
-          <p className="text-xs text-muted-foreground truncate">
-            {translate("crm.programs.opening_starts", {
-              _: "%{names} already booked to start",
-              names: names(month.committing),
-            })}
-          </p>
-        )}
-        {/* Why a month with three people finishing can still be no
-            opening: the peak is what the ceiling has to survive. */}
-        <p className="text-xs text-muted-foreground">
-          {translate("crm.programs.opening_peak", {
-            _: "Peak %{peak} in the programme",
-            peak: month.peakOccupancy,
-          })}
-          {month.restsOnUnconfirmedDates && (
-            <>
-              {" · "}
-              {translate("crm.programs.opening_provisional", {
-                _: "start weeks unconfirmed",
-              })}
-            </>
-          )}
-        </p>
+          </div>
+          <ChevronRight
+            className="mt-1 size-4 shrink-0 text-muted-foreground"
+            aria-hidden="true"
+          />
+        </button>
       </CardContent>
     </Card>
   );

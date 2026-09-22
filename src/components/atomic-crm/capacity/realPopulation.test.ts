@@ -264,9 +264,17 @@ describe("the real Living Example, 21 September 2026", () => {
     ).toEqual([
       ["2026-10", 11],
       ["2026-11", 8],
-      // Six, not five: the week of 29 November runs to 3 December, so it
-      // is still eligible for a client starting on the 1st.
-      ["2026-12", 6],
+      // Five, counted from the week of 6 December — the first `1:1s` week
+      // that actually begins in December.
+      //
+      // This used to be six, because a month was evaluated from its 1st
+      // and the week of 29 November runs to 3 December, so it was still
+      // "eligible for a client starting on the 1st". But somebody who
+      // starts in the week of 29 November starts in NOVEMBER; counting
+      // their week towards a December start was an artefact of picking a
+      // candidate date that is not a session week at all. Months are now
+      // answered from the weeks that begin in them.
+      ["2026-12", 5],
       ["2027-01", 3],
     ]);
   });
@@ -298,6 +306,13 @@ describe("the real Living Example, 21 September 2026", () => {
       (month) =>
         month.openings.status === "known" && month.openings.openings > 0,
     );
-    expect(firstOpen?.month).toBe("2027-02");
+    // January, and specifically the week of the 10th.
+    //
+    // This read February while a month was answered only from its 1st:
+    // on 1 January the practice is still full, so January looked closed
+    // and the first sellable week inside it was invisible. The board now
+    // names the week, which is what Leif can actually offer somebody.
+    expect(firstOpen?.month).toBe("2027-01");
+    expect(firstOpen?.earliestSafeStart?.start).toBe("2027-01-10");
   });
 });

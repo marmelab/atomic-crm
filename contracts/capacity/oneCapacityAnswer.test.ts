@@ -25,6 +25,12 @@ const SURFACES = [
   "src/components/atomic-crm/programs/IndividualProgramPage.tsx",
   "src/components/atomic-crm/programs/IndividualProgramCard.tsx",
   "src/components/atomic-crm/programs/UpcomingOpeningsSection.tsx",
+  // The comprehension repair added four more surfaces. Every one of them
+  // renders an answer; none of them may work one out.
+  "src/components/atomic-crm/capacity/AvailabilityAnswer.tsx",
+  "src/components/atomic-crm/capacity/MonthBreakdownDialog.tsx",
+  "src/components/atomic-crm/capacity/WeekBreakdown.tsx",
+  "src/components/atomic-crm/capacity/OccupancyBar.tsx",
 ];
 
 // The modules allowed to work the answer out. Everything else consumes it.
@@ -32,6 +38,10 @@ const AUTHORITIES = [
   "src/components/atomic-crm/capacity/sessionWeeks.ts",
   "src/components/atomic-crm/capacity/occupancyLedger.ts",
   "src/components/atomic-crm/capacity/individualCapacity.ts",
+  // Arranges the canonical answers by week and by month so a screen can
+  // show them. It decides nothing: see the assertion below.
+  "src/components/atomic-crm/capacity/weekCapacity.ts",
+  "src/components/atomic-crm/capacity/openingsNarrative.ts",
 ];
 
 const read = (path: string) => readFileSync(path, "utf8");
@@ -77,7 +87,10 @@ describe("one capacity answer, consumed everywhere", () => {
     // Twelve is the business model, and a second copy of it anywhere is
     // how the CRM ends up with two different finishing weeks for one
     // person.
-    expect(source).not.toMatch(/\b12\b\s*(-|\*|weeks)/);
+    // Arithmetic on twelve, not prose about it: "12-session schedule"
+    // and "the 12 1:1 weeks it needs" are copy, and copy is the point of
+    // this whole repair.
+    expect(source).not.toMatch(/\b12\b\s*(?:\*|-(?!\w)|weeks)/);
     expect(source).not.toMatch(/SESSIONS_PER_CONTAINER\s*=/);
   });
 
@@ -100,5 +113,79 @@ describe("one capacity answer, consumed everywhere", () => {
     expect(source).toMatch(
       /month\.openings\.status === "known" && month\.openings\.openings > 0/,
     );
+  });
+});
+
+// The comprehension repair, which is where a second engine would most
+// plausibly appear: a screen that has to EXPLAIN an answer is one small
+// step from working the answer out again in order to explain it.
+describe("the explanation comes from the evaluation, not beside it", () => {
+  const read = (path: string) => readFileSync(path, "utf8");
+
+  test("the week model arranges canonical answers and computes none", () => {
+    const source = read("src/components/atomic-crm/capacity/weekCapacity.ts");
+    // Every number it carries comes from a call into the ledger.
+    expect(source).toMatch(/peakBetween\(/);
+    expect(source).toMatch(/explainSafeStart\(/);
+    // And none of them is worked out here.
+    expect(source).not.toMatch(/occupied\s*\+=/);
+    expect(source).not.toMatch(/SESSIONS_PER_CONTAINER\s*=/);
+    expect(source).not.toMatch(/computeExpectedEnd\(/);
+  });
+
+  test("the narrative reads the week model and decides nothing itself", () => {
+    const source = read(
+      "src/components/atomic-crm/capacity/openingsNarrative.ts",
+    );
+    // Whether a week is sellable is asked, never re-derived. In
+    // particular the two halves of an opening — the ceiling AND the
+    // calendar — are not re-tested here.
+    expect(source).toMatch(/isSafeOpening/);
+    expect(source).not.toMatch(/computeExpectedEnd\(/);
+    expect(source).not.toMatch(/peakBetween\(/);
+    expect(source).not.toMatch(/max\s*-\s*peak/);
+  });
+
+  test("a month card and the headline are the same function", () => {
+    // Not "they agree": there is one way to produce either. If a month
+    // ever gets its own summariser, this goes red.
+    const source = read(
+      "src/components/atomic-crm/capacity/openingsNarrative.ts",
+    );
+    expect(source).toMatch(/availability: describeAvailability\(monthWeeks/);
+  });
+
+  test("the safe-start explanation is returned by the thing that decided it", () => {
+    const source = read(
+      "src/components/atomic-crm/capacity/occupancyLedger.ts",
+    );
+    // One walk produces the peak, when it happens and who causes it, so
+    // a screen can never narrate a different reason from the number.
+    expect(source).toMatch(/export const peakBetween/);
+    expect(source).toMatch(/contributors: SlotHolder\[\]/);
+    expect(source).toMatch(
+      /explainSafeStart\(events, occupiedToday, max, date, weeks\)\.answer/s,
+    );
+  });
+
+  test("one component renders the openings answer", () => {
+    // The production defect was `count: capacity.openings`, where
+    // `openings` is the ANSWER OBJECT — it rendered "[object Object]
+    // openings" on the dashboard, the Programs hub and the program page.
+    //
+    // A regex cannot catch that honestly: `count: capacity.openings` and
+    // the correct `count: capacity.openings.openings` differ by one
+    // property, and translate() takes `any`, which is why TypeScript did
+    // not catch it either. So the rule asserted here is the one that
+    // actually prevents it — the message key has exactly one renderer, and
+    // that renderer takes a typed OpeningsAnswer and narrows it.
+    const renderers = SURFACES.filter((path) =>
+      read(path).includes("crm.dashboard.capacity_openings"),
+    );
+    expect(renderers).toEqual([]);
+
+    const line = read("src/components/atomic-crm/capacity/OpeningsLine.tsx");
+    expect(line).toMatch(/openings: OpeningsAnswer/);
+    expect(line).toMatch(/openings\.status === "unknown"/);
   });
 });

@@ -32,6 +32,7 @@ const openingsMonth = (
   freeing,
   committing,
   openings: { status: "known", openings, peakOccupancy: 12 - openings },
+  earliestSafeStart: null,
   peakOccupancy: 12 - openings,
   overCapacityBy: 0,
   restsOnUnconfirmedDates: false,

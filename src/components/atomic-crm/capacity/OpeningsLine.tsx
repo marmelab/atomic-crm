@@ -15,27 +15,37 @@ import type { OpeningsAnswer } from "./occupancyLedger";
 // practice is full when it is merely unscheduled. Both program cards ask
 // this component, so the dashboard and the Programs hub cannot answer
 // differently.
-export const OpeningsLine = ({ openings }: { openings: OpeningsAnswer }) => {
+export const OpeningsLine = ({
+  openings,
+  // A page header is already a sentence; a <p> inside one is invalid and
+  // breaks the line. Same words either way.
+  inline = false,
+}: {
+  openings: OpeningsAnswer;
+  inline?: boolean;
+}) => {
   const translate = useTranslate();
+  const Wrapper = inline ? "span" : "p";
+  const className = inline ? undefined : "text-sm text-muted-foreground";
 
   if (openings.status === "unknown") {
     return (
-      <p className="text-sm text-muted-foreground">
+      <Wrapper className={className}>
         {translate("crm.dashboard.capacity_openings_unknown", {
           _: "Openings unknown — only %{scheduled} of %{required} session weeks scheduled",
           scheduled: openings.weeksScheduled,
           required: openings.weeksRequired,
         })}
-      </p>
+      </Wrapper>
     );
   }
 
   return (
-    <p className="text-sm text-muted-foreground">
+    <Wrapper className={className}>
       {translate("crm.dashboard.capacity_openings", {
         _: "%{count} openings",
         count: openings.openings,
       })}
-    </p>
+    </Wrapper>
   );
 };

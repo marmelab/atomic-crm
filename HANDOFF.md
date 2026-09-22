@@ -655,6 +655,44 @@ migration works**:
   point. With no Enrollments to rebuild, a missing rebuild and a completed
   one are the same empty table.
 
+#### Human acceptance FAILED on Upcoming Openings — 2026-09-22
+
+The first acceptance failure this project has had that was not an
+arithmetic fault. Every number on the screen was correct. Leif's review:
+
+> "I don't understand if I have any openings available or not, what
+> unknown means, what 11 out of 12 means, or whether peak 14 means I have
+> 14 people enrolled."
+
+What the screen was doing wrong, itemised, because each of these is a
+separate habit worth not repeating:
+
+- **`unknown` was published as the answer.** It is the engine's word for
+  its own state. It was technically accurate and operationally opaque, and
+  it is not a synonym for "no openings" — one is "I can't see far enough",
+  the other is "you are full", and they need opposite actions.
+- **"11 of 12 session weeks" was the headline.** That is the mechanism.
+  Leif should never need to know it to operate the CRM; it belongs under
+  the answer, not in place of it.
+- **"Peak 14 in the programme" had no unit and no ceiling.** Read as "do I
+  have 14 people enrolled?".
+- **No action.** The one thing that fixes most of these — add 1:1 weeks to
+  Year Tracking, then Sync Calendar — was not on the screen at all.
+- **The month calculation was not inspectable.** "I need to be able to
+  click on one of those boxes and see a full breakdown of that
+  calculation."
+
+The repair is comprehension only: no capacity rule, ceiling, Start Date,
+session count or reschedule rule changed. What changed is that the answer
+comes first and the mechanism sits under it, and that candidate starts are
+now evaluated per `1:1s` WEEK rather than only on the 1st of each month —
+which is what lets the screen say "week of Dec 7" instead of "December",
+and stops a month reading as full because its first day happened to be.
+
+**The general lesson, and it is the third time this project has met it:**
+passing tests prove the code does what it was written to do. Only Leif can
+say whether what it was written to do is legible. See §2.
+
 **Rehearse against production in a rolled-back transaction** before any
 migration that touches existing rows. Both repairs were proven that way
 first, and the Won path and the January-2027 delete refusal were proven the

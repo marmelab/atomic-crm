@@ -4,6 +4,7 @@ import { useLocation, useParams } from "react-router";
 import { Badge } from "@/components/ui/badge";
 
 import type { SlotHolder } from "../capacity/individualCapacity";
+import { OpeningsLine } from "../capacity/OpeningsLine";
 import { PageHeader, PersonCard, Section } from "../misc/ProgramLayout";
 import { formatISODateString } from "../deals/dealUtils";
 import { enrollmentStatusLabels } from "../enrollments/enrollmentConstants";
@@ -75,10 +76,13 @@ export const IndividualProgramPage = () => {
               {capacity?.overCapacityBy === 0 && capacity.openings != null && (
                 <span>
                   {" · "}
-                  {translate("crm.dashboard.capacity_openings", {
-                    _: "%{count} openings",
-                    count: capacity.openings,
-                  })}
+                  {/* The third place this rendered "[object Object]
+                      openings". Openings became a ledger ANSWER and three
+                      separate call sites went on interpolating the object
+                      into a count; two were found by a test and this one
+                      by reading the page. OpeningsLine is the only thing
+                      that renders the answer now. */}
+                  <OpeningsLine openings={capacity.openings} inline />
                 </span>
               )}
               {capacity != null && capacity.committed.length > 0 && (
@@ -156,8 +160,9 @@ export const IndividualProgramPage = () => {
         </Section>
       )}
 
-      {futureOpenings != null && (
+      {futureOpenings != null && capacity != null && (
         <UpcomingOpeningsSection
+          capacity={capacity}
           futureOpenings={futureOpenings}
           lastSyncedAt={lastSyncedAt}
         />

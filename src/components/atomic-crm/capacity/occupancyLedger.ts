@@ -1,5 +1,9 @@
 import type { SlotHolder } from "./slotHolder";
-import { computeExpectedEnd, type SessionWeek } from "./sessionWeeks";
+import {
+  computeExpectedEnd,
+  SESSIONS_PER_CONTAINER,
+  type SessionWeek,
+} from "./sessionWeeks";
 
 // How many people are in the programme, at every moment the CRM knows
 // about — and from that, the only question Leif actually asks a capacity
@@ -126,23 +130,59 @@ export const occupancyOn = (
     occupiedToday,
   );
 
-// The most people in the programme at any moment in [from, to].
+// The most people in the programme at any moment in [from, to] — and who
+// put it there.
+//
+// The number on its own cannot be acted on. "No opening in November"
+// invites the question Leif actually asked out loud ("why not?"), and the
+// answer is always a list of names: the arrivals inside the window that
+// take occupancy to its highest point. Returning them from the same walk
+// that finds the peak is what stops a screen inventing its own
+// explanation later — there is one loop, and the reason it gives is the
+// reason the number came from.
+export type PeakDetail = {
+  peak: number;
+  // When the peak is first reached. Null when the window opens at the
+  // peak and nothing inside it goes higher.
+  reachedOn: string | null;
+  // Arrivals within the window, up to and including the moment the peak
+  // is first reached. Empty when the window was already at its peak.
+  contributors: SlotHolder[];
+};
+
+export const peakBetween = (
+  events: SlotEvent[],
+  occupiedToday: number,
+  from: string,
+  to: string,
+): PeakDetail => {
+  let peak = occupancyOn(events, occupiedToday, from);
+  let running = peak;
+  let reachedOn: string | null = null;
+  const arrivals: SlotEvent[] = [];
+  let contributors: SlotHolder[] = [];
+
+  for (const event of events) {
+    if (event.date <= from) continue;
+    if (event.date > to) break;
+    running += event.kind === "start" ? 1 : -1;
+    if (event.kind === "start") arrivals.push(event);
+    if (running > peak) {
+      peak = running;
+      reachedOn = event.date;
+      contributors = arrivals.map((arrival) => arrival.holder);
+    }
+  }
+
+  return { peak, reachedOn, contributors };
+};
+
 export const peakOccupancyBetween = (
   events: SlotEvent[],
   occupiedToday: number,
   from: string,
   to: string,
-): number => {
-  let peak = occupancyOn(events, occupiedToday, from);
-  let running = peak;
-  for (const event of events) {
-    if (event.date <= from) continue;
-    if (event.date > to) break;
-    running += event.kind === "start" ? 1 : -1;
-    if (running > peak) peak = running;
-  }
-  return peak;
-};
+): number => peakBetween(events, occupiedToday, from, to).peak;
 
 export type OpeningsAnswer =
   | { status: "known"; openings: number; peakOccupancy: number }
@@ -156,40 +196,73 @@ export type OpeningsAnswer =
       weeksRequired: number;
     };
 
-// How many NEW clients could start on `date` — meaning both halves: the
-// ceiling holds for the whole of their container, and their twelve session
-// weeks exist.
-export const safeOpeningsStartingOn = (
+// Everything behind the answer, so a screen can show its working.
+export type SafeStartExplanation = {
+  answer: OpeningsAnswer;
+  // The last day the hypothetical client would hold a slot. Null when the
+  // calendar cannot seat them at all, which is when there is no window to
+  // test the ceiling over.
+  holdsSlotUntil: string | null;
+  // The ceiling test over that window: how high occupancy gets, when, and
+  // which already-agreed arrivals take it there.
+  peak: PeakDetail | null;
+};
+
+// Whether ONE more client could start on `date` — and why not, when not.
+//
+// Both halves have to hold: the ceiling survives the whole of their own
+// container, and their twelve session weeks actually exist. The second is
+// not a technicality — a client started a fortnight before Year Tracking
+// runs out has nowhere to put sessions 3 through 12, and no amount of
+// headroom makes that a real opening.
+//
+// This is the single place either half is decided. Everything user-facing
+// reads the result; nothing re-derives it.
+export const explainSafeStart = (
   events: SlotEvent[],
   occupiedToday: number,
   max: number,
   date: string,
   weeks: SessionWeek[],
-): OpeningsAnswer => {
+): SafeStartExplanation => {
   // Could this person even be scheduled? Asked first, because a practice
   // with ten free slots and no calendar still cannot take anybody.
   const newContainer = computeExpectedEnd(weeks, date, 0);
   if (!newContainer || newContainer.status === "incomplete") {
     return {
-      status: "unknown",
-      reason: "calendar_too_short",
-      weeksScheduled: newContainer?.weeksScheduled ?? 0,
-      weeksRequired: newContainer?.weeksRequired ?? 12,
+      answer: {
+        status: "unknown",
+        reason: "calendar_too_short",
+        weeksScheduled: newContainer?.weeksScheduled ?? 0,
+        weeksRequired: newContainer?.weeksRequired ?? SESSIONS_PER_CONTAINER,
+      },
+      holdsSlotUntil: null,
+      peak: null,
     };
   }
 
   // A new client is one more person for the whole of their own container,
   // so the ceiling has to hold with them in it, right through to the end
   // of their twelfth session week.
-  const peak = peakOccupancyBetween(
-    events,
-    occupiedToday,
-    date,
-    newContainer.freesOn,
-  );
+  const peak = peakBetween(events, occupiedToday, date, newContainer.freesOn);
   return {
-    status: "known",
-    openings: Math.max(max - peak, 0),
-    peakOccupancy: peak,
+    answer: {
+      status: "known",
+      openings: Math.max(max - peak.peak, 0),
+      peakOccupancy: peak.peak,
+    },
+    holdsSlotUntil: newContainer.freesOn,
+    peak,
   };
 };
+
+// How many NEW clients could start on `date`. The answer alone, for
+// callers that do not need the working.
+export const safeOpeningsStartingOn = (
+  events: SlotEvent[],
+  occupiedToday: number,
+  max: number,
+  date: string,
+  weeks: SessionWeek[],
+): OpeningsAnswer =>
+  explainSafeStart(events, occupiedToday, max, date, weeks).answer;

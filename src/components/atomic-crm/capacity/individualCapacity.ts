@@ -18,6 +18,7 @@ import {
   type SlotHolder,
 } from "./slotHolder";
 import { slotPhaseOf, toDateKey } from "./slotOccupancy";
+import { isSafeOpening, weekCapacities } from "./weekCapacity";
 
 export type { SlotEnrollment, SlotHolder } from "./slotHolder";
 
@@ -172,7 +173,11 @@ export type OpeningsMonth = {
   overCapacityBy: number;
   // Whether a new client could start in this month — and if not, whether
   // that is because there is no room or because the calendar runs out.
+  // The best eligible WEEK in the month, not the month's first day.
   openings: OpeningsAnswer;
+  // The week that answer belongs to, when there is one. A month is not a
+  // date Leif can offer somebody; a week is.
+  earliestSafeStart: SessionWeek | null;
   // Whether this month's answer depends on a Start Week nobody confirmed.
   restsOnUnconfirmedDates: boolean;
 };
@@ -234,11 +239,26 @@ export const computeFutureOpenings = (
     );
   }
 
+  // Candidate starts are evaluated per `1:1s` WEEK, and a month's answer
+  // is its best week's.
+  //
+  // Asked only of the 1st, a month reports whatever happened to be true on
+  // one arbitrary day: December could read "no opening" while the week of
+  // the 21st was perfectly safe, and nothing on screen could tell that
+  // apart from "December is full". It also cannot answer the question Leif
+  // actually asks — WHEN — because a month is not a date he can offer
+  // somebody.
+  //
+  // The rule is untouched: safeOpeningsStartingOn still decides, and still
+  // requires both halves. Only the candidate dates changed, from one day a
+  // month to the weeks Year Tracking actually contains. The dashboard and
+  // the programme page read this same answer, so neither can name a month
+  // the other does not.
+  const allWeeks = weekCapacities({ max, active, events, weeks }, now);
+
   const months = [...byMonth.entries()]
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([month, entry]) => {
-      // A candidate start cannot be in the past, so the current month is
-      // evaluated from today.
       const candidateStart =
         firstDayOf(month) < today ? today : firstDayOf(month);
       const monthEnd = lastDayOf(month);
@@ -249,19 +269,29 @@ export const computeFutureOpenings = (
           .map((e) => e.occupiedAfter),
       );
 
+      const monthWeeks = allWeeks.filter(
+        (week) => week.week.start.slice(0, 7) === month,
+      );
+      const best = monthWeeks.find(isSafeOpening);
+      const testable = monthWeeks.find(
+        (week) => week.safeStart.answer.status === "known",
+      );
+
       return {
         month,
         freeing: entry.freeing.slice().sort(byEndThenName),
         committing: entry.committing.slice().sort(byStartThenName),
         peakOccupancy,
         overCapacityBy: Math.max(peakOccupancy - max, 0),
-        openings: safeOpeningsStartingOn(
-          events,
-          active,
-          max,
-          candidateStart,
-          weeks,
-        ),
+        // The first week somebody could actually start; failing that the
+        // first week that could be tested at all; failing that, the answer
+        // for the month's own first candidate day, which is "the calendar
+        // does not reach".
+        openings:
+          (best ?? testable)?.safeStart.answer ??
+          monthWeeks[0]?.safeStart.answer ??
+          safeOpeningsStartingOn(events, active, max, candidateStart, weeks),
+        earliestSafeStart: best?.week ?? null,
         restsOnUnconfirmedDates: [...entry.freeing, ...entry.committing].some(
           (holder) => !holder.startWeekConfirmed,
         ),

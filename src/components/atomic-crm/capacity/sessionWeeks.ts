@@ -142,7 +142,10 @@ export const crossWeekReschedules = (
   classifications.filter((classification) => classification === "rescheduled")
     .length;
 
-const dayBefore = (isoDate: string): string => {
+// Exported because a week's `end` is exclusive everywhere it is used:
+// anything showing a week to a person needs its last real day, and two
+// copies of this would be two chances to be off by one.
+export const dayBefore = (isoDate: string): string => {
   const date = new Date(`${isoDate}T00:00:00Z`);
   date.setUTCDate(date.getUTCDate() - 1);
   return date.toISOString().slice(0, 10);

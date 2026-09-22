@@ -12,3 +12,17 @@ export const monthLabel = (yearMonth: string, locale = "en-US"): string => {
     year: "numeric",
   });
 };
+
+// "2026-10-05" → "week of Oct 5".
+//
+// A week IS an honest unit, where a projected day is not. Year Tracking is
+// kept in weeks, a Start Date names the week of Session #1, and "the week
+// of 5 October" is a thing Leif can actually hold somebody to. The month
+// above stays the unit for a projected FINISH, which is arithmetic rather
+// than a commitment.
+export const weekLabel = (isoDate: string, locale = "en-US"): string =>
+  new Date(`${isoDate}T00:00:00Z`).toLocaleDateString(locale, {
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  });
