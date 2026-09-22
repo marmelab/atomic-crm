@@ -1774,6 +1774,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/capacity/weekCapacity.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/capacity/useSessionWeeks.ts",
           "type": "registry:component"
         },
@@ -1798,6 +1802,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/capacity/openingsNarrative.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/capacity/occupancyLedger.ts",
           "type": "registry:component"
         },
@@ -1810,11 +1818,27 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/capacity/WeekBreakdown.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/capacity/SyncCalendarButton.tsx",
           "type": "registry:component"
         },
         {
           "path": "src/components/atomic-crm/capacity/OpeningsLine.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/capacity/OccupancyBar.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/capacity/MonthBreakdownDialog.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/capacity/AvailabilityAnswer.tsx",
           "type": "registry:component"
         },
         {
