@@ -5,29 +5,28 @@ import { expect, test } from "./fixtures";
 import {
   cohortDeleteSafety,
   describeLinks,
+  offerDeleteSafety,
 } from "../src/components/atomic-crm/programs/programDeleteSafety";
 
 // Deleting a Program, asked of a real database by trying it.
 //
 // This one cannot be answered anywhere else. Whether a delete destroys a
-// person's history is decided by foreign keys, and the foreign keys here
-// do not all say the same thing:
+// person's history is decided by foreign keys, and a FakeRest test cannot
+// see foreign keys at all — it has none to obey or to ignore.
 //
-//   deals.cohort_id                       no delete rule  -> Postgres refuses
-//   applications.intended_cohort_id       no delete rule  -> Postgres refuses
-//   waitlist_invitation_batches.cohort_id no delete rule  -> Postgres refuses
-//   waitlist_entries.cohort_id            ON DELETE CASCADE -> Postgres OBEYS
+// These once found the defect they now guard. waitlist_entries.cohort_id
+// was ON DELETE CASCADE, so a round whose only link was its waiting list
+// deleted cleanly and erased every membership on it — fifty-one of them
+// for January 2027 — and the only thing standing in the way was one code
+// path in the application. The audit that followed found five more of the
+// same class on the Programme itself. 20260921180000 made all six NO
+// ACTION.
 //
-// That last line is the whole reason programDeleteSafety.ts exists. A
-// round whose only link is its waiting list is one the database will
-// happily delete, taking every waiting person with it — fifty-one of them
-// for January 2027. Nothing below that layer would stop it, and a
-// FakeRest test cannot see it at all, because FakeRest has no foreign
-// keys to obey or to ignore.
-//
-// So both halves are proven here against real Postgres: what the database
-// does on its own, and that the guard in front of it gives the same
-// answer about the same rows.
+// So two independent layers are asked here, in the order Leif meets them:
+// the guard, which says what is linked and offers Archive, and the
+// database, which refuses on its own no matter who is asking. Defence in
+// depth means neither one alone is the reason this is safe, and a test
+// that only exercised the guard could not tell the difference.
 
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL ?? "http://127.0.0.1:54341";
 
@@ -156,56 +155,204 @@ test.describe("deleting a group round", () => {
     expect(deals).toBe(1);
   });
 
-  test("Postgres DOES cascade a waiting list away, which is why the app refuses first", async ({
+  test("a waiting list is refused by both layers, and nothing is touched", async ({
     createSales,
   }) => {
-    // The dangerous case, demonstrated rather than asserted from the
-    // schema file. waitlist_entries.cohort_id is ON DELETE CASCADE, so a
-    // round whose only link is its waiting list deletes cleanly and takes
-    // every waiting person with it.
+    // The January 2027 case, at the size the test can assert exactly.
+    // This is the one that used to succeed: waitlist_entries.cohort_id was
+    // ON DELETE CASCADE, so a round whose only link was its waiting list
+    // deleted cleanly and erased every membership on it. Fifty-one of
+    // them, in the real round.
+    //
+    // Both layers are asked, in the order Leif meets them.
     const client = db();
     const sale = await aSale(createSales, "waitlist");
     const offerId = await groupOfferId(client);
     const cohortId = await makeCohort(client, "Fifty-one people waiting");
     const contactId = await makeContact(client, sale.id);
 
-    const { error: waitError } = await client.from("waitlist_entries").insert({
-      contact_id: contactId,
-      offer_id: offerId,
-      cohort_id: cohortId,
-      status: "waiting",
-      source: "manual",
-    });
+    const { data: entry, error: waitError } = await client
+      .from("waitlist_entries")
+      .insert({
+        contact_id: contactId,
+        offer_id: offerId,
+        cohort_id: cohortId,
+        status: "waiting",
+        source: "manual",
+      })
+      .select("id, status, cohort_id, contact_id, joined_at")
+      .single();
     expect(waitError).toBeNull();
 
-    // First: the guard, asked about these real rows, refuses.
+    // The application layer: refuses, and says what is linked.
     const safety = await cohortDeleteSafety(realDataProvider(client), cohortId);
     expect(safety.deletable).toBe(false);
     if (!safety.deletable) {
       expect(describeLinks(safety.links)).toContain("1 people waiting");
     }
 
-    // Then: what would have happened without it. The delete succeeds and
-    // the membership is gone — so the guard is not decoration over a
-    // database that was going to refuse anyway.
+    // The database layer, asked the same question independently — because
+    // the guard above is one code path, and a delete issued from a SQL
+    // console or a future screen that forgets to ask would meet nothing.
     const { error } = await client.from("cohorts").delete().eq("id", cohortId);
-    expect(error).toBeNull();
+    expect(error?.code).toBe("23503");
 
-    const { count } = await client
+    // And the refusal is total: no partial mutation anywhere.
+    const { data: cohortAfter } = await client
+      .from("cohorts")
+      .select("id, name, status")
+      .eq("id", cohortId)
+      .maybeSingle();
+    expect(cohortAfter).not.toBeNull();
+
+    const { data: entryAfter } = await client
       .from("waitlist_entries")
-      .select("id", { count: "exact", head: true })
-      .eq("contact_id", contactId);
-    expect(count).toBe(0);
+      .select("id, status, cohort_id, contact_id, joined_at")
+      .eq("id", entry!.id)
+      .maybeSingle();
+    expect(entryAfter).toEqual(entry);
 
-    // The person themselves survives — the cascade takes the membership,
-    // not the human.
-    const { data: contact } = await client
+    const { data: contactAfter } = await client
       .from("contacts")
-      .select("id")
+      .select("id, first_name, last_name")
       .eq("id", contactId)
       .maybeSingle();
-    expect(contact).not.toBeNull();
+    expect(contactAfter).not.toBeNull();
   });
+
+  test("archiving the same round is allowed and keeps everything", async ({
+    createSales,
+  }) => {
+    // The way out that the refusal offers. It must actually work, and it
+    // must destroy nothing — otherwise "archive it instead" is advice to
+    // do the thing Leif was just stopped from doing.
+    const client = db();
+    const sale = await aSale(createSales, "archive");
+    const offerId = await groupOfferId(client);
+    const cohortId = await makeCohort(client, "Archived, not deleted");
+    const contactId = await makeContact(client, sale.id);
+
+    const { data: entry } = await client
+      .from("waitlist_entries")
+      .insert({
+        contact_id: contactId,
+        offer_id: offerId,
+        cohort_id: cohortId,
+        status: "waiting",
+        source: "manual",
+      })
+      .select("id, status, cohort_id, contact_id, joined_at")
+      .single();
+
+    // Exactly the patch ProgramCardMenu sends for a cohort.
+    const { error } = await client
+      .from("cohorts")
+      .update({ status: "completed" })
+      .eq("id", cohortId);
+    expect(error).toBeNull();
+
+    const { data: cohortAfter } = await client
+      .from("cohorts")
+      .select("id, status")
+      .eq("id", cohortId)
+      .single();
+    expect(cohortAfter!.status).toBe("completed");
+
+    const { data: entryAfter } = await client
+      .from("waitlist_entries")
+      .select("id, status, cohort_id, contact_id, joined_at")
+      .eq("id", entry!.id)
+      .single();
+    expect(entryAfter).toEqual(entry);
+  });
+
+  test("a Program is refused too, and its rounds and waiting lists survive", async ({
+    createSales,
+  }) => {
+    // The same audit on the Programme itself found five more cascades of
+    // the same class. This exercises the two that matter most together:
+    // deleting a Programme would have taken every round with it, and each
+    // round's waiting list after that.
+    const client = db();
+    const sale = await aSale(createSales, "offer");
+    const contactId = await makeContact(client, sale.id);
+
+    const { data: offer, error: offerError } = await client
+      .from("offers")
+      .insert({
+        name: "A Second Group Programme",
+        type: "group",
+        duration: "6 weeks",
+        current_price: 900,
+      })
+      .select("id")
+      .single();
+    expect(offerError).toBeNull();
+
+    const { data: cohort } = await client
+      .from("cohorts")
+      .insert({
+        offer_id: offer!.id,
+        name: "Its first round",
+        status: "draft",
+      })
+      .select("id")
+      .single();
+
+    const { data: entry } = await client
+      .from("waitlist_entries")
+      .insert({
+        contact_id: contactId,
+        offer_id: offer!.id,
+        cohort_id: cohort!.id,
+        status: "waiting",
+        source: "manual",
+      })
+      .select("id")
+      .single();
+
+    // No Opportunity exists here on purpose: deals.offer_id already
+    // refused that case, which is exactly why these five went unnoticed.
+    const safety = await offerDeleteSafety(realDataProvider(client), offer!.id);
+    expect(safety.deletable).toBe(false);
+    if (!safety.deletable) {
+      const links = describeLinks(safety.links);
+      expect(links).toContain("1 rounds");
+      expect(links).toContain("1 people waiting");
+    }
+
+    const { error } = await client.from("offers").delete().eq("id", offer!.id);
+    expect(error?.code).toBe("23503");
+
+    const { data: cohortAfter } = await client
+      .from("cohorts")
+      .select("id")
+      .eq("id", cohort!.id)
+      .maybeSingle();
+    expect(cohortAfter).not.toBeNull();
+
+    const { data: entryAfter } = await client
+      .from("waitlist_entries")
+      .select("id")
+      .eq("id", entry!.id)
+      .maybeSingle();
+    expect(entryAfter).not.toBeNull();
+
+    // Cleanup, in the order the constraints now demand.
+    await client.from("waitlist_entries").delete().eq("id", entry!.id);
+    await client.from("cohorts").delete().eq("id", cohort!.id);
+    await client.from("offers").delete().eq("id", offer!.id);
+  });
+
+  // The catalogue-wide version of this question — "does ANY foreign key to
+  // a Programme or a round still destroy a fact about a person?" — is not
+  // asked here. PostgREST cannot read pg_constraint, and adding a database
+  // function so a test could would mean widening production surface for a
+  // test's convenience. It is asserted instead where it belongs and where
+  // it is stronger: 20260921180000 ends with the exact allowed set, so a
+  // new table hung off offers or cohorts with a convenient ON DELETE
+  // CASCADE fails the migration chain rather than being discovered by
+  // somebody losing rows.
 
   test("the guard asks the real schema questions it can actually answer", async () => {
     // Every table and column programDeleteSafety.ts reads, read for real.

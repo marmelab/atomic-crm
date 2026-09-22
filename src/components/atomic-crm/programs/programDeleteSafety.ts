@@ -2,19 +2,25 @@ import type { DataProvider, Identifier } from "ra-core";
 
 // Whether a Program can be deleted, or only archived.
 //
-// The database is not enough here, and it is worth being precise about
-// where it stops. deals.cohort_id and applications.intended_cohort_id have
-// no ON DELETE rule, so Postgres refuses to delete a Cohort that has
-// Opportunities or Applications — good. But waitlist_entries.cohort_id is
-// ON DELETE CASCADE, so deleting a Cohort would take its waiting list with
-// it, silently. The January 2027 round has fifty-one people on it.
+// This is the first of two layers, and the only one that can hold a
+// conversation. Since 20260921180000 the database independently refuses
+// every one of these deletions — before it, waitlist_entries.cohort_id was
+// ON DELETE CASCADE and a round's waiting list went with the round,
+// silently; the January 2027 round has fifty-one people on it.
 //
-// So the rule lives here, in front of the delete, and it is deliberately
-// broader than the foreign keys: anything that represents a real person's
-// history with this Program blocks deletion. An accidental empty Program —
-// a test row, a mis-click — still deletes cleanly after confirmation,
-// which is the only case hard deletion is for.
+// Having both is the point. The database cannot tell Leif that the round
+// he is about to delete has seven Opportunities and a waiting list behind
+// it, or offer to archive it instead; it can only say 23503. This layer
+// cannot protect a delete issued from a SQL console, a script, or a future
+// screen that forgets to ask. So the two answer the same question and
+// neither is the reason it is safe.
 //
+// What that costs: this list has to stay the same list the database
+// refuses. A guard that asks fewer questions hands Leif a confirmation
+// dialog followed by a raw foreign-key error, which is the guard failing.
+//
+// An accidental empty Program — a test row, a mis-click — still deletes
+// cleanly after confirmation, which is the only case hard deletion is for.
 // Archiving is always available and never destroys anything.
 
 export type ProgramLink = {
@@ -63,7 +69,7 @@ export const cohortDeleteSafety = async (
     await Promise.all([
       countOf(dataProvider, "deals", { cohort_id: cohortId }),
       countOf(dataProvider, "applications", { intended_cohort_id: cohortId }),
-      // The one the database would have cascaded away.
+      // The one the database used to cascade away.
       countOf(dataProvider, "waitlist_entries", { cohort_id: cohortId }),
       countOf(dataProvider, "waitlist_invitation_batches", {
         cohort_id: cohortId,
@@ -81,15 +87,33 @@ export const cohortDeleteSafety = async (
 // A Program itself. A group Program owns rounds; deleting one would take
 // every round with it, so a Program with any round is not disposable
 // either.
+//
+// This list is deliberately the same list the database now refuses
+// (20260921180000). The database is the backstop and it answers with a
+// foreign-key violation; this answers with what is actually linked and an
+// offer to archive instead. Letting the two drift would mean Leif reaching
+// a confirmation dialog and then a raw refusal — which is the guard
+// failing, not the guard working.
 export const offerDeleteSafety = async (
   dataProvider: DataProvider,
   offerId: Identifier,
 ): Promise<DeleteSafety> => {
-  const [opportunities, cohorts, waitlist, applications] = await Promise.all([
+  const [
+    opportunities,
+    cohorts,
+    waitlist,
+    applications,
+    sessions,
+    scholarships,
+  ] = await Promise.all([
     countOf(dataProvider, "deals", { offer_id: offerId }),
     countOf(dataProvider, "cohorts", { offer_id: offerId }),
     countOf(dataProvider, "waitlist_entries", { offer_id: offerId }),
     countOf(dataProvider, "applications", { offer_id: offerId }),
+    // Attendance. enrollment_id is nullable, so a session booked by
+    // somebody who never enrolled has nothing else holding it up.
+    countOf(dataProvider, "client_sessions", { offer_id: offerId }),
+    countOf(dataProvider, "scholarship_slots", { offer_id: offerId }),
   ]);
 
   return blocking([
@@ -97,6 +121,8 @@ export const offerDeleteSafety = async (
     { label: "rounds", count: cohorts },
     { label: "people waiting", count: waitlist },
     { label: "Applications", count: applications },
+    { label: "sessions", count: sessions },
+    { label: "scholarship places", count: scholarships },
   ]);
 };
 

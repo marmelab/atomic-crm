@@ -1369,7 +1369,7 @@ alter table public.offer_payment_options
     add constraint offer_payment_options_offer_id_fkey foreign key (offer_id) references public.offers(id) on update cascade on delete cascade;
 
 alter table public.cohorts
-    add constraint cohorts_offer_id_fkey foreign key (offer_id) references public.offers(id) on update cascade on delete cascade;
+    add constraint cohorts_offer_id_fkey foreign key (offer_id) references public.offers(id) on update cascade;
 
 alter table public.applications
     add constraint applications_opportunity_id_fkey foreign key (opportunity_id) references public.deals(id) on update cascade on delete cascade;
@@ -1393,7 +1393,7 @@ alter table public.enrollments
     add constraint enrollments_opportunity_id_fkey foreign key (opportunity_id) references public.deals(id) on update cascade on delete cascade;
 
 alter table public.scholarship_slots
-    add constraint scholarship_slots_offer_id_fkey foreign key (offer_id) references public.offers(id) on update cascade on delete cascade;
+    add constraint scholarship_slots_offer_id_fkey foreign key (offer_id) references public.offers(id) on update cascade;
 
 alter table public.scholarship_slots
     add constraint scholarship_slots_holder_deal_id_fkey foreign key (holder_deal_id) references public.deals(id) on update cascade on delete set null;
@@ -1402,7 +1402,7 @@ alter table public.scholarship_slots
     add constraint scholarship_slots_holder_enrollment_id_fkey foreign key (holder_enrollment_id) references public.enrollments(id) on update cascade on delete set null;
 
 alter table public.scholarship_slot_events
-    add constraint scholarship_slot_events_offer_id_fkey foreign key (offer_id) references public.offers(id) on update cascade on delete cascade;
+    add constraint scholarship_slot_events_offer_id_fkey foreign key (offer_id) references public.offers(id) on update cascade;
 
 -- Deal/Enrollment references not cascaded on delete — the audit trail
 -- stays historically meaningful even if the Deal/Enrollment it refers to
@@ -1417,11 +1417,19 @@ alter table public.scholarship_slot_events
 alter table public.waitlist_entries
     add constraint waitlist_entries_contact_id_fkey foreign key (contact_id) references public.contacts(id) on update cascade on delete cascade;
 
+-- Deleting a Programme or a round must not take people's history with it.
+-- These two, cohorts.offer_id, client_sessions.offer_id and the two
+-- scholarship ones were ON DELETE CASCADE until 20260921180000, which is
+-- how a round whose only link was its waiting list deleted cleanly and
+-- erased fifty-one memberships. ON UPDATE CASCADE stays: an id that moves
+-- should still be followed. Only the destruction was wrong. That migration
+-- also asserts the full set, so a new table hung off offers or cohorts
+-- cannot quietly reintroduce it.
 alter table public.waitlist_entries
-    add constraint waitlist_entries_offer_id_fkey foreign key (offer_id) references public.offers(id) on update cascade on delete cascade;
+    add constraint waitlist_entries_offer_id_fkey foreign key (offer_id) references public.offers(id) on update cascade;
 
 alter table public.waitlist_entries
-    add constraint waitlist_entries_cohort_id_fkey foreign key (cohort_id) references public.cohorts(id) on update cascade on delete cascade;
+    add constraint waitlist_entries_cohort_id_fkey foreign key (cohort_id) references public.cohorts(id) on update cascade;
 -- Waitlist invitations. The invitation is a historical fact, so it is never
 -- cascade-deleted with the membership or batch it belongs to.
 alter table public.waitlist_invitation_batches
@@ -1463,7 +1471,7 @@ alter table public.client_sessions
     add constraint client_sessions_enrollment_id_fkey foreign key (enrollment_id) references public.enrollments(id) on update cascade on delete set null;
 
 alter table public.client_sessions
-    add constraint client_sessions_offer_id_fkey foreign key (offer_id) references public.offers(id) on update cascade on delete cascade;
+    add constraint client_sessions_offer_id_fkey foreign key (offer_id) references public.offers(id) on update cascade;
 
 alter table public.client_session_events
     add constraint client_session_events_client_session_id_fkey foreign key (client_session_id) references public.client_sessions(id) on update cascade on delete cascade;

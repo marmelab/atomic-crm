@@ -245,10 +245,11 @@ describe("the Group Program UX branches on type, never on a name", () => {
     expect(cohortForm).toMatch(/CohortScheduleInputs/);
   });
 
-  test("delete safety counts the waiting list, which the database would cascade away", () => {
-    // waitlist_entries.cohort_id is ON DELETE CASCADE, so Postgres would
-    // let a Cohort take its waiting list with it. Nothing else protects
-    // those fifty-one people.
+  test("delete safety counts the waiting list, which the database once cascaded away", () => {
+    // waitlist_entries.cohort_id was ON DELETE CASCADE until
+    // 20260921180000, so a Cohort took its waiting list with it and
+    // nothing but this guard protected those fifty-one people. Both
+    // layers refuse now; both are still required.
     const safety = read(
       "src/components/atomic-crm/programs/programDeleteSafety.ts",
     );
@@ -256,5 +257,31 @@ describe("the Group Program UX branches on type, never on a name", () => {
     expect(safety).toMatch(/cohort_id: cohortId/);
     // And an unknown count must never read as "safe to delete".
     expect(safety).toMatch(/return 1;/);
+  });
+
+  test("no Program or round foreign key cascades away a fact about a person", () => {
+    // The declarative schema is what somebody edits, so it is where a
+    // reintroduced cascade would first appear. Four are allowed, and each
+    // belongs to the Programme rather than to anybody: its own price
+    // list, two configuration templates, and the Google Calendar mirror
+    // that Sync Calendar rebuilds. The live catalogue is held to the same
+    // set by an assertion at the end of 20260921180000.
+    const schema = read("supabase/schemas/01_tables.sql");
+    const cascading = schema
+      .split("\n")
+      .filter((line) =>
+        /references public\.(offers|cohorts)\(id\).*on delete cascade/.test(
+          line,
+        ),
+      )
+      .map((line) => line.match(/add constraint (\w+)/)?.[1] ?? line.trim())
+      .sort();
+
+    expect(cascading).toEqual([
+      "expected_session_windows_offer_id_fkey",
+      "offboarding_requirement_templates_offer_id_fkey",
+      "offer_payment_options_offer_id_fkey",
+      "onboarding_requirement_templates_offer_id_fkey",
+    ]);
   });
 });

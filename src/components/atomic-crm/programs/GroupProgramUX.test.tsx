@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { render } from "vitest-browser-react";
-import { memoryStore } from "ra-core";
+import { memoryStore, type DataProvider } from "ra-core";
 import { MemoryRouter } from "react-router";
 
 import { CRM } from "../root/CRM";
@@ -12,6 +12,7 @@ import {
   createTestAuthProvider,
 } from "@/test/StoryWrapper";
 import type { Cohort, Deal, Enrollment, Offer } from "../types";
+import { offerDeleteSafety } from "./programDeleteSafety";
 
 // The Programs hub, as Leif uses it.
 //
@@ -219,9 +220,10 @@ describe("the Programs hub", () => {
   });
 
   it("refuses to delete a round that has people, and offers Archive instead", async () => {
-    // Fall 2026 has seven Opportunities behind it. Deleting it would take
-    // their records — and a waiting list would go without even a foreign
-    // key to stop it.
+    // Fall 2026 has seven Opportunities behind it. The database refuses
+    // this too (20260921180000), and deliberately so — but Leif meets
+    // this layer first, and what he needs here is what is linked and a
+    // way forward, not a foreign-key violation.
     const screen = await render(buildTestCrm());
     await expect
       .element(screen.getByText("Growing Yourself Up — Fall 2026"))
@@ -282,5 +284,60 @@ describe("a 1:1 program's openings on the hub", () => {
     const text = screen.container.ownerDocument.body.textContent ?? "";
     expect(text).not.toContain("[object Object]");
     expect(text).toContain("Openings unknown");
+  });
+});
+
+describe("the way out the refusal offers", () => {
+  it("archives the round from the refusal itself, destroying nothing", async () => {
+    // "Archive it instead" has to be reachable from where Leif is told
+    // no, and it has to actually work — otherwise it is advice to go and
+    // do the thing he was just stopped from doing.
+    const screen = await render(buildTestCrm());
+    await expect
+      .element(screen.getByText("Growing Yourself Up — Fall 2026"))
+      .toBeVisible();
+
+    const menus = await screen
+      .getByRole("button", { name: "Program actions" })
+      .all();
+    await menus[1]!.click();
+    await screen.getByRole("menuitem", { name: "Delete program" }).click();
+
+    await expect
+      .element(screen.getByText("Growing Yourself Up — Fall 2026 has history"))
+      .toBeVisible();
+    await screen.getByRole("button", { name: "Archive program" }).click();
+
+    // Said plainly, because the difference between archiving and deleting
+    // is the whole point of the offer.
+    await expect
+      .element(
+        screen.getByText(
+          "Growing Yourself Up — Fall 2026 archived. Nothing was deleted.",
+        ),
+      )
+      .toBeVisible();
+  });
+
+  it("refuses to delete a program whose links it cannot read", async () => {
+    // "We could not check" must never read as "safe to delete", so
+    // countOf() reports 1 on a failed read. It matters more now than it
+    // did: the guard asks about client_sessions and scholarship_slots as
+    // well, because 20260921180000 made the database refuse those too,
+    // and a guard that asks fewer questions than the database answers
+    // would hand Leif a confirmation dialog followed by a raw foreign-key
+    // error.
+    //
+    // The converse — that a genuinely empty program IS deletable — is
+    // proven against real Postgres in e2e/programDeleteSafety.spec.ts,
+    // where the tables the guard names actually exist.
+    const blind = {
+      getList: async () => {
+        throw new Error("no such resource");
+      },
+    } as unknown as DataProvider;
+    expect(await offerDeleteSafety(blind, individualProgram.id)).toMatchObject({
+      deletable: false,
+    });
   });
 });
