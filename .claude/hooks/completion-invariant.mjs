@@ -31,7 +31,8 @@ const REJECT_LIMIT = 2; // reject at most twice, then allow + mark for recovery
 // A red e2e is not an orphaned pipeline, so it gets its own single-shot budget and no
 // recovery marker: reject once to force the orchestrator to actually react to the result
 // it was supposed to read, then let the stop through. Its own 2-round fix bound takes it
-// from there, and "never wedge the pipeline" still holds.
+// from there, and "never wedge the pipeline" still holds. The budget is spent per
+// verdict (keyed on the result's session sha), not once per session.
 const E2E_REJECT_LIMIT = 1;
 
 let ctx;
@@ -143,13 +144,16 @@ function rejectOnceOnRedE2e() {
     return;
   }
 
-  const rejects = readE2eRejects();
+  // The budget is per VERDICT, not per session: keyed on the sha the result was
+  // stamped with, so a later red suite gets its own attempt instead of inheriting
+  // a counter an earlier one already spent (which would silently never fire).
+  const key = result.sessionSha || "unknown";
+  const rejects = readE2eRejects(key);
   if (rejects >= E2E_REJECT_LIMIT) {
-    clearE2eRejects();
     ctx.log(`red e2e persists after ${rejects} reject(s), allowing the stop`);
     return;
   }
-  writeE2eRejects(rejects + 1);
+  writeE2eRejects(key, rejects + 1);
   ctx.fail(
     `Completion invariant: the end-of-feature e2e suite FAILED and you are stopping without ` +
       `acting on it. Read <session_dir>/e2e-result.json, then either fix it (ONE developer on ` +
@@ -203,25 +207,21 @@ function e2eBreakerFile() {
   }
   return join(dir, "completion-invariant-e2e-rejects");
 }
-function readE2eRejects() {
+// Stored as `<sessionSha> <count>`: a count recorded against another sha belongs
+// to an earlier verdict and reads as 0.
+function readE2eRejects(key) {
   try {
-    return parseInt(readFileSync(e2eBreakerFile(), "utf8"), 10) || 0;
+    const [seen, n] = readFileSync(e2eBreakerFile(), "utf8").split(" ");
+    return seen === key ? parseInt(n, 10) || 0 : 0;
   } catch {
     return 0;
   }
 }
-function writeE2eRejects(n) {
+function writeE2eRejects(key, n) {
   try {
-    writeFileSync(e2eBreakerFile(), String(n));
+    writeFileSync(e2eBreakerFile(), `${key} ${n}`);
   } catch {
     /* best effort */
-  }
-}
-function clearE2eRejects() {
-  try {
-    unlinkSync(e2eBreakerFile());
-  } catch {
-    /* absent - fine */
   }
 }
 function writeRecoveryMarker(branches) {

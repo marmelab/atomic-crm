@@ -92,6 +92,14 @@ const unmergedTaskBranch = (taskId) => {
   g("checkout", "-q", "main");
 };
 
+const advanceSessionBranch = (name) => {
+  g("checkout", "-q", `session/${SHORT}`);
+  writeFileSync(join(APP_DIR, name), "fix");
+  g("add", "-A");
+  g("commit", "-q", "-m", `fix: ${name}`);
+  g("checkout", "-q", "main");
+};
+
 describe("completion-invariant — orphaned work", () => {
   test("rejects the stop when APPROVED work is not merged into the session branch", () => {
     unmergedTaskBranch("TASK-001");
@@ -150,6 +158,20 @@ describe("completion-invariant — red e2e", () => {
   test("ignores a red suite from an earlier request, whose commit has moved on", () => {
     writeE2eResult("failed", "0000000000000000000000000000000000000000");
     expect(run(transcriptWithMeta("orchestrator")).status).toBe(0);
+  });
+
+  test("gives a later red suite its own attempt after an intervening green one", () => {
+    const tp = transcriptWithMeta("orchestrator");
+    writeE2eResult("failed", sessionHead());
+    expect(run(tp).status).toBe(2);
+
+    advanceSessionBranch("fix.txt");
+    writeE2eResult("passed", sessionHead());
+    expect(run(tp).status).toBe(0);
+
+    advanceSessionBranch("more.txt");
+    writeE2eResult("failed", sessionHead());
+    expect(run(tp).status).toBe(2);
   });
 
   test("keeps the e2e budget separate from the orphan-branch budget", () => {
