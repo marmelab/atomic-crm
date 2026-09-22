@@ -262,7 +262,13 @@ describe("Dashboard — Coming Up", () => {
       onboarding_tracking: "tracked" as const,
       status: "active",
       start_date: dateOnlyFromNow(-30),
-      end_date: dateOnlyFromNow(30), // later than the Cohort start below
+      // Comfortably more than a month later than the Cohort start below.
+      // Not merely "later": an openings row is a MONTH, and it sorts from
+      // that month's first day, so an end thirty days out could land in
+      // the same month as a cohort starting ten days out and then sort
+      // ahead of it — which made this test pass or fail depending on what
+      // day of the month it ran. Three months apart cannot collide.
+      end_date: dateOnlyFromNow(95),
       created_at: "2026-01-01T00:00:00.000Z",
       updated_at: "2026-01-01T00:00:00.000Z",
     };
@@ -310,6 +316,15 @@ describe("Dashboard — Coming Up", () => {
       .element(screen.getByText("September GYU Cohort starts"))
       .toBeInTheDocument();
 
+    // The capacity card above it, which reads the same answer. Openings
+    // stopped being a number when they became a ledger answer, and this
+    // card went on interpolating the answer OBJECT into "%{count}
+    // openings" — the dashboard read "[object Object] openings".
+    expect(screen.container.textContent).not.toContain("[object Object]");
+    await expect
+      .element(screen.getByText("11 openings", { exact: true }))
+      .toBeInTheDocument();
+
     const anchors = [...screen.container.querySelectorAll("a")];
     const leAnchor = anchors.find((a) =>
       a.textContent?.includes("Kathy Reyes completes"),
@@ -322,7 +337,7 @@ describe("Dashboard — Coming Up", () => {
     );
     expect(cohortAnchor?.getAttribute("href")).toBe("/cohorts/1/show");
 
-    // Chronological: Cohort start (day 10) before LE opening (day 30).
+    // Chronological: Cohort start (day 10) before the LE opening month.
     const cohortIndex = anchors.indexOf(cohortAnchor!);
     const leIndex = anchors.indexOf(leAnchor!);
     expect(cohortIndex).toBeLessThan(leIndex);

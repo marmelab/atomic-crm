@@ -313,6 +313,13 @@ export const frenchCrmMessages = {
       name: "Cohorte |||| Cohortes",
       orientation:
         "Sessions de programme de groupe, avec les inscrits et ceux qui hésitent encore.",
+      schedule: {
+        end_is_calculated:
+          "Calculée à partir de la date de début et de la durée.",
+        end_is_yours:
+          "Vous avez saisi cette date de fin, elle reste telle quelle.",
+        recalculate: "Recalculer",
+      },
       fields: {
         name: "Nom",
         offer_id: "Offre",
@@ -320,6 +327,8 @@ export const frenchCrmMessages = {
         applications_open_at: "Ouverture des candidatures",
         applications_close_at: "Clôture des candidatures",
         program_start_at: "Début du programme",
+        duration_value: "Durée",
+        duration_unit: "Unité",
         program_end_at: "Fin du programme",
         minimum_capacity: "Minimum",
         target_capacity: "Cible",
@@ -781,6 +790,8 @@ export const frenchCrmMessages = {
         "Un aperçu rapide de la capacité client et des programmes en cours.",
       capacity_active: "actifs",
       capacity_openings: "%{count} places disponibles",
+      capacity_openings_unknown:
+        "Places disponibles inconnues — seulement %{scheduled} semaines de séance sur %{required} sont planifiées",
       capacity_over: "%{count} au-dessus de la capacité",
       capacity_committed: "%{count} à venir",
       next_opening_month: "Prochaine place : %{month}",
@@ -924,6 +935,21 @@ export const frenchCrmMessages = {
       opening_completes: "%{names} devraient terminer",
       individual_not_found: "Ce programme est introuvable.",
       group_not_found: "Ce programme est introuvable.",
+      cohort_dates_unset: "Dates non définies",
+      card_menu: "Actions du programme",
+      edit_program: "Modifier le programme",
+      archive_program: "Archiver le programme",
+      delete_program: "Supprimer le programme",
+      archived: "%{name} archivé. Rien n'a été supprimé.",
+      deleted: "%{name} supprimé.",
+      delete_confirm_title: "Supprimer %{name} ?",
+      delete_confirm_body:
+        "Rien n'y est rattaché, la suppression est donc totale et définitive.",
+      delete_refused_title: "%{name} a un historique",
+      delete_refused_body:
+        "Il est lié à %{links}. Le supprimer emporterait tout cela ; archivez-le plutôt — rien n'est perdu, il quitte simplement vos programmes actifs.",
+      delete_refused_by_database:
+        "%{name} n'a pas pu être supprimé : quelque chose y fait encore référence.",
       cohorts_section: "Cohortes",
       cohort_details: "Détails de la cohorte",
     },

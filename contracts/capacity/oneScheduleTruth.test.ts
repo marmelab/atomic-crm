@@ -197,3 +197,64 @@ describe("program rules belong to the program TYPE, never to a name", () => {
     ).toMatch(/o\.type = 'group'/);
   });
 });
+
+describe("the Group Program UX branches on type, never on a name", () => {
+  const GROUP_UX = [
+    "src/components/atomic-crm/cohorts/CohortScheduleInputs.tsx",
+    "src/components/atomic-crm/cohorts/cohortDates.ts",
+    "src/components/atomic-crm/programs/ProgramCardMenu.tsx",
+    "src/components/atomic-crm/programs/programDeleteSafety.ts",
+    "src/components/atomic-crm/dashboard/CohortCapacityCard.tsx",
+    "src/components/atomic-crm/programs/IndividualProgramCard.tsx",
+    "src/components/atomic-crm/offers/OfferEdit.tsx",
+  ];
+
+  test.each(GROUP_UX)("%s names no program and no offer id", (path) => {
+    const code = read(path)
+      .split("\n")
+      .filter((line) => {
+        const t = line.trimStart();
+        return !t.startsWith("//") && !t.startsWith("*") && !t.startsWith("/*");
+      })
+      .join("\n");
+    expect(code).not.toMatch(/Living Example/i);
+    expect(code).not.toMatch(/Growing Yourself/i);
+    expect(code).not.toMatch(/offer_id\s*[=:]\s*\d/);
+    expect(code).not.toMatch(/cohort_id\s*[=:]\s*\d/);
+  });
+
+  test("a 1:1 program card never renders cohort schedule fields", () => {
+    // The type distinction, enforced rather than described: a 1:1 program
+    // has no shared start, duration or end, because each client has their
+    // own.
+    const card = read(
+      "src/components/atomic-crm/programs/IndividualProgramCard.tsx",
+    );
+    expect(card).not.toMatch(
+      /CohortScheduleInputs|cohortDateRange|duration_value/,
+    );
+
+    const form = read("src/components/atomic-crm/offers/OfferInputs.tsx");
+    expect(form).not.toMatch(/program_start_at|program_end_at|duration_value/);
+  });
+
+  test("the group schedule inputs live only on the cohort form", () => {
+    const cohortForm = read(
+      "src/components/atomic-crm/cohorts/CohortInputs.tsx",
+    );
+    expect(cohortForm).toMatch(/CohortScheduleInputs/);
+  });
+
+  test("delete safety counts the waiting list, which the database would cascade away", () => {
+    // waitlist_entries.cohort_id is ON DELETE CASCADE, so Postgres would
+    // let a Cohort take its waiting list with it. Nothing else protects
+    // those fifty-one people.
+    const safety = read(
+      "src/components/atomic-crm/programs/programDeleteSafety.ts",
+    );
+    expect(safety).toMatch(/waitlist_entries/);
+    expect(safety).toMatch(/cohort_id: cohortId/);
+    // And an unknown count must never read as "safe to delete".
+    expect(safety).toMatch(/return 1;/);
+  });
+});

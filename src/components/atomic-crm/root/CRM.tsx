@@ -524,6 +524,11 @@ const MobileAdmin = (
         <Resource name="waitlist_entries" />
         <Resource name="sales_calls" />
         <Resource name="cohorts" show={cohorts.show} edit={cohorts.edit} />
+        {/* Same shape, and for the same reason: a Program is reached from a
+            Programs hub card — its three-dot Edit routes straight here —
+            never from a mobile nav item or a list route of its own. Without
+            this, that menu item lands on Not Found. */}
+        <Resource name="offers" show={offers.show} edit={offers.edit} />
         <Resource
           name="contacts"
           list={ContactListMobile}

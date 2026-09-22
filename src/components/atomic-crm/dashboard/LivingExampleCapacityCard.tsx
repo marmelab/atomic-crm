@@ -3,6 +3,7 @@ import { Link } from "react-router";
 import { Card, CardContent } from "@/components/ui/card";
 
 import { monthLabel } from "../capacity/monthLabel";
+import { OpeningsLine } from "../capacity/OpeningsLine";
 import { useWaitlistEntries } from "../waitlist/useWaitlistEntries";
 import { useLivingExampleCapacityData } from "./useLivingExampleCapacityData";
 
@@ -64,12 +65,7 @@ export const LivingExampleCapacityCard = () => {
             </p>
           ) : (
             capacity.openings != null && (
-              <p className="text-sm text-muted-foreground">
-                {translate("crm.dashboard.capacity_openings", {
-                  _: "%{count} openings",
-                  count: capacity.openings,
-                })}
-              </p>
+              <OpeningsLine openings={capacity.openings} />
             )
           )}
           {waitlist.length > 0 && (

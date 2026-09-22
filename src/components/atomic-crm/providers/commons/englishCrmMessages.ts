@@ -307,6 +307,11 @@ export const englishCrmMessages = {
       name: "Cohort |||| Cohorts",
       orientation:
         "Group-program rounds, including who's enrolled and still deciding.",
+      schedule: {
+        end_is_calculated: "Calculated from the start date and duration.",
+        end_is_yours: "You set this end date, so it stays as you left it.",
+        recalculate: "Recalculate",
+      },
       fields: {
         name: "Name",
         offer_id: "Offer",
@@ -314,6 +319,8 @@ export const englishCrmMessages = {
         applications_open_at: "Applications open",
         applications_close_at: "Applications close",
         program_start_at: "Program start",
+        duration_value: "Duration",
+        duration_unit: "Unit",
         program_end_at: "Program end",
         minimum_capacity: "Minimum",
         target_capacity: "Target",
@@ -774,6 +781,8 @@ export const englishCrmMessages = {
         "A quick look at client capacity and current programs.",
       capacity_active: "active",
       capacity_openings: "%{count} openings",
+      capacity_openings_unknown:
+        "Openings unknown — only %{scheduled} of %{required} session weeks scheduled",
       capacity_over: "%{count} over capacity",
       capacity_committed: "%{count} starting later",
       next_opening_month: "Next opening: %{month}",
@@ -917,6 +926,21 @@ export const englishCrmMessages = {
         "%{active} of %{max} slots filled — %{over} over capacity.",
       individual_not_found: "This program could not be found.",
       group_not_found: "This program could not be found.",
+      cohort_dates_unset: "Dates not set yet",
+      card_menu: "Program actions",
+      edit_program: "Edit program",
+      archive_program: "Archive program",
+      delete_program: "Delete program",
+      archived: "%{name} archived. Nothing was deleted.",
+      deleted: "%{name} deleted.",
+      delete_confirm_title: "Delete %{name}?",
+      delete_confirm_body:
+        "Nothing is linked to it, so this removes it entirely. This cannot be undone.",
+      delete_refused_title: "%{name} has history",
+      delete_refused_body:
+        "It is linked to %{links}. Deleting it would take that with it, so archive it instead — everything stays, it just leaves your active programs.",
+      delete_refused_by_database:
+        "%{name} could not be deleted: something still references it.",
       cohorts_section: "Cohorts",
       cohort_details: "Cohort Details",
     },

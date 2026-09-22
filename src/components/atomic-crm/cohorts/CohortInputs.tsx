@@ -6,6 +6,7 @@ import { ReferenceInput } from "@/components/admin/reference-input";
 import { SelectInput } from "@/components/admin/select-input";
 import { TextInput } from "@/components/admin/text-input";
 
+import { CohortScheduleInputs } from "./CohortScheduleInputs";
 import { cohortStatuses } from "./cohortConstants";
 import { NEW_BUSINESS_OFFERS_FILTER } from "../offers/newBusinessOffers";
 
@@ -47,18 +48,7 @@ export const CohortInputs = () => (
         helperText={false}
       />
     </div>
-    <div className="flex flex-col sm:flex-row gap-4">
-      <DateInput
-        source="program_start_at"
-        label="resources.cohorts.fields.program_start_at"
-        helperText={false}
-      />
-      <DateInput
-        source="program_end_at"
-        label="resources.cohorts.fields.program_end_at"
-        helperText={false}
-      />
-    </div>
+    <CohortScheduleInputs />
     <div className="flex flex-col sm:flex-row gap-4">
       <NumberInput
         source="minimum_capacity"
