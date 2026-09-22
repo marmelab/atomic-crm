@@ -195,12 +195,20 @@ async function createContact({
   return data;
 }
 
-const getMenuMethod = ({ page }: { page: Page; isMobile: boolean }) => ({
+const getMenuMethod = ({
+  page,
+  isMobile,
+}: {
+  page: Page;
+  isMobile: boolean;
+}) => ({
   goToDashboard: async () => {
-    await page.getByRole("link", { name: "Dashboard" }).click();
+    await page
+      .getByRole(isMobile ? "button" : "link", { name: "Dashboard" })
+      .click();
     await page.waitForLoadState("networkidle");
   },
-  goToContacts: async ({ isMobile }: { isMobile: boolean }) => {
+  goToContacts: async () => {
     await page
       .getByRole(isMobile ? "button" : "link", { name: "Contacts" })
       .click();

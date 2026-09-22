@@ -48,7 +48,7 @@ test.describe("user adding a task", () => {
     await expect(page).toHaveTitle(/Atomic CRM/);
     await expect(page.getByText("Latest Activity")).toBeVisible();
 
-    await menu.goToContacts({ isMobile });
+    await menu.goToContacts();
     await page.waitForLoadState("networkidle");
 
     await page.getByText("Jane Smith").click();

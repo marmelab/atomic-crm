@@ -39,7 +39,7 @@ test("user adds a tag to several contacts", async ({
   await expect(page).toHaveTitle(/Atomic CRM/);
   await expect(page.getByRole("link", { name: "Contacts" })).toBeVisible();
 
-  await menu.goToContacts({ isMobile });
+  await menu.goToContacts();
   await expect(page.getByText("Ada Lovelace")).toBeVisible();
   await expect(page.getByText("Grace Hopper")).toBeVisible();
 

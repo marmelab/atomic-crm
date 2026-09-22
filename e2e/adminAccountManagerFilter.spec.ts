@@ -49,7 +49,7 @@ test.describe("admin filtering by account manager", () => {
     await page.getByLabel("Password").fill("password");
     await page.getByRole("button", { name: "Sign in" }).click();
 
-    await menu.goToContacts({ isMobile });
+    await menu.goToContacts();
     await expect(page.getByText("Ada Lovelace")).toBeVisible();
     await expect(page.getByText("Grace Hopper")).toBeVisible();
 
@@ -86,7 +86,7 @@ test.describe("admin filtering by account manager", () => {
     await page.getByLabel("Password").fill("password");
     await page.getByRole("button", { name: "Sign in" }).click();
 
-    await menu.goToContacts({ isMobile });
+    await menu.goToContacts();
     await expect(page.getByText("Grace Hopper")).toBeVisible();
 
     if (isMobile) {

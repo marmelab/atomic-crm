@@ -77,7 +77,10 @@ export const ResponsiveFilters = ({
               </Badge>
             )}
           </SheetTrigger>
-          <SheetContent side="bottom" className="h-dvh p-4 flex flex-col">
+          <SheetContent
+            side="bottom"
+            className="data-[side=bottom]:h-dvh p-4 flex flex-col"
+          >
             <SheetHeader className="-p-4">
               <SheetTitle>
                 <h1 className="text-xl font-semibold">
