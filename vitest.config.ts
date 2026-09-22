@@ -2,6 +2,7 @@ import path from "node:path";
 import { defineConfig } from "vitest/config";
 import { playwright } from "@vitest/browser-playwright";
 import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
 
 // Three test projects (https://vitest.dev/guide/projects.html):
 //   - "app":       React/DOM unit tests, run in a real browser (Playwright/Chromium).
@@ -16,7 +17,7 @@ export default defineConfig({
   test: {
     projects: [
       {
-        plugins: [react()],
+        plugins: [react(), tailwindcss()],
         optimizeDeps: {
           exclude: ["playwright", "playwright-core"],
         },
@@ -29,6 +30,7 @@ export default defineConfig({
         test: {
           name: "app",
           globals: true,
+          setupFiles: ["./src/index.css"],
           browser: {
             headless: true,
             provider: playwright(),
