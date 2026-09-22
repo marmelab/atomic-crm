@@ -112,12 +112,23 @@ announces it.
 | | |
 |---|---|
 | repo | `git@github.com:leifariel/leif-crm-atomic.git`, branch `main` |
-| HEAD | `7bb47194` (== `origin/main`) |
+| HEAD | `71c3de94` on `origin/main`; **two local commits not yet pushed** — `41182451`, `052c22dd`, both migration repairs made during the deployment below |
 | frontend | Vercel project `leif-ariel/leif-crm` → **crm.leifariel.com** |
 | database | Supabase `xlyywsguftyvomeretju` ("leif-crm", us-west-2) |
-| migrations | **132** local files (3 pending on MAIN) |
-| boundary | **108 deterministic + 24 MAIN-only** (`node scripts/historical-import/replayBoundary.mjs` exits 0) |
-| CI | `✅ Check` **green** on the real runner at `7bb47194` — Build, Typecheck, lint, unit (1932 tests / 239 files across every Vitest project) and `e2e-test` all pass |
+| migrations | **136** local files, **0 pending on MAIN**, 0 remote-only |
+| boundary | **112 deterministic + 24 MAIN-only** (`node scripts/historical-import/replayBoundary.mjs` exits 0) |
+| CI | `✅ Check` **green** on the real runner at `71c3de94`. `🚀 Deploy` red in `demo` and `supabase`, identically to `f64d986a` before it — pre-existing, see below |
+
+**The `Deploy (supabase)` job blocks Edge Function deployment.** It fails at
+*Push supabase migrations*, and *Deploy supabase functions* runs after it in
+the same job — so no function has shipped from CI since that job started
+failing. Migrations reach MAIN by hand (`npx supabase db push`), so the gap
+is invisible until a function changes. It did:
+`sync_year_planning_calendar` was deployed on 2026-09-20 and the Capacity
+slice rewrote it on 2026-09-21, replacing append-only assignment with a
+rebuild and adding the JWT path Sync Calendar needs. Deployed by hand on
+2026-09-22 (version 15). **Check this job before believing any Edge Function
+change is live.**
 
 **Two independent deploy paths, and confusing them costs a slice.** Vercel
 builds the frontend on push to `main`. **Supabase Edge Functions deploy from
@@ -615,12 +626,39 @@ Reliability work is supposed to find things, and it did:
   the runner takes 272s. Do not assume the current fix covers every timing
   case; go and look.
 
-### The next slice is Capacity + Waitlist
+### Capacity + Waitlist — DEPLOYED 2026-09-22, OPEN for Leif's try-run
 
-Not started, and deliberately not designed here — Leif has not scoped it yet.
-What is settled is only the ordering: it comes **before** Gmail (§2), because
-Gmail will want to say something true about openings and nothing currently
-computes them.
+**Not sealed.** Deployed to production for human acceptance; the feature
+stays open until Leif has used it and accepted it (§2).
+
+Six migrations on MAIN: `20260921130000`, `140000` (MAIN-only owner Start
+Weeks), `150000`, `170000`, `180000`, `190000`. All eighteen live 1:1
+Enrollments carry the owner-stated Start Week with `start_date_source =
+'owner'`.
+
+Two defects were found *by checking production after the push*, neither
+reachable by any clean-room replay, and both are the same lesson in
+different clothes — **an empty database cannot tell you whether a
+migration works**:
+
+- `20260921130000` added the constraint binding `start_date` to
+  `start_date_source` **before** backfilling the source. Empty: passes.
+  Production: refused on the first of 22 dated rows. Repaired in
+  `41182451`; the order is column, then data, then the rule that binds
+  them.
+- `20260921150000` installed the rebuild trigger **after** `140000` had
+  already corrected the Start Weeks, and nothing called the full rebuild —
+  so MAIN came out of the push holding the owner's dates in `enrollments`
+  and the imported dates' schedule in `enrollment_expected_sessions`. Two
+  timelines for one Enrollment, the exact condition the slice exists to
+  remove. `20260921190000` runs the rebuild and asserts it as a fixed
+  point. With no Enrollments to rebuild, a missing rebuild and a completed
+  one are the same empty table.
+
+**Rehearse against production in a rolled-back transaction** before any
+migration that touches existing rows. Both repairs were proven that way
+first, and the Won path and the January-2027 delete refusal were proven the
+same way afterwards, leaving no synthetic data behind.
 
 ---
 
