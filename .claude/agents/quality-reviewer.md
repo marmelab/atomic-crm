@@ -92,16 +92,21 @@ mistake would be most costly. Rules:
 end-of-feature e2e suite is launched by a hook on your stop, and it keys off this flag, so a
 `BLOCKED` review never pays for a 10-minute suite. Write it yourself with a single Bash call:
 a post-stop transcript read races the flush and silently drops the verdict. The flag dir is
-`${TICKETS_DIR}/reviews`, and the key is the literal `FEATURE` (this pass has no `TASK_ID`):
+the `reviews/` sibling of `TICKETS_DIR`, and the key is the literal `FEATURE` (this pass has
+no `TASK_ID`):
 
 - APPROVED:
   ```bash
-  RD="${TICKETS_DIR}/reviews" && mkdir -p "$RD" && touch "$RD/FEATURE-quality-reviewer"
+  RD="<TICKETS_DIR>/reviews" && mkdir -p "$RD" && touch "$RD/FEATURE-quality-reviewer"
   ```
 - BLOCKED:
   ```bash
-  RD="${TICKETS_DIR}/reviews" && rm -f "$RD/FEATURE-quality-reviewer"
+  RD="<TICKETS_DIR>/reviews" && rm -f "$RD/FEATURE-quality-reviewer"
   ```
+
+Substitute the literal `TICKETS_DIR` path from your spawn prompt. Nothing sets it in a shell
+env, so run verbatim it expands to nothing: `mkdir -p /reviews` fails, the `touch` never
+runs, and the suite never launches on an APPROVED review.
 
 OUTPUT CONTRACT (text, no `SendMessage`), last line exactly one of:
 - `APPROVED`: no imperative findings. Put any non-blocking notes (nits, cleanliness, ponytail
