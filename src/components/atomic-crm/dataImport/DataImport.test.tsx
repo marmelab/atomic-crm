@@ -21,6 +21,8 @@ const csv = [
 
 let createDelay = 200;
 let createdCount = 0;
+let attemptCount = 0;
+let isRowRejected = (): boolean => false;
 
 const NotifyTrigger = () => {
   const notify = useNotify();
@@ -50,6 +52,10 @@ const createContact = async (
   params: CreateParams,
 ): Promise<CreateResult> => {
   await new Promise((resolve) => setTimeout(resolve, createDelay));
+  attemptCount += 1;
+  if (isRowRejected()) {
+    throw new Error("The backend refused this row");
+  }
   createdCount += 1;
   return { data: { ...params.data, id: createdCount } };
 };
@@ -107,6 +113,27 @@ const getToasterPositions = () =>
     }),
   );
 
+const readProgressSnackbar = () => {
+  const bar = document.querySelector<HTMLElement>('[data-slot="progress"]');
+  if (!bar) throw new Error("The progress snackbar has no progress bar");
+  const [, importCount, rowCount, errorCount] =
+    /Imported (\d+) \/ (\d+) records, with (\d+) errors/.exec(
+      bar.parentElement?.innerText ?? "",
+    ) ?? [];
+  // The shadcn Progress does not forward its value as `aria-valuenow`.
+  const indicator = bar.querySelector<HTMLElement>(
+    '[data-slot="progress-indicator"]',
+  );
+  const [, offset] =
+    /translateX\(-([\d.]+)%\)/.exec(indicator?.style.transform ?? "") ?? [];
+  return {
+    value: 100 - Number(offset),
+    importCount: Number(importCount),
+    rowCount: Number(rowCount),
+    errorCount: Number(errorCount),
+  };
+};
+
 const dispatchBeforeUnload = () => {
   const event = new Event("beforeunload", { cancelable: true });
   window.dispatchEvent(event);
@@ -116,6 +143,8 @@ const dispatchBeforeUnload = () => {
 beforeEach(() => {
   createDelay = 200;
   createdCount = 0;
+  attemptCount = 0;
+  isRowRejected = () => false;
 });
 
 afterEach(() => {
@@ -276,7 +305,7 @@ describe("data import", () => {
       .toBeDisabled();
   });
 
-  it("stops the import from the progress snackbar", async () => {
+  it("stops the import from the progress snackbar and reports what landed", async () => {
     const screen = await render(<ImportHarness />);
 
     await startImport(screen);
@@ -288,9 +317,37 @@ describe("data import", () => {
       .not.toBeInTheDocument();
 
     const createdWhenStopped = createdCount;
+    expect(createdWhenStopped).toBeLessThan(ROW_COUNT);
+
+    await expect
+      .element(screen.getByText(/^Import stopped\./))
+      .toBeInTheDocument();
     await expect
       .element(screen.getByText(/Import complete/))
       .not.toBeInTheDocument();
-    expect(createdWhenStopped).toBeLessThan(ROW_COUNT);
+    expect(createdCount).toBe(createdWhenStopped);
+  });
+
+  it("counts the rejected rows in the progress bar", async () => {
+    isRowRejected = () => attemptCount % 2 === 0;
+    const screen = await render(<ImportHarness />);
+
+    await startImport(screen);
+
+    await expect
+      .element(screen.getByText(/with [1-9]\d* errors/))
+      .toBeInTheDocument();
+
+    const progress = readProgressSnackbar();
+    expect(progress.errorCount).toBeGreaterThan(0);
+    expect(progress.value).toBeCloseTo(
+      ((progress.importCount + progress.errorCount) / progress.rowCount) * 100,
+    );
+
+    finishRemainingBatchesFast();
+
+    await expect
+      .element(screen.getByText(/Import complete/))
+      .toBeInTheDocument();
   });
 });

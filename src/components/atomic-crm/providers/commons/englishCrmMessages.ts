@@ -448,6 +448,8 @@ export const englishCrmMessages = {
       sample_hint: "Here is a sample CSV file you can use as a template",
       start: "Start import",
       stop: "Stop import",
+      stopped:
+        "Import stopped. Imported %{importCount} records, with %{errorCount} errors",
       title: "Import data",
     },
     header: {

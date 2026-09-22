@@ -105,6 +105,21 @@ export const DataImportProvider = ({ children }: { children: ReactNode }) => {
     [importer.state, reset, resources],
   );
 
+  // reset() goes back to `idle`, so the `complete` effect never fires.
+  const stopImport = useCallback(() => {
+    const stopped = importer.state === "running" ? importer : null;
+    reset();
+    if (!stopped) return;
+    refresh();
+    notify("crm.data_import.stopped", {
+      type: "info",
+      messageArgs: {
+        importCount: stopped.importCount,
+        errorCount: stopped.errorCount,
+      },
+    });
+  }, [importer, notify, refresh, reset]);
+
   const startImport = (file: File) => {
     parseCsv(file);
     setIsDialogOpen(false);
@@ -132,7 +147,7 @@ export const DataImportProvider = ({ children }: { children: ReactNode }) => {
           onClose={() => setIsDialogOpen(false)}
         />
       )}
-      <DataImportProgressToast importer={importer} onStop={reset} />
+      <DataImportProgressToast importer={importer} onStop={stopImport} />
     </DataImportContext.Provider>
   );
 };

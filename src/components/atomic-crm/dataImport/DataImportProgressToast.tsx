@@ -57,7 +57,9 @@ export const DataImportProgressToast = ({
           {hasProgress && (
             <>
               <Progress
-                value={rowCount ? (importCount / rowCount) * 100 : 0}
+                value={
+                  rowCount ? ((importCount + errorCount) / rowCount) * 100 : 0
+                }
                 aria-label={translate("crm.data_import.in_progress")}
               />
               <p className="text-muted-foreground text-xs">

@@ -455,6 +455,8 @@ export const frenchCrmMessages = {
         "Voici un exemple de fichier CSV que vous pouvez utiliser comme modèle",
       start: "Démarrer l'import",
       stop: "Arrêter l'importation",
+      stopped:
+        "Import arrêté. %{importCount} enregistrements importés, %{errorCount} erreurs",
       title: "Importer des données",
     },
     header: {
