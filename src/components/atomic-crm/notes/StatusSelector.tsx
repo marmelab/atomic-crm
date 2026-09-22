@@ -85,8 +85,8 @@ export const StatusSelector = ({
    * "No status" needs a selectable item of its own, and an item cannot carry an empty
    * value, so it uses a sentinel that is converted back to an empty string on change.
    */
-  const handleValueChange = (value: string) => {
-    setStatus(value === NONE_VALUE ? "" : value);
+  const handleValueChange = (value: string | null) => {
+    setStatus(!value || value === NONE_VALUE ? "" : value);
   };
 
   // <SelectValue> renders the trigger label from this map, not from the items' children.

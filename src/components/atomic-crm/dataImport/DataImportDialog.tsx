@@ -81,7 +81,7 @@ export function DataImportDialog({
     }
   }, [importer.state, refresh]);
 
-  const handleResourceChange = (name: string) => {
+  const handleResourceChange = (name: string | null) => {
     const next = resources.find((candidate) => candidate.name === name);
     if (!next) return;
     setFile(null);

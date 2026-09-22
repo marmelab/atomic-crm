@@ -464,7 +464,11 @@ const LanguageRow = () => {
         </ItemTitle>
       </ItemContent>
       <ItemActions>
-        <Select value={locale} onValueChange={setLocale} items={localeItems}>
+        <Select
+          value={locale}
+          onValueChange={(value) => value && setLocale(value)}
+          items={localeItems}
+        >
           <SelectTrigger
             size="sm"
             className="w-auto !h-auto py-0 border-none shadow-none"

@@ -296,7 +296,11 @@ const LanguageSelector = () => {
       <p className="text-xs text-muted-foreground">
         {translate("crm.language")}
       </p>
-      <Select value={locale} onValueChange={setLocale} items={localeItems}>
+      <Select
+        value={locale}
+        onValueChange={(value) => value && setLocale(value)}
+        items={localeItems}
+      >
         <SelectTrigger className="w-full">
           <SelectValue />
         </SelectTrigger>
