@@ -162,6 +162,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/sales/salesErrorNotification.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/sales/index.ts",
           "type": "registry:component"
         },
