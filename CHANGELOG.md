@@ -1,3 +1,85 @@
+## v1.6.0 - 2026-09-22
+
+## What's Changed
+
+* Add i18n support by @WiXSL in #183
+* Turn mobile settings dialog into a page by @fzaninotto in #206
+* Make currency configurable by @fzaninotto in #210
+* Improve font legibility by @fzaninotto in #211
+* Add infinite pagination to the activity log by @fzaninotto in #212
+* Add declarative database schemas by @fzaninotto in #213
+* Add bulk contact tagging by @WiXSL in #224
+* Add contact status sidebar by @WiXSL in #239
+* Add infinite scroll to contact and deal notes by @WiXSL in #241
+* Add grow on focus to the note input in contact show view by @fzaninotto in #253
+* Add a Task list MCP app by @fzaninotto in #274
+* Add a changelog page by @erwanMarmelab in #281
+* Add ability to filter contacts by any account manager by @pysnooLab in #344
+* Attach forwarded emails sent from a sale's secondary address by @pysnooLab in #345
+* Add ability to import data from a CSV file by @erwanMarmelab in #348
+* Add pull-to-refresh on mobile by @erwanMarmelab in #349
+* Fix Supabase security advisor warnings about views and functions by @slax57 in #199
+* Fix companies being created from blacklisted mail provider addresses on inbound mail by @ThieryMichel in #200
+* Fix note form initialization by @ThieryMichel in #202
+* Fix contact names extracted from inbound email not being capitalized by @ThieryMichel in #214
+* Fix notes pagination race condition on mobile by @WiXSL in #216
+* Fix ContactShow task count translation flicker by @WiXSL in #217
+* Fix inbound email contact matching to be case-insensitive and improve company creation by @slax57 in #219
+* Fix phone/email default values not clearing on submit when untouched by @ThieryMichel in #220
+* Fix missing i18n keys by @slax57 in #221
+* Fix supabase-remote-init project status check by @ThieryMichel in #229
+* Fix empty notes being allowed by @WiXSL in #230
+* Fix missing markdown styles by @slax57 in #231
+* Fix deal Kanban bug by @ThieryMichel in #235
+* Fix autocomplete input filtering with cmdk by adding a keyword field by @ThieryMichel in #237
+* Fix choice list scrolling to the bottom while filtering by @ThieryMichel in #240
+* Fix company selector overflow in the Deal form by @slax57 in #245
+* Fix mobile note edition user experience by @fzaninotto in #252
+* Fix missing grants for views in migrations by @jonathanarnault in #292
+* Fix add-note button overflowing in French by @jonathanarnault in #295
+* Fix initial Login page shows username/password fields even though VITE_DISABLE_EMAIL_PASSWORD_AUTHENTICATION is true by @fzaninotto in #334
+* Fix invalid logo URL during OAuth by @fzaninotto in #335
+* Bump various dependencies (hono, devalue, h3, flatted, smol-toml, astro, dompurify) by @dependabot[bot] in #203, #205, #222, #223, #227, #233, #234, #238, #254, #256, #257, #270, #271, #279, #282, #283, #300
+* Bump Playwright to the latest version by @erwanMarmelab in #290
+* [Doc] Add documentation about the Supabase REST API by @ThieryMichel in #195
+* [Doc] Document how to use a custom SMTP server by @slax57 in #201
+* [Doc] Add developer documentation for the agentic harness by @pysnooLab in #314
+* [Doc] Add an asciinema recording for the harness by @pysnooLab in #319
+* [Doc] Add a User Profile page to the user documentation by @pysnooLab in #339
+* [Doc] Document the Shadcn registry for users and contributors by @pysnooLab in #346
+* [Chore] Add browser-based integration tests and Storybook by @WiXSL in #198
+* [Chore] Set up e2e tests by @ThieryMichel in #204
+* [Chore] Refactor integration tests by @fzaninotto in #225
+* [Chore] Update NoteInputs stories to use the new StoryWrapper by @ThieryMichel in #236
+* [Chore] Reduce unit test verbosity by @ThieryMichel in #243
+* [Chore] Speed up e2e tests by @ThieryMichel in #244
+* [Chore] Fix the dismiss-toast e2e helper targeting the wrong close button by @jonathanarnault in #287
+* [Chore] Add Claude agents, skills, and rules by @jonathanarnault in #289
+* [Chore] Add a delete-resource skill by @erwanMarmelab in #294
+* [Chore] Upgrade Shadcn Admin Kit to v1.6.0 by @fzaninotto in #296
+* [Chore] Add the update-branding skill by @erwanMarmelab in #297
+* [Chore] Improve Claude hooks code quality by @jonathanarnault in #298
+* [Chore] Improve the agentic factory by @erwanMarmelab in #299
+* [Chore] Use subagents instead of agent teams to reduce costs by @jonathanarnault in #302
+* [Chore] Add the Ponytail plugin by @erwanMarmelab in #304
+* [Chore] Improve dev containers by @jonathanarnault in #306
+* [Chore] Improve agents and efforts by @erwanMarmelab in #308
+* [Chore] Allow committing on branches other than main by @jonathanarnault in #309
+* [Chore] Add a TypeScript LSP for Claude by @jonathanarnault in #310
+* [Chore] Rewrite skills by @pysnooLab in #311
+* [Chore] Simplify CLAUDE.md and add a way to bypass the harness for development by @pysnooLab in #312
+* [Chore] Add Docker-in-Docker support for dev containers by @jonathanarnault in #313
+* [Chore] Use Playwright with agents by @erwanMarmelab in #315
+* [Chore] Fix harness regressions by @pysnooLab in #316
+* [Chore] Remove graphify reference by @jonathanarnault in #317
+* [Chore] Add harness command support by @pysnooLab in #321
+* [Chore] Consolidate the harness by @pysnooLab in #331
+
+## New Contributors
+* @pysnooLab made their first contribution in https://github.com/marmelab/atomic-crm/pull/312
+
+**Full Changelog**: https://github.com/marmelab/atomic-crm/compare/v1.5.0...v1.6.0
+
 ## v1.5.0 - 2026-03-10
 
 Read about the updates online: [Atomic CRM March 2026 Updates](https://marmelab.com/blog/2026/03/13/atomic-crm-march-updates.html)
