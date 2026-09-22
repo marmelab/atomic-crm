@@ -12,6 +12,7 @@ const holder = (name: string, id: number): SlotHolder => ({
   startWeekConfirmed: true,
   startDateSource: "owner",
   extensions: 0,
+  unresolvedCadenceWeeks: 0,
   end: {
     status: "known",
     finalWeek: { start: "2026-10-26", end: "2026-10-31" },

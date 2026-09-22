@@ -13,8 +13,10 @@ function createFakeDb(seed: Record<string, Row[]>) {
   );
   let nextId = 1000;
 
+  // A column the row never set and a column explicitly null are the same
+  // absence, which is what `.is(col, null)` asks about.
   const matches = (row: Row, eqFilters: [string, unknown][]) =>
-    eqFilters.every(([field, value]) => row[field] === value);
+    eqFilters.every(([field, value]) => (row[field] ?? null) === value);
 
   const from = (table: string) => {
     tables[table] ??= [];
@@ -22,6 +24,13 @@ function createFakeDb(seed: Record<string, Row[]>) {
 
     const builder = {
       eq(field: string, value: unknown) {
+        eqFilters.push([field, value]);
+        return builder;
+      },
+      // `.is(col, null)` is how a retired slot is skipped — the detection
+      // pass must not re-raise a week that left the canonical schedule.
+      // A fake that cannot express it would let that regression back in.
+      is(field: string, value: unknown) {
         eqFilters.push([field, value]);
         return builder;
       },
@@ -303,5 +312,34 @@ describe("detectClientSessionCadenceIssues", () => {
     const issue = fakeDb.current!.tables.client_session_cadence_issues[0];
     expect(issue.classification).toBe("known_skip");
     expect(issue.resolved_at).toBe("2026-09-18T00:00:00.000Z");
+  });
+});
+
+describe("a week that left the canonical schedule", () => {
+  it("is never raised again, however long it stays in the record", async () => {
+    // Leif removed the mistakenly-added 30 Aug – 2 Sep week from Year
+    // Tracking; the rebuild retired the derived slot but kept it, because
+    // a cadence issue points at it. This pass used to scan retired slots
+    // too, so the week Leif had just deleted came straight back as a
+    // Needs Attention item he could not answer.
+    fakeDb.current = seedWith({
+      enrollment_expected_sessions: [
+        {
+          id: 1,
+          enrollment_id: 100,
+          ordinal: 1,
+          window_start: "2026-08-30",
+          window_end: "2026-09-03",
+          retired_at: "2026-09-22T00:00:00.000Z",
+        },
+      ],
+    });
+
+    const result = await detectClientSessionCadenceIssues(NOW);
+    expect(result.issuesCreated).toBe(0);
+    expect(result.tasksCreated).toBe(0);
+    expect(fakeDb.current!.tables.client_session_cadence_issues).toHaveLength(
+      0,
+    );
   });
 });

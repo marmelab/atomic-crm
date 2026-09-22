@@ -92,6 +92,7 @@ export const useIndividualProgramData = (offerId?: Identifier) => {
       isPending,
       offer: offer ?? null,
       capacity: null,
+      ifAllRescheduled: null,
       futureOpenings: null,
       lastSyncedAt: null,
     };
@@ -124,16 +125,33 @@ export const useIndividualProgramData = (offerId?: Identifier) => {
     };
   };
 
+  const people = (enrollments ?? []).map(withPerson);
   const capacity = computeIndividualCapacity(
-    (enrollments ?? []).map(withPerson),
+    people,
     offer.max_active_clients ?? null,
     weeks,
+  );
+
+  // The same practice, evaluated a second time with every week still
+  // owing a decision counted as a cross-week reschedule.
+  //
+  // Not a second engine and not a forecast — it is the same function asked
+  // the worst case, so the board can tell an opening nothing outstanding
+  // can take away from one that unresolved history could still move. See
+  // openingsNarrative.ts's describeConfidence.
+  const ifAllRescheduled = computeIndividualCapacity(
+    people,
+    offer.max_active_clients ?? null,
+    weeks,
+    undefined,
+    true,
   );
 
   return {
     isPending: false,
     offer,
     capacity,
+    ifAllRescheduled,
     futureOpenings: computeFutureOpenings(capacity),
     lastSyncedAt,
   };

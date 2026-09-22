@@ -10,6 +10,7 @@ import {
 import {
   computeExpectedEnd,
   crossWeekReschedules,
+  maxPlausibleWeeks,
   type SessionWeek,
 } from "./sessionWeeks";
 import {
@@ -55,13 +56,20 @@ export type IndividualCapacity = {
   weeks: SessionWeek[];
 };
 
+// `assumeUnresolvedAreReschedules` asks the same engine a second
+// question — "what if every week still owing a decision turned out to be
+// a reschedule?" — so a stated opening can be checked against the worst
+// outstanding history can do to it. It is never what the CRM reports as
+// the answer; see openingsNarrative.ts.
 const toSlotHolder = (
   enrollment: SlotEnrollment,
   weeks: SessionWeek[],
+  assumeUnresolvedAreReschedules = false,
 ): SlotHolder => {
-  const extensions = crossWeekReschedules(
-    enrollment.cadenceClassifications ?? [],
-  );
+  const classifications = enrollment.cadenceClassifications ?? [];
+  const extensions = assumeUnresolvedAreReschedules
+    ? maxPlausibleWeeks(classifications)
+    : crossWeekReschedules(classifications);
   return {
     enrollmentId: enrollment.id,
     contactId: enrollment.contactId ?? null,
@@ -83,6 +91,7 @@ const toSlotHolder = (
         }
       : computeExpectedEnd(weeks, enrollment.start_date ?? null, extensions),
     extensions,
+    unresolvedCadenceWeeks: classifications.filter((c) => c == null).length,
   };
 };
 
@@ -91,6 +100,7 @@ export const computeIndividualCapacity = (
   max: number | null,
   weeks: SessionWeek[],
   now: Date = new Date(),
+  assumeUnresolvedAreReschedules = false,
 ): IndividualCapacity => {
   const today = toDateKey(now);
   const occupied: SlotHolder[] = [];
@@ -99,7 +109,11 @@ export const computeIndividualCapacity = (
   for (const enrollment of enrollments) {
     const phase = slotPhaseOf(enrollment, today);
     if (phase === "released") continue;
-    const holder = toSlotHolder(enrollment, weeks);
+    const holder = toSlotHolder(
+      enrollment,
+      weeks,
+      assumeUnresolvedAreReschedules,
+    );
     (phase === "occupied" ? occupied : committed).push(holder);
   }
 

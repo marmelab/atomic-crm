@@ -474,6 +474,11 @@ export const frenchCrmMessages = {
           "Une séance réservée compte par défaut — rien à cocher, sauf si quelque chose ne s'est pas passé comme prévu.",
         sessions_this_period:
           "%{fulfilled} séances sur %{expected} cette période",
+        weeks_accounted: "%{accounted} semaines sur %{total} justifiées",
+        weeks_to_review:
+          "%{count} semaine à examiner |||| %{count} semaines à examiner",
+        evidence_outside:
+          "Une séance a eu lieu le %{date}, en dehors de vos semaines 1:1 habituelles.",
         next_at: "Prochaine : %{when}",
         no_start_date: "Aucune séance attendue assignée pour l'instant.",
         no_session_booked: "Aucune séance réservée",
@@ -779,6 +784,11 @@ export const frenchCrmMessages = {
       tasks_orientation:
         "Ce que vous devez faire ou retenir. La plupart sont créées automatiquement par le CRM.",
       tasks_needs_attention: "Nécessite votre attention",
+      system_sync: "Synchronisation",
+      system_sync_hint:
+        "Récupérez les dernières semaines 1:1 du suivi annuel et reconstruisez le planning de chaque client.",
+      system_sync_weeks:
+        "%{count} semaine 1:1 dans le suivi annuel |||| %{count} semaines 1:1 dans le suivi annuel",
       tasks_overdue: "En retard",
       tasks_today: "Aujourd'hui",
       tasks_next_7_days: "7 prochains jours",
@@ -893,6 +903,9 @@ export const frenchCrmMessages = {
       opening_provisional: "semaines de début non confirmées",
       capacity_now: "Actuellement",
       capacity_next: "Prochaine place",
+      capacity_next_projected: "Prochaine place projetée",
+      capacity_unsettled:
+        "%{count} semaine client non résolue pourrait changer ceci |||| %{count} semaines client non résolues pourraient changer ceci",
       capacity_now_count: "%{active} / %{max} actifs",
       capacity_committed_plain:
         "%{count} prévu au démarrage |||| %{count} prévus au démarrage",

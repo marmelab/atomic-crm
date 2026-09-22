@@ -17,6 +17,16 @@ export type ExpectedWeekSummary = {
   status: ExpectedWeekStatus;
   fulfillingSession: ClientSession | null;
   issue: ClientSessionCadenceIssue | null;
+  // A real appointment that happened OUTSIDE every planned 1:1 week,
+  // after this week went empty.
+  //
+  // This is evidence, never an answer. Leif was ill the week before 30
+  // August and moved five sessions into 30 Aug – 2 Sep, which was never a
+  // 1:1 week — so for those clients the empty week is a cross-week
+  // reschedule and their container is owed one more week. The CRM cannot
+  // know that; it can only put the appointment in front of him, on the
+  // row he is being asked about, instead of making him go and look.
+  evidence: ClientSession | null;
 };
 
 export type ClientSessionCadenceSummary = {
@@ -33,6 +43,21 @@ export type ClientSessionCadenceSummary = {
   expectedCount: number;
   fulfilledCount: number;
   unresolvedCount: number;
+  // The whole container, every canonical week of it, in order.
+  //
+  // The card used to show one Service Period — three weeks of twelve —
+  // which is enough to run this week and not enough to answer "why does
+  // this client finish when the CRM says they finish". That question is
+  // the whole reason the tracker exists.
+  allWeeks: ExpectedWeekSummary[];
+  // Of the twelve: settled one way or another, and still owing a decision.
+  accountedCount: number;
+  totalCount: number;
+  needsReviewCount: number;
+  // Appointments outside every planned week that no unresolved week
+  // claimed. Shown plainly rather than attached to a week they may have
+  // nothing to do with.
+  unexplainedSessions: ClientSession[];
   // The earliest still-booked (non-cancelled, non-no-show) session
   // strictly in the future, or null — independent of the current period.
   nextSession: ClientSession | null;
@@ -56,6 +81,54 @@ const isFulfilling = (
   );
 };
 
+// An appointment that happened outside every planned 1:1 week.
+//
+// Year Tracking is the weeks Leif MEANT to work; it is not a log of where
+// sessions landed. A make-up week is exactly this shape — a real session
+// in a week that is not, and must not become, an entitlement week.
+const isOutsideEveryWeek = (
+  session: ClientSession,
+  slots: EnrollmentExpectedSession[],
+) =>
+  session.status !== "cancelled" &&
+  !session.no_show_at &&
+  !slots.some((slot) => isFulfilling(session, slot));
+
+// Attach at most ONE outside-week appointment to each empty week, earliest
+// first, and never the same appointment twice.
+//
+// Deliberately not "any session near this week": proximity is a guess, and
+// a guess that attaches one client's make-up session to the wrong week is
+// worse than showing nothing. The rule is only that the appointment
+// happened after the week went empty and has not already been offered as
+// evidence somewhere else. What it MEANS stays Leif's call — a week with
+// evidence beside it is still `unresolved`, and nothing here classifies.
+const attachEvidence = (
+  weeks: ExpectedWeekSummary[],
+  slots: EnrollmentExpectedSession[],
+  sessions: ClientSession[],
+): ExpectedWeekSummary[] => {
+  const outside = sessions
+    .filter((session) => isOutsideEveryWeek(session, slots))
+    .sort(
+      (a, b) =>
+        new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime(),
+    );
+  const claimed = new Set<string>();
+
+  return weeks.map((week) => {
+    if (week.status !== "unresolved") return week;
+    const evidence =
+      outside.find(
+        (session) =>
+          !claimed.has(String(session.id)) &&
+          new Date(session.scheduled_at) >= new Date(week.slot.window_start),
+      ) ?? null;
+    if (evidence) claimed.add(String(evidence.id));
+    return { ...week, evidence };
+  });
+};
+
 // 1-3 -> Period 1, 4-6 -> Period 2, 7-9 -> Period 3, 10-12 -> Period 4.
 // Pure derived arithmetic — a Service Period number is never stored,
 // only ever computed from a slot's own frozen ordinal.
@@ -70,7 +143,13 @@ const computeSlotStatus = (
   const fulfillingSession =
     sessions.find((session) => isFulfilling(session, slot)) ?? null;
   if (fulfillingSession) {
-    return { slot, status: "fulfilled", fulfillingSession, issue: null };
+    return {
+      slot,
+      status: "fulfilled",
+      fulfillingSession,
+      issue: null,
+      evidence: null,
+    };
   }
 
   const issue =
@@ -84,6 +163,7 @@ const computeSlotStatus = (
       status: issue.classification,
       fulfillingSession: null,
       issue,
+      evidence: null,
     };
   }
   // An issue that's still open is ALWAYS actionable, regardless of
@@ -93,7 +173,13 @@ const computeSlotStatus = (
   // No-show), so its mere existence is itself the fact that matters, not
   // the calendar date.
   if (issue && issue.resolved_at == null) {
-    return { slot, status: "unresolved", fulfillingSession: null, issue };
+    return {
+      slot,
+      status: "unresolved",
+      fulfillingSession: null,
+      issue,
+      evidence: null,
+    };
   }
 
   const slotHasClosed = new Date(slot.window_end) <= now;
@@ -102,6 +188,7 @@ const computeSlotStatus = (
     status: slotHasClosed ? "unresolved" : "pending",
     fulfillingSession: null,
     issue,
+    evidence: null,
   };
 };
 
@@ -160,8 +247,18 @@ export const computeClientSessionCadenceSummary = (
           (slot) => servicePeriodOf(slot.ordinal) === currentServicePeriod,
         );
 
-  const expectedWeeks = periodSlots.map((slot) =>
-    computeSlotStatus(slot, sessions, issues, now),
+  // Every canonical week, and the evidence for the empty ones.
+  const allWeeks = attachEvidence(
+    sortedSlots.map((slot) => computeSlotStatus(slot, sessions, issues, now)),
+    sortedSlots,
+    sessions,
+  );
+  const byOrdinal = new Map(allWeeks.map((week) => [week.slot.ordinal, week]));
+
+  const expectedWeeks = periodSlots.map(
+    (slot) =>
+      byOrdinal.get(slot.ordinal) ??
+      computeSlotStatus(slot, sessions, issues, now),
   );
 
   const fulfilledCount = expectedWeeks.filter(
@@ -200,10 +297,38 @@ export const computeClientSessionCadenceSummary = (
       const fulfillingSession =
         sessions.find((session) => isFulfilling(session, slot)) ?? null;
       if (fulfillingSession) return null;
-      return { slot, status: "unresolved", fulfillingSession: null, issue };
+      // The same week object the twelve-week view built, so the evidence
+      // on it is the same evidence — never computed a second time.
+      return (
+        byOrdinal.get(slot.ordinal) ?? {
+          slot,
+          status: "unresolved" as const,
+          fulfillingSession: null,
+          issue,
+          evidence: null,
+        }
+      );
     })
     .filter((item): item is ExpectedWeekSummary => item != null)
     .sort((a, b) => a.slot.ordinal - b.slot.ordinal);
+
+  const needsReviewCount = allWeeks.filter(
+    (week) => week.status === "unresolved",
+  ).length;
+  // "Accounted for" is not "attended": a week Leif has classified is
+  // settled, whatever he classified it as. Only a week still owing a
+  // decision is outstanding, and a week that has not happened yet owes
+  // nothing.
+  const accountedCount = allWeeks.filter(
+    (week) => week.status !== "unresolved" && week.status !== "pending",
+  ).length;
+
+  const claimedEvidence = new Set(
+    allWeeks
+      .map((week) => week.evidence?.id)
+      .filter((id): id is NonNullable<typeof id> => id != null)
+      .map(String),
+  );
 
   return {
     currentServicePeriod,
@@ -211,6 +336,21 @@ export const computeClientSessionCadenceSummary = (
     expectedCount: expectedWeeks.length,
     fulfilledCount,
     unresolvedCount,
+    allWeeks,
+    accountedCount,
+    totalCount: allWeeks.length,
+    needsReviewCount,
+    unexplainedSessions: sessions
+      .filter(
+        (session) =>
+          isOutsideEveryWeek(session, sortedSlots) &&
+          !claimedEvidence.has(String(session.id)),
+      )
+      .sort(
+        (a, b) =>
+          new Date(a.scheduled_at).getTime() -
+          new Date(b.scheduled_at).getTime(),
+      ),
     nextSession,
     attentionItems,
   };

@@ -83,7 +83,12 @@ export const detectClientSessionCadenceIssues = async (
     const { data: allSlots } = await supabaseAdmin
       .from("enrollment_expected_sessions")
       .select("id, window_start, window_end")
-      .eq("enrollment_id", enrollment.id);
+      .eq("enrollment_id", enrollment.id)
+      // A retired slot left the canonical schedule — Leif corrected the
+      // calendar. It is kept for audit, never re-flagged: asking him to
+      // classify a week that no longer exists is a question with no
+      // honest answer.
+      .is("retired_at", null);
     // Eligibility (offer, service start, non-deleted) was already
     // decided once, by the assignment pass, when this slot was created —
     // only "has it closed yet" is decided here.

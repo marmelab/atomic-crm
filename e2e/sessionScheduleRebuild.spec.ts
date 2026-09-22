@@ -376,3 +376,154 @@ test.describe("a derived session schedule rebuilds from its authorities", () => 
     expect(await liveSlots(ctx)).toHaveLength(12);
   });
 });
+
+// The stale alert Leif found in production.
+//
+// He removed the mistakenly-added 30 Aug – 2 Sep week from Year Tracking —
+// it was never a 1:1 week; he had been ill and moved sessions into it —
+// corrected the duplicate historical events, extended the calendar, and
+// synced. The 1:1 Program page followed. The Dashboard did not: Jules was
+// still being asked to classify "No session booked for week of Aug 30",
+// and a hard browser refresh did not clear it, because the row was still
+// there to fetch.
+//
+// Two faults, one symptom. The rebuild retired the slot but left its
+// cadence issue open and its Task pending, so Needs Attention kept asking
+// about a week the schedule no longer contained — and the detection pass
+// scanned retired slots, so even a resolved one could be raised again.
+//
+// The slot itself is deliberately KEPT: something historical points at it.
+// What must not survive is the asking.
+test.describe("correcting Year Tracking clears what it invalidates", () => {
+  test.afterEach(async () => {
+    await cleanup(db());
+  });
+
+  test("a week removed from the calendar stops asking to be classified", async ({
+    createSales,
+  }) => {
+    await seedCalendar(db(), 14);
+    const ctx = await seedClient(weekStart(0), createSales);
+    await rebuild(ctx);
+
+    // The week Leif later decides was never a 1:1 week.
+    const before = await liveSlots(ctx);
+    const doomed = before[3]!;
+    expect(doomed).toBeDefined();
+
+    // It closed with no session, so it raised an issue and a Task —
+    // exactly what the Dashboard shows.
+    const { data: issue } = await ctx.client
+      .from("client_session_cadence_issues")
+      .insert({
+        enrollment_id: ctx.enrollmentId,
+        enrollment_expected_session_id: doomed.id,
+      })
+      .select("id")
+      .single();
+    const { data: sales } = await ctx.client
+      .from("sales")
+      .select("id")
+      .limit(1)
+      .single();
+    const taskInsert = await ctx.client.from("tasks").insert({
+      contact_id: CONTACT_ID,
+      type: "resolve_client_session_cadence",
+      text: "Rebuild Spec · No session booked for week of Aug 30",
+      due_date: new Date().toISOString(),
+      status: "pending",
+      cadence_issue_id: issue!.id,
+      sales_id: sales!.id,
+    });
+    expect(taskInsert.error).toBeNull();
+
+    // Leif removes that week from Year Tracking and syncs. The calendar
+    // event is what he deletes — the derived slot is the CRM's own, and
+    // the rebuild is what notices.
+    const { data: slotRow } = await ctx.client
+      .from("enrollment_expected_sessions")
+      .select("source_window_id")
+      .eq("id", doomed.id)
+      .single();
+    // Soft-deleted, which is exactly what the sync does when an event
+    // disappears from Google (syncExpectedSessionWindows.ts). A hard
+    // delete would cascade the derived slot away and prove nothing about
+    // the case Leif actually hit.
+    const removed = await ctx.client
+      .from("expected_session_windows")
+      .update({ deleted_at: new Date().toISOString() })
+      .eq("id", slotRow!.source_window_id);
+    expect(removed.error).toBeNull();
+
+    await rebuild(ctx);
+
+    // The slot is no longer part of the schedule...
+    const { data: after } = await ctx.client
+      .from("enrollment_expected_sessions")
+      .select("id, retired_at")
+      .eq("id", doomed.id)
+      .maybeSingle();
+    expect(after?.retired_at).not.toBeNull();
+
+    // ...and nothing is still asking about it.
+    const { data: issueAfter } = await ctx.client
+      .from("client_session_cadence_issues")
+      .select("resolved_at, classification")
+      .eq("id", issue!.id)
+      .single();
+    expect(issueAfter!.resolved_at).not.toBeNull();
+    // Nobody decided anything, so nothing is recorded as decided.
+    expect(issueAfter!.classification).toBeNull();
+
+    // The Dashboard's own surface is the Task, and it is done.
+    const { data: tasksAfter } = await ctx.client
+      .from("tasks")
+      .select("done_date, status")
+      .eq("cadence_issue_id", issue!.id);
+    expect(tasksAfter).toHaveLength(1);
+    expect(tasksAfter![0]!.done_date).not.toBeNull();
+
+    // The history survives: the row is still there and says what happened.
+    const { data: events } = await ctx.client
+      .from("client_session_cadence_issue_events")
+      .select("kind")
+      .eq("cadence_issue_id", issue!.id);
+    expect(events!.map((e) => e.kind)).toContain("retired");
+  });
+
+  test("two identical calendar events are one week, and leave one row to answer", async ({
+    createSales,
+  }) => {
+    // Jules' week of 17 May exists twice in Year Tracking. Counted twice
+    // it spends two of his twelve sessions on one real week and leaves a
+    // slot nothing can ever fulfil — a Needs Attention row with no
+    // possible answer.
+    await seedCalendar(db(), 14);
+    const client = db();
+    const { data: original } = await client
+      .from("expected_session_windows")
+      .select(
+        "offer_id, external_calendar_id, raw_title, window_start, window_end",
+      )
+      .eq("external_calendar_id", CALENDAR)
+      .order("window_start")
+      .limit(1)
+      .single();
+    const duplicate = await client.from("expected_session_windows").insert({
+      ...original,
+      external_event_id: "duplicate-of-week-0",
+    });
+    expect(duplicate.error).toBeNull();
+
+    const ctx = await seedClient(weekStart(0), createSales);
+    await rebuild(ctx);
+
+    const slots = await liveSlots(ctx);
+    const firstWeek = slots.filter(
+      (slot) => slot.window_start === weekStart(0),
+    );
+    expect(firstWeek).toHaveLength(1);
+    // And the container still spans twelve distinct weeks.
+    expect(new Set(slots.map((s) => s.window_start)).size).toBe(slots.length);
+  });
+});

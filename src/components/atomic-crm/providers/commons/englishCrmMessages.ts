@@ -465,6 +465,16 @@ export const englishCrmMessages = {
           "A booked session counts by default — no need to mark anything, unless something didn't happen as planned.",
         sessions_this_period:
           "%{fulfilled} of %{expected} sessions this period",
+        // The whole container. "Accounted for" is not "attended" — a week
+        // Leif has classified is settled, whatever he classified it as.
+        weeks_accounted: "%{accounted} of %{total} weeks accounted for",
+        weeks_to_review:
+          "%{count} week needs review |||| %{count} weeks need review",
+        // Evidence, not an answer: a real appointment in a week that was
+        // never a planned 1:1 week, which is what a make-up week looks
+        // like from here.
+        evidence_outside:
+          "A session happened %{date}, outside your normal 1:1 weeks.",
         next_at: "Next: %{when}",
         no_start_date: "No expected sessions assigned yet.",
         no_session_booked: "No session booked",
@@ -770,6 +780,11 @@ export const englishCrmMessages = {
       tasks_orientation:
         "Things you need to do or remember. Most are created automatically by the CRM.",
       tasks_needs_attention: "Needs Attention",
+      system_sync: "System sync",
+      system_sync_hint:
+        "Pull the latest 1:1 weeks from Year Tracking and rebuild every client's schedule.",
+      system_sync_weeks:
+        "%{count} 1:1 week in Year Tracking |||| %{count} 1:1 weeks in Year Tracking",
       tasks_overdue: "Overdue",
       tasks_today: "Today",
       tasks_next_7_days: "Next 7 Days",
@@ -887,6 +902,12 @@ export const englishCrmMessages = {
       // reason, then the mechanism, then what Leif can do about it.
       capacity_now: "Right now",
       capacity_next: "Next opening",
+      // Said only when outstanding session history could actually move
+      // the answer — proven by evaluating the practice a second time with
+      // every unresolved week counted as a reschedule.
+      capacity_next_projected: "Next projected opening",
+      capacity_unsettled:
+        "%{count} unresolved client week could change this |||| %{count} unresolved client weeks could change this",
       capacity_now_count: "%{active} / %{max} active",
       capacity_committed_plain:
         "%{count} committed to start |||| %{count} committed to start",

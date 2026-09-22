@@ -23,8 +23,14 @@ export const IndividualProgramPage = () => {
   const { offerId } = useParams();
   const location = useLocation();
   const translate = useTranslate();
-  const { isPending, offer, capacity, futureOpenings, lastSyncedAt } =
-    useIndividualProgramData(offerId);
+  const {
+    isPending,
+    offer,
+    capacity,
+    ifAllRescheduled,
+    futureOpenings,
+    lastSyncedAt,
+  } = useIndividualProgramData(offerId);
   const { isPending: waitlistPending, entries: waitlist } = useWaitlistEntries({
     offerId,
     cohortId: null,
@@ -163,6 +169,7 @@ export const IndividualProgramPage = () => {
       {futureOpenings != null && capacity != null && (
         <UpcomingOpeningsSection
           capacity={capacity}
+          ifAllRescheduled={ifAllRescheduled}
           futureOpenings={futureOpenings}
           lastSyncedAt={lastSyncedAt}
         />

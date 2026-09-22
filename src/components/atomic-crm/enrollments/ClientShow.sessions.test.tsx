@@ -24,7 +24,7 @@ import type {
 } from "@/components/atomic-crm/types";
 
 // Client + Session Operations, ClientShow UX correction: a concise
-// summary ("2 of 3 sessions this period" / "Next: ...") instead of a full
+// summary ("2 of 12 weeks accounted for" / "Next: ...") instead of a full
 // ledger, an Attention section that appears ONLY when something needs
 // Leif's judgment, plain-language current-period rows ("Upcoming" / "No
 // session booked", never "Fulfilled"/"Pending"/"Unresolved"), and the
@@ -191,7 +191,7 @@ describe("ClientShow — Sessions (ClientShow UX correction)", () => {
 
     // Concise summary — never "X of Y weeks fulfilled".
     await expect
-      .element(screen.getByText("1 of 2 sessions this period"))
+      .element(screen.getByText("1 of 2 weeks accounted for"))
       .toBeInTheDocument();
     // No future session is booked here (slot 2 is still empty) — the
     // summary says so plainly rather than a stale/blank "Next:" line.
@@ -239,7 +239,7 @@ describe("ClientShow — Sessions (ClientShow UX correction)", () => {
     const screen = await render(element);
 
     await expect
-      .element(screen.getByText("1 of 1 sessions this period"))
+      .element(screen.getByText("1 of 1 weeks accounted for"))
       .toBeInTheDocument();
 
     await screen.getByText("History").click();
@@ -248,7 +248,7 @@ describe("ClientShow — Sessions (ClientShow UX correction)", () => {
     // The exception is immediately visible AND actionable — never an
     // inert "unresolved" with nothing to click.
     await expect
-      .element(screen.getByText("0 of 1 sessions this period"))
+      .element(screen.getByText("0 of 1 weeks accounted for"))
       .toBeInTheDocument();
     await expect
       .element(screen.getByText("Needs attention"))
@@ -265,7 +265,7 @@ describe("ClientShow — Sessions (ClientShow UX correction)", () => {
     await screen.getByRole("button", { name: "Undo No-show" }).click();
 
     await expect
-      .element(screen.getByText("1 of 1 sessions this period"))
+      .element(screen.getByText("1 of 1 weeks accounted for"))
       .toBeInTheDocument();
     await expect
       .element(screen.getByText("Needs attention"))

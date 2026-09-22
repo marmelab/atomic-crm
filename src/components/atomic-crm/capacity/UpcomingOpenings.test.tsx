@@ -12,7 +12,11 @@ import {
   computeIndividualCapacity,
   type SlotEnrollment,
 } from "./individualCapacity";
-import { describeAvailability, monthsFromWeeks } from "./openingsNarrative";
+import {
+  describeAvailability,
+  describeConfidence,
+  monthsFromWeeks,
+} from "./openingsNarrative";
 import { dayBefore } from "./sessionWeeks";
 import { weeklyCalendar } from "./testCalendar";
 import { isSafeOpening, weekCapacities } from "./weekCapacity";
@@ -588,5 +592,89 @@ describe("a client occupies their slot through their final session week", () => 
     // "Finishing" and "free" are a week apart, and the drilldown says so
     // rather than leaving Leif to work it out.
     expect(text).toContain("free from the week of");
+  });
+});
+
+// An opening nothing outstanding can take away, versus one that unresolved
+// history could still move.
+//
+// Mackenzie Stabler has one week with no session and no classification. If
+// it turns out to be a cross-week reschedule her container gains a week,
+// her finish moves, and it lands in the very week the board was
+// advertising as free. The board must not have called that "1 client can
+// start" as though it were settled.
+describe("an opening is only confirmed when nothing outstanding can move it", () => {
+  const withUnresolved = (
+    id: number,
+    name: string,
+    start: string,
+    unresolved: number,
+  ): SlotEnrollment => ({
+    ...enrollment(id, name, start),
+    cadenceClassifications: Array.from({ length: unresolved }, () => null),
+  });
+
+  const evaluate = (people: SlotEnrollment[], totalWeeks: number) => {
+    const weeks = weeklyCalendar(CALENDAR_FROM, totalWeeks);
+    const actual = computeIndividualCapacity(people, MAX, weeks, TODAY);
+    const worst = computeIndividualCapacity(people, MAX, weeks, TODAY, true);
+    const horizon = actual.calendarHorizon
+      ? dayBefore(actual.calendarHorizon)
+      : null;
+    const unsettled = [...actual.occupied, ...actual.committed].filter(
+      (holder) => holder.unresolvedCadenceWeeks > 0,
+    );
+    return describeConfidence(
+      describeAvailability(weekCapacities(actual, TODAY), horizon),
+      describeAvailability(weekCapacities(worst, TODAY), horizon),
+      unsettled,
+      unsettled.reduce((n, h) => n + h.unresolvedCadenceWeeks, 0),
+    );
+  };
+
+  it("downgrades an opening an unresolved week could take away", () => {
+    // Eleven who stay, and a twelfth whose container ends just before the
+    // week that would otherwise be free. One unresolved week extends her
+    // into it.
+    const people = [
+      ...Array.from({ length: 11 }, (_, i) =>
+        enrollment(i + 1, `Stays ${i + 1}`, weekStart(40)),
+      ),
+      withUnresolved(20, "Mackenzie Stabler", weekStart(33), 1),
+    ];
+    const confidence = evaluate(people, 70);
+
+    expect(confidence.confirmed).toBe(false);
+    expect(confidence.unresolvedWeeks).toBe(1);
+    expect(confidence.couldChangeIt.map((h) => h.name)).toContain(
+      "Mackenzie Stabler",
+    );
+  });
+
+  it("leaves an opening confirmed when nothing is outstanding", () => {
+    const people = Array.from({ length: 11 }, (_, i) =>
+      enrollment(i + 1, `Stays ${i + 1}`, weekStart(40)),
+    );
+    const confidence = evaluate(people, 70);
+
+    expect(confidence.confirmed).toBe(true);
+    expect(confidence.couldChangeIt).toEqual([]);
+  });
+
+  it("does not let ancient irrelevant history poison the page", () => {
+    // Somebody long finished, with a week nobody ever classified.
+    // Extending a container that ended months ago moves no date anybody
+    // can act on, so it raises no warning — which is what stops the whole
+    // capacity page reading "projected" forever.
+    const people = [
+      ...Array.from({ length: 11 }, (_, i) =>
+        enrollment(i + 1, `Stays ${i + 1}`, weekStart(40)),
+      ),
+      withUnresolved(99, "Long Finished", weekStart(0), 2),
+    ];
+    const confidence = evaluate(people, 70);
+
+    expect(confidence.confirmed).toBe(true);
+    expect(confidence.couldChangeIt).toEqual([]);
   });
 });

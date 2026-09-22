@@ -1178,16 +1178,29 @@ const SessionsCard = ({
       <Card>
         <CardContent className="flex flex-col gap-1">
           {cadence.currentServicePeriod != null ? (
-            <span className="text-lg font-semibold">
-              {translate(
-                "resources.enrollments.sessions.sessions_this_period",
-                {
-                  _: "%{fulfilled} of %{expected} sessions this period",
-                  fulfilled: cadence.fulfilledCount,
-                  expected: cadence.expectedCount,
-                },
+            <>
+              {/* The whole container, not this quarter of it. Three weeks
+                  of twelve is enough to run the week and not enough to
+                  answer "why does this client finish when the CRM says
+                  they finish" — which is the question the tracker is
+                  for. */}
+              <span className="text-lg font-semibold">
+                {translate("resources.enrollments.sessions.weeks_accounted", {
+                  _: "%{accounted} of %{total} weeks accounted for",
+                  accounted: cadence.accountedCount,
+                  total: cadence.totalCount,
+                })}
+              </span>
+              {cadence.needsReviewCount > 0 && (
+                <span className="text-sm text-muted-foreground">
+                  {translate("resources.enrollments.sessions.weeks_to_review", {
+                    _: "%{count} week needs review |||| %{count} weeks need review",
+                    smart_count: cadence.needsReviewCount,
+                    count: cadence.needsReviewCount,
+                  })}
+                </span>
               )}
-            </span>
+            </>
           ) : (
             <span className="text-sm text-muted-foreground">
               {translate("resources.enrollments.sessions.no_start_date", {
@@ -1359,28 +1372,30 @@ const PeriodRow = ({
   const canEdit = CLASSIFIED_STATUSES.has(week.status) && week.issue != null;
 
   return (
-    <div className="flex items-center gap-3 py-2 first:pt-0 last:pb-0 text-sm">
-      <span className="text-muted-foreground w-28 shrink-0">
-        {formatWindowWeekLabel(week.slot)}
-      </span>
-      <span
-        className={
-          week.status === "pending" ? "text-muted-foreground" : undefined
-        }
-      >
-        {periodRowLabel(week, translate)}
-      </span>
-      {canEdit && (
-        <button
-          type="button"
-          onClick={onResolve}
-          className="text-xs text-muted-foreground underline hover:no-underline ml-auto shrink-0"
+    <div className="flex flex-col gap-1 py-2 first:pt-0 last:pb-0 text-sm">
+      <div className="flex items-center gap-3">
+        <span className="text-muted-foreground w-28 shrink-0">
+          {formatWindowWeekLabel(week.slot)}
+        </span>
+        <span
+          className={
+            week.status === "pending" ? "text-muted-foreground" : undefined
+          }
         >
-          {translate("resources.enrollments.sessions.resolve", {
-            _: "Resolve",
-          })}
-        </button>
-      )}
+          {periodRowLabel(week, translate)}
+        </span>
+        {canEdit && (
+          <button
+            type="button"
+            onClick={onResolve}
+            className="text-xs text-muted-foreground underline hover:no-underline ml-auto shrink-0"
+          >
+            {translate("resources.enrollments.sessions.resolve", {
+              _: "Resolve",
+            })}
+          </button>
+        )}
+      </div>
     </div>
   );
 };
@@ -1416,6 +1431,23 @@ const AttentionRow = ({
                 _: "No session booked",
               })}
         </span>
+        {/* The appointment that may explain the empty week, beside the
+            decision Leif is being asked for rather than buried in the
+            history below. He was ill the week before 30 August and moved
+            five sessions into a week that was never a 1:1 week — this is
+            how he sees that without going to look for it.
+            It stays EVIDENCE: the week is still unresolved and nothing
+            here classifies it. */}
+        {item.evidence && (
+          <span className="text-xs text-muted-foreground">
+            {translate("resources.enrollments.sessions.evidence_outside", {
+              _: "A session happened %{date}, outside your normal 1:1 weeks.",
+              date: formatMonthDayString(
+                item.evidence.scheduled_at.slice(0, 10),
+              ),
+            })}
+          </span>
+        )}
       </div>
       {item.issue && (
         <button

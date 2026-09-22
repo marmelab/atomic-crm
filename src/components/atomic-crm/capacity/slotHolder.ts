@@ -26,6 +26,11 @@ export type SlotHolder = {
   end: ExpectedEnd | null;
   // Cross-week reschedules recorded against this Enrollment.
   extensions: number;
+  // Weeks with no session and no classification yet. Each one could still
+  // turn out to be a reschedule and lengthen this container, which is why
+  // a capacity answer that depends on this person is a projection until
+  // they are settled.
+  unresolvedCadenceWeeks: number;
 };
 
 export type SlotEnrollment = Pick<

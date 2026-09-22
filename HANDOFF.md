@@ -693,6 +693,31 @@ and stops a month reading as full because its first day happened to be.
 passing tests prove the code does what it was written to do. Only Leif can
 say whether what it was written to do is legible. See §2.
 
+#### Year Tracking is a plan, not a log — settled 2026-09-22
+
+Owner clarification, now an invariant. The `1:1s` weeks are the weeks
+Leif INTENDED to work. They are not a record of where sessions happened.
+He was ill the week before 30 August and moved five sessions into 30 Aug
+– 2 Sep; that week was never a 1:1 week and must never become an
+entitlement week, or every client he moved silently gains a session.
+
+So: **a make-up session is evidence, never eligibility.** The empty
+original week is a cross-week reschedule and extends the container by one
+week — once Leif says so. The CRM shows him the appointment and stops.
+
+**The stale Dashboard alert Leif found had two causes, both now fixed.**
+He deleted the bad week, synced, the Program page followed and the
+Dashboard did not. (1) The rebuild retired the slot but left its cadence
+issue open and its Task pending, so Needs Attention kept asking about a
+week the schedule no longer had — and no honest answer existed. (2) The
+detection pass scanned retired slots, so even a closed one came back.
+`20260922100000` closes the issue and the Task on retirement, logging a
+`retired` event so the history still reads; the detection pass now skips
+retired slots. The slot itself is kept: something historical points at it.
+
+**A week Leif is open counts once, however many calendar events describe
+it** — now deduped in the canonical SQL schedule, not only in the app.
+
 #### The week-boundary invariant — settled 2026-09-22
 
 Leif's second review found three surfaces that could not all be right:

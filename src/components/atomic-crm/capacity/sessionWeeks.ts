@@ -162,6 +162,23 @@ export const crossWeekReschedules = (
   classifications.filter((classification) => classification === "rescheduled")
     .length;
 
+// The most a container could still grow by, if every week still owing a
+// decision turned out to be a cross-week reschedule.
+//
+// Not a forecast and never used as one — it exists only to ask whether an
+// unresolved week could change an answer the CRM is about to state as
+// fact. An opening that survives this is one nothing outstanding can take
+// away; an opening that does not is a projection, and should say so.
+//
+// The upper bound is the right question because the downside is
+// asymmetric: telling Leif a week is free and then taking it back is worse
+// than telling him it might move.
+export const maxPlausibleWeeks = (classifications: (string | null)[]): number =>
+  classifications.filter(
+    (classification) =>
+      classification === "rescheduled" || classification == null,
+  ).length;
+
 // Exported because a week's `end` is exclusive everywhere it is used:
 // anything showing a week to a person needs its last real day, and two
 // copies of this would be two chances to be off by one.

@@ -56,6 +56,59 @@ export type Availability =
       weeksRequired: number;
     };
 
+// Whether the answer above is one outstanding history can still move.
+//
+// Human acceptance proved this is not hypothetical. Mackenzie Stabler has
+// one week with no session and no classification; if it turns out to be a
+// cross-week reschedule, her container gains an eligible week, her finish
+// moves from 15 November to 29 November — and 29 November is the very week
+// the board currently advertises as the next opening. It would go from one
+// opening to none.
+//
+// So the question is asked directly, of the same engine: evaluate the
+// practice a second time with every unresolved week counted as a
+// reschedule, and see whether the answer survives. If it does, nothing
+// outstanding can take it away and the board can say so plainly. If it
+// does not, the answer is a projection and says that instead.
+//
+// This is deliberately the UPPER bound rather than a guess at what the
+// weeks will turn out to be, because the downside is asymmetric: offering
+// a week and withdrawing it is worse than saying it might move.
+//
+// It also scopes itself. An unresolved week on somebody whose container
+// ended long ago extends a date already in the past and changes no answer,
+// so it raises no warning — which is what stops ancient history poisoning
+// the page forever. Nothing here is a heuristic: the comparison is between
+// two runs of the same canonical evaluation.
+export type AvailabilityConfidence = {
+  // True when the answer is the same either way.
+  confirmed: boolean;
+  // The people whose unresolved weeks could move it, named so the warning
+  // is actionable rather than ambient.
+  couldChangeIt: SlotHolder[];
+  unresolvedWeeks: number;
+};
+
+export const describeConfidence = (
+  actual: Availability,
+  ifAllRescheduled: Availability,
+  holdersWithUnresolvedWeeks: SlotHolder[],
+  unresolvedWeeks: number,
+): AvailabilityConfidence => {
+  const sameAnswer =
+    actual.kind === ifAllRescheduled.kind &&
+    (actual.kind !== "safe_opening" ||
+      (ifAllRescheduled.kind === "safe_opening" &&
+        actual.week.week.start === ifAllRescheduled.week.week.start &&
+        actual.openings === ifAllRescheduled.openings));
+
+  return {
+    confirmed: sameAnswer,
+    couldChangeIt: sameAnswer ? [] : holdersWithUnresolvedWeeks,
+    unresolvedWeeks: sameAnswer ? 0 : unresolvedWeeks,
+  };
+};
+
 export type CapacityNow = {
   active: number;
   max: number | null;

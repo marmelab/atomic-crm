@@ -12,6 +12,7 @@ import { MonthBreakdownDialog } from "../capacity/MonthBreakdownDialog";
 import {
   capacityNow,
   describeAvailability,
+  describeConfidence,
   monthsFromWeeks,
   type MonthAvailability,
 } from "../capacity/openingsNarrative";
@@ -46,11 +47,16 @@ const names = (holders: SlotHolder[]) =>
 
 export const UpcomingOpeningsSection = ({
   capacity,
+  ifAllRescheduled,
   futureOpenings,
   lastSyncedAt,
   now,
 }: {
   capacity: IndividualCapacity;
+  // The same practice with every unresolved week counted as a reschedule.
+  // Optional so a caller that has not computed it simply gets no
+  // confidence signal rather than a wrong one.
+  ifAllRescheduled?: IndividualCapacity | null;
   futureOpenings: FutureOpenings;
   lastSyncedAt?: string | null;
   now?: Date;
@@ -67,6 +73,22 @@ export const UpcomingOpeningsSection = ({
   const availability = describeAvailability(weeks, horizon);
   const months = monthsFromWeeks(weeks, horizon);
   const current = capacityNow(capacity);
+
+  // Can outstanding session history still move this answer?
+  const unsettled = [...capacity.occupied, ...capacity.committed].filter(
+    (holder) => holder.unresolvedCadenceWeeks > 0,
+  );
+  const confidence = ifAllRescheduled
+    ? describeConfidence(
+        availability,
+        describeAvailability(weekCapacities(ifAllRescheduled, now), horizon),
+        unsettled,
+        unsettled.reduce(
+          (total, holder) => total + holder.unresolvedCadenceWeeks,
+          0,
+        ),
+      )
+    : null;
 
   return (
     <Section
@@ -121,9 +143,27 @@ export const UpcomingOpeningsSection = ({
         </div>
         <div className="sm:text-right sm:max-w-[22rem]">
           <p className="text-xs uppercase tracking-wide text-muted-foreground">
-            {translate("crm.programs.capacity_next", { _: "Next opening" })}
+            {confidence && !confidence.confirmed
+              ? translate("crm.programs.capacity_next_projected", {
+                  _: "Next projected opening",
+                })
+              : translate("crm.programs.capacity_next", { _: "Next opening" })}
           </p>
           <AvailabilityAnswer availability={availability} variant="headline" />
+          {confidence && !confidence.confirmed && (
+            // Unresolved session history can still move this. Named, so it
+            // is something Leif can go and settle rather than a permanent
+            // shrug — and shown ONLY when it would actually change the
+            // answer, which is what keeps ancient history off this page.
+            <p className="mt-1 text-sm text-muted-foreground">
+              {translate("crm.programs.capacity_unsettled", {
+                _: "%{count} unresolved client week could change this |||| %{count} unresolved client weeks could change this",
+                smart_count: confidence.unresolvedWeeks,
+                count: confidence.unresolvedWeeks,
+              })}
+              {` — ${names(confidence.couldChangeIt)}`}
+            </p>
+          )}
         </div>
       </div>
 

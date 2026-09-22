@@ -30,6 +30,7 @@ const holder = (
   startDateSource: startDate ? "owner" : null,
   end: computeExpectedEnd(CALENDAR, startDate, extensions),
   extensions,
+  unresolvedCadenceWeeks: 0,
 });
 
 describe("building the event list", () => {

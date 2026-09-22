@@ -3,6 +3,7 @@ import { useTranslate } from "ra-core";
 import { ArtOracleCard } from "./artOracle/ArtOracleCard";
 import { BusinessAtAGlance } from "./BusinessAtAGlance";
 import { ComingUp } from "./ComingUp";
+import { SystemSync } from "./SystemSync";
 import { CompletedTodayTasks } from "./CompletedTodayTasks";
 import { DashboardActivityLog } from "./DashboardActivityLog";
 import { DashboardApplicationsForReview } from "./DashboardApplicationsForReview";
@@ -52,6 +53,8 @@ export const Dashboard = () => {
           })}
         </p>
       </div>
+
+      <SystemSync />
 
       <DashboardTasks />
 
