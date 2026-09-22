@@ -200,8 +200,10 @@ const getMenuMethod = ({ page }: { page: Page; isMobile: boolean }) => ({
     await page.getByRole("link", { name: "Dashboard" }).click();
     await page.waitForLoadState("networkidle");
   },
-  goToContacts: async () => {
-    await page.getByRole("link", { name: "Contacts" }).click();
+  goToContacts: async ({ isMobile }: { isMobile: boolean }) => {
+    await page
+      .getByRole(isMobile ? "button" : "link", { name: "Contacts" })
+      .click();
     await page.waitForLoadState("networkidle");
   },
 });
