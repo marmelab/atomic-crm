@@ -1430,6 +1430,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/dashboard/SystemSync.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/dashboard/PeopleDeciding.tsx",
           "type": "registry:component"
         },
