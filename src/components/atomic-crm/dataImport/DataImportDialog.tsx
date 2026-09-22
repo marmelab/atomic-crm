@@ -10,7 +10,7 @@ import {
 } from "ra-core";
 import { Link } from "react-router";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -205,19 +205,16 @@ export function DataImportDialog({
                 <Alert>
                   <AlertDescription className="flex flex-col gap-4">
                     {translate("crm.data_import.sample_hint")}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      render={
-                        <Link
-                          to={sampleUrl}
-                          download={sampleFileName(resource.name)}
-                        />
-                      }
-                      nativeButton={false}
+                    <Link
+                      to={sampleUrl}
+                      download={sampleFileName(resource.name)}
+                      className={buttonVariants({
+                        variant: "outline",
+                        size: "sm",
+                      })}
                     >
                       {translate("crm.data_import.sample_download")}
-                    </Button>
+                    </Link>
                   </AlertDescription>
                 </Alert>
 

@@ -35,6 +35,11 @@ export default defineConfig({
             headless: true,
             provider: playwright(),
             enabled: true,
+            // Vitest defaults to 414px. Now that the stylesheet above is loaded,
+            // Tailwind's responsive classes actually apply, so that default would
+            // render the mobile branch of every desktop story. Mobile tests opt in
+            // explicitly with `page.viewport(375, 667)`.
+            viewport: { width: 1280, height: 800 },
             instances: [
               {
                 browser: "chromium",

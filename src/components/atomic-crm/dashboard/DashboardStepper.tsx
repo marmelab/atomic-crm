@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { CheckCircle, Circle, Plus } from "lucide-react";
@@ -100,20 +100,15 @@ export const DashboardStepper = ({
                         {addContactLabel}
                       </Button>
                     ) : (
-                      <Button
-                        className="w-fit"
-                        render={
-                          <Link
-                            to={createPath({
-                              resource: "contacts",
-                              type: "create",
-                            })}
-                          />
-                        }
-                        nativeButton={false}
+                      <Link
+                        to={createPath({
+                          resource: "contacts",
+                          type: "create",
+                        })}
+                        className={buttonVariants({ className: "w-fit" })}
                       >
                         {addContactLabel}
-                      </Button>
+                      </Link>
                     )}
                   </div>
                 </div>

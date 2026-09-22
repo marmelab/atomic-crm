@@ -203,7 +203,11 @@ describe("ContactList", () => {
 
   describe("account manager filter on mobile", () => {
     beforeAll(() => {
-      page.viewport(375, 667);
+      // Under the `md` breakpoint, so ResponsiveFilters renders its sheet, but
+      // still wide enough for the desktop list itself: production serves
+      // <ContactListMobile> at phone widths, and this desktop list collapses its
+      // name column to 0px there.
+      page.viewport(700, 800);
     });
 
     it("picks an account manager from inside the filter sheet", async () => {
