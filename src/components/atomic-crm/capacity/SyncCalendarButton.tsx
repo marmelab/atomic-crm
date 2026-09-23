@@ -19,12 +19,22 @@ import { syncYearTracking } from "./syncYearTracking";
 export const SyncCalendarButton = ({
   lastSyncedAt,
   stillShortFor,
+  showLastSynced = true,
 }: {
   lastSyncedAt?: string | null;
   // How many people still have no computable end because the calendar
   // stops too early. Reported after a sync so Leif learns immediately
   // whether it was enough.
   stillShortFor?: number;
+  // Whether "Last synced <date>" gets a visible line of its own.
+  //
+  // On the 1:1 Program page it does: that page is where Leif goes to
+  // reason about the calendar, so how fresh it is belongs on screen. In
+  // the Dashboard header it does not — a caption under one of two side-by
+  // -side buttons made the pair look lopsided, and it is not something he
+  // needs occupying permanent space. The fact itself is not lost: it moves
+  // to the button's own tooltip, which costs no layout at all.
+  showLastSynced?: boolean;
 }) => {
   const translate = useTranslate();
   const notify = useNotify();
@@ -73,6 +83,16 @@ export const SyncCalendarButton = ({
     refresh();
   };
 
+  const lastSyncedLabel = lastSyncedAt
+    ? translate("crm.programs.sync_calendar_last", {
+        _: "Last synced %{when}",
+        when: new Date(lastSyncedAt).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+        }),
+      })
+    : undefined;
+
   return (
     <div className="flex flex-col items-end gap-0.5">
       <Button
@@ -81,6 +101,10 @@ export const SyncCalendarButton = ({
         size="sm"
         onClick={run}
         disabled={syncing}
+        // Always carries the freshness, whether or not it is also shown.
+        // Undefined when the calendar has never been synced, so there is
+        // no tooltip rather than an empty one.
+        title={lastSyncedLabel}
       >
         <RefreshCw className={`size-4 ${syncing ? "animate-spin" : ""}`} />
         {syncing
@@ -89,16 +113,8 @@ export const SyncCalendarButton = ({
             })
           : translate("crm.programs.sync_calendar", { _: "Sync Calendar" })}
       </Button>
-      {lastSyncedAt && (
-        <span className="text-xs text-muted-foreground">
-          {translate("crm.programs.sync_calendar_last", {
-            _: "Last synced %{when}",
-            when: new Date(lastSyncedAt).toLocaleDateString("en-US", {
-              month: "short",
-              day: "numeric",
-            }),
-          })}
-        </span>
+      {showLastSynced && lastSyncedAt && (
+        <span className="text-xs text-muted-foreground">{lastSyncedLabel}</span>
       )}
     </div>
   );

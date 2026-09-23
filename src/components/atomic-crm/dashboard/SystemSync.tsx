@@ -31,9 +31,12 @@ export const SystemSync = () => {
   return (
     <div className="flex items-center gap-2 shrink-0">
       <SyncAllStripeButton />
-      {/* Keeps its own subtle "Last synced" line — it is the one piece of
-          metadata that tells Leif whether pressing it again is worth it. */}
-      <SyncCalendarButton lastSyncedAt={lastSyncedAt} />
+      {/* No visible "Last synced" caption here. One of two side-by-side
+          buttons carrying a line of text under it made the pair look
+          lopsided and pushed the row out of line with the heading. The
+          date still travels, on the button's own tooltip. The 1:1 Program
+          page keeps the visible line, where it earns its space. */}
+      <SyncCalendarButton lastSyncedAt={lastSyncedAt} showLastSynced={false} />
     </div>
   );
 };

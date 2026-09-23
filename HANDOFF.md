@@ -665,6 +665,33 @@ Reliability work is supposed to find things, and it did:
 **Not sealed.** Deployed to production for human acceptance; the feature
 stays open until Leif has used it and accepted it (§2).
 
+#### PASSED human acceptance: owner Stripe sync from the Dashboard (2026-09-23)
+
+Leif pressed Sync Stripe on production and it ran. So the owner-gated
+whole-account sweep is human-accepted end to end: his real signed-in
+session -> a JWT verified against Supabase's JWKS -> his own `sales` row
+read server-side with the service role -> `administrator` true, not
+disabled -> the same canonical `reconcileStripe` pg_cron runs.
+
+The bug that preceded it is the lesson worth keeping. He was told *"only
+an account administrator can sync"*, and he **was** the administrator: one
+`sales` row, `administrator = true`, `disabled = false`, correctly linked
+to the only `auth.users` row. The server had never reached the
+administrator check. It answered **401**, because authentication was built
+on a publishable-key client reading `SB_PUBLISHABLE_KEY` — set in the local
+`supabase/functions/.env` and as a GitHub secret for the *frontend* build,
+but never pushed to the deployed Edge Function environment. Two separate
+faults compounded: a dependency on a variable that does not exist in
+production, and a UI that collapsed 401 and 403 into one message, so a
+configuration fault was reported as a missing permission and sent the
+reader to audit a role that was already correct. **A message naming the
+wrong cause is worse than a vague one.** The two are now distinct, with
+tests holding them apart.
+
+The remaining work after this was presentation only: the header's two
+controls sat unevenly because a "Last synced" caption hung under one of
+them.
+
 #### PASSED human acceptance: stale cadence alert reconciliation (2026-09-23)
 
 Leif pressed Sync Calendar once on production. Measured on MAIN before and

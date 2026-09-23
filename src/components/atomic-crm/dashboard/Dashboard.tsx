@@ -49,8 +49,16 @@ export const Dashboard = () => {
           space to say what two labelled buttons already say. The actions
           are the only part Leif needed, so the actions are all that is
           left. `flex-wrap` plus `min-w-0` lets them drop under the title
-          on a narrow screen instead of pushing the page sideways. */}
-      <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
+          on a narrow screen instead of pushing the page sideways.
+
+          `items-start` is what puts the buttons on the heading's own line
+          rather than centring them against the whole title-plus-subtitle
+          block: both are 32px tall, so they share the h1's exact top and
+          centre. The `-mb-2` trims the column's 32px gap to 24px here
+          only — enough air to keep the design language, without the empty
+          band that appeared once the sync card was removed. Every other
+          section keeps its full gap-8. */}
+      <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2 -mb-2">
         <div className="min-w-0">
           <h1 className="text-2xl font-semibold">
             {translate("ra.page.dashboard")}
