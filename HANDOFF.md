@@ -620,11 +620,31 @@ Reliability work is supposed to find things, and it did:
   newest. A dependency-management decision, not a blocker.
 - **GitHub Pages deploy fails** in the demo/supabase jobs, and has on every run
   since well before this pass. Unrelated to CRM production.
-- **If `ClientShow.tasks` times out in CI again, treat it as fresh evidence.**
-  The readiness fix was reasoned from the runner's own failure output, not from
-  a local reproduction — this machine runs the same 1932 tests in 125s where
-  the runner takes 272s. Do not assume the current fix covers every timing
-  case; go and look.
+- **`ClientShow.tasks` CI timeout — root cause found and closed 2026-09-22.**
+  It was never product timing and never really a flake. The fake data provider
+  simulates **300ms of latency on every call** (`latency = 300` in
+  `createDataProvider`), and the file waited for the created Task with
+  `expect.poll`, whose default budget is **1000ms** — five times shorter than
+  `expect.element`'s 5s. So every poll attempt spent 300ms of a 1s budget
+  inside the harness's own artificial delay. Measured: 301ms from Save to the
+  row on an idle machine and 300ms under a deliberately saturated one — a
+  fixed timer, not work, which is why CPU load never reproduced it locally and
+  why a runner at ~2× this machine's wall clock crossed the line. With
+  `latency: 0` (what 74 other tests already pass) the same measurement is 0ms.
+  Applied to `ClientShow.tasks` and to `ClientShow.sessions`, which polls the
+  provider the same way and had the trap armed without having fired yet.
+  **The general rule: a test that reads the fake provider directly passes
+  `latency: 0`.** `expect.poll`'s 1s default cannot absorb even two simulated
+  round trips.
+- **The harness worktree hook is not idempotent on macOS** (6 failures in the
+  `claude` project, `setup-worktree` + `cleanup-worktree`, reproducible in
+  isolation and unrelated to CRM code). `git worktree list` reports
+  `/private/var/...` while the hook computes `/var/...`, so
+  `getWorktreePaths().includes(worktreePath)` misses, the hook deletes the live
+  worktree directory as an "orphan", and `git branch -D` then cannot remove a
+  branch git still considers checked out — so the retry dies on *a branch named
+  … already exists*. Linux CI is unaffected (no `/var` symlink). Harness
+  infrastructure, not product.
 
 ### Capacity + Waitlist — DEPLOYED 2026-09-22, OPEN for Leif's try-run
 

@@ -143,6 +143,11 @@ const buildTestCrm = ({
       client_session_cadence_issues: issues,
       tasks: [],
     } as any),
+    // Same reason as ClientShow.tasks.test.tsx: this file also waits for
+    // provider rows with expect.poll, whose 1000ms budget cannot absorb
+    // the fake provider's default 300ms-per-call delay. It had not failed
+    // yet; the trap was armed in exactly the same way.
+    latency: 0,
     silent: true,
   });
   return {

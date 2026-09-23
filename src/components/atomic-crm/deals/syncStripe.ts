@@ -107,6 +107,65 @@ export const syncStripeForContact = async (
   };
 };
 
+// "Sync Stripe" for everybody, from the Dashboard.
+//
+// Same shape as the per-person sync above and the same safety: the browser
+// holds no Stripe key and no cron secret, and sends nothing but the
+// signed-in user's own JWT. There is deliberately no parameter — the
+// server decides both whether this caller may sweep the account (an
+// administrator on their own `sales` row, read server-side) and what the
+// sweep touches. What comes back is counts, never Stripe identifiers.
+export type SyncAllStripeResult = {
+  status: "synced" | "not-authorized" | "error";
+  message: string;
+};
+
+export const syncStripeForEveryone = async (): Promise<SyncAllStripeResult> => {
+  const { data, error } = await getSupabaseClient().functions.invoke<{
+    status?: string;
+    customersChecked?: number;
+    updatesApplied?: number;
+    needsReview?: number;
+    ambiguous?: number;
+    errors?: number;
+  }>("stripe_webhook?action=reconcile-all", { method: "POST", body: {} });
+
+  if (error || data?.status !== "synced") {
+    // Refused is a different answer from unreachable, and saying so is
+    // what stops somebody retrying a button that will never work for them.
+    const status = (error as { context?: { status?: number } })?.context
+      ?.status;
+    if (status === 401 || status === 403) {
+      return {
+        status: "not-authorized",
+        message: "Only an account administrator can sync all of Stripe.",
+      };
+    }
+    return {
+      status: "error",
+      message: "Could not reach Stripe just now — nothing was changed.",
+    };
+  }
+
+  const updates = data.updatesApplied ?? 0;
+  const checked = data.customersChecked ?? 0;
+  const attention = (data.needsReview ?? 0) + (data.ambiguous ?? 0);
+
+  const parts = [
+    updates > 0
+      ? `${updates} update${updates === 1 ? "" : "s"} applied`
+      : "nothing new to apply",
+    `${checked} Stripe customer${checked === 1 ? "" : "s"} checked`,
+  ];
+  if (attention > 0) {
+    parts.push(
+      `${attention} need${attention === 1 ? "s" : ""} your review on their client page`,
+    );
+  }
+
+  return { status: "synced", message: `Stripe synced — ${parts.join(", ")}.` };
+};
+
 // Finding a Stripe Customer the CRM has never seen, for somebody who has
 // none verified at all.
 //

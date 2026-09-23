@@ -77,6 +77,26 @@ const buildTestCrm = () => {
       enrollments: [activeEnrollment],
       tasks: [],
     } as any),
+    // The simulated network delay, off — the same `latency: 0` the rest
+    // of the suite uses whenever a test reads the provider directly.
+    //
+    // This is why the file kept timing out in CI and never here. The fake
+    // provider defaults to 300ms of pretend latency on EVERY call, and
+    // the assertions below wait for the created Task with expect.poll,
+    // whose default budget is 1000ms — five times shorter than
+    // expect.element's. So each poll attempt spent 300ms of a 1s budget
+    // inside the harness's own artificial delay: measured, the row became
+    // visible 301ms after Save on an idle machine and 300ms under a
+    // deliberately saturated one, because it is a fixed timer rather than
+    // work. Two round trips do not fit in a second, and the runner needs
+    // roughly twice this machine's wall clock. With the delay off the
+    // same measurement reads 0ms.
+    //
+    // Note what this is NOT: not a longer timeout, and not the product
+    // being slow. Nothing about ClientShow or Task creation changed — the
+    // test was asking a deliberately slowed provider to answer inside a
+    // budget that never allowed for it.
+    latency: 0,
     silent: true,
   });
   return {
@@ -180,6 +200,11 @@ describe("ClientShow — manual Task creation (Manual Task UX repair)", () => {
     const { element, dataProvider } = buildTestCrm();
     const screen = await render(element);
 
+    // Same readiness wait as B above: .click() only waits for the element
+    // to EXIST, and the button appears as soon as the Contact resolves.
+    await expect
+      .element(screen.getByRole("button", { name: "Create task" }))
+      .toBeVisible();
     await screen.getByRole("button", { name: "Create task" }).click();
     await screen
       .getByRole("textbox")
@@ -233,6 +258,9 @@ describe("ClientShow — manual Task creation (Manual Task UX repair)", () => {
     const { element, dataProvider } = buildTestCrm();
     const screen = await render(element);
 
+    await expect
+      .element(screen.getByRole("button", { name: "Create task" }))
+      .toBeVisible();
     await screen.getByRole("button", { name: "Create task" }).click();
     await screen
       .getByRole("textbox")

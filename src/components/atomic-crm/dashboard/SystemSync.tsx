@@ -1,6 +1,7 @@
 import { useTranslate } from "ra-core";
 
 import { SyncCalendarButton } from "../capacity/SyncCalendarButton";
+import { SyncAllStripeButton } from "../deals/SyncAllStripeButton";
 import { useSessionWeeks } from "../capacity/useSessionWeeks";
 import { useLivingExampleCapacityData } from "./useLivingExampleCapacityData";
 
@@ -11,16 +12,15 @@ import { useLivingExampleCapacityData } from "./useLivingExampleCapacityData";
 // component the 1:1 Program page renders, so the two cannot drift: one
 // canonical action, one result message, one refresh.
 //
-// Sync Stripe is deliberately NOT here, and that is a finding rather than
-// an omission. The per-contact sweep exists on PaymentPanel and is safe —
-// a signed-in user's own JWT, reaching only Stripe customers already
-// verified as that Contact's. The WHOLE-account sweep is restricted to
-// pg_cron with the cron secret, on purpose: "nobody signed in from a
-// browser gets to walk every Stripe customer." Putting it on the Dashboard
-// means either shipping that secret to the browser or widening the Edge
-// Function so any signed-in session can enumerate the Stripe account.
-// Both are security decisions, and they are Leif's to make, not a
-// side-effect of adding a button.
+// Sync Stripe reaches the same sweep pg_cron runs hourly, through its own
+// door. The cron endpoint was not widened to get here: it still takes the
+// cron secret and nothing else, because "nobody signed in from a browser
+// gets to walk every Stripe customer" is a rule worth keeping. Instead the
+// browser asks, and the Edge Function decides by reading the caller's own
+// `sales` row with the service role and requiring `administrator` — the
+// same boundary that already guards user management. No secret reaches the
+// browser, the request carries no parameters to steer, and the answer is
+// counts rather than Stripe records.
 export const SystemSync = () => {
   const translate = useTranslate();
   const { offer } = useLivingExampleCapacityData();
@@ -35,12 +35,15 @@ export const SystemSync = () => {
           </h2>
           <p className="text-xs text-muted-foreground">
             {translate("crm.dashboard.system_sync_hint", {
-              _: "Pull the latest 1:1 weeks from Year Tracking and rebuild every client's schedule.",
+              _: "Pull the latest 1:1 weeks from Year Tracking and rebuild every client's schedule, or re-read payments from Stripe.",
             })}
           </p>
         </div>
-        {/* The same button, the same action, the same refresh. */}
-        <SyncCalendarButton lastSyncedAt={lastSyncedAt} />
+        {/* The same buttons, the same actions, the same refresh. */}
+        <div className="flex items-start gap-2">
+          <SyncAllStripeButton />
+          <SyncCalendarButton lastSyncedAt={lastSyncedAt} />
+        </div>
       </div>
       {weeks.length > 0 && (
         <p className="text-xs text-muted-foreground">

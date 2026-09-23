@@ -1,6 +1,7 @@
 // Setup type definitions for built-in Supabase Runtime APIs
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import Stripe from "npm:stripe@17.4.0";
+import { createClient } from "jsr:@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
 import { createErrorResponse } from "../_shared/utils.ts";
 import { supabaseAdmin } from "../_shared/supabaseAdmin.ts";
@@ -11,6 +12,7 @@ import {
 import { investigateStripe } from "./stripeInvestigate.ts";
 import { reconcileStripe } from "./stripeReconcile.ts";
 import { getAuthToken, verifySupabaseJWT } from "../_shared/authentication.ts";
+import { handleOwnerStripeSync, type SalesRow } from "./ownerStripeSync.ts";
 
 // Stripe test-mode integration slice: the real Stripe webhook endpoint.
 // Signature verified via Stripe's own official library (constructEventAsync
@@ -346,6 +348,51 @@ Deno.serve(async (req: Request) => {
     return jsonResponse(
       await linkStripeCustomer(stripe, { contactId, stripeCustomerId }),
     );
+  }
+
+  // "Sync Stripe" for the whole account, asked for from the Dashboard.
+  //
+  // A separate door from the cron sweep below, with its own lock. This one
+  // does not accept the cron secret and the cron branch does not accept a
+  // JWT, so adding a button did not make the cron endpoint reachable from
+  // a browser. The browser asks; the server decides, by reading the
+  // caller's own `sales` row with the service role. See ownerStripeSync.ts.
+  if (url.searchParams.get("action") === "reconcile-all") {
+    if (!Deno.env.get("STRIPE_SECRET_KEY")) {
+      return createErrorResponse(503, "Stripe API key is not configured.");
+    }
+    return await handleOwnerStripeSync(req, {
+      // Supabase Auth verifies the token; this never trusts a header.
+      authenticate: async (request) => {
+        const localClient = createClient(
+          Deno.env.get("SUPABASE_URL") ?? "",
+          Deno.env.get("SB_PUBLISHABLE_KEY") ?? "",
+          {
+            global: {
+              headers: {
+                Authorization: request.headers.get("Authorization") ?? "",
+              },
+            },
+          },
+        );
+        const { data, error } = await localClient.auth.getUser();
+        if (error || !data?.user) return null;
+        return { id: data.user.id };
+      },
+      // Service role, so `administrator` is what the database says rather
+      // than what the caller claims.
+      loadSale: async (userId) =>
+        (
+          await supabaseAdmin
+            .from("sales")
+            .select("administrator, disabled")
+            .eq("user_id", userId)
+            .single()
+        ).data as SalesRow | null,
+      // The same canonical sweep pg_cron runs — one implementation, one
+      // set of payment semantics.
+      reconcile: () => reconcileStripe(stripe),
+    });
   }
 
   if (url.searchParams.get("action") === "reconcile") {
