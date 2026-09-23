@@ -159,6 +159,52 @@ describe("what the request can ask for", () => {
   });
 });
 
+describe("telling the two refusals apart", () => {
+  // The owner pressed Sync Stripe in production and was told he was not an
+  // administrator. He is, and always was — `sales` had administrator=true,
+  // disabled=false, correctly linked to the only auth user. The server had
+  // never reached the administrator check: authentication failed first,
+  // because it was built on SB_PUBLISHABLE_KEY, which exists in the local
+  // functions .env and as a frontend build secret but is NOT set in the
+  // deployed Edge Function environment.
+  //
+  // Whatever the cause, the two failures must stay distinguishable, so a
+  // sign-in problem can never again be reported as a missing permission.
+  it("answers 401 when identity cannot be established, not 403", async () => {
+    const { reconcile, all } = deps({ authenticate: async () => null });
+
+    const response = await handleOwnerStripeSync(request(), all);
+
+    expect(response.status).toBe(401);
+    expect(await response.text()).not.toContain("Not Authorized");
+    expect(reconcile).not.toHaveBeenCalled();
+  });
+
+  it("answers 403 only when a known user lacks the permission", async () => {
+    const { reconcile, all } = deps({
+      loadSale: async () => ({ administrator: false, disabled: false }),
+    });
+
+    const response = await handleOwnerStripeSync(request(), all);
+
+    expect(response.status).toBe(403);
+    expect(reconcile).not.toHaveBeenCalled();
+  });
+
+  it("admits the owner: an enabled administrator is allowed through", async () => {
+    // The production shape of Leif's own account.
+    const { reconcile, all } = deps({
+      authenticate: async () => ({ id: "leif-auth-user-id" }),
+      loadSale: async () => ({ administrator: true, disabled: false }),
+    });
+
+    const response = await handleOwnerStripeSync(request(), all);
+
+    expect(response.status).toBe(200);
+    expect(reconcile).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe("what comes back", () => {
   it("returns counts and no Stripe or CRM identifiers", async () => {
     const { all } = deps();

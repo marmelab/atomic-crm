@@ -636,6 +636,20 @@ Reliability work is supposed to find things, and it did:
   **The general rule: a test that reads the fake provider directly passes
   `latency: 0`.** `expect.poll`'s 1s default cannot absorb even two simulated
   round trips.
+- **`SB_PUBLISHABLE_KEY` is not set in the deployed Edge Function
+  environment.** It lives in `supabase/functions/.env` (local only) and as a
+  GitHub secret used for the *frontend* build (`VITE_SB_PUBLISHABLE_KEY`);
+  nothing ever runs `supabase secrets set` for it, and `supabase secrets
+  list` confirms its absence. So `Deno.env.get("SB_PUBLISHABLE_KEY")` is
+  undefined in production, and any code building a publishable-key client
+  from it authenticates *nobody*. This is what refused the owner's first
+  Sync Stripe. Fixed for `reconcile-all` by using `verifySupabaseJWT`
+  (JWKS, needs only `SUPABASE_URL`) — the mechanism the rest of
+  `stripe_webhook` already uses. **`_shared/authentication.ts`'s
+  `UserMiddleware` still reads that variable**, so the `users` Edge
+  Function (invites, account disabling) is very likely refusing every
+  caller in production for the same reason. Not yet confirmed against a
+  real signed-in session, and not fixed here.
 - **The harness worktree hook is not idempotent on macOS** (6 failures in the
   `claude` project, `setup-worktree` + `cleanup-worktree`, reproducible in
   isolation and unrelated to CRM code). `git worktree list` reports
@@ -650,6 +664,33 @@ Reliability work is supposed to find things, and it did:
 
 **Not sealed.** Deployed to production for human acceptance; the feature
 stays open until Leif has used it and accepted it (§2).
+
+#### PASSED human acceptance: stale cadence alert reconciliation (2026-09-23)
+
+Leif pressed Sync Calendar once on production. Measured on MAIN before and
+after, read-only:
+
+| | before | after |
+|---|---|---|
+| open alerts on retired/noncanonical weeks | **6** | **0** |
+| open alerts on live canonical weeks | 4 | **4** |
+| `retired` audit events | 0 | **6** |
+| open `resolve_client_session_cadence` Tasks | 10 | **4** |
+| issues auto-classified without a human | 0 | **0** |
+
+The six were the Aug 30 – Sep 3 week Leif had deleted (Jess Beauchamp,
+Adriano Castro, Gigi George, Jules Litman-Cleper, Mackenzie Stabler) plus
+Jules's duplicate May 17 – 21 window. The four that remain are Jules's
+real unresolved weeks on live slots (ordinals 1, 2, 6, 7) — untouched, and
+his to classify.
+
+So the whole chain is proven end to end in production, by a human:
+calendar correction -> canonical rebuild -> derived slot retired -> stale
+issue ceases to be actionable -> linked Dashboard Task completed -> audit
+history preserved (the rows are kept, never deleted) -> genuinely
+unresolved live issues left alone. One button, no manual classification,
+and the Dashboard count refreshed from the same rebuild rather than from
+any Dashboard-only calculation. **Preserve this behavior.**
 
 Six migrations on MAIN: `20260921130000`, `140000` (MAIN-only owner Start
 Weeks), `150000`, `170000`, `180000`, `190000`. All eighteen live 1:1

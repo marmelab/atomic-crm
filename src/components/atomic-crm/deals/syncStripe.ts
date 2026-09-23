@@ -116,7 +116,7 @@ export const syncStripeForContact = async (
 // administrator on their own `sales` row, read server-side) and what the
 // sweep touches. What comes back is counts, never Stripe identifiers.
 export type SyncAllStripeResult = {
-  status: "synced" | "not-authorized" | "error";
+  status: "synced" | "not-authorized" | "not-signed-in" | "error";
   message: string;
 };
 
@@ -131,11 +131,24 @@ export const syncStripeForEveryone = async (): Promise<SyncAllStripeResult> => {
   }>("stripe_webhook?action=reconcile-all", { method: "POST", body: {} });
 
   if (error || data?.status !== "synced") {
-    // Refused is a different answer from unreachable, and saying so is
-    // what stops somebody retrying a button that will never work for them.
+    // Three different refusals, said as three different things.
+    //
+    // 401 and 403 used to share the "you are not an administrator"
+    // message, and that cost real debugging time: the owner — who IS the
+    // administrator — was told his account lacked a permission it had,
+    // when the server had in fact never got as far as the permission
+    // check. A message that names the wrong cause is worse than a vague
+    // one, because it sends somebody to fix the wrong thing.
     const status = (error as { context?: { status?: number } })?.context
       ?.status;
-    if (status === 401 || status === 403) {
+    if (status === 401) {
+      return {
+        status: "not-signed-in",
+        message:
+          "Your sign-in could not be verified — try signing out and back in.",
+      };
+    }
+    if (status === 403) {
       return {
         status: "not-authorized",
         message: "Only an account administrator can sync all of Stripe.",

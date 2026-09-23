@@ -43,18 +43,26 @@ export const Dashboard = () => {
 
   return (
     <div className="flex flex-col gap-8 mt-1">
-      <div>
-        <h1 className="text-2xl font-semibold">
-          {translate("ra.page.dashboard")}
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          {translate("crm.dashboard.orientation", {
-            _: "What needs your attention, and how full is your business?",
-          })}
-        </p>
+      {/* Title on the left, the two manual refreshes on the right.
+          They used to sit in a card of their own, under a heading and a
+          paragraph explaining them — which cost a screenful of vertical
+          space to say what two labelled buttons already say. The actions
+          are the only part Leif needed, so the actions are all that is
+          left. `flex-wrap` plus `min-w-0` lets them drop under the title
+          on a narrow screen instead of pushing the page sideways. */}
+      <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
+        <div className="min-w-0">
+          <h1 className="text-2xl font-semibold">
+            {translate("ra.page.dashboard")}
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            {translate("crm.dashboard.orientation", {
+              _: "What needs your attention, and how full is your business?",
+            })}
+          </p>
+        </div>
+        <SystemSync />
       </div>
-
-      <SystemSync />
 
       <DashboardTasks />
 

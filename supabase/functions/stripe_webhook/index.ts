@@ -1,7 +1,6 @@
 // Setup type definitions for built-in Supabase Runtime APIs
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import Stripe from "npm:stripe@17.4.0";
-import { createClient } from "jsr:@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
 import { createErrorResponse } from "../_shared/utils.ts";
 import { supabaseAdmin } from "../_shared/supabaseAdmin.ts";
@@ -362,22 +361,27 @@ Deno.serve(async (req: Request) => {
       return createErrorResponse(503, "Stripe API key is not configured.");
     }
     return await handleOwnerStripeSync(req, {
-      // Supabase Auth verifies the token; this never trusts a header.
+      // The caller's identity, from a cryptographically verified token.
+      //
+      // This verifies against Supabase's published JWKS — the same
+      // verifySupabaseJWT the two branches below already use, and the
+      // reason they work in production. It deliberately does NOT build a
+      // publishable-key client the way the user-management function does:
+      // that pattern reads SB_PUBLISHABLE_KEY, which is set in the local
+      // `supabase/functions/.env` and as a GitHub secret for the FRONTEND
+      // build, but is never pushed to the deployed Edge Function
+      // environment. Deno.env.get returns undefined there, the client is
+      // built with an empty key, auth.getUser() fails, and every caller —
+      // including the owner — is refused before the administrator check is
+      // ever reached. That is exactly what happened to the Dashboard's
+      // first Sync Stripe.
+      //
+      // The user id is the `sub` claim of the verified token, so it is as
+      // trustworthy as the signature. Authority still comes from the
+      // `sales` row read below with the service role, never from the token.
       authenticate: async (request) => {
-        const localClient = createClient(
-          Deno.env.get("SUPABASE_URL") ?? "",
-          Deno.env.get("SB_PUBLISHABLE_KEY") ?? "",
-          {
-            global: {
-              headers: {
-                Authorization: request.headers.get("Authorization") ?? "",
-              },
-            },
-          },
-        );
-        const { data, error } = await localClient.auth.getUser();
-        if (error || !data?.user) return null;
-        return { id: data.user.id };
+        const { payload } = await verifySupabaseJWT(getAuthToken(request));
+        return typeof payload.sub === "string" ? { id: payload.sub } : null;
       },
       // Service role, so `administrator` is what the database says rather
       // than what the caller claims.

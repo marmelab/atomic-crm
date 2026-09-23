@@ -33,7 +33,10 @@ export const SyncAllStripeButton = () => {
       notify(result.message, { type: "error" });
       return;
     }
-    if (result.status === "not-authorized") {
+    if (
+      result.status === "not-authorized" ||
+      result.status === "not-signed-in"
+    ) {
       notify(result.message, { type: "warning" });
       return;
     }
