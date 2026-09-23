@@ -658,6 +658,14 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/dataImport/DataImportProvider.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/dataImport/DataImportProgressToast.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/dataImport/DataImportDialog.tsx",
           "type": "registry:component"
         },

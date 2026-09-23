@@ -439,15 +439,17 @@ export const englishCrmMessages = {
       csv_file: "CSV File",
       error:
         "Failed to import this file, please make sure you provided a valid CSV file.",
+      in_progress: "Import in progress…",
       progress:
         "Imported %{importCount} / %{rowCount} records, with %{errorCount} errors.",
       remaining_time: "Estimated remaining time:",
       resource: "Resource",
-      running: "The import is running, please do not close this tab.",
       sample_download: "Download CSV sample",
       sample_hint: "Here is a sample CSV file you can use as a template",
       start: "Start import",
       stop: "Stop import",
+      stopped:
+        "Import stopped. Imported %{importCount} records, with %{errorCount} errors",
       title: "Import data",
     },
     header: {
