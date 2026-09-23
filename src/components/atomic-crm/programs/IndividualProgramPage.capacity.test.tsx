@@ -1,5 +1,6 @@
 import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
 import { render } from "vitest-browser-react";
+import { commands } from "vitest/browser";
 import { memoryStore } from "ra-core";
 import { MemoryRouter } from "react-router";
 
@@ -174,12 +175,48 @@ const buildTestCrm = () => {
 };
 
 describe("Living Example program page — capacity Leif can plan around", () => {
-  beforeEach(() => {
-    vi.useFakeTimers({ shouldAdvanceTime: true });
+  // Two things this file is answering about, pinned rather than inherited.
+  //
+  // THE CLOCK. Every number here is a statement about "now": twelve people
+  // have started and six have not, and which side of that line somebody
+  // falls on is `start_date` compared against today. It used to fake the
+  // whole timer API with `shouldAdvanceTime`, which keeps the clock
+  // MOVING — measured, "now" had already drifted to 12:00:01 by the time
+  // the page rendered. Faking only Date freezes it exactly where the test
+  // says it is, and leaves setTimeout, setInterval and requestAnimationFrame
+  // real, so nothing the browser or Playwright waits on is routed through a
+  // clock this test controls. It is the smallest strategy that still gives
+  // the test the one thing it actually needs, and it halves the file's
+  // runtime because the page no longer waits on a stepped clock.
+  //
+  // THE TIMEZONE. The fixture is built from bare date strings, and those
+  // parse as UTC midnight — so `new Date("2026-09-16")` is 16 September in
+  // UTC and 15 September in Denver, measured. Every start date in this file
+  // therefore lands on a different calendar day depending on where the test
+  // runs, and a capacity answer is a statement about weeks. The assertions
+  // below survive that shift today, but leaving it to the ambient machine
+  // is exactly the kind of thing that makes a suite pass in one place and
+  // fail in another. This repo already fixed that class of bug once, in
+  // postponeTaskDate.test.ts, and the CDP command it added is what pins it.
+  //
+  // Neither of these is a proven explanation of the CI failure this file
+  // has been showing — that cause is still open. They are two places this
+  // test was taking an answer from the machine instead of stating it.
+  //
+  // The ambient zone is captured and restored the same way
+  // postponeTaskDate.test.ts does it, so this file never leaves another
+  // one running in a timezone it did not choose.
+  let ambientTimezone: string;
+
+  beforeEach(async () => {
+    ambientTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    await commands.setTimezone("UTC");
+    vi.useFakeTimers({ toFake: ["Date"] });
     vi.setSystemTime(new Date("2026-09-21T12:00:00Z"));
   });
-  afterEach(() => {
+  afterEach(async () => {
     vi.useRealTimers();
+    await commands.setTimezone(ambientTimezone);
   });
 
   it("counts the twelve people Leif is working with, not the eighteen agreements", async () => {
