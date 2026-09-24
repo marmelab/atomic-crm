@@ -41,12 +41,13 @@ The `name` column is required. `sector` is matched against the company sectors c
 ### Deals
 
 ```csv
-name,company,category,stage,amount,expected_closing_date,description
-New website,Acme,Website design,Opportunity,12000,2026-09-30,Redesign of the public website
-Print campaign,Globex,Print project,Proposal Sent,4500,2026-10-15,
+name,company,category,stage,amount,expected_closing_date,description,lost_reason
+New website,Acme,Website design,Opportunity,12000,2026-09-30,Redesign of the public website,
+Print campaign,Globex,Print project,Proposal Sent,4500,2026-10-15,,
+Logo refresh,Initech,UI Design,Lost,3000,2026-08-31,,Chose a cheaper agency
 ```
 
-The `name` column is required. The `company` column holds a company name: an existing company is reused, an unknown one is created. `category` and `stage` are matched against the deal categories and stages configured in your CRM, by stored value or displayed label. Since a deal always belongs to a stage, an empty or unrecognized `stage` falls back to the first stage of your pipeline.
+The `name` column is required. The `company` column holds a company name: an existing company is reused, an unknown one is created. `category` and `stage` are matched against the deal categories and stages configured in your CRM, by stored value or displayed label. Since a deal always belongs to a stage, an empty or unrecognized `stage` falls back to the first stage of your pipeline. `lost_reason` records why a lost deal was lost. It is optional on import, so deals coming from another CRM without a reason are still imported, but the reason becomes mandatory as soon as the deal is edited in Atomic CRM.
 
 ## Export Contacts To CSV
 
