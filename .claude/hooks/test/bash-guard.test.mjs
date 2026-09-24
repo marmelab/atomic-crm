@@ -155,6 +155,15 @@ describe("bash-guard hook", () => {
         expect(isBlocked(r)).toBe(true);
       });
 
+      // The dry run starts no Docker stack and takes no slot lease.
+      test("dry run of e2e-smoke.sh → allowed", () => {
+        const r = runHook(
+          "orchestrator",
+          "E2E_SMOKE_DRY=1 bash .claude/scripts/e2e-smoke.sh",
+        );
+        expect(isBlocked(r)).toBe(false);
+      });
+
       test("dropping e2e from the config unblocks it again", () => {
         const noE2e = {
           validation: {

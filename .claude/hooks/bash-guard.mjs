@@ -99,6 +99,7 @@ const runsUnitTests = (c) =>
     c,
   );
 const runsE2eTests = (c) =>
+  !/E2E_SMOKE_DRY=1/.test(c) &&
   /(npx\s+playwright\s+test|make\s+test-e2e|e2e-smoke\.sh)/.test(c);
 const runsLint = (c) => /(make\s+lint\b|npm\s+run\s+lint\b)/.test(c);
 const runsBuild = (c) =>

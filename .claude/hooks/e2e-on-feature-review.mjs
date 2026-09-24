@@ -97,6 +97,9 @@ appendProgress(
 const r = bash(`E2E_SMOKE_SRC='${src}' bash '${script}' 2>&1`, {
   cwd: ctx.repo,
   timeout: E2E_TIMEOUT_MS,
+  // A 15-minute suite's output overruns spawnSync's 1 MB default, which SIGKILLs it
+  // mid-run and records a false `failed` with innocuous-looking tail output.
+  maxBuffer: 64 * 1024 * 1024,
 });
 const output = String(r.stdout || "");
 const status = classify(r.status, output);
