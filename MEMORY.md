@@ -1,6 +1,6 @@
 # MEMORY
 
-Durable Atomic CRM knowledge. One sentence per bullet, freshest first. Maintained by the `documentator` agent — see [.claude/agents/documentator.md](.claude/agents/documentator.md).
+Durable Atomic CRM knowledge. One sentence per bullet, freshest first. Maintained by the `documentator` agent, which ships with the `aiharness` plugin.
 
 ## Business Knowledge
 
