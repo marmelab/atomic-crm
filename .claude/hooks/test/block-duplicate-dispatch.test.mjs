@@ -74,10 +74,15 @@ const ageMarkers = (secondsAgo) => {
 beforeAll(() => {
   TMP = mkdtempSync(join(tmpdir(), "block-dup-dispatch-test-"));
   APP_DIR = join(TMP, "app");
-  const CRM_TMP_ROOT = join(TMP, "scratch");
-  breakerDir = join(CRM_TMP_ROOT, sanitizePath(APP_DIR), SESSION_ID, "breaker");
+  const HARNESS_TMP_ROOT = join(TMP, "scratch");
+  breakerDir = join(
+    HARNESS_TMP_ROOT,
+    sanitizePath(APP_DIR),
+    SESSION_ID,
+    "breaker",
+  );
   mkdirSync(breakerDir, { recursive: true });
-  env = { ...process.env, APP_DIR, CRM_TMP_ROOT };
+  env = { ...process.env, APP_DIR, HARNESS_TMP_ROOT };
 });
 
 afterAll(() => rmSync(TMP, { recursive: true, force: true }));
