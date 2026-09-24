@@ -96,7 +96,7 @@ The orchestrator parses this line by regex. Any other format is treated as `FAIL
    ```
    DONE: branch=<BRANCH_NAME> commit=<short_sha> files=[<comma-separated modified paths, relative to repo root>]
    ```
-   The SubagentStop validation chain runs typecheck + prettier + unit + e2e before your stop is accepted. If validation fails, fix the issues, commit, and stop again.
+   The SubagentStop validation chain runs typecheck + prettier + lint + unit before your stop is accepted. If validation fails, fix the issues, commit, and stop again.
 
    If anything is unresolvably broken, emit: `FAILED: <one-line reason>`
 
@@ -108,7 +108,7 @@ If your spawn prompt contains a `RETRY_FEEDBACK=...` block, you are on a retry a
 
 1. Read the bullets in `RETRY_FEEDBACK` carefully. They come from the `quality-reviewer` and describe issues with your previous attempt.
 2. Apply targeted fixes only for the listed issues. Do not refactor unrelated code.
-3. Commit your fixes. The SubagentStop validation chain (typecheck + prettier + unit + e2e) runs automatically when you stop — failures come back to you as stderr and you fix and re-stop until it passes, exactly as for a fresh attempt.
+3. Commit your fixes. The SubagentStop validation chain (typecheck + prettier + lint + unit) runs automatically when you stop — failures come back to you as stderr and you fix and re-stop until it passes, exactly as for a fresh attempt.
 4. Emit the OUTPUT CONTRACT line with the new HEAD commit sha.
 
 If you cannot resolve the feedback (e.g. test infrastructure broken, missing context), emit `FAILED: <reason citing the unresolvable feedback>`.
@@ -168,7 +168,7 @@ Bash writes bypass the harness's edit tracking and reach reviewers unformatted. 
 
 ## Validation commands — DO NOT RUN MANUALLY
 
-See `.claude/rules/validation-commands.md` for the full list and rationale. Short version: typecheck / prettier / unit / e2e / lint / build are blocked by `bash-guard`. After implementation + commit, emit the OUTPUT CONTRACT line and stop — the SubagentStop validation chain (typecheck + prettier + unit + e2e) runs automatically before your stop is accepted. If validation fails, fix the issues, commit, and stop again.
+See `.claude/rules/validation-commands.md` for the full list and rationale. Short version: typecheck / prettier / unit / e2e / lint / build are blocked by `bash-guard`. After implementation + commit, emit the OUTPUT CONTRACT line and stop — the SubagentStop validation chain (typecheck + prettier + lint + unit) runs automatically before your stop is accepted. If validation fails, fix the issues, commit, and stop again.
 
 **Escalate a harness/infra defect, do NOT work around it.** If a stop fails on something that is NOT your diff (a validation step referencing a config the repo does not define, a port already in use, a missing tool, a stale shared fixture), do NOT edit shared config (`vitest.config.ts`, `.claude/settings.json`, root `.env`, build config) from your worktree to make it pass. That pollutes every other ticket. Emit `FAILED: harness config gap: <what broke>` so it is fixed centrally. Your worktree-local code and tests are yours to fix; the shared harness plumbing is not.
 
@@ -260,6 +260,6 @@ Implement the plan. Stick to ticket scope.
 - JSDoc on every non-trivial exported function.
 - No features outside ticket scope. An adjacent problem you notice (a nearby bug, a tempting refactor) is REPORTED in your final message, never fixed silently in this diff (`coding-style.md` scope discipline).
 - e2e tests in `e2e/` if ticket touches UI/filters/forms/interactions, unless acceptance criteria say otherwise. Call `Skill({skill: "e2e-conventions"})` and `Skill({skill: "playwright-testing"})` before writing e2e tests. Don't run them — ship the spec, CI executes.
-- Silent mode: Playwright `--headless`, Vite without `--open`, Vitest without `browser.ui`.
+- Silent mode: Playwright without `--headed` / `--ui` / `--debug` (headless is its default), Vite without `--open`, Vitest without `browser.ui`.
 - **Self-verification in the browser (optional, before commit).** When a change is behavior-visible and you want to confirm it renders before handing off to review, drive it via the Playwright MCP against a demo-mode server you start **inside your own worktree** (never `$REPO`). The launch command and port base come from `config.app` (`smokeCommand` + `portBase`, currently `npm run dev:demo` and `5300`): `cd <WORKTREE_PATH> && npm run dev:demo -- --port <PORT> --strictPort` (run in background; pick a port unique to this task, e.g. `5300` + the TASK number). Demo mode is FakeRest + auto-authenticated (no Supabase, no login); with `config.app.hashRouting` the app uses hash routing, so navigate to `http://localhost:<PORT>/#/<route>`. Prefer `browser_snapshot` (accessibility tree, token-cheap) over `browser_take_screenshot` (reserve pixels for visual/legibility checks). **Always tear down** `browser_close` and kill the server before you stop, or the SubagentStop validation chain stalls. This is for your own confidence; the quality-reviewer re-verifies in its Part C. It does **not** replace the required e2e spec.
 - Architecture Decision Records: load `Skill({skill: "adr-writing"})` only when the change introduces a structural decision (see WORKFLOW step 3). Skip by default.

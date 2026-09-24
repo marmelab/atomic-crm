@@ -445,16 +445,18 @@ export const frenchCrmMessages = {
       csv_file: "Fichier CSV",
       error:
         "Échec de l'importation de ce fichier. Veuillez vous assurer que vous avez fourni un fichier CSV valide.",
+      in_progress: "Import en cours…",
       progress:
         "%{importCount} / %{rowCount} enregistrements importés, avec %{errorCount} erreurs.",
       remaining_time: "Temps restant estimé :",
       resource: "Ressource",
-      running: "L'import est en cours, merci de ne pas fermer cet onglet.",
       sample_download: "Télécharger un exemple CSV",
       sample_hint:
         "Voici un exemple de fichier CSV que vous pouvez utiliser comme modèle",
       start: "Démarrer l'import",
       stop: "Arrêter l'importation",
+      stopped:
+        "Import arrêté. %{importCount} enregistrements importés, %{errorCount} erreurs",
       title: "Importer des données",
     },
     header: {
