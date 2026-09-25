@@ -111,8 +111,8 @@ export const FileField = <
 export interface FileFieldProps<
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   RecordType extends Record<string, any> = Record<string, any>,
-> extends FieldProps<RecordType>,
-    HTMLAttributes<HTMLElement> {
+>
+  extends FieldProps<RecordType>, HTMLAttributes<HTMLElement> {
   /**
    * The source of the link to the file, for an array of files.
    */
