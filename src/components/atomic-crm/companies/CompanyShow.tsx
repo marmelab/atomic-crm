@@ -1,6 +1,6 @@
 import { ReferenceManyField } from "@/components/admin/reference-many-field";
 import { SortButton } from "@/components/admin/sort-button";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UserPlus } from "lucide-react";
@@ -22,6 +22,7 @@ import {
 } from "react-router-dom";
 
 import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
 import { ActivityLog } from "../activity/ActivityLog";
 import { Avatar } from "../contacts/Avatar";
 import { TagsList } from "../contacts/TagsList";
@@ -245,22 +246,17 @@ const CreateRelatedContactButton = () => {
   const translate = useTranslate();
   const company = useRecordContext<Company>();
   return (
-    <Button
-      variant="outline"
-      size="sm"
-      className="h-9"
-      render={
-        <RouterLink
-          to="/contacts/create"
-          state={company ? { record: { company_id: company.id } } : undefined}
-          className="flex items-center gap-2"
-        />
-      }
-      nativeButton={false}
+    <RouterLink
+      to="/contacts/create"
+      state={company ? { record: { company_id: company.id } } : undefined}
+      className={cn(
+        buttonVariants({ variant: "outline", size: "sm" }),
+        "h-9 flex items-center gap-2",
+      )}
     >
       <UserPlus className="h-4 w-4" />
       {translate("resources.contacts.action.add")}
-    </Button>
+    </RouterLink>
   );
 };
 

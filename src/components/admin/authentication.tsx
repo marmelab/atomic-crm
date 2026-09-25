@@ -6,7 +6,7 @@ import {
 } from "ra-core";
 import { CircleAlert, LockIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { Loading } from "@/components/admin/loading";
 
 /**
@@ -80,9 +80,9 @@ export const AuthError = (props: AuthErrorProps) => {
         <Translate i18nKey={title} />
       </h1>
       <p className="my-5">{translate(message, { _: message })}</p>
-      <Button render={<LinkBase to="/login" />} nativeButton={false}>
+      <LinkBase to="/login" className={buttonVariants()}>
         <LockIcon /> {translate("ra.auth.sign_in", { _: "Sign in" })}
-      </Button>
+      </LinkBase>
     </div>
   );
 };

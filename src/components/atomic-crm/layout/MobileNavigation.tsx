@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -93,18 +93,17 @@ const NavigationButton = ({
   label: string;
   isActive: boolean;
 }) => (
-  <Button
-    variant="ghost"
+  <Link
+    to={href}
     className={cn(
+      buttonVariants({ variant: "ghost" }),
       "flex-col gap-1 h-auto py-2 px-1 rounded-md w-16",
       isActive ? null : "text-muted-foreground",
     )}
-    render={<Link to={href} />}
-    nativeButton={false}
   >
     <Icon className="size-6" />
     <span className="text-[0.6rem] font-medium">{label}</span>
-  </Button>
+  </Link>
 );
 
 const CreateButton = () => {

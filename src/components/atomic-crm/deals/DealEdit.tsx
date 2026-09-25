@@ -10,7 +10,8 @@ import {
 import { Link } from "react-router";
 import { DeleteButton } from "@/components/admin/delete-button";
 import { ReferenceField } from "@/components/admin/reference-field";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
 import { FormToolbar } from "../layout/FormToolbar";
@@ -75,14 +76,12 @@ function EditHeader() {
         </div>
         <div className="flex gap-2 pr-12">
           <DeleteButton />
-          <Button
-            variant="outline"
-            className="h-9"
-            render={<Link to={`/deals/${deal.id}/show`} />}
-            nativeButton={false}
+          <Link
+            to={`/deals/${deal.id}/show`}
+            className={cn(buttonVariants({ variant: "outline" }), "h-9")}
           >
             {translate("resources.deals.action.back_to_deal")}
-          </Button>
+          </Link>
         </div>
       </div>
     </DialogTitle>
