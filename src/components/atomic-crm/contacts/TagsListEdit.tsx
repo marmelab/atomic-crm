@@ -108,15 +108,17 @@ export const TagsListEdit = () => {
 
       <div>
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-9 md:h-6 cursor-pointer"
-            >
-              <Plus className="w-4 h-4 md:w-3 md:h-3 mr-1" />
-              {translate("resources.tags.action.add")}
-            </Button>
+          <DropdownMenuTrigger
+            render={
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-9 md:h-6 cursor-pointer"
+              />
+            }
+          >
+            <Plus className="w-4 h-4 md:w-3 md:h-3 mr-1" />
+            {translate("resources.tags.action.add")}
           </DropdownMenuTrigger>
           <DropdownMenuContent>
             {unselectedTags?.map((tag) => (

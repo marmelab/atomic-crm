@@ -57,25 +57,30 @@ export const ResponsiveFilters = ({
           />
         </FilterLiveForm>
         <Sheet>
-          <SheetTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="relative size-9"
-              aria-label={translate("ra.action.add_filter")}
-            >
-              <Filter className="size-5" />
-              {activeFiltersCount > 0 && (
-                <Badge
-                  variant="destructive"
-                  className="absolute -top-1 -right-1 h-5 w-5 p-0 text-xs flex items-center justify-center"
-                >
-                  {activeFiltersCount}
-                </Badge>
-              )}
-            </Button>
+          <SheetTrigger
+            render={
+              <Button
+                variant="ghost"
+                size="icon"
+                className="relative size-9"
+                aria-label={translate("ra.action.add_filter")}
+              />
+            }
+          >
+            <Filter className="size-5" />
+            {activeFiltersCount > 0 && (
+              <Badge
+                variant="destructive"
+                className="absolute -top-1 -right-1 h-5 w-5 p-0 text-xs flex items-center justify-center"
+              >
+                {activeFiltersCount}
+              </Badge>
+            )}
           </SheetTrigger>
-          <SheetContent side="bottom" className="h-dvh p-4 flex flex-col">
+          <SheetContent
+            side="bottom"
+            className="data-[side=bottom]:h-dvh p-4 flex flex-col"
+          >
             <SheetHeader className="-p-4">
               <SheetTitle>
                 <h1 className="text-xl font-semibold">
@@ -89,22 +94,22 @@ export const ResponsiveFilters = ({
             <SheetFooter className="-p-4 relative">
               <div className="absolute -top-12 left-0 right-0 h-8 bg-gradient-to-t from-background to-transparent pointer-events-none" />
               <div className="flex w-full gap-4">
-                <SheetClose asChild>
-                  <Button
-                    onClick={handleClearFilters}
-                    type="button"
-                    variant="secondary"
-                    className="flex-1"
-                  >
-                    {translate("ra.navigation.clear_filters", {
-                      _: "Clear filters",
-                    })}
-                  </Button>
+                <SheetClose
+                  render={
+                    <Button
+                      onClick={handleClearFilters}
+                      type="button"
+                      variant="secondary"
+                      className="flex-1"
+                    />
+                  }
+                >
+                  {translate("ra.navigation.clear_filters", {
+                    _: "Clear filters",
+                  })}
                 </SheetClose>
-                <SheetClose asChild>
-                  <Button className="flex-1">
-                    {translate("ra.action.confirm")}
-                  </Button>
+                <SheetClose render={<Button className="flex-1" />}>
+                  {translate("ra.action.confirm")}
                 </SheetClose>
               </div>
             </SheetFooter>

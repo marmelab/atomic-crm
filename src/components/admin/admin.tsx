@@ -1,11 +1,9 @@
-import {
-  CoreAdminUI,
-  type CoreAdminUIProps,
-  CoreAdminContext,
-  type CoreAdminContextProps,
-  type CoreAdminProps,
-  localStorageStore,
+import type {
+  CoreAdminUIProps,
+  CoreAdminContextProps,
+  CoreAdminProps,
 } from "ra-core";
+import { CoreAdminUI, CoreAdminContext, localStorageStore } from "ra-core";
 import { i18nProvider as defaultI18nProvider } from "@/lib/i18nProvider";
 import { Layout } from "@/components/admin/layout";
 import { LoginPage } from "@/components/admin/login-page";
@@ -119,6 +117,7 @@ export const Admin = (props: CoreAdminProps) => {
     queryClient,
     ready = Ready,
     requireAuth,
+    routerProvider,
     store = defaultStore,
     title = "Shadcn Admin",
   } = props;
@@ -129,6 +128,7 @@ export const Admin = (props: CoreAdminProps) => {
       dataProvider={dataProvider}
       i18nProvider={i18nProvider}
       queryClient={queryClient}
+      routerProvider={routerProvider}
       store={store}
     >
       <AdminUI

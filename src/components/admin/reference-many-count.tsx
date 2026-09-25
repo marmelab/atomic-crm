@@ -1,10 +1,10 @@
 import type { RaRecord, SortPayload } from "ra-core";
 import {
+  LinkBase,
   useCreatePath,
   useRecordContext,
   useReferenceManyFieldController,
 } from "ra-core";
-import { Link } from "react-router";
 
 /**
  * Displays the count of related records that reference the current record.
@@ -59,7 +59,7 @@ export const ReferenceManyCount = <RecordType extends RaRecord = RaRecord>(
   const body = isLoading ? "" : error ? "error" : total;
 
   return link && record ? (
-    <Link
+    <LinkBase
       to={{
         pathname: createPath({ resource: reference, type: "list" }),
         search: `filter=${JSON.stringify({
@@ -67,10 +67,10 @@ export const ReferenceManyCount = <RecordType extends RaRecord = RaRecord>(
           [target]: record[source],
         })}`,
       }}
-      onClick={(e) => e.stopPropagation()}
+      onClick={(e: React.MouseEvent<HTMLAnchorElement>) => e.stopPropagation()}
     >
       {body}
-    </Link>
+    </LinkBase>
   ) : (
     <span>{body}</span>
   );

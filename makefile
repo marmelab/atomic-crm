@@ -118,6 +118,9 @@ test-functions:
 test-e2e: start-e2e
 	npx playwright test --ui
 
+test-e2e-mobile: start-e2e ## start the stack and run the e2e tests on the mobile viewport only
+	npx playwright test --ui --project="Mobile Chrome"
+
 test-e2e-ci: start-e2e-ci
 	npx wait-on http-get://localhost:54341/auth/v1/health http-get://localhost:5175
 	npx playwright test

@@ -1,6 +1,7 @@
 import type { EditBaseProps } from "ra-core";
 import {
   EditBase,
+  LinkBase,
   Translate,
   useCreatePath,
   useEditContext,
@@ -11,7 +12,6 @@ import {
   useResourceDefinition,
 } from "ra-core";
 import type { ReactNode } from "react";
-import { Link } from "react-router";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -119,13 +119,13 @@ export const EditView = ({
         <Breadcrumb>
           {hasDashboard && (
             <BreadcrumbItem>
-              <Link to="/">
+              <LinkBase to="/">
                 <Translate i18nKey="ra.page.dashboard">Home</Translate>
-              </Link>
+              </LinkBase>
             </BreadcrumbItem>
           )}
           <BreadcrumbItem>
-            <Link to={listLink}>{listLabel}</Link>
+            <LinkBase to={listLink}>{listLabel}</LinkBase>
           </BreadcrumbItem>
           <BreadcrumbPage>{recordRepresentation}</BreadcrumbPage>
         </Breadcrumb>

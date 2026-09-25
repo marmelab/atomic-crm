@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react";
-import { useCallback } from "react";
+import { useCallback, useId } from "react";
 import { Check, ChevronsUpDown, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import type { Popover as PopoverPrimitive } from "@base-ui/react/popover";
 import type {
   ChoicesProps,
   InputProps,
@@ -39,7 +40,6 @@ import {
   useSupportCreateSuggestion,
 } from "ra-core";
 import { InputHelperText } from "./input-helper-text";
-import { PopoverProps } from "@radix-ui/react-popover";
 
 /**
  * Form control that lets users choose a value from a list using a dropdown with autocompletion.
@@ -89,7 +89,7 @@ export const AutocompleteInput = (
       inputText?:
         | React.ReactNode
         | ((option: any | undefined) => React.ReactNode);
-    } & Pick<PopoverProps, "modal">,
+    } & Pick<PopoverPrimitive.Root.Props, "modal">,
 ) => {
   const {
     clearable = false,
@@ -112,7 +112,7 @@ export const AutocompleteInput = (
     setFilters,
   } = useChoicesContext(props);
   const { id, field, isRequired } = useInput({ ...props, source });
-  const uniqueId = React.useId();
+  const uniqueId = useId();
   const translate = useTranslate();
   const { placeholder = translate("ra.action.search", { _: "Search..." }) } =
     props;
@@ -170,14 +170,20 @@ export const AutocompleteInput = (
 
   const handleChange = useCallback(
     (choice: any) => {
-      if (field.value === getChoiceValue(choice) && !isRequired) {
+      const value = getChoiceValue(choice);
+      // when onCreate returns nothing, ra-core hands back the create item itself:
+      // storing its sentinel value would leave an unrenderable value selected
+      if (value === (createValue ?? "@@ra-create")) {
+        return;
+      }
+      if (field.value === value && !isRequired) {
         handleReset();
         return;
       }
-      field.onChange(getChoiceValue(choice));
+      field.onChange(value);
       setOpen(false);
     },
-    [field, getChoiceValue, isRequired, handleReset, setOpen],
+    [field, getChoiceValue, createValue, isRequired, handleReset, setOpen],
   );
 
   const {
@@ -222,25 +228,29 @@ export const AutocompleteInput = (
         <FormControl>
           <Popover open={open} onOpenChange={handleOpenChange} modal={modal}>
             <div className="relative">
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  aria-expanded={open}
-                  aria-label={accessibleName}
-                  aria-labelledby={hasLabel ? uniqueId : undefined}
-                  className={cn(
-                    "w-full justify-between h-auto py-1.75 font-normal",
-                    isClearable && "pr-9",
-                  )}
-                >
+              <PopoverTrigger
+                render={
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={open}
+                    aria-label={accessibleName}
+                    aria-labelledby={hasLabel ? uniqueId : undefined}
+                    className={cn(
+                      "w-full justify-between h-auto py-1.75 font-normal",
+                      isClearable && "pr-9",
+                    )}
+                  />
+                }
+              >
+                <div className="min-w-0 flex flex-1 items-center gap-2 overflow-hidden text-left">
                   {selectedChoice ? (
                     getInputText(selectedChoice)
                   ) : (
                     <span className="text-muted-foreground">{placeholder}</span>
                   )}
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
+                </div>
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
               </PopoverTrigger>
               {isClearable && (
                 <button
@@ -253,7 +263,7 @@ export const AutocompleteInput = (
                 </button>
               )}
             </div>
-            <PopoverContent className="w-full max-w-(--radix-popover-trigger-width) p-0">
+            <PopoverContent className="w-full max-w-(--anchor-width) p-0">
               {/* We handle the filtering ourselves */}
               <Command shouldFilter={!isFromReference}>
                 <CommandInput

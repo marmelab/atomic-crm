@@ -15,14 +15,14 @@ const MAX_DISTANCE = 96;
 /**
  * True when a pull starting on `target` belongs to something else than the page: an
  * ancestor is already scrolled down, or the touch is inside an overlay. Overlays are
- * matched on their two portal roots — Radix's popper wrapper
- * (select, dropdown menu, popover, command) and the dialog role (dialog and, since
- * vaul renders one too, sheet) — rather than on the role of the panel itself, which
- * varies (dialog, listbox, menu, …) and is portalled out of its own sheet anyway.
+ * matched on their two portal roots — Base UI's portal wrapper
+ * (select, dropdown menu, popover, command, sheet) and the dialog role — rather than
+ * on the role of the panel itself, which varies (dialog, listbox, menu, …) and is
+ * portalled out of its own sheet anyway.
  */
 const isScrollGesture = (target: EventTarget | null) => {
   let node = target instanceof Element ? target : null;
-  if (node?.closest('[role="dialog"], [data-radix-popper-content-wrapper]')) {
+  if (node?.closest('[role="dialog"], [data-base-ui-portal]')) {
     return true;
   }
   while (node) {

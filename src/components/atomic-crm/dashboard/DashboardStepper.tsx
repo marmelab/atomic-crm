@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { CheckCircle, Circle, Plus } from "lucide-react";
@@ -100,16 +100,15 @@ export const DashboardStepper = ({
                         {addContactLabel}
                       </Button>
                     ) : (
-                      <Button asChild className="w-fit">
-                        <Link
-                          to={createPath({
-                            resource: "contacts",
-                            type: "create",
-                          })}
-                        >
-                          {addContactLabel}
-                        </Link>
-                      </Button>
+                      <Link
+                        to={createPath({
+                          resource: "contacts",
+                          type: "create",
+                        })}
+                        className={buttonVariants({ className: "w-fit" })}
+                      >
+                        {addContactLabel}
+                      </Link>
                     )}
                   </div>
                 </div>
@@ -139,18 +138,23 @@ export const DashboardStepper = ({
                       })}
                     </Button>
                   ) : (
-                    <Button asChild disabled={step < 2} className="w-fit">
-                      <Link
-                        to={createPath({
-                          resource: "contacts",
-                          type: "show",
-                          id: contactId,
-                        })}
-                      >
-                        {translate("resources.notes.action.add", {
-                          _: "Add note",
-                        })}
-                      </Link>
+                    <Button
+                      disabled={step < 2}
+                      className="w-fit"
+                      render={
+                        <Link
+                          to={createPath({
+                            resource: "contacts",
+                            type: "show",
+                            id: contactId,
+                          })}
+                        />
+                      }
+                      nativeButton={false}
+                    >
+                      {translate("resources.notes.action.add", {
+                        _: "Add note",
+                      })}
                     </Button>
                   )}
                 </div>

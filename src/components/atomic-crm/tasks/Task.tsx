@@ -150,15 +150,17 @@ export const Task = ({
         </div>
 
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-5 pr-0! size-8 cursor-pointer"
-              aria-label={translate("resources.tasks.actions.title")}
-            >
-              <MoreVertical className="size-5 md:size-4" />
-            </Button>
+          <DropdownMenuTrigger
+            render={
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-5 pr-0! size-8 cursor-pointer"
+                aria-label={translate("resources.tasks.actions.title")}
+              />
+            }
+          >
+            <MoreVertical className="size-5 md:size-4" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem
