@@ -582,6 +582,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/deals/DealsIterator.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/deals/DealShow.tsx",
           "type": "registry:component"
         },
@@ -779,6 +783,10 @@
         },
         {
           "path": "src/components/atomic-crm/contacts/ContactEdit.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/contacts/ContactDealsList.tsx",
           "type": "registry:component"
         },
         {
