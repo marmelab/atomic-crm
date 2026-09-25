@@ -58,7 +58,7 @@ export function useDealImport(): ProcessImportBatch {
               category: toConfiguredValue(row.category, dealCategories),
               stage,
               description: toText(row.description),
-              lost_reason: toText(row.lost_reason),
+              // amount lands in a bigint column, which rejects "4500.50"
               amount: toInteger(row.amount),
               expected_closing_date: toIsoDate(row.expected_closing_date),
               sales_id: identity?.id,

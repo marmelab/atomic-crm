@@ -186,13 +186,6 @@ export const englishCrmMessages = {
         amount: "Budget",
         expected_closing_date: "Expected closing date",
         stage: "Stage",
-        lost_reason: "Why was this deal lost?",
-      },
-      lost_reason_dialog: {
-        title: "Why was this deal lost?",
-        description:
-          "Give a reason so managers can understand what went wrong.",
-        confirm: "Mark as lost",
       },
       action: {
         back_to_deal: "Back to deal",

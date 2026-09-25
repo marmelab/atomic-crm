@@ -1,5 +1,4 @@
 import { required, useTranslate } from "ra-core";
-import { useWatch } from "react-hook-form";
 import { AutocompleteArrayInput } from "@/components/admin/autocomplete-array-input";
 import { ReferenceArrayInput } from "@/components/admin/reference-array-input";
 import { ReferenceInput } from "@/components/admin/reference-input";
@@ -13,7 +12,6 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { contactOptionText } from "../misc/ContactOption";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { AutocompleteCompanyInput } from "../companies/AutocompleteCompanyInput.tsx";
-import { LOST_DEAL_STAGE } from "./stages";
 
 export const DealInputs = () => {
   const isMobile = useIsMobile();
@@ -102,24 +100,6 @@ const DealMiscInputs = () => {
         helperText={false}
         validate={required()}
       />
-      <LostReasonInput />
     </div>
-  );
-};
-
-const requiredText = (value?: string | null) =>
-  value?.trim() ? undefined : "ra.validation.required";
-
-const LostReasonInput = () => {
-  const stage = useWatch({ name: "stage" });
-  if (stage !== LOST_DEAL_STAGE) return null;
-  return (
-    <TextInput
-      source="lost_reason"
-      multiline
-      rows={3}
-      helperText={false}
-      validate={requiredText}
-    />
   );
 };
