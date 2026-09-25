@@ -107,6 +107,9 @@ const DealMiscInputs = () => {
   );
 };
 
+const requiredText = (value?: string | null) =>
+  value?.trim() ? undefined : "ra.validation.required";
+
 const LostReasonInput = () => {
   const stage = useWatch({ name: "stage" });
   if (stage !== LOST_DEAL_STAGE) return null;
@@ -116,7 +119,7 @@ const LostReasonInput = () => {
       multiline
       rows={3}
       helperText={false}
-      validate={required()}
+      validate={requiredText}
     />
   );
 };

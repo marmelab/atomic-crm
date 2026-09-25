@@ -70,7 +70,12 @@ export const DealListContent = () => {
 
     const sourceStage = source.droppableId;
     const destinationStage = destination.droppableId;
-    const sourceDeal = dealsByStage[sourceStage][source.index]!;
+    // resolve by id: the list may have refetched while the lost reason dialog was open
+    const sourceIndex = dealsByStage[sourceStage].findIndex(
+      (deal) => String(deal.id) === result.draggableId,
+    );
+    if (sourceIndex === -1) return;
+    const sourceDeal = dealsByStage[sourceStage][sourceIndex];
     const destinationDeal = dealsByStage[destinationStage][
       destination.index
     ] ?? {
@@ -82,7 +87,7 @@ export const DealListContent = () => {
     setDealsByStage(
       updateDealStageLocal(
         sourceDeal,
-        { stage: sourceStage, index: source.index },
+        { stage: sourceStage, index: sourceIndex },
         { stage: destinationStage, index: destination.index },
         dealsByStage,
       ),
