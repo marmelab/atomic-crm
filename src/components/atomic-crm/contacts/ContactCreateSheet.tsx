@@ -1,5 +1,5 @@
 import { useGetIdentity, useTranslate } from "ra-core";
-import { CreateSheet } from "../misc/CreateSheet";
+import { CreateSheet, type CreateSheetProps } from "../misc/CreateSheet";
 import { ContactInputs } from "./ContactInputs";
 import {
   cleanupContactForCreate,
@@ -7,14 +7,19 @@ import {
   defaultPhoneJsonb,
 } from "./contactModel";
 
-export interface ContactCreateSheetProps {
+export interface ContactCreateSheetProps
+  extends Pick<CreateSheetProps, "mutationOptions" | "redirect"> {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  defaultValues?: CreateSheetProps["defaultValues"];
 }
 
 export const ContactCreateSheet = ({
   open,
   onOpenChange,
+  defaultValues,
+  mutationOptions,
+  redirect,
 }: ContactCreateSheetProps) => {
   const { identity } = useGetIdentity();
   const translate = useTranslate();
@@ -26,10 +31,13 @@ export const ContactCreateSheet = ({
         sales_id: identity?.id,
         email_jsonb: defaultEmailJsonb,
         phone_jsonb: defaultPhoneJsonb,
+        ...defaultValues,
       }}
       transform={cleanupContactForCreate}
       open={open}
       onOpenChange={onOpenChange}
+      mutationOptions={mutationOptions}
+      redirect={redirect}
     >
       <ContactInputs />
     </CreateSheet>

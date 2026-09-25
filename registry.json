@@ -806,6 +806,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/contacts/AutocompleteContactInput.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/companies/sizes.ts",
           "type": "registry:component"
         },

@@ -1,5 +1,4 @@
 import { required, useTranslate } from "ra-core";
-import { AutocompleteArrayInput } from "@/components/admin/autocomplete-array-input";
 import { ReferenceArrayInput } from "@/components/admin/reference-array-input";
 import { ReferenceInput } from "@/components/admin/reference-input";
 import { TextInput } from "@/components/admin/text-input";
@@ -9,9 +8,9 @@ import { SelectInput } from "@/components/admin/select-input";
 import { Separator } from "@/components/ui/separator";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-import { contactOptionText } from "../misc/ContactOption";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { AutocompleteCompanyInput } from "../companies/AutocompleteCompanyInput.tsx";
+import { AutocompleteContactInput } from "../contacts/AutocompleteContactInput.tsx";
 
 export const DealInputs = () => {
   const isMobile = useIsMobile();
@@ -53,11 +52,7 @@ const DealLinkedToInputs = () => {
       </ReferenceInput>
 
       <ReferenceArrayInput source="contact_ids" reference="contacts_summary">
-        <AutocompleteArrayInput
-          label="resources.deals.fields.contact_ids"
-          optionText={contactOptionText}
-          helperText={false}
-        />
+        <AutocompleteContactInput label="resources.deals.fields.contact_ids" />
       </ReferenceArrayInput>
     </div>
   );

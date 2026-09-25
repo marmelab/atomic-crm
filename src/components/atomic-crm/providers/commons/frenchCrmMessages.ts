@@ -98,6 +98,10 @@ export const frenchCrmMessages = {
         new: "Nouveau contact",
         show: "Afficher le contact",
       },
+      autocomplete: {
+        create_item: "Créer %{item}",
+        create_label: "Saisissez du texte pour créer un contact",
+      },
       background: {
         last_activity_on: "Dernière activité le %{date}",
         added_on: "Ajouté le %{date}",
