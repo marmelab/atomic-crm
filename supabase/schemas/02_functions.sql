@@ -246,6 +246,16 @@ begin
 end;
 $$;
 
+CREATE OR REPLACE FUNCTION "public"."handle_tag_deleted"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    SET "search_path" TO ''
+    AS $$
+begin
+  update public.contacts set tags = array_remove(tags, old.id) where tags @> array[old.id];
+  return old;
+end;
+$$;
+
 CREATE OR REPLACE FUNCTION "public"."handle_update_user"() RETURNS "trigger"
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO ''
