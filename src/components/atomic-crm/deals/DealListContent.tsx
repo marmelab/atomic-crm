@@ -23,7 +23,7 @@ export const DealListContent = () => {
     getDealsByStage([], dealStages),
   );
   // a drop into the lost column waits for a reason before being applied
-  const [pendingLostDrop, setPendingLostDrop] = useState<DropResult | null>(
+  const [pendingLostDrop, setPendingLostDrop] = useState<PendingDrop | null>(
     null,
   );
 
@@ -53,42 +53,56 @@ export const DealListContent = () => {
       return;
     }
 
+    const drop: PendingDrop = {
+      result,
+      destinationDealId:
+        dealsByStage[destination.droppableId][destination.index]?.id,
+    };
+
     if (
       destination.droppableId === LOST_DEAL_STAGE &&
       source.droppableId !== LOST_DEAL_STAGE
     ) {
-      setPendingLostDrop(result);
+      setPendingLostDrop(drop);
       return;
     }
 
-    moveDeal(result);
+    moveDeal(drop);
   };
 
-  const moveDeal = (result: DropResult, lostReason?: string) => {
+  const moveDeal = (
+    { result, destinationDealId }: PendingDrop,
+    lostReason?: string,
+  ) => {
     const { destination, source } = result;
     if (!destination) return;
 
     const sourceStage = source.droppableId;
     const destinationStage = destination.droppableId;
-    // resolve by id: the list may have refetched while the lost reason dialog was open
+    // resolve positions by id: the list may have refetched while the lost
+    // reason dialog was open, so the indexes captured at drop time may be stale
     const sourceIndex = dealsByStage[sourceStage].findIndex(
       (deal) => String(deal.id) === result.draggableId,
     );
     if (sourceIndex === -1) return;
     const sourceDeal = dealsByStage[sourceStage][sourceIndex];
-    const destinationDeal = dealsByStage[destinationStage][
-      destination.index
-    ] ?? {
-      stage: destinationStage,
-      index: undefined, // undefined if dropped after the last item
-    };
+    const foundDestinationIndex = dealsByStage[destinationStage].findIndex(
+      (deal) => deal.id === destinationDealId,
+    );
+    // dropped after the last item, or the deal at the drop position is gone
+    const destinationIndex =
+      foundDestinationIndex === -1 ? undefined : foundDestinationIndex;
+    const destinationDeal =
+      destinationIndex === undefined
+        ? { stage: destinationStage, index: undefined }
+        : dealsByStage[destinationStage][destinationIndex];
 
     // compute local state change synchronously
     setDealsByStage(
       updateDealStageLocal(
         sourceDeal,
         { stage: sourceStage, index: sourceIndex },
-        { stage: destinationStage, index: destination.index },
+        { stage: destinationStage, index: destinationIndex },
         dealsByStage,
       ),
     );
@@ -122,6 +136,11 @@ export const DealListContent = () => {
       </div>
     </DragDropContext>
   );
+};
+
+type PendingDrop = {
+  result: DropResult;
+  destinationDealId?: Deal["id"];
 };
 
 const updateDealStageLocal = (
