@@ -24,6 +24,10 @@ import { getActivityLog } from "../commons/activity";
 import { getCompanyAvatar } from "../commons/getCompanyAvatar";
 import { getContactAvatar } from "../commons/getContactAvatar";
 import { mergeContacts } from "../commons/mergeContacts";
+import {
+  findDealCategoriesMatching,
+  mapLegacyCategoryFilter,
+} from "../../deals/dealUtils";
 import type { CrmDataProvider } from "../types";
 import {
   authProvider as defaultAuthProvider,
@@ -563,6 +567,22 @@ export const createDataProvider = ({
       } satisfies ResourceCallbacks<Company>,
       {
         resource: "deals",
+        beforeGetList: async (params) => {
+          const mapped = mapLegacyCategoryFilter(params);
+          const q = mapped.filter?.q;
+          if (!q) return mapped;
+          // FakeRest ORs the words of q: appending the values of the categories
+          // whose label matches makes a renamed label searchable (see DealList)
+          const categories = findDealCategoriesMatching(
+            mapped.meta?.dealCategories ?? [],
+            q,
+          );
+          if (categories.length === 0) return mapped;
+          return {
+            ...mapped,
+            filter: { ...mapped.filter, q: [q, ...categories].join(" ") },
+          };
+        },
         beforeCreate: async (params) => {
           return {
             ...params,

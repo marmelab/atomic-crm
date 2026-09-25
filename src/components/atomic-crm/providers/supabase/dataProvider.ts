@@ -16,7 +16,10 @@ import type {
   SignUpData,
 } from "../../types";
 import type { ConfigurationContextValue } from "../../root/ConfigurationContext";
-import { findDealCategoriesMatching } from "../../deals/dealUtils";
+import {
+  findDealCategoriesMatching,
+  mapLegacyCategoryFilter,
+} from "../../deals/dealUtils";
 import { ATTACHMENTS_BUCKET } from "../commons/attachments";
 import { getIsInitialized } from "./authProvider";
 import { getSupabaseClient } from "./supabase";
@@ -377,7 +380,9 @@ const lifeCycleCallbacks: ResourceCallbacks[] = [
   {
     resource: "deals",
     beforeGetList: async (params) => {
-      const searched = applyFullTextSearch(["name", "description"])(params);
+      const searched = applyFullTextSearch(["name", "description"])(
+        mapLegacyCategoryFilter(params),
+      );
       const categories = params.filter?.q
         ? findDealCategoriesMatching(
             params.meta?.dealCategories ?? [],

@@ -16,6 +16,23 @@ export const formatDealCategories = (
     .map((category) => findDealLabel(dealCategories, category) ?? category)
     .join(", ");
 
+/**
+ * Deals used to be filtered on a single `category` column, dropped when deals
+ * got several categories. List params persisted in the store and bookmarked
+ * URLs may still carry it: PostgREST would answer 400 on the missing column,
+ * with no filter input left to clear it. Maps it to the `categories` filter.
+ */
+export const mapLegacyCategoryFilter = <Params extends { filter?: any }>(
+  params: Params,
+): Params => {
+  if (!params.filter || !("category" in params.filter)) return params;
+  const { category, ...filter } = params.filter;
+  return {
+    ...params,
+    filter: category ? { ...filter, "categories@cs": `{${category}}` } : filter,
+  };
+};
+
 /** Values of the categories whose label or stored value contains the search text */
 export const findDealCategoriesMatching = (
   dealCategories: LabeledValue[],

@@ -1,6 +1,10 @@
 import { commands } from "vitest/browser";
 
-import { findDealCategoriesMatching, formatISODateString } from "./dealUtils";
+import {
+  findDealCategoriesMatching,
+  formatISODateString,
+  mapLegacyCategoryFilter,
+} from "./dealUtils";
 
 describe("formatISODateString", () => {
   let originalTimezone: string;
@@ -73,5 +77,24 @@ describe("findDealCategoriesMatching", () => {
 
   it("returns an empty array when nothing matches", () => {
     expect(findDealCategoriesMatching(categories, "print")).toEqual([]);
+  });
+});
+
+describe("mapLegacyCategoryFilter", () => {
+  it("maps a stale single-category filter to the categories filter", () => {
+    expect(
+      mapLegacyCategoryFilter({ filter: { category: "copywriting", q: "x" } }),
+    ).toEqual({ filter: { "categories@cs": "{copywriting}", q: "x" } });
+  });
+
+  it("drops an empty stale category filter", () => {
+    expect(mapLegacyCategoryFilter({ filter: { category: "" } })).toEqual({
+      filter: {},
+    });
+  });
+
+  it("leaves params without a category filter untouched", () => {
+    const params = { filter: { stage: "won" } };
+    expect(mapLegacyCategoryFilter(params)).toBe(params);
   });
 });
