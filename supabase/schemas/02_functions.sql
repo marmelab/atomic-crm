@@ -262,17 +262,6 @@ begin
 end;
 $$;
 
-CREATE OR REPLACE FUNCTION "public"."is_admin"() RETURNS boolean
-    LANGUAGE "plpgsql" SECURITY DEFINER
-    SET "search_path" TO ''
-    AS $$
-begin
-  return exists (
-    select 1 from public.sales where user_id = auth.uid() and administrator = true
-  );
-end;
-$$;
-
 CREATE OR REPLACE FUNCTION "public"."merge_contacts"("loser_id" bigint, "winner_id" bigint) RETURNS bigint
     LANGUAGE "plpgsql"
     SET "search_path" TO 'public'
