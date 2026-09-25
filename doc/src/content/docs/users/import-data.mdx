@@ -41,16 +41,16 @@ The `name` column is required. `sector` is matched against the company sectors c
 ### Deals
 
 ```csv
-name,company,category,stage,amount,expected_closing_date,description
-New website,Acme,Website design,Opportunity,12000,2026-09-30,Redesign of the public website
+name,company,categories,stage,amount,expected_closing_date,description
+New website,Acme,Website design;Copywriting,Opportunity,12000,2026-09-30,Redesign of the public website
 Print campaign,Globex,Print project,Proposal Sent,4500,2026-10-15,
 ```
 
-The `name` column is required. The `company` column holds a company name: an existing company is reused, an unknown one is created. `category` and `stage` are matched against the deal categories and stages configured in your CRM, by stored value or displayed label. Since a deal always belongs to a stage, an empty or unrecognized `stage` falls back to the first stage of your pipeline.
+The `name` column is required. The `company` column holds a company name: an existing company is reused, an unknown one is created. A deal can have several categories: separate them with a `;` in the `categories` column, as the deals export does. Files using the former single-value `category` column are still accepted. Categories and `stage` are matched against the deal categories and stages configured in your CRM, by stored value or displayed label; a category matching none of them is ignored. Since a deal always belongs to a stage, an empty or unrecognized `stage` falls back to the first stage of your pipeline.
 
 ## Export Contacts To CSV
 
-In the contacts and companies pages, an export button allows to download the list of contacts or companies in CSV format.
+In the contacts, companies and deals pages, an export button allows to download the list of contacts, companies or deals in CSV format. A deal's categories are exported in a single `categories` column, separated by `;`.
 
 ![Import and export Buttons](../../images/import-export.jpg)
 

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   toConfiguredValue,
+  toConfiguredValues,
   toInteger,
   toIsoDate,
   toNumber,
@@ -90,5 +91,24 @@ describe("toConfiguredValue", () => {
   it("returns undefined when no option matches", () => {
     expect(toConfiguredValue("Archived", stages)).toBeUndefined();
     expect(toConfiguredValue(null, stages)).toBeUndefined();
+  });
+});
+
+describe("toConfiguredValues", () => {
+  it("reads the ';'-separated values the CSV export writes", () => {
+    expect(toConfiguredValues("opportunity;Proposal Sent", stages)).toEqual([
+      "opportunity",
+      "proposal-sent",
+    ]);
+  });
+
+  it("drops unknown and duplicate parts", () => {
+    expect(
+      toConfiguredValues("Archived; opportunity ;Opportunity", stages),
+    ).toEqual(["opportunity"]);
+  });
+
+  it("returns an empty array for an empty cell", () => {
+    expect(toConfiguredValues(null, stages)).toEqual([]);
   });
 });

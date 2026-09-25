@@ -1,6 +1,10 @@
 import { commands } from "vitest/browser";
 
-import { formatISODateString } from "./dealUtils";
+import {
+  findDealCategoriesMatching,
+  formatISODateString,
+  mapLegacyCategoryFilter,
+} from "./dealUtils";
 
 describe("formatISODateString", () => {
   let originalTimezone: string;
@@ -50,5 +54,47 @@ describe("formatISODateString", () => {
     expect(() => formatISODateString(invalidDate)).toThrow(
       "Invalid date format. Expected YYYY-MM-DD.",
     );
+  });
+});
+
+describe("findDealCategoriesMatching", () => {
+  const categories = [
+    { value: "website-design", label: "Site building" },
+    { value: "copywriting", label: "Copywriting" },
+  ];
+
+  it("matches a label, whatever its case", () => {
+    expect(findDealCategoriesMatching(categories, "BUILDING")).toEqual([
+      "website-design",
+    ]);
+  });
+
+  it("matches the stored value too", () => {
+    expect(findDealCategoriesMatching(categories, "design")).toEqual([
+      "website-design",
+    ]);
+  });
+
+  it("returns an empty array when nothing matches", () => {
+    expect(findDealCategoriesMatching(categories, "print")).toEqual([]);
+  });
+});
+
+describe("mapLegacyCategoryFilter", () => {
+  it("maps a stale single-category filter to the categories filter", () => {
+    expect(
+      mapLegacyCategoryFilter({ filter: { category: "copywriting", q: "x" } }),
+    ).toEqual({ filter: { "categories@cs": "{copywriting}", q: "x" } });
+  });
+
+  it("drops an empty stale category filter", () => {
+    expect(mapLegacyCategoryFilter({ filter: { category: "" } })).toEqual({
+      filter: {},
+    });
+  });
+
+  it("leaves params without a category filter untouched", () => {
+    const params = { filter: { stage: "won" } };
+    expect(mapLegacyCategoryFilter(params)).toBe(params);
   });
 });

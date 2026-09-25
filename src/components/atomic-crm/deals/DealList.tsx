@@ -47,14 +47,19 @@ const DealList = () => {
         placeholder={translate("resources.deals.fields.company_id")}
       />
     </ReferenceInput>,
-    <WrapperField source="category" label="resources.deals.fields.category">
+    <WrapperField
+      source="categories@cs"
+      label="resources.deals.fields.category"
+    >
       <SelectInput
-        source="category"
+        source="categories@cs"
         label={false}
         emptyText="resources.deals.fields.category"
         choices={dealCategories}
         optionText="label"
         optionValue="value"
+        format={(value?: string) => value?.replace(/^\{|\}$/g, "")}
+        parse={(value?: string) => (value ? `{${value}}` : value)}
       />
     </WrapperField>,
     ...(isPending
@@ -75,6 +80,7 @@ const DealList = () => {
       title={false}
       sort={{ field: "index", order: "DESC" }}
       filters={dealFilters}
+      queryOptions={{ meta: { dealCategories } }}
       actions={<DealActions />}
       pagination={null}
     >

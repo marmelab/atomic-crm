@@ -4,7 +4,13 @@ import { useDataProvider, useGetIdentity, type DataProvider } from "ra-core";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { useCompanyResolver } from "./useCompanyResolver";
 import { createEachRow } from "./createEachRow";
-import { toConfiguredValue, toInteger, toIsoDate, toText } from "./parseCell";
+import {
+  toConfiguredValue,
+  toConfiguredValues,
+  toInteger,
+  toIsoDate,
+  toText,
+} from "./parseCell";
 import type { ImportRow, ProcessImportBatch } from "./types";
 
 /** One CSV row, with the values needed before its deal can be created. */
@@ -55,7 +61,10 @@ export function useDealImport(): ProcessImportBatch {
                 ? companies.get(companyName)?.id
                 : undefined,
               contact_ids: [],
-              category: toConfiguredValue(row.category, dealCategories),
+              categories: toConfiguredValues(
+                row.categories ?? row.category,
+                dealCategories,
+              ),
               stage,
               description: toText(row.description),
               // amount lands in a bigint column, which rejects "4500.50"

@@ -198,12 +198,18 @@ describe("DataImportButton", () => {
       {
         name: "New website",
         company: "Acme",
-        category: "Website design",
+        categories: "Website design;Copywriting",
         stage: "Proposal Sent",
         amount: "12000",
         expected_closing_date: "2026-09-30",
       },
-      { name: "Print campaign", company: "Acme", stage: null },
+      // older files have a single-category "category" column
+      {
+        name: "Print campaign",
+        company: "Acme",
+        category: "Print project",
+        stage: null,
+      },
     ]);
 
     await screen.getByRole("button", { name: "run import" }).click();
@@ -217,7 +223,7 @@ describe("DataImportButton", () => {
     expect(deals).toHaveLength(2);
     expect(deals[0]).toMatchObject({
       amount: 12000,
-      category: "website-design",
+      categories: ["website-design", "copywriting"],
       company_id: companies[0].id,
       name: "New website",
       stage: "proposal-sent",
@@ -225,6 +231,7 @@ describe("DataImportButton", () => {
     expect(deals[0].expected_closing_date).toBe("2026-09-30T00:00:00.000Z");
     // Both rows name the same company, which is created once and shared
     expect(deals[1].company_id).toBe(companies[0].id);
+    expect(deals[1].categories).toEqual(["print-project"]);
     // stage is required, so an empty cell falls back to the first stage
     expect(deals[1].stage).toBe("opportunity");
   });
