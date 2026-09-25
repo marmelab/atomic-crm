@@ -202,6 +202,10 @@ begin
         return new;
     end if;
 
+    if tg_op = 'UPDATE' and new.email_jsonb is not distinct from old.email_jsonb then
+        return new;
+    end if;
+
     select coalesce(jsonb_array_length(new.email_jsonb), 0) into emails_length;
 
     if emails_length = 0 then
