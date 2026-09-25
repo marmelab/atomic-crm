@@ -70,6 +70,11 @@ create or replace trigger on_deal_notes_deleted_delete_note_attachments
     after delete on public.deal_notes
     for each row execute function public.cleanup_note_attachments();
 
+-- Remove a deleted tag from every contact that references it
+create or replace trigger on_tag_deleted
+    after delete on public.tags
+    for each row execute function public.handle_tag_deleted();
+
 -- Auth triggers: sync auth.users to public.sales
 create or replace trigger on_auth_user_created
     after insert on auth.users
