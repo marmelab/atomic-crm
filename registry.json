@@ -582,10 +582,6 @@
           "type": "registry:component"
         },
         {
-          "path": "src/components/atomic-crm/deals/LostReasonDialog.tsx",
-          "type": "registry:component"
-        },
-        {
           "path": "src/components/atomic-crm/deals/DealShow.tsx",
           "type": "registry:component"
         },

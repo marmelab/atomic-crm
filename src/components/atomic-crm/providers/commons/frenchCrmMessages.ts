@@ -190,13 +190,6 @@ export const frenchCrmMessages = {
         amount: "Budget",
         expected_closing_date: "Date de clôture prévue",
         stage: "Étape",
-        lost_reason: "Pourquoi cette affaire a-t-elle été perdue ?",
-      },
-      lost_reason_dialog: {
-        title: "Pourquoi cette affaire a-t-elle été perdue ?",
-        description:
-          "Indiquez une raison pour que les managers comprennent ce qui n'a pas fonctionné.",
-        confirm: "Marquer comme perdue",
       },
       action: {
         back_to_deal: "Retour à l'affaire",

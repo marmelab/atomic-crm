@@ -204,11 +204,6 @@ describe("DataImportButton", () => {
         expected_closing_date: "2026-09-30",
       },
       { name: "Print campaign", company: "Acme", stage: null },
-      {
-        name: "Logo refresh",
-        stage: "Lost",
-        lost_reason: "Chose a cheaper agency",
-      },
     ]);
 
     await screen.getByRole("button", { name: "run import" }).click();
@@ -219,7 +214,7 @@ describe("DataImportButton", () => {
     expect(companies[0].name).toBe("Acme");
 
     const { data: deals } = await listAll(dataProvider, "deals");
-    expect(deals).toHaveLength(3);
+    expect(deals).toHaveLength(2);
     expect(deals[0]).toMatchObject({
       amount: 12000,
       category: "website-design",
@@ -232,10 +227,6 @@ describe("DataImportButton", () => {
     expect(deals[1].company_id).toBe(companies[0].id);
     // stage is required, so an empty cell falls back to the first stage
     expect(deals[1].stage).toBe("opportunity");
-    expect(deals[2]).toMatchObject({
-      stage: "lost",
-      lost_reason: "Chose a cheaper agency",
-    });
   });
 
   it("appends imported deals below the deals already in their stage", async () => {
