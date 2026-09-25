@@ -195,23 +195,15 @@ async function createContact({
   return data;
 }
 
-const getMenuMethod = ({
-  page,
-  isMobile,
-}: {
-  page: Page;
-  isMobile: boolean;
-}) => ({
+// Both the desktop sidebar and the mobile bottom bar expose navigation as links,
+// so they are announced as links on every viewport.
+const getMenuMethod = ({ page }: { page: Page }) => ({
   goToDashboard: async () => {
-    await page
-      .getByRole(isMobile ? "button" : "link", { name: "Dashboard" })
-      .click();
+    await page.getByRole("link", { name: "Dashboard" }).click();
     await page.waitForLoadState("networkidle");
   },
   goToContacts: async () => {
-    await page
-      .getByRole(isMobile ? "button" : "link", { name: "Contacts" })
-      .click();
+    await page.getByRole("link", { name: "Contacts" }).click();
     await page.waitForLoadState("networkidle");
   },
 });
@@ -263,8 +255,8 @@ export const test = base.extend<{
   createNotes: async ({}, cb) => {
     await cb(createNotes);
   },
-  menu: async ({ page, isMobile }, cb) => {
-    await cb(getMenuMethod({ page, isMobile }));
+  menu: async ({ page }, cb) => {
+    await cb(getMenuMethod({ page }));
   },
   dismissToast: async ({ page }, cb) => {
     await cb((content: string) => dismissToast(page, content));
