@@ -187,6 +187,7 @@ export const frenchCrmMessages = {
         company_id: "Entreprise",
         contact_ids: "Contacts",
         category: "Catégorie",
+        categories: "Catégories",
         amount: "Budget",
         expected_closing_date: "Date de clôture prévue",
         stage: "Étape",

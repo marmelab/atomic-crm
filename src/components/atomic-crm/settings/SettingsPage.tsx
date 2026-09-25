@@ -88,10 +88,8 @@ export const validateItemsInUse = (
   const inUse = [
     ...new Set(
       deals
-        .filter(
-          (deal) => deal[fieldName] && !values.has(deal[fieldName] as string),
-        )
-        .map((deal) => deal[fieldName] as string),
+        .flatMap((deal) => [deal[fieldName]].flat() as string[])
+        .filter((value) => value && !values.has(value)),
     ),
   ];
   if (inUse.length > 0) {
@@ -228,7 +226,7 @@ const SettingsFormFields = () => {
 
   const validateDealCategories = useCallback(
     (categories: { value: string; label: string }[] | undefined) =>
-      validateItemsInUse(categories, deals, "category", categoryDisplayName, {
+      validateItemsInUse(categories, deals, "categories", categoryDisplayName, {
         duplicate: (displayName, duplicates) =>
           translate("crm.settings.validation.duplicate", {
             display_name: displayName,

@@ -67,7 +67,6 @@ create table public.deals (
     name text not null,
     company_id bigint,
     contact_ids bigint[],
-    category text,
     stage text not null,
     description text,
     amount bigint,
@@ -76,7 +75,8 @@ create table public.deals (
     archived_at timestamp with time zone,
     expected_closing_date date,
     sales_id bigint,
-    index smallint
+    index smallint,
+    categories text[] not null default '{}'::text[]
 );
 
 create table public.deal_notes (

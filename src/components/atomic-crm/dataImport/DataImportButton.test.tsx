@@ -217,7 +217,7 @@ describe("DataImportButton", () => {
     expect(deals).toHaveLength(2);
     expect(deals[0]).toMatchObject({
       amount: 12000,
-      category: "website-design",
+      categories: ["website-design"],
       company_id: companies[0].id,
       name: "New website",
       stage: "proposal-sent",

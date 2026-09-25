@@ -1,11 +1,20 @@
 import { format } from "date-fns";
 
-import type { DealStage } from "../types";
+import type { DealStage, LabeledValue } from "../types";
 
 export const findDealLabel = (dealStages: DealStage[], dealValue: string) => {
   const dealStage = dealStages.find((stage) => stage.value === dealValue);
   return dealStage?.label;
 };
+
+/** Labels of a deal's categories, comma-separated, falling back to the raw value */
+export const formatDealCategories = (
+  dealCategories: LabeledValue[],
+  categories: string[] = [],
+) =>
+  categories
+    .map((category) => findDealLabel(dealCategories, category) ?? category)
+    .join(", ");
 
 export function getRelativeTimeString(
   dateString: string,

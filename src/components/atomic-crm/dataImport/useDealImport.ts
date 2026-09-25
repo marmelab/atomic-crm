@@ -55,7 +55,9 @@ export function useDealImport(): ProcessImportBatch {
                 ? companies.get(companyName)?.id
                 : undefined,
               contact_ids: [],
-              category: toConfiguredValue(row.category, dealCategories),
+              categories: [
+                toConfiguredValue(row.category, dealCategories),
+              ].filter((category) => category !== undefined),
               stage,
               description: toText(row.description),
               // amount lands in a bigint column, which rejects "4500.50"
