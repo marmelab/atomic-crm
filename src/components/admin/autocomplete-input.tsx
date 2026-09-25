@@ -170,14 +170,20 @@ export const AutocompleteInput = (
 
   const handleChange = useCallback(
     (choice: any) => {
-      if (field.value === getChoiceValue(choice) && !isRequired) {
+      const value = getChoiceValue(choice);
+      // when onCreate returns nothing, ra-core hands back the create item itself:
+      // storing its sentinel value would leave an unrenderable value selected
+      if (value === (createValue ?? "@@ra-create")) {
+        return;
+      }
+      if (field.value === value && !isRequired) {
         handleReset();
         return;
       }
-      field.onChange(getChoiceValue(choice));
+      field.onChange(value);
       setOpen(false);
     },
-    [field, getChoiceValue, isRequired, handleReset, setOpen],
+    [field, getChoiceValue, createValue, isRequired, handleReset, setOpen],
   );
 
   const {
