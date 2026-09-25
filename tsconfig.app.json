@@ -27,7 +27,6 @@
     "types": ["vitest/globals", "faker"],
 
     // Shadcn
-    "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
     }

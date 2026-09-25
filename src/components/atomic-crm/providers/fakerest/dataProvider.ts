@@ -2,7 +2,9 @@ import {
   withLifecycleCallbacks,
   type CreateParams,
   type DataProvider,
+  type GetListResult,
   type Identifier,
+  type RaRecord,
   type ResourceCallbacks,
   type UpdateParams,
 } from "ra-core";
@@ -169,7 +171,10 @@ export const createDataProvider = ({
 
   const dataProviderWithCustomMethod: CrmDataProvider = {
     ...baseDataProvider,
-    async getList(resource: string, params: any) {
+    async getList<RecordType extends RaRecord = any>(
+      resource: string,
+      params: any,
+    ): Promise<GetListResult<RecordType>> {
       if (resource === "activity_log") {
         const { filter = {}, pagination } = params;
         const all = await getActivityLog(
@@ -179,9 +184,12 @@ export const createDataProvider = ({
         );
         const { page, perPage } = pagination;
         const start = (page - 1) * perPage;
-        return { data: all.slice(start, start + perPage), total: all.length };
+        return {
+          data: all.slice(start, start + perPage),
+          total: all.length,
+        } as unknown as GetListResult<RecordType>;
       }
-      return baseDataProvider.getList(resource, params);
+      return baseDataProvider.getList<RecordType>(resource, params);
     },
     unarchiveDeal: async (deal: Deal) => {
       // get all deals where stage is the same as the deal to unarchive
