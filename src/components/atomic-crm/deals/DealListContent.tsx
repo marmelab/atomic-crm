@@ -1,4 +1,8 @@
-import { DragDropContext, type OnDragEndResponder } from "@hello-pangea/dnd";
+import {
+  DragDropContext,
+  type DropResult,
+  type OnDragEndResponder,
+} from "@hello-pangea/dnd";
 import isEqual from "lodash/isEqual";
 import { useDataProvider, useListContext, type DataProvider } from "ra-core";
 import { useEffect, useState } from "react";
@@ -6,8 +10,9 @@ import { useEffect, useState } from "react";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal } from "../types";
 import { DealColumn } from "./DealColumn";
+import { LostReasonDialog } from "./LostReasonDialog";
 import type { DealsByStage } from "./stages";
-import { getDealsByStage } from "./stages";
+import { getDealsByStage, LOST_DEAL_STAGE } from "./stages";
 
 export const DealListContent = () => {
   const { dealStages } = useConfigurationContext();
@@ -16,6 +21,10 @@ export const DealListContent = () => {
 
   const [dealsByStage, setDealsByStage] = useState<DealsByStage>(
     getDealsByStage([], dealStages),
+  );
+  // a drop into the lost column waits for a reason before being applied
+  const [pendingLostDrop, setPendingLostDrop] = useState<PendingDrop | null>(
+    null,
   );
 
   useEffect(() => {
@@ -44,34 +53,78 @@ export const DealListContent = () => {
       return;
     }
 
+    const drop: PendingDrop = {
+      result,
+      destinationDealId:
+        dealsByStage[destination.droppableId][destination.index]?.id,
+    };
+
+    if (
+      destination.droppableId === LOST_DEAL_STAGE &&
+      source.droppableId !== LOST_DEAL_STAGE
+    ) {
+      setPendingLostDrop(drop);
+      return;
+    }
+
+    moveDeal(drop);
+  };
+
+  const moveDeal = (
+    { result, destinationDealId }: PendingDrop,
+    lostReason?: string,
+  ) => {
+    const { destination, source } = result;
+    if (!destination) return;
+
     const sourceStage = source.droppableId;
     const destinationStage = destination.droppableId;
-    const sourceDeal = dealsByStage[sourceStage][source.index]!;
-    const destinationDeal = dealsByStage[destinationStage][
-      destination.index
-    ] ?? {
-      stage: destinationStage,
-      index: undefined, // undefined if dropped after the last item
-    };
+    // resolve positions by id: the list may have refetched while the lost
+    // reason dialog was open, so the indexes captured at drop time may be stale
+    const sourceIndex = dealsByStage[sourceStage].findIndex(
+      (deal) => String(deal.id) === result.draggableId,
+    );
+    if (sourceIndex === -1) return;
+    const sourceDeal = dealsByStage[sourceStage][sourceIndex];
+    const foundDestinationIndex = dealsByStage[destinationStage].findIndex(
+      (deal) => deal.id === destinationDealId,
+    );
+    // dropped after the last item, or the deal at the drop position is gone
+    const destinationIndex =
+      foundDestinationIndex === -1 ? undefined : foundDestinationIndex;
+    const destinationDeal =
+      destinationIndex === undefined
+        ? { stage: destinationStage, index: undefined }
+        : dealsByStage[destinationStage][destinationIndex];
 
     // compute local state change synchronously
     setDealsByStage(
       updateDealStageLocal(
         sourceDeal,
-        { stage: sourceStage, index: source.index },
-        { stage: destinationStage, index: destination.index },
+        { stage: sourceStage, index: sourceIndex },
+        { stage: destinationStage, index: destinationIndex },
         dealsByStage,
       ),
     );
 
     // persist the changes
-    updateDealStage(sourceDeal, destinationDeal, dataProvider).then(() => {
-      refetch();
-    });
+    updateDealStage(sourceDeal, destinationDeal, dataProvider, lostReason).then(
+      () => {
+        refetch();
+      },
+    );
   };
 
   return (
     <DragDropContext onDragEnd={onDragEnd}>
+      <LostReasonDialog
+        open={pendingLostDrop != null}
+        onConfirm={(reason) => {
+          if (pendingLostDrop) moveDeal(pendingLostDrop, reason);
+          setPendingLostDrop(null);
+        }}
+        onCancel={() => setPendingLostDrop(null)}
+      />
       <div className="flex gap-4">
         {dealStages.map((stage) => (
           <DealColumn
@@ -83,6 +136,11 @@ export const DealListContent = () => {
       </div>
     </DragDropContext>
   );
+};
+
+type PendingDrop = {
+  result: DropResult;
+  destinationDealId?: Deal["id"];
 };
 
 const updateDealStageLocal = (
@@ -128,6 +186,7 @@ const updateDealStage = async (
     index?: number; // undefined if dropped after the last item
   },
   dataProvider: DataProvider,
+  lostReason?: string,
 ) => {
   if (source.stage === destination.stage) {
     // moving deal inside the same column
@@ -237,6 +296,7 @@ const updateDealStage = async (
         data: {
           index: destinationIndex,
           stage: destination.stage,
+          ...(lostReason ? { lost_reason: lostReason } : {}),
         },
         previousData: source,
       }),

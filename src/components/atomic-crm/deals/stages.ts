@@ -1,6 +1,8 @@
 import type { ConfigurationContextValue } from "../root/ConfigurationContext";
 import type { Deal } from "../types";
 
+export const LOST_DEAL_STAGE = "lost";
+
 export type DealsByStage = Record<Deal["stage"], Deal[]>;
 
 export const getDealsByStage = (

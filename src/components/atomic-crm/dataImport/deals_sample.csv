@@ -1,3 +1,4 @@
-name,company,category,stage,amount,expected_closing_date,description
-New website,Acme,Website design,Opportunity,12000,2026-09-30,Redesign of the public website
-Print campaign,Globex,Print project,Proposal Sent,4500,2026-10-15,
+name,company,category,stage,amount,expected_closing_date,description,lost_reason
+New website,Acme,Website design,Opportunity,12000,2026-09-30,Redesign of the public website,
+Print campaign,Globex,Print project,Proposal Sent,4500,2026-10-15,,
+Logo refresh,Initech,UI Design,Lost,3000,2026-08-31,,Chose a cheaper agency

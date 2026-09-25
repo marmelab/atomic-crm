@@ -72,6 +72,7 @@ interface DealsTable {
   expected_closing_date: Date | null;
   sales_id: number | null;
   index: number | null;
+  lost_reason: string | null;
 }
 
 interface Database {
