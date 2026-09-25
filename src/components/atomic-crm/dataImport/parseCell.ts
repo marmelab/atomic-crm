@@ -67,3 +67,20 @@ export const toConfiguredValue = (
       option.label.toLowerCase() === text,
   )?.value;
 };
+
+/**
+ * Cell content split on ";" — the separator the CSV export writes for arrays,
+ * e.g. "ui-design;copywriting" — each part matched like `toConfiguredValue`.
+ * Parts matching no option are dropped.
+ */
+export const toConfiguredValues = (
+  cell: ImportCell,
+  options: LabeledValue[],
+): string[] => [
+  ...new Set(
+    (toText(cell) ?? "")
+      .split(";")
+      .map((part) => toConfiguredValue(part, options))
+      .filter((value) => value !== undefined),
+  ),
+];

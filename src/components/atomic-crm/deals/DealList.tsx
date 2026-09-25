@@ -80,6 +80,7 @@ const DealList = () => {
       title={false}
       sort={{ field: "index", order: "DESC" }}
       filters={dealFilters}
+      queryOptions={{ meta: { dealCategories } }}
       actions={<DealActions />}
       pagination={null}
     >

@@ -1,6 +1,6 @@
 import { commands } from "vitest/browser";
 
-import { formatISODateString } from "./dealUtils";
+import { findDealCategoriesMatching, formatISODateString } from "./dealUtils";
 
 describe("formatISODateString", () => {
   let originalTimezone: string;
@@ -50,5 +50,28 @@ describe("formatISODateString", () => {
     expect(() => formatISODateString(invalidDate)).toThrow(
       "Invalid date format. Expected YYYY-MM-DD.",
     );
+  });
+});
+
+describe("findDealCategoriesMatching", () => {
+  const categories = [
+    { value: "website-design", label: "Site building" },
+    { value: "copywriting", label: "Copywriting" },
+  ];
+
+  it("matches a label, whatever its case", () => {
+    expect(findDealCategoriesMatching(categories, "BUILDING")).toEqual([
+      "website-design",
+    ]);
+  });
+
+  it("matches the stored value too", () => {
+    expect(findDealCategoriesMatching(categories, "design")).toEqual([
+      "website-design",
+    ]);
+  });
+
+  it("returns an empty array when nothing matches", () => {
+    expect(findDealCategoriesMatching(categories, "print")).toEqual([]);
   });
 });

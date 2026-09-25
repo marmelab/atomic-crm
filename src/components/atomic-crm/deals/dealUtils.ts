@@ -16,6 +16,21 @@ export const formatDealCategories = (
     .map((category) => findDealLabel(dealCategories, category) ?? category)
     .join(", ");
 
+/** Values of the categories whose label or stored value contains the search text */
+export const findDealCategoriesMatching = (
+  dealCategories: LabeledValue[],
+  search: string,
+) => {
+  const text = search.toLowerCase();
+  return dealCategories
+    .filter(
+      ({ value, label }) =>
+        value.toLowerCase().includes(text) ||
+        label.toLowerCase().includes(text),
+    )
+    .map(({ value }) => value);
+};
+
 export function getRelativeTimeString(
   dateString: string,
   locale = "en",
