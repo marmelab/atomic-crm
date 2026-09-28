@@ -84,6 +84,13 @@ exception
 end;
 $$;
 
+CREATE OR REPLACE FUNCTION "public"."current_sales_id"() RETURNS bigint
+    LANGUAGE "sql" STABLE SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+  select id from public.sales where user_id = auth.uid();
+$$;
+
 CREATE OR REPLACE FUNCTION "public"."get_domain_favicon"("domain_name" "text") RETURNS "text"
     LANGUAGE "plpgsql"
     SET "search_path" TO 'public'
