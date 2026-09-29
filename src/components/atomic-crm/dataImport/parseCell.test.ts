@@ -127,6 +127,21 @@ describe("toCategoryAmounts", () => {
     );
   });
 
+  it("keeps a bare amount as an uncategorized line", () => {
+    expect(
+      toCategoryAmounts("8000;Copywriting:4000", null, categories),
+    ).toEqual([
+      { category: null, amount: 8000 },
+      { category: "copywriting", amount: 4000 },
+    ]);
+  });
+
+  it("throws rather than dropping a part with a forgotten colon", () => {
+    expect(() =>
+      toCategoryAmounts("Website design 8000", null, categories),
+    ).toThrow('Cannot read the amount of "Website design 8000"');
+  });
+
   it("reads an unknown label containing a colon as a name", () => {
     expect(
       toCategoryAmounts(

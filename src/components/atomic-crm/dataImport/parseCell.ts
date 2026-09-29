@@ -104,6 +104,11 @@ const toCategoryAmount = (
   // A label may itself contain ":" ("Phase 1: Discovery"), so a whole-part
   // match wins, and a digitless end is part of the name, not an amount
   const wholeMatch = toConfiguredValue(part, options);
+  if (separator === -1 && wholeMatch === undefined && /\d/.test(part)) {
+    // "8000" alone is an uncategorized amount; "Website design 8000" (a
+    // forgotten ":") throws rather than silently losing its money
+    return { category: null, amount: toRequiredAmount(part, part.trim()) };
+  }
   if (
     separator === -1 ||
     wholeMatch !== undefined ||
