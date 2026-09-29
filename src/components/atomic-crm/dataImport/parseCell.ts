@@ -81,6 +81,24 @@ const toAmount = (text: string): number | undefined =>
       .replace(",", "."),
   );
 
+/**
+ * `toAmount` of a cell, undefined when it is empty. Throws on an unreadable
+ * amount: that fails the row, which the import report counts, rather than
+ * silently importing the deal without this money.
+ */
+const toRequiredAmount = (
+  cell: ImportCell,
+  source: string,
+): number | undefined => {
+  const text = toText(cell);
+  if (text === undefined) return undefined;
+  const amount = toAmount(text);
+  if (amount === undefined) {
+    throw new Error(`Cannot read the amount of "${source}"`);
+  }
+  return amount;
+};
+
 /** One `category:amount` part; the amount is optional. */
 const toCategoryAmount = (
   part: string,
@@ -92,16 +110,9 @@ const toCategoryAmount = (
   if (separator === -1 || wholeMatch !== undefined) {
     return { category: wholeMatch ?? null, amount: undefined };
   }
-  const amountText = toText(part.slice(separator + 1));
-  const amount = amountText === undefined ? undefined : toAmount(amountText);
-  if (amountText !== undefined && amount === undefined) {
-    // Throwing fails the row, which the import report counts, rather than
-    // silently importing the deal without this money
-    throw new Error(`Cannot read the amount of "${part.trim()}"`);
-  }
   return {
     category: toConfiguredValue(part.slice(0, separator), options) ?? null,
-    amount,
+    amount: toRequiredAmount(part.slice(separator + 1), part.trim()),
   };
 };
 
@@ -126,7 +137,7 @@ export const toCategoryAmounts = (
     .map((part) => toCategoryAmount(part, options))
     .filter((line) => line.category !== null || line.amount !== undefined);
 
-  const total = toInteger(totalCell);
+  const total = toRequiredAmount(totalCell, String(totalCell).trim());
   const hasAmounts = lines.some((line) => line.amount !== undefined);
   if (!hasAmounts && total !== undefined) {
     if (lines.length === 0) return [{ category: null, amount: total }];

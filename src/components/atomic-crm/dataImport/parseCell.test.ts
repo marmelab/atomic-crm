@@ -119,6 +119,18 @@ describe("toCategoryAmounts", () => {
     ]);
   });
 
+  it("reads a formatted amount in the single-amount column", () => {
+    expect(toCategoryAmounts("Website design", "$12,000", categories)).toEqual([
+      { category: "website-design", amount: 12000 },
+    ]);
+  });
+
+  it("throws rather than dropping an unreadable single amount", () => {
+    expect(() =>
+      toCategoryAmounts("Website design", "12k", categories),
+    ).toThrow('Cannot read the amount of "12k"');
+  });
+
   it("throws rather than dropping an unreadable amount", () => {
     expect(() =>
       toCategoryAmounts("Website design:8k;Copywriting:4000", null, categories),
