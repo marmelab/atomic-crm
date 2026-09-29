@@ -105,9 +105,14 @@ const toCategoryAmount = (
   options: LabeledValue[],
 ): { category: string | null; amount: number | undefined } => {
   const separator = part.lastIndexOf(":");
-  // A label may itself contain ":", so a whole-part match wins
+  // A label may itself contain ":" ("Phase 1: Discovery"), so a whole-part
+  // match wins, and a digitless end is part of the name, not an amount
   const wholeMatch = toConfiguredValue(part, options);
-  if (separator === -1 || wholeMatch !== undefined) {
+  if (
+    separator === -1 ||
+    wholeMatch !== undefined ||
+    /^[^\d]+$/.test(part.slice(separator + 1).trim())
+  ) {
     return { category: wholeMatch ?? null, amount: undefined };
   }
   return {
@@ -137,9 +142,12 @@ export const toCategoryAmounts = (
     .map((part) => toCategoryAmount(part, options))
     .filter((line) => line.category !== null || line.amount !== undefined);
 
-  const total = toRequiredAmount(totalCell, String(totalCell).trim());
   const hasAmounts = lines.some((line) => line.amount !== undefined);
-  if (!hasAmounts && total !== undefined) {
+  // Only read when used, so an unreadable ignored cell does not fail the row
+  const total = hasAmounts
+    ? undefined
+    : toRequiredAmount(totalCell, String(totalCell).trim());
+  if (total !== undefined) {
     if (lines.length === 0) return [{ category: null, amount: total }];
     lines[0] = { ...lines[0], amount: total };
   }

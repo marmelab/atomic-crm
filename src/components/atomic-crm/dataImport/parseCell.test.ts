@@ -133,6 +133,22 @@ describe("toCategoryAmounts", () => {
     ]);
   });
 
+  it("ignores the single-amount column when parts carry amounts", () => {
+    expect(toCategoryAmounts("Website design:8000", "N/A", categories)).toEqual(
+      [{ category: "website-design", amount: 8000 }],
+    );
+  });
+
+  it("reads an unknown label containing a colon as a name", () => {
+    expect(
+      toCategoryAmounts(
+        "Phase 1: Discovery;Copywriting:4000",
+        null,
+        categories,
+      ),
+    ).toEqual([{ category: "copywriting", amount: 4000 }]);
+  });
+
   it("reads a formatted amount in the single-amount column", () => {
     expect(toCategoryAmounts("Website design", "$12,000", categories)).toEqual([
       { category: "website-design", amount: 12000 },
