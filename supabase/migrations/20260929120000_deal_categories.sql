@@ -2,7 +2,7 @@ alter table "public"."deals" add column "category_amounts" jsonb not null defaul
 
 alter table "public"."deals" add constraint "deals_category_amounts_is_array" check (jsonb_typeof(category_amounts) = 'array');
 
-alter table "public"."deals" add constraint "deals_category_amounts_numeric" check (not jsonb_path_exists(category_amounts, '$[*] ? (@.amount.type() != "number")'));
+alter table "public"."deals" add constraint "deals_category_amounts_numeric" check (not jsonb_path_exists(category_amounts, '$[*] ? (!exists(@.amount) || @.amount.type() != "number")'));
 
 -- Move each deal's single category and amount into one category line
 update "public"."deals"

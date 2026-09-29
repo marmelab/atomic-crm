@@ -39,7 +39,7 @@ export const formatCategoryAmounts = (
   categoryAmounts: DealCategoryAmount[] = [],
 ) =>
   categoryAmounts
-    .map((line) => `${line.category ?? ""}:${line.amount}`)
+    .map((line) => `${line.category ?? ""}:${Math.round(line.amount)}`)
     .join(";");
 
 /**

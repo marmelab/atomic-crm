@@ -158,4 +158,12 @@ describe("formatCategoryAmounts", () => {
       toCategoryAmounts(formatCategoryAmounts(lines), "8500", options),
     ).toEqual(lines);
   });
+
+  it("rounds decimal amounts so the import cannot read them as thousands", () => {
+    const options = [{ value: "website-design", label: "Website design" }];
+    const decimal = [{ category: "website-design", amount: 1234.567 }];
+    expect(
+      toCategoryAmounts(formatCategoryAmounts(decimal), null, options),
+    ).toEqual([{ category: "website-design", amount: 1235 }]);
+  });
 });

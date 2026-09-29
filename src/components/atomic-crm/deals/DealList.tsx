@@ -157,14 +157,17 @@ const useMigrateLegacyCategoryFilter = () => {
   }, [filterValues, displayedFilters, setFilters]);
 };
 
-const DealActions = () => (
-  <TopToolbar>
-    <FilterButton />
-    <DataImportButton resource="deals" />
-    <ExportButton />
-    <CreateButton label="resources.deals.action.new" />
-  </TopToolbar>
-);
+const DealActions = () => {
+  const { dealCategories } = useConfigurationContext();
+  return (
+    <TopToolbar>
+      <FilterButton />
+      <DataImportButton resource="deals" />
+      <ExportButton meta={{ dealCategories }} />
+      <CreateButton label="resources.deals.action.new" />
+    </TopToolbar>
+  );
+};
 
 /** Writes the per-category amounts in the `categories` column the import reads */
 const exporter: Exporter<Deal> = (records) => {

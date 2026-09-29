@@ -78,8 +78,8 @@ create table public.deals (
     -- the categories of the deal, each with its amount: [{"category": ..., "amount": ...}]
     category_amounts jsonb not null default '[]'::jsonb,
     constraint deals_category_amounts_is_array check (jsonb_typeof(category_amounts) = 'array'),
-    -- amount() casts each amount to numeric: one string amount would break every query reading it
-    constraint deals_category_amounts_numeric check (not jsonb_path_exists(category_amounts, '$[*] ? (@.amount.type() != "number")'))
+    -- every line needs a numeric amount: amount() casts it, and the UI reads it
+    constraint deals_category_amounts_numeric check (not jsonb_path_exists(category_amounts, '$[*] ? (!exists(@.amount) || @.amount.type() != "number")'))
 );
 
 create table public.deal_notes (
