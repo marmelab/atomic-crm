@@ -36,6 +36,7 @@ function ToggleGroup({
   return (
     <ToggleGroupPrimitive
       data-slot="toggle-group"
+      orientation={orientation}
       data-variant={variant}
       data-size={size}
       data-spacing={spacing}
