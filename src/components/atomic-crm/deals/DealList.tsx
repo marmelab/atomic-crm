@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import type { Exporter, InputProps } from "ra-core";
 import jsonExport from "jsonexport/dist";
 import {
@@ -29,7 +29,7 @@ import { DealEmpty } from "./DealEmpty";
 import { DealListContent } from "./DealListContent";
 import { DealShow } from "./DealShow";
 import type { Deal } from "../types";
-import { formatCategoryAmounts } from "./dealUtils";
+import { formatCategoryAmounts, mapLegacyCategoryFilter } from "./dealUtils";
 import { OnlyMineInput } from "./OnlyMineInput";
 
 const DealList = () => {
@@ -71,8 +71,10 @@ const DealList = () => {
                 .filter(Boolean)
             : []
         }
+        // "" (not undefined) when emptied: the filter form drops empty
+        // strings, but merges undefined away and would keep the old value
         parse={(values?: string[]) =>
-          values?.length ? `{${values.join(",")}}` : undefined
+          values?.length ? `{${values.join(",")}}` : ""
         }
       />
     </WrapperField>,
@@ -111,6 +113,7 @@ const DealLayout = () => {
   const matchEdit = matchPath("/deals/:id", location.pathname);
 
   const { data, isPending, filterValues } = useListContext();
+  useMigrateLegacyCategoryFilter();
   const hasFilters = filterValues && Object.keys(filterValues).length > 0;
 
   if (isPending) return null;
@@ -133,6 +136,25 @@ const DealLayout = () => {
       <DealShow open={!!matchShow} id={matchShow?.params.id} />
     </div>
   );
+};
+
+/**
+ * Moves a stale single-category filter (stored list params, bookmarked URL) to
+ * the categories filter once, so the Category input shows it and can clear it.
+ * The data providers also map it, for the request sent before this runs.
+ */
+const useMigrateLegacyCategoryFilter = () => {
+  const { filterValues, displayedFilters, setFilters } = useListContext();
+  useEffect(() => {
+    if (!filterValues || !("category" in filterValues)) return;
+    const { filter } = mapLegacyCategoryFilter({ filter: filterValues });
+    setFilters(
+      filter,
+      "categories@cs" in filter
+        ? { ...displayedFilters, "categories@cs": true }
+        : displayedFilters,
+    );
+  }, [filterValues, displayedFilters, setFilters]);
 };
 
 const DealActions = () => (

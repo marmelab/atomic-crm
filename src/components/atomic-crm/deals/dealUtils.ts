@@ -55,21 +55,27 @@ export const mapLegacyCategoryFilter = <Params extends { filter?: any }>(
   const { category, ...filter } = params.filter;
   return {
     ...params,
-    filter: category ? { ...filter, "categories@cs": `{${category}}` } : filter,
+    // a categories filter the user picked wins over the stale one
+    filter: category ? { "categories@cs": `{${category}}`, ...filter } : filter,
   };
 };
 
-/** Values of the categories whose label or stored value contains the search text */
+/**
+ * Values of the categories whose label or stored value contains a word of the
+ * search text, as the other searched fields match word by word
+ */
 export const findDealCategoriesMatching = (
   dealCategories: LabeledValue[],
   search: string,
 ) => {
-  const text = search.toLowerCase();
+  const words = search.toLowerCase().trim().split(/\s+/).filter(Boolean);
   return dealCategories
-    .filter(
-      ({ value, label }) =>
-        value.toLowerCase().includes(text) ||
-        label.toLowerCase().includes(text),
+    .filter(({ value, label }) =>
+      words.some(
+        (word) =>
+          value.toLowerCase().includes(word) ||
+          label.toLowerCase().includes(word),
+      ),
     )
     .map(({ value }) => value);
 };

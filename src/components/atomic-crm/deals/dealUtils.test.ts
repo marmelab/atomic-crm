@@ -82,6 +82,12 @@ describe("findDealCategoriesMatching", () => {
   it("returns an empty array when nothing matches", () => {
     expect(findDealCategoriesMatching(categories, "print")).toEqual([]);
   });
+
+  it("matches any word of a multi-word search, like the other fields", () => {
+    expect(
+      findDealCategoriesMatching(categories, "copywriting launch"),
+    ).toEqual(["copywriting"]);
+  });
 });
 
 describe("mapLegacyCategoryFilter", () => {
@@ -89,6 +95,17 @@ describe("mapLegacyCategoryFilter", () => {
     expect(
       mapLegacyCategoryFilter({ filter: { category: "copywriting", q: "x" } }),
     ).toEqual({ filter: { "categories@cs": "{copywriting}", q: "x" } });
+  });
+
+  it("keeps the categories filter the user picked over the stale one", () => {
+    expect(
+      mapLegacyCategoryFilter({
+        filter: {
+          category: "copywriting",
+          "categories@cs": "{website-design}",
+        },
+      }),
+    ).toEqual({ filter: { "categories@cs": "{website-design}" } });
   });
 
   it("drops an empty stale category filter", () => {
