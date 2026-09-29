@@ -91,7 +91,7 @@ const DealShowContent = () => {
           </div>
 
           <div className="flex gap-8 m-4">
-            <div className="flex flex-col mr-10">
+            <div className="flex flex-col shrink-0 mr-10">
               <span className="text-xs text-muted-foreground tracking-wide">
                 {translate("resources.deals.fields.expected_closing_date")}
               </span>
@@ -109,7 +109,7 @@ const DealShowContent = () => {
               </div>
             </div>
 
-            <div className="flex flex-col mr-10">
+            <div className="flex flex-col shrink-0 mr-10">
               <span className="text-xs text-muted-foreground tracking-wide">
                 {translate("resources.deals.fields.amount")}
               </span>
@@ -128,31 +128,40 @@ const DealShowContent = () => {
             </div>
 
             {record.category_amounts?.some((line) => line.category) && (
-              <div className="flex flex-col mr-10">
+              <div className="flex flex-col min-w-0 mr-10">
                 <span className="text-xs text-muted-foreground tracking-wide">
                   {translate("resources.deals.fields.category_amounts")}
                 </span>
-                <ul className="text-sm">
+                <ul className="flex flex-wrap gap-2 mt-1">
                   {record.category_amounts
                     .filter((line) => line.category)
+                    .sort((a, b) => b.amount - a.amount)
                     .map((line, index) => (
                       <li key={index}>
-                        {formatDealCategories(dealCategories, [line.category!])}
-                        :{" "}
-                        {line.amount.toLocaleString("en-US", {
-                          notation: "compact",
-                          style: "currency",
-                          currency,
-                          currencyDisplay: "narrowSymbol",
-                          minimumSignificantDigits: 3,
-                        })}
+                        <Badge
+                          variant="secondary"
+                          className="px-2.5 py-1 text-sm font-normal gap-1.5"
+                        >
+                          {formatDealCategories(dealCategories, [
+                            line.category!,
+                          ])}
+                          <span className="font-medium tabular-nums">
+                            {line.amount.toLocaleString("en-US", {
+                              notation: "compact",
+                              style: "currency",
+                              currency,
+                              currencyDisplay: "narrowSymbol",
+                              minimumSignificantDigits: 3,
+                            })}
+                          </span>
+                        </Badge>
                       </li>
                     ))}
                 </ul>
               </div>
             )}
 
-            <div className="flex flex-col mr-10">
+            <div className="flex flex-col shrink-0 mr-10">
               <span className="text-xs text-muted-foreground tracking-wide">
                 {translate("resources.deals.fields.stage")}
               </span>
