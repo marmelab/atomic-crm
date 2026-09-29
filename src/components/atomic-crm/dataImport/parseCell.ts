@@ -69,15 +69,15 @@ export const toConfiguredValue = (
 };
 
 /**
- * An amount as users write it: "$8,000", "8 000", "8 000,50". Currency symbols
- * and spaces go, a comma before three digits is a thousands separator, any
- * other comma is the decimal one.
+ * An amount as users write it: "$8,000", "8 000", "8.000,50". Currency symbols
+ * and spaces go, a comma or dot before three digits is a thousands separator
+ * (amounts never carry three decimals), any other comma is the decimal one.
  */
 const toAmount = (text: string): number | undefined =>
   toInteger(
     text
       .replace(/[\s$€£¥]/g, "")
-      .replace(/,(?=\d{3}(\D|$))/g, "")
+      .replace(/[.,](?=\d{3}(\D|$))/g, "")
       .replace(",", "."),
   );
 

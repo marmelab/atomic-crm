@@ -119,6 +119,20 @@ describe("toCategoryAmounts", () => {
     ]);
   });
 
+  it("reads dots as thousands separators before three digits", () => {
+    expect(
+      toCategoryAmounts(
+        "Website design:8.000;Copywriting:12.500,50;Print:4,500.25",
+        null,
+        categories,
+      ),
+    ).toEqual([
+      { category: "website-design", amount: 8000 },
+      { category: "copywriting", amount: 12501 },
+      { category: null, amount: 4500 },
+    ]);
+  });
+
   it("reads a formatted amount in the single-amount column", () => {
     expect(toCategoryAmounts("Website design", "$12,000", categories)).toEqual([
       { category: "website-design", amount: 12000 },
