@@ -5,9 +5,8 @@ import { useConfigurationContext } from "../root/ConfigurationContext";
 import { useCompanyResolver } from "./useCompanyResolver";
 import { createEachRow } from "./createEachRow";
 import {
+  toCategoryAmounts,
   toConfiguredValue,
-  toConfiguredValues,
-  toInteger,
   toIsoDate,
   toText,
 } from "./parseCell";
@@ -61,14 +60,13 @@ export function useDealImport(): ProcessImportBatch {
                 ? companies.get(companyName)?.id
                 : undefined,
               contact_ids: [],
-              categories: toConfiguredValues(
+              category_amounts: toCategoryAmounts(
                 row.categories ?? row.category,
+                row.amount,
                 dealCategories,
               ),
               stage,
               description: toText(row.description),
-              // amount lands in a bigint column, which rejects "4500.50"
-              amount: toInteger(row.amount),
               expected_closing_date: toIsoDate(row.expected_closing_date),
               sales_id: identity?.id,
               index: indexes.get(row) ?? 0,

@@ -109,9 +109,8 @@ export const buildContact = (overrides: Partial<Contact> = {}): Contact => ({
 });
 
 export const buildDeal = (overrides: Partial<Deal> = {}): Deal => ({
-  amount: 1000,
   archived_at: undefined,
-  categories: ["other"],
+  category_amounts: [{ category: "other", amount: 1000 }],
   company_id: 1,
   contact_ids: [],
   created_at: "2025-01-01T09:00:00.000Z",

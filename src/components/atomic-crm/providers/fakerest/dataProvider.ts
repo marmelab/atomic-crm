@@ -2,6 +2,7 @@ import {
   withLifecycleCallbacks,
   type CreateParams,
   type DataProvider,
+  type GetListParams,
   type Identifier,
   type ResourceCallbacks,
   type UpdateParams,
@@ -26,6 +27,7 @@ import { getContactAvatar } from "../commons/getContactAvatar";
 import { mergeContacts } from "../commons/mergeContacts";
 import {
   findDealCategoriesMatching,
+  getDealCategories,
   mapLegacyCategoryFilter,
 } from "../../deals/dealUtils";
 import type { CrmDataProvider } from "../types";
@@ -36,6 +38,7 @@ import {
 import generateData from "./dataGenerator";
 import type { Db } from "./dataGenerator/types";
 import { withSupabaseFilterAdapter } from "./internal/supabaseAdapter";
+import { transformContainsFilter } from "./internal/transformContainsFilter";
 
 const TASK_MARKED_AS_DONE = "TASK_MARKED_AS_DONE";
 const TASK_MARKED_AS_UNDONE = "TASK_MARKED_AS_UNDONE";
@@ -142,6 +145,33 @@ const preserveAttachmentMimeType = <
     type: attachment.type ?? attachment.rawFile?.type,
   })),
 });
+
+/**
+ * Emulates the `categories` computed field of the database, which FakeRest
+ * lacks: `categories@cs` keeps the deals having all the given categories,
+ * turned into an `id@in` filter FakeRest understands.
+ */
+const emulateCategoriesFilter = async (
+  params: GetListParams,
+  dataProvider: DataProvider,
+): Promise<GetListParams> => {
+  const { "categories@cs": categoriesFilter, ...filter } = params.filter ?? {};
+  if (!categoriesFilter) return params;
+  const wanted = transformContainsFilter(categoriesFilter);
+  // ponytail: loads every deal, fine for the in-memory demo database
+  const { data: deals } = await dataProvider.getList<Deal>("deals", {
+    filter: {},
+    pagination: { page: 1, perPage: 10_000 },
+    sort: { field: "id", order: "ASC" },
+  });
+  const ids = deals
+    .filter((deal) => {
+      const categories = getDealCategories(deal.category_amounts);
+      return wanted.every((category) => categories.includes(String(category)));
+    })
+    .map((deal) => deal.id);
+  return { ...params, filter: { ...filter, "id@in": `(${ids.join(",")})` } };
+};
 
 export const createDataProvider = ({
   db = generateData(),
@@ -567,8 +597,11 @@ export const createDataProvider = ({
       } satisfies ResourceCallbacks<Company>,
       {
         resource: "deals",
-        beforeGetList: async (params) => {
-          const mapped = mapLegacyCategoryFilter(params);
+        beforeGetList: async (params, dataProvider) => {
+          const mapped = await emulateCategoriesFilter(
+            mapLegacyCategoryFilter(params),
+            dataProvider,
+          );
           const q = mapped.filter?.q;
           if (!q) return mapped;
           // FakeRest ORs the words of q: appending the values of the categories

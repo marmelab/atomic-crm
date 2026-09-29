@@ -1,6 +1,6 @@
 import { format } from "date-fns";
 
-import type { DealStage, LabeledValue } from "../types";
+import type { DealCategoryAmount, DealStage, LabeledValue } from "../types";
 
 export const findDealLabel = (dealStages: DealStage[], dealValue: string) => {
   const dealStage = dealStages.find((stage) => stage.value === dealValue);
@@ -15,6 +15,32 @@ export const formatDealCategories = (
   categories
     .map((category) => findDealLabel(dealCategories, category) ?? category)
     .join(", ");
+
+/** A deal's categories, each once, in the order of its category lines */
+export const getDealCategories = (
+  categoryAmounts: DealCategoryAmount[] = [],
+) => [
+  ...new Set(
+    categoryAmounts
+      .map((line) => line.category)
+      .filter((category): category is string => !!category),
+  ),
+];
+
+/** A deal's amount: the sum of its category amounts */
+export const getDealAmount = (categoryAmounts: DealCategoryAmount[] = []) =>
+  categoryAmounts.reduce((sum, line) => sum + (Number(line.amount) || 0), 0);
+
+/**
+ * A deal's per-category amounts as one CSV cell, in the format the import reads:
+ * "website-design:8000;copywriting:4000" (":500" for an uncategorized line).
+ */
+export const formatCategoryAmounts = (
+  categoryAmounts: DealCategoryAmount[] = [],
+) =>
+  categoryAmounts
+    .map((line) => `${line.category ?? ""}:${line.amount}`)
+    .join(";");
 
 /**
  * Deals used to be filtered on a single `category` column, dropped when deals

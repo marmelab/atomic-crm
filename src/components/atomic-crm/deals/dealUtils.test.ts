@@ -1,8 +1,12 @@
 import { commands } from "vitest/browser";
 
+import { toCategoryAmounts } from "../dataImport/parseCell";
 import {
   findDealCategoriesMatching,
+  formatCategoryAmounts,
   formatISODateString,
+  getDealAmount,
+  getDealCategories,
   mapLegacyCategoryFilter,
 } from "./dealUtils";
 
@@ -96,5 +100,45 @@ describe("mapLegacyCategoryFilter", () => {
   it("leaves params without a category filter untouched", () => {
     const params = { filter: { stage: "won" } };
     expect(mapLegacyCategoryFilter(params)).toBe(params);
+  });
+});
+
+describe("getDealCategories and getDealAmount", () => {
+  const lines = [
+    { category: "sprint-0", amount: 5000 },
+    { category: "license", amount: 1200 },
+    { category: "sprint-0", amount: 3000 },
+    { category: null, amount: 800 },
+  ];
+
+  it("lists each category once, in line order, skipping empty ones", () => {
+    expect(getDealCategories(lines)).toEqual(["sprint-0", "license"]);
+  });
+
+  it("sums the amounts of every line", () => {
+    expect(getDealAmount(lines)).toBe(10000);
+  });
+
+  it("returns no category and a zero amount when the deal has no lines", () => {
+    expect(getDealCategories([])).toEqual([]);
+    expect(getDealAmount([])).toBe(0);
+  });
+});
+
+describe("formatCategoryAmounts", () => {
+  const lines = [
+    { category: "website-design", amount: 8000 },
+    { category: null, amount: 500 },
+  ];
+
+  it("writes one category:amount part per line", () => {
+    expect(formatCategoryAmounts(lines)).toBe("website-design:8000;:500");
+  });
+
+  it("is read back unchanged by the CSV import", () => {
+    const options = [{ value: "website-design", label: "Website design" }];
+    expect(
+      toCategoryAmounts(formatCategoryAmounts(lines), "8500", options),
+    ).toEqual(lines);
   });
 });

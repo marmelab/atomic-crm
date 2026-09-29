@@ -12,7 +12,11 @@ Atomic CRM imports contacts, companies and deals from CSV files. Two buttons ope
 - **Import data**, on the initial user onboarding page, lets you choose the resource to import into.
 - **Import CSV**, on the contacts, companies and deals pages, imports into that resource directly.
 
-<video src="https://github.com/user-attachments/assets/a1133cf0-0287-4fc0-b61b-5a0b88617cfc" controls className="w-full aspect-1304/814"></video>
+<video
+    src="https://github.com/user-attachments/assets/a1133cf0-0287-4fc0-b61b-5a0b88617cfc"
+    controls
+    className="w-full aspect-1304/814"
+></video>
 
 For each resource, the dialog offers a sample CSV file to download, showing the expected columns. Columns the CRM does not know are ignored, and columns you omit are left empty.
 
@@ -41,16 +45,16 @@ The `name` column is required. `sector` is matched against the company sectors c
 ### Deals
 
 ```csv
-name,company,categories,stage,amount,expected_closing_date,description
-New website,Acme,Website design;Copywriting,Opportunity,12000,2026-09-30,Redesign of the public website
-Print campaign,Globex,Print project,Proposal Sent,4500,2026-10-15,
+name,company,categories,stage,expected_closing_date,description
+New website,Acme,Website design:8000;Copywriting:4000,Opportunity,2026-09-30,Redesign of the public website
+Print campaign,Globex,Print project:4500,Proposal Sent,2026-10-15,
 ```
 
-The `name` column is required. The `company` column holds a company name: an existing company is reused, an unknown one is created. A deal can have several categories: separate them with a `;` in the `categories` column, as the deals export does. Files using the former single-value `category` column are still accepted. Categories and `stage` are matched against the deal categories and stages configured in your CRM, by stored value or displayed label; a category matching none of them is ignored. Since a deal always belongs to a stage, an empty or unrecognized `stage` falls back to the first stage of your pipeline.
+The `name` column is required. The `company` column holds a company name: an existing company is reused, an unknown one is created. A deal can have several categories, each with its own amount: write them as `category:amount` in the `categories` column, separated by `;`, as the deals export does. The deal amount is the sum of these amounts. Files using the former single-value `category` and `amount` columns are still accepted: the amount then goes to the first category. Categories and `stage` are matched against the deal categories and stages configured in your CRM, by stored value or displayed label; a category matching none of them keeps its amount, without a category. Since a deal always belongs to a stage, an empty or unrecognized `stage` falls back to the first stage of your pipeline.
 
 ## Export Contacts To CSV
 
-In the contacts, companies and deals pages, an export button allows to download the list of contacts, companies or deals in CSV format. A deal's categories are exported in a single `categories` column, separated by `;`.
+In the contacts, companies and deals pages, an export button allows to download the list of contacts, companies or deals in CSV format. A deal's categories and their amounts are exported in a single `categories` column, in the same `category:amount` format as the import.
 
 ![Import and export Buttons](../../images/import-export.jpg)
 
@@ -66,117 +70,117 @@ Atomic CRM allows to import contacts, companies, tasks, notes, tags and deals fr
 
 ```json
 {
-  "sales": [
-    {
-      "id": 123,
-      "first_name": "Barney",
-      "last_name": "Calhoun",
-      "email": "barney.calhoun@blackmesa.com"
-    }
-  ],
-  "companies": [
-    {
-      "id": 234,
-      "name": "Black Mesa Research Facility",
-      "sector": "industrials",
-      "size": 250,
-      "website": "https://blackmesa.com",
-      "linkedin_url": "https://linkedin.com/company/black-mesa",
-      "phone_number": "+1-505-555-0001",
-      "revenue": "$500M",
-      "tax_identifier": "12-3456789"
-    },
-    {
-      "id": 345,
-      "name": "Aperture Science",
-      "description": "We do what we must because we can",
-      "city": "Cleveland",
-      "country": "USA",
-      "address": "Deep underground facility",
-      "zipcode": "99999",
-      "state_abbr": "OH",
-      "sector": "industrials",
-      "size": 500,
-      "linkedin_url": "https://linkedin.com/company/aperture-science",
-      "website": "https://aperturescience.com",
-      "phone_number": "+1-216-555-0100",
-      "revenue": "$2B",
-      "tax_identifier": "98-7654321",
-      "context_links": [
-        "https://aperturescience.com/research",
-        "https://aperturescience.com/portal-technology"
-      ],
-      "sales_id": 123
-    }
-  ],
-  "contacts": [
-    {
-      "id": 456,
-      "first_name": "Gordon",
-      "last_name": "Freeman",
-      "gender": "male",
-      "has_newsletter": false
-    },
-    {
-      "id": 567,
-      "first_name": "Cave",
-      "last_name": "Johnson",
-      "title": "CEO & Founder",
-      "company_id": 345,
-      "background": "Visionary entrepreneur. Believes in the power of science. May or may not have turned himself into a computer.",
-      "linkedin_url": "https://linkedin.com/in/cavejohnson",
-      "gender": "male",
-      "has_newsletter": true,
-      "sales_id": 123,
-      "emails": [
+    "sales": [
         {
-          "email": "cave.johnson@aperturescience.com",
-          "type": "Work"
+            "id": 123,
+            "first_name": "Barney",
+            "last_name": "Calhoun",
+            "email": "barney.calhoun@blackmesa.com"
         }
-      ],
-      "phones": [
+    ],
+    "companies": [
         {
-          "number": "15551234567",
-          "type": "Work"
-        }
-      ],
-      "tags": ["VIP", "Science"]
-    }
-  ],
-  "notes": [
-    {
-      "contact_id": 456,
-      "sales_id": 123,
-      "text": "Still refuses to speak. Communication continues to be challenging.",
-      "date": "2025-11-13T08:16:10Z"
-    },
-    {
-      "contact_id": 567,
-      "sales_id": 123,
-      "text": "Discussed new testing initiative involving portals.\n\nCave mentioned something about combustible lemons. Need to follow up on R&D budget.",
-      "date": "2025-02-14T09:20:21Z",
-      "attachments": [
+            "id": 234,
+            "name": "Black Mesa Research Facility",
+            "sector": "industrials",
+            "size": 250,
+            "website": "https://blackmesa.com",
+            "linkedin_url": "https://linkedin.com/company/black-mesa",
+            "phone_number": "+1-505-555-0001",
+            "revenue": "$500M",
+            "tax_identifier": "12-3456789"
+        },
         {
-          "url": "https://aperturescience.com/files/combustible-lemons-proposal.pdf",
-          "name": "combustible-lemons-proposal.pdf"
+            "id": 345,
+            "name": "Aperture Science",
+            "description": "We do what we must because we can",
+            "city": "Cleveland",
+            "country": "USA",
+            "address": "Deep underground facility",
+            "zipcode": "99999",
+            "state_abbr": "OH",
+            "sector": "industrials",
+            "size": 500,
+            "linkedin_url": "https://linkedin.com/company/aperture-science",
+            "website": "https://aperturescience.com",
+            "phone_number": "+1-216-555-0100",
+            "revenue": "$2B",
+            "tax_identifier": "98-7654321",
+            "context_links": [
+                "https://aperturescience.com/research",
+                "https://aperturescience.com/portal-technology"
+            ],
+            "sales_id": 123
         }
-      ]
-    }
-  ],
-  "tasks": [
-    {
-      "contact_id": 456,
-      "sales_id": 123,
-      "text": "Send crowbar maintenance kit"
-    },
-    {
-      "contact_id": 567,
-      "sales_id": 123,
-      "text": "Schedule moon rock conversion demo",
-      "due_date": "2025-03-26T16:15:00Z",
-      "done_date": "2025-04-01T09:00:00"
-    }
-  ]
+    ],
+    "contacts": [
+        {
+            "id": 456,
+            "first_name": "Gordon",
+            "last_name": "Freeman",
+            "gender": "male",
+            "has_newsletter": false
+        },
+        {
+            "id": 567,
+            "first_name": "Cave",
+            "last_name": "Johnson",
+            "title": "CEO & Founder",
+            "company_id": 345,
+            "background": "Visionary entrepreneur. Believes in the power of science. May or may not have turned himself into a computer.",
+            "linkedin_url": "https://linkedin.com/in/cavejohnson",
+            "gender": "male",
+            "has_newsletter": true,
+            "sales_id": 123,
+            "emails": [
+                {
+                    "email": "cave.johnson@aperturescience.com",
+                    "type": "Work"
+                }
+            ],
+            "phones": [
+                {
+                    "number": "15551234567",
+                    "type": "Work"
+                }
+            ],
+            "tags": ["VIP", "Science"]
+        }
+    ],
+    "notes": [
+        {
+            "contact_id": 456,
+            "sales_id": 123,
+            "text": "Still refuses to speak. Communication continues to be challenging.",
+            "date": "2025-11-13T08:16:10Z"
+        },
+        {
+            "contact_id": 567,
+            "sales_id": 123,
+            "text": "Discussed new testing initiative involving portals.\n\nCave mentioned something about combustible lemons. Need to follow up on R&D budget.",
+            "date": "2025-02-14T09:20:21Z",
+            "attachments": [
+                {
+                    "url": "https://aperturescience.com/files/combustible-lemons-proposal.pdf",
+                    "name": "combustible-lemons-proposal.pdf"
+                }
+            ]
+        }
+    ],
+    "tasks": [
+        {
+            "contact_id": 456,
+            "sales_id": 123,
+            "text": "Send crowbar maintenance kit"
+        },
+        {
+            "contact_id": 567,
+            "sales_id": 123,
+            "text": "Schedule moon rock conversion demo",
+            "due_date": "2025-03-26T16:15:00Z",
+            "done_date": "2025-04-01T09:00:00"
+        }
+    ]
 }
 ```
 

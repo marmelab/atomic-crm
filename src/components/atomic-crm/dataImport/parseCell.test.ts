@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  toCategoryAmounts,
   toConfiguredValue,
-  toConfiguredValues,
   toInteger,
   toIsoDate,
   toNumber,
@@ -94,21 +94,47 @@ describe("toConfiguredValue", () => {
   });
 });
 
-describe("toConfiguredValues", () => {
-  it("reads the ';'-separated values the CSV export writes", () => {
-    expect(toConfiguredValues("opportunity;Proposal Sent", stages)).toEqual([
-      "opportunity",
-      "proposal-sent",
+describe("toCategoryAmounts", () => {
+  const categories = [
+    { value: "website-design", label: "Website design" },
+    { value: "copywriting", label: "Copywriting" },
+  ];
+
+  it("reads the category:amount parts the deals export writes", () => {
+    expect(
+      toCategoryAmounts(
+        "Website design:8000;copywriting:4000",
+        "12000",
+        categories,
+      ),
+    ).toEqual([
+      { category: "website-design", amount: 8000 },
+      { category: "copywriting", amount: 4000 },
     ]);
   });
 
-  it("drops unknown and duplicate parts", () => {
+  it("gives the amount column to the first category of older files", () => {
     expect(
-      toConfiguredValues("Archived; opportunity ;Opportunity", stages),
-    ).toEqual(["opportunity"]);
+      toCategoryAmounts("Website design;Copywriting", "12000", categories),
+    ).toEqual([
+      { category: "website-design", amount: 12000 },
+      { category: "copywriting", amount: 0 },
+    ]);
   });
 
-  it("returns an empty array for an empty cell", () => {
-    expect(toConfiguredValues(null, stages)).toEqual([]);
+  it("keeps the amount of an unknown or missing category, uncategorized", () => {
+    expect(toCategoryAmounts("Print:500;:300", null, categories)).toEqual([
+      { category: null, amount: 500 },
+      { category: null, amount: 300 },
+    ]);
+    expect(toCategoryAmounts(null, "700", categories)).toEqual([
+      { category: null, amount: 700 },
+    ]);
+  });
+
+  it("drops unknown categories that carry no amount", () => {
+    expect(toCategoryAmounts("Print;Copywriting", null, categories)).toEqual([
+      { category: "copywriting", amount: 0 },
+    ]);
   });
 });

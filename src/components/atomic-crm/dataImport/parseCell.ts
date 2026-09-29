@@ -1,4 +1,4 @@
-import type { LabeledValue } from "../types";
+import type { DealCategoryAmount, LabeledValue } from "../types";
 import type { ImportCell } from "./types";
 
 /** Trimmed cell content, or undefined when the cell is empty. */
@@ -69,18 +69,39 @@ export const toConfiguredValue = (
 };
 
 /**
- * Cell content split on ";" — the separator the CSV export writes for arrays,
- * e.g. "ui-design;copywriting" — each part matched like `toConfiguredValue`.
- * Parts matching no option are dropped.
+ * Per-category amounts of a deal, from the `category:amount` parts the deals
+ * export writes, separated by ";" (e.g. "Website design:8000;Copywriting:4000").
+ * Each category is matched like `toConfiguredValue`; the amount is optional.
+ *
+ * Money is never dropped: a category matching no option keeps its amount as an
+ * uncategorized line. When no part carries an amount, `totalCell` (the
+ * single-amount column of older files) goes to the first line.
  */
-export const toConfiguredValues = (
+export const toCategoryAmounts = (
   cell: ImportCell,
+  totalCell: ImportCell,
   options: LabeledValue[],
-): string[] => [
-  ...new Set(
-    (toText(cell) ?? "")
-      .split(";")
-      .map((part) => toConfiguredValue(part, options))
-      .filter((value) => value !== undefined),
-  ),
-];
+): DealCategoryAmount[] => {
+  const lines = (toText(cell) ?? "")
+    .split(";")
+    .filter((part) => part.trim() !== "")
+    .map((part) => {
+      const separator = part.lastIndexOf(":");
+      const amount =
+        separator === -1 ? undefined : toInteger(part.slice(separator + 1));
+      const name = amount === undefined ? part : part.slice(0, separator);
+      return {
+        category: toConfiguredValue(name, options) ?? null,
+        amount,
+      };
+    })
+    .filter((line) => line.category !== null || line.amount !== undefined);
+
+  const total = toInteger(totalCell);
+  const hasAmounts = lines.some((line) => line.amount !== undefined);
+  if (!hasAmounts && total !== undefined) {
+    if (lines.length === 0) return [{ category: null, amount: total }];
+    lines[0] = { ...lines[0], amount: total };
+  }
+  return lines.map((line) => ({ ...line, amount: line.amount ?? 0 }));
+};

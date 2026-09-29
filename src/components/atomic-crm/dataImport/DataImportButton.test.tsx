@@ -198,9 +198,8 @@ describe("DataImportButton", () => {
       {
         name: "New website",
         company: "Acme",
-        categories: "Website design;Copywriting",
+        categories: "Website design:8000;Copywriting:4000",
         stage: "Proposal Sent",
-        amount: "12000",
         expected_closing_date: "2026-09-30",
       },
       // older files have a single-category "category" column
@@ -208,6 +207,7 @@ describe("DataImportButton", () => {
         name: "Print campaign",
         company: "Acme",
         category: "Print project",
+        amount: "4500",
         stage: null,
       },
     ]);
@@ -222,8 +222,10 @@ describe("DataImportButton", () => {
     const { data: deals } = await listAll(dataProvider, "deals");
     expect(deals).toHaveLength(2);
     expect(deals[0]).toMatchObject({
-      amount: 12000,
-      categories: ["website-design", "copywriting"],
+      category_amounts: [
+        { category: "website-design", amount: 8000 },
+        { category: "copywriting", amount: 4000 },
+      ],
       company_id: companies[0].id,
       name: "New website",
       stage: "proposal-sent",
@@ -231,7 +233,9 @@ describe("DataImportButton", () => {
     expect(deals[0].expected_closing_date).toBe("2026-09-30T00:00:00.000Z");
     // Both rows name the same company, which is created once and shared
     expect(deals[1].company_id).toBe(companies[0].id);
-    expect(deals[1].categories).toEqual(["print-project"]);
+    expect(deals[1].category_amounts).toEqual([
+      { category: "print-project", amount: 4500 },
+    ]);
     // stage is required, so an empty cell falls back to the first stage
     expect(deals[1].stage).toBe("opportunity");
   });
@@ -302,8 +306,8 @@ describe("DataImportButton", () => {
     // wiring this feature adds is covered too — the owner in particular, which
     // the dialog is the only thing to bring in
     expect(deals[0]).toMatchObject({
-      // A fractional amount would make the bigint column reject the row
-      amount: 4501,
+      // A fractional amount would make the database sum (a bigint) reject it
+      category_amounts: [{ category: null, amount: 4501 }],
       sales_id: DEFAULT_USER.id,
       stage: "proposal-sent",
     });

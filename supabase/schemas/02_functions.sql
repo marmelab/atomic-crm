@@ -3,6 +3,27 @@
 -- This file declares all PL/pgSQL functions in the public schema.
 --
 
+-- Computed field: the amount of a deal, the sum of its category_amounts. PostgREST
+-- filters and sorts on it like a column (deals?order=amount.desc) without returning it.
+CREATE OR REPLACE FUNCTION "public"."amount"("public"."deals") RETURNS bigint
+    LANGUAGE "sql" STABLE
+    SET "search_path" TO ''
+    AS $_$
+  select coalesce(sum((line->>'amount')::bigint), 0)
+  from jsonb_array_elements($1.category_amounts) as line;
+$_$;
+
+-- Computed field: the categories of a deal, from its category_amounts. PostgREST
+-- filters it like a column (deals?categories=cs.{a,b}) without returning it.
+CREATE OR REPLACE FUNCTION "public"."categories"("public"."deals") RETURNS "text"[]
+    LANGUAGE "sql" STABLE
+    SET "search_path" TO ''
+    AS $_$
+  select coalesce(array_agg(distinct line->>'category'), '{}')
+  from jsonb_array_elements($1.category_amounts) as line
+  where coalesce(line->>'category', '') <> '';
+$_$;
+
 CREATE OR REPLACE FUNCTION "public"."cleanup_note_attachments"() RETURNS "trigger"
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO ''

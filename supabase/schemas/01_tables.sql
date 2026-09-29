@@ -69,14 +69,15 @@ create table public.deals (
     contact_ids bigint[],
     stage text not null,
     description text,
-    amount bigint,
     created_at timestamp with time zone not null default now(),
     updated_at timestamp with time zone not null default now(),
     archived_at timestamp with time zone,
     expected_closing_date date,
     sales_id bigint,
     index smallint,
-    categories text[] not null default '{}'::text[]
+    -- the categories of the deal, each with its amount: [{"category": ..., "amount": ...}]
+    category_amounts jsonb not null default '[]'::jsonb,
+    constraint deals_category_amounts_is_array check (jsonb_typeof(category_amounts) = 'array')
 );
 
 create table public.deal_notes (

@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
-import type { InputProps } from "ra-core";
+import type { Exporter, InputProps } from "ra-core";
+import jsonExport from "jsonexport/dist";
 import {
+  downloadCSV,
   useCanAccess,
   useGetIdentity,
   useListContext,
@@ -14,7 +16,7 @@ import { List } from "@/components/admin/list";
 import { ReferenceInput } from "@/components/admin/reference-input";
 import { FilterButton } from "@/components/admin/filter-form";
 import { SearchInput } from "@/components/admin/search-input";
-import { SelectInput } from "@/components/admin/select-input";
+import { AutocompleteArrayInput } from "@/components/admin/autocomplete-array-input";
 
 import { DataImportButton } from "../dataImport/DataImportButton";
 import { useConfigurationContext } from "../root/ConfigurationContext";
@@ -26,6 +28,8 @@ import { DealEdit } from "./DealEdit";
 import { DealEmpty } from "./DealEmpty";
 import { DealListContent } from "./DealListContent";
 import { DealShow } from "./DealShow";
+import type { Deal } from "../types";
+import { formatCategoryAmounts } from "./dealUtils";
 import { OnlyMineInput } from "./OnlyMineInput";
 
 const DealList = () => {
@@ -51,15 +55,25 @@ const DealList = () => {
       source="categories@cs"
       label="resources.deals.fields.category"
     >
-      <SelectInput
+      {/* deals having all the selected categories: categories@cs={a,b} */}
+      <AutocompleteArrayInput
         source="categories@cs"
         label={false}
-        emptyText="resources.deals.fields.category"
+        placeholder={translate("resources.deals.fields.category")}
         choices={dealCategories}
         optionText="label"
         optionValue="value"
-        format={(value?: string) => value?.replace(/^\{|\}$/g, "")}
-        parse={(value?: string) => (value ? `{${value}}` : value)}
+        format={(value?: string) =>
+          value
+            ? value
+                .replace(/^\{|\}$/g, "")
+                .split(",")
+                .filter(Boolean)
+            : []
+        }
+        parse={(values?: string[]) =>
+          values?.length ? `{${values.join(",")}}` : undefined
+        }
       />
     </WrapperField>,
     ...(isPending
@@ -82,6 +96,7 @@ const DealList = () => {
       filters={dealFilters}
       queryOptions={{ meta: { dealCategories } }}
       actions={<DealActions />}
+      exporter={exporter}
       pagination={null}
     >
       <DealLayout />
@@ -128,6 +143,17 @@ const DealActions = () => (
     <CreateButton label="resources.deals.action.new" />
   </TopToolbar>
 );
+
+/** Writes the per-category amounts in the `categories` column the import reads */
+const exporter: Exporter<Deal> = (records) => {
+  const deals = records.map(({ category_amounts, ...deal }) => ({
+    ...deal,
+    categories: formatCategoryAmounts(category_amounts),
+  }));
+  return jsonExport(deals, {}, (_err: any, csv: string) => {
+    downloadCSV(csv, "deals");
+  });
+};
 
 /**
  *

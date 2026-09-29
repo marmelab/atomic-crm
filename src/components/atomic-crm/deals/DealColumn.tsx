@@ -2,7 +2,7 @@ import { Droppable } from "@hello-pangea/dnd";
 
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal } from "../types";
-import { findDealLabel } from "./dealUtils";
+import { findDealLabel, getDealAmount } from "./dealUtils";
 import { DealCard } from "./DealCard";
 
 export const DealColumn = ({
@@ -12,7 +12,10 @@ export const DealColumn = ({
   stage: string;
   deals: Deal[];
 }) => {
-  const totalAmount = deals.reduce((sum, deal) => sum + deal.amount, 0);
+  const totalAmount = deals.reduce(
+    (sum, deal) => sum + getDealAmount(deal.category_amounts),
+    0,
+  );
   const { dealStages, currency } = useConfigurationContext();
   return (
     <div className="flex-1 pb-8">

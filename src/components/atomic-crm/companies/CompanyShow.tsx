@@ -25,7 +25,12 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { ActivityLog } from "../activity/ActivityLog";
 import { Avatar } from "../contacts/Avatar";
 import { TagsList } from "../contacts/TagsList";
-import { findDealLabel, formatDealCategories } from "../deals/dealUtils";
+import {
+  findDealLabel,
+  formatDealCategories,
+  getDealAmount,
+  getDealCategories,
+} from "../deals/dealUtils";
 import { MobileContent } from "../layout/MobileContent";
 import MobileHeader from "../layout/MobileHeader";
 import { MobileBackButton } from "../misc/MobileBackButton";
@@ -277,15 +282,18 @@ const DealsIterator = () => {
                 <div className="font-medium">{deal.name}</div>
                 <div className="text-sm text-muted-foreground">
                   {findDealLabel(dealStages, deal.stage)},{" "}
-                  {deal.amount.toLocaleString("en-US", {
-                    notation: "compact",
-                    style: "currency",
-                    currency,
-                    currencyDisplay: "narrowSymbol",
-                    minimumSignificantDigits: 3,
-                  })}
-                  {deal.categories?.length > 0
-                    ? `, ${formatDealCategories(dealCategories, deal.categories)}`
+                  {getDealAmount(deal.category_amounts).toLocaleString(
+                    "en-US",
+                    {
+                      notation: "compact",
+                      style: "currency",
+                      currency,
+                      currencyDisplay: "narrowSymbol",
+                      minimumSignificantDigits: 3,
+                    },
+                  )}
+                  {getDealCategories(deal.category_amounts).length > 0
+                    ? `, ${formatDealCategories(dealCategories, getDealCategories(deal.category_amounts))}`
                     : ""}
                 </div>
               </div>

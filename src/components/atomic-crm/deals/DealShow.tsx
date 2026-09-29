@@ -30,6 +30,7 @@ import { ContactList } from "./ContactList";
 import {
   findDealLabel,
   formatDealCategories,
+  getDealAmount,
   formatISODateString,
 } from "./dealUtils";
 
@@ -113,24 +114,41 @@ const DealShowContent = () => {
                 {translate("resources.deals.fields.amount")}
               </span>
               <span className="text-sm">
-                {record.amount.toLocaleString("en-US", {
-                  notation: "compact",
-                  style: "currency",
-                  currency,
-                  currencyDisplay: "narrowSymbol",
-                  minimumSignificantDigits: 3,
-                })}
+                {getDealAmount(record.category_amounts).toLocaleString(
+                  "en-US",
+                  {
+                    notation: "compact",
+                    style: "currency",
+                    currency,
+                    currencyDisplay: "narrowSymbol",
+                    minimumSignificantDigits: 3,
+                  },
+                )}
               </span>
             </div>
 
-            {record.categories?.length > 0 && (
+            {record.category_amounts?.some((line) => line.category) && (
               <div className="flex flex-col mr-10">
                 <span className="text-xs text-muted-foreground tracking-wide">
-                  {translate("resources.deals.fields.categories")}
+                  {translate("resources.deals.fields.category_amounts")}
                 </span>
-                <span className="text-sm">
-                  {formatDealCategories(dealCategories, record.categories)}
-                </span>
+                <ul className="text-sm">
+                  {record.category_amounts
+                    .filter((line) => line.category)
+                    .map((line, index) => (
+                      <li key={index}>
+                        {formatDealCategories(dealCategories, [line.category!])}
+                        :{" "}
+                        {line.amount.toLocaleString("en-US", {
+                          notation: "compact",
+                          style: "currency",
+                          currency,
+                          currencyDisplay: "narrowSymbol",
+                          minimumSignificantDigits: 3,
+                        })}
+                      </li>
+                    ))}
+                </ul>
               </div>
             )}
 

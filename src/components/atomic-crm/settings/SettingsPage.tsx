@@ -27,6 +27,7 @@ import {
   type ConfigurationContextValue,
 } from "../root/ConfigurationContext";
 import { defaultConfiguration } from "../root/defaultConfiguration";
+import { getDealCategories } from "../deals/dealUtils";
 
 const SECTIONS = [
   {
@@ -226,19 +227,28 @@ const SettingsFormFields = () => {
 
   const validateDealCategories = useCallback(
     (categories: { value: string; label: string }[] | undefined) =>
-      validateItemsInUse(categories, deals, "categories", categoryDisplayName, {
-        duplicate: (displayName, duplicates) =>
-          translate("crm.settings.validation.duplicate", {
-            display_name: displayName,
-            items: duplicates.join(", "),
-          }),
-        inUse: (displayName, inUse) =>
-          translate("crm.settings.validation.in_use", {
-            display_name: displayName,
-            items: inUse.join(", "),
-          }),
-        validating: translate("crm.settings.validation.validating"),
-      }),
+      validateItemsInUse(
+        categories,
+        deals?.map((deal) => ({
+          ...deal,
+          categories: getDealCategories(deal.category_amounts),
+        })),
+        "categories",
+        categoryDisplayName,
+        {
+          duplicate: (displayName, duplicates) =>
+            translate("crm.settings.validation.duplicate", {
+              display_name: displayName,
+              items: duplicates.join(", "),
+            }),
+          inUse: (displayName, inUse) =>
+            translate("crm.settings.validation.in_use", {
+              display_name: displayName,
+              items: inUse.join(", "),
+            }),
+          validating: translate("crm.settings.validation.validating"),
+        },
+      ),
     [categoryDisplayName, deals, translate],
   );
 

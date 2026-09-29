@@ -114,14 +114,19 @@ export type ContactNote = {
   attachments?: AttachmentNote[];
 } & Pick<RaRecord, "id">;
 
+export type DealCategoryAmount = {
+  category?: string | null;
+  amount: number;
+};
+
 export type Deal = {
   name: string;
   company_id: Identifier;
   contact_ids: Identifier[];
-  categories: string[];
+  /** The categories of the deal, each with its amount: see getDealCategories and getDealAmount */
+  category_amounts: DealCategoryAmount[];
   stage: string;
   description: string;
-  amount: number;
   created_at: string;
   updated_at: string;
   archived_at?: string;
