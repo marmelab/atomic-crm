@@ -170,6 +170,18 @@ export const createDataProvider = ({
 
   const dataProviderWithCustomMethod: CrmDataProvider = {
     ...baseDataProvider,
+    async getMany(resource: string, params: any) {
+      if (resource === "tags") {
+        // like PostgREST, ignore unknown ids (a deleted tag may still be in cached contacts)
+        const { data } = await baseDataProvider.getList(resource, {
+          filter: { id_eq_any: params.ids },
+          pagination: { page: 1, perPage: params.ids.length },
+          sort: { field: "id", order: "ASC" },
+        });
+        return { data };
+      }
+      return baseDataProvider.getMany(resource, params);
+    },
     async getList(resource: string, params: any) {
       if (resource === "activity_log") {
         const { filter = {}, pagination } = params;

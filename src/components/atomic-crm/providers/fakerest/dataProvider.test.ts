@@ -29,4 +29,16 @@ describe("fakerest dataProvider", () => {
     expect(contacts.map((c) => c.tags)).toEqual([[2], [2]]);
     expect(contacts.map((c) => c.last_seen)).toEqual([lastSeen, lastSeen]);
   });
+
+  it("ignores unknown ids when getting many tags", async () => {
+    const dataProvider = createDataProvider({
+      db: { tags: [{ id: 2, name: "lead", color: "#000" }] } as unknown as Db,
+      latency: 0,
+      silent: true,
+    });
+
+    const { data: tags } = await dataProvider.getMany("tags", { ids: [1, 2] });
+
+    expect(tags.map((tag) => tag.id)).toEqual([2]);
+  });
 });
