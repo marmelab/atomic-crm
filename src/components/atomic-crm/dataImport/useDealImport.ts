@@ -8,6 +8,7 @@ import {
   toCategoryAmounts,
   toConfiguredValue,
   toIsoDate,
+  toLegacyCategoryAmounts,
   toText,
 } from "./parseCell";
 import type { ImportRow, ProcessImportBatch } from "./types";
@@ -61,11 +62,18 @@ export function useDealImport(): ProcessImportBatch {
                 ? companies.get(companyName)?.id
                 : undefined,
               contact_ids: [],
-              category_amounts: toCategoryAmounts(
-                row.categories ?? row.category,
-                row.amount,
-                dealCategories,
-              ),
+              category_amounts:
+                row.categories === undefined
+                  ? toLegacyCategoryAmounts(
+                      row.category,
+                      row.amount,
+                      dealCategories,
+                    )
+                  : toCategoryAmounts(
+                      row.categories,
+                      row.amount,
+                      dealCategories,
+                    ),
               stage,
               description: toText(row.description),
               expected_closing_date: toIsoDate(row.expected_closing_date),

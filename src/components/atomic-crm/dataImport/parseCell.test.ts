@@ -5,6 +5,7 @@ import {
   toConfiguredValue,
   toInteger,
   toIsoDate,
+  toLegacyCategoryAmounts,
   toNumber,
   toText,
 } from "./parseCell";
@@ -216,5 +217,28 @@ describe("toCategoryAmounts", () => {
     expect(toCategoryAmounts("Print;Copywriting", null, categories)).toEqual([
       { category: "copywriting", amount: 0 },
     ]);
+  });
+});
+
+describe("toLegacyCategoryAmounts", () => {
+  const categories = [{ value: "website-design", label: "Website design" }];
+
+  it("puts the amount column on the single category", () => {
+    expect(
+      toLegacyCategoryAmounts("Website design", "$5,000", categories),
+    ).toEqual([{ category: "website-design", amount: 5000 }]);
+  });
+
+  it("never reads a colon in the category as an amount", () => {
+    expect(toLegacyCategoryAmounts("Q3: 2026", "5000", categories)).toEqual([
+      { category: null, amount: 5000 },
+    ]);
+    expect(toLegacyCategoryAmounts("Retainer: 2k", "5000", categories)).toEqual(
+      [{ category: null, amount: 5000 }],
+    );
+  });
+
+  it("returns no line when both columns are empty", () => {
+    expect(toLegacyCategoryAmounts("", "", categories)).toEqual([]);
   });
 });

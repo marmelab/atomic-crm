@@ -153,3 +153,19 @@ export const toCategoryAmounts = (
   }
   return lines.map((line) => ({ ...line, amount: line.amount ?? 0 }));
 };
+
+/**
+ * The one category line of an older deals file, from its single `category` and
+ * `amount` columns. The category is a whole label, never split on ":", so
+ * "Q3: 2026" is not read as an amount.
+ */
+export const toLegacyCategoryAmounts = (
+  categoryCell: ImportCell,
+  amountCell: ImportCell,
+  options: LabeledValue[],
+): DealCategoryAmount[] => {
+  const category = toConfiguredValue(categoryCell, options) ?? null;
+  const amount = toRequiredAmount(amountCell, String(amountCell).trim());
+  if (category === null && amount === undefined) return [];
+  return [{ category, amount: amount ?? 0 }];
+};
