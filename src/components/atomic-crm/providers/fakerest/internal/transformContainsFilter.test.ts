@@ -29,6 +29,10 @@ it("should return an array of strings", () => {
   expect(transformContainsFilter("{a,B,c-d}")).toEqual(["a", "B", "c-d"]);
 });
 
+it("should keep strings starting with a digit as strings", () => {
+  expect(transformContainsFilter("{3d-printing}")).toEqual(["3d-printing"]);
+});
+
 it("should return an array of quoted strings", () => {
   expect(transformContainsFilter('{"a"}')).toEqual(["a"]);
   expect(transformContainsFilter('{"a","B, c"}')).toEqual(["a", "B, c"]);

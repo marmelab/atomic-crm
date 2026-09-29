@@ -9,7 +9,7 @@ CREATE OR REPLACE FUNCTION "public"."amount"("public"."deals") RETURNS bigint
     LANGUAGE "sql" STABLE
     SET "search_path" TO ''
     AS $_$
-  select coalesce(sum((line->>'amount')::bigint), 0)
+  select coalesce(round(sum((line->>'amount')::numeric))::bigint, 0)
   from jsonb_array_elements($1.category_amounts) as line;
 $_$;
 
