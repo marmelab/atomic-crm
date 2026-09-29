@@ -306,8 +306,8 @@ describe("DataImportButton", () => {
     // wiring this feature adds is covered too — the owner in particular, which
     // the dialog is the only thing to bring in
     expect(deals[0]).toMatchObject({
-      // A fractional amount would make the database sum (a bigint) reject it
-      category_amounts: [{ category: null, amount: 4501 }],
+      // Cents are kept, as the deal form allows them
+      category_amounts: [{ category: null, amount: 4500.5 }],
       sales_id: DEFAULT_USER.id,
       stage: "proposal-sent",
     });

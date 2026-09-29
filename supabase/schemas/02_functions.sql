@@ -5,11 +5,11 @@
 
 -- Computed field: the amount of a deal, the sum of its category_amounts. PostgREST
 -- filters and sorts on it like a column (deals?order=amount.desc) without returning it.
-CREATE OR REPLACE FUNCTION "public"."amount"("public"."deals") RETURNS bigint
+CREATE OR REPLACE FUNCTION "public"."amount"("public"."deals") RETURNS numeric
     LANGUAGE "sql" STABLE
     SET "search_path" TO ''
     AS $_$
-  select coalesce(round(sum((line->>'amount')::numeric))::bigint, 0)
+  select coalesce(sum((line->>'amount')::numeric), 0)
   from jsonb_array_elements($1.category_amounts) as line;
 $_$;
 

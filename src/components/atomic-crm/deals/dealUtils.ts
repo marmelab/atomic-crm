@@ -35,11 +35,14 @@ export const getDealAmount = (categoryAmounts: DealCategoryAmount[] = []) =>
  * A deal's per-category amounts as one CSV cell, in the format the import reads:
  * "website-design:8000;copywriting:4000" (":500" for an uncategorized line).
  */
+const toCents = (amount: number) => Math.round(amount * 100) / 100;
+
 export const formatCategoryAmounts = (
   categoryAmounts: DealCategoryAmount[] = [],
 ) =>
   categoryAmounts
-    .map((line) => `${line.category ?? ""}:${Math.round(line.amount)}`)
+    // Cents only: the import reads a dot before three digits as thousands
+    .map((line) => `${line.category ?? ""}:${toCents(line.amount)}`)
     .join(";");
 
 /**

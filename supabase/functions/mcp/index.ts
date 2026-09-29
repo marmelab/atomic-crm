@@ -359,7 +359,7 @@ Row Level Security (RLS) is enforced - mutations only affect data the authentica
 
 IMPORTANT: Never specify sales_id in INSERT or UPDATE statements — it is automatically set to the authenticated user by a database trigger.
 
-IMPORTANT: A deal's categories and their amounts live in its category_amounts column (a JSON array of {"category": <category value>, "amount": <integer>}). The deal has no amount column: write category_amounts.
+IMPORTANT: A deal's categories and their amounts live in its category_amounts column (a JSON array of {"category": <category value>, "amount": <number>}). The deal has no amount column: write category_amounts.
 
 For read-only queries, use the query tool instead.
 

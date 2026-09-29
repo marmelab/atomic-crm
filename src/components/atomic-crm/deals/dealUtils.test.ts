@@ -159,11 +159,17 @@ describe("formatCategoryAmounts", () => {
     ).toEqual(lines);
   });
 
-  it("rounds decimal amounts so the import cannot read them as thousands", () => {
+  it("keeps cents, and only cents, through export and import", () => {
     const options = [{ value: "website-design", label: "Website design" }];
-    const decimal = [{ category: "website-design", amount: 1234.567 }];
+    const decimal = [
+      { category: "website-design", amount: 99.99 },
+      { category: null, amount: 1234.567 },
+    ];
     expect(
       toCategoryAmounts(formatCategoryAmounts(decimal), null, options),
-    ).toEqual([{ category: "website-design", amount: 1235 }]);
+    ).toEqual([
+      { category: "website-design", amount: 99.99 },
+      { category: null, amount: 1234.57 },
+    ]);
   });
 });

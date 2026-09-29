@@ -3,7 +3,6 @@ import { describe, expect, it } from "vitest";
 import {
   toCategoryAmounts,
   toConfiguredValue,
-  toInteger,
   toIsoDate,
   toLegacyCategoryAmounts,
   toNumber,
@@ -40,18 +39,6 @@ describe("toNumber", () => {
   it("returns undefined for an empty or non-numeric cell", () => {
     expect(toNumber(null)).toBeUndefined();
     expect(toNumber("a lot")).toBeUndefined();
-  });
-});
-
-describe("toInteger", () => {
-  it("rounds a fractional cell, which an integer column would reject", () => {
-    expect(toInteger("4500.50")).toBe(4501);
-    expect(toInteger(12000)).toBe(12000);
-  });
-
-  it("returns undefined for an empty or non-numeric cell", () => {
-    expect(toInteger(null)).toBeUndefined();
-    expect(toInteger("a lot")).toBeUndefined();
   });
 });
 
@@ -110,7 +97,7 @@ describe("toCategoryAmounts", () => {
       ),
     ).toEqual([
       { category: "website-design", amount: 8000 },
-      { category: "copywriting", amount: 8001 },
+      { category: "copywriting", amount: 8000.5 },
     ]);
   });
 
@@ -129,8 +116,8 @@ describe("toCategoryAmounts", () => {
       ),
     ).toEqual([
       { category: "website-design", amount: 8000 },
-      { category: "copywriting", amount: 12501 },
-      { category: null, amount: 4500 },
+      { category: "copywriting", amount: 12500.5 },
+      { category: null, amount: 4500.25 },
     ]);
   });
 

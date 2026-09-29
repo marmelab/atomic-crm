@@ -16,14 +16,10 @@ export const toNumber = (cell: ImportCell): number | undefined => {
   return Number.isFinite(value) ? value : undefined;
 };
 
-/**
- * Cell content as a whole number, for the integer columns of the database: an
- * amount of `4500.50` would make PostgREST reject the whole row with
- * `invalid input syntax for type bigint`.
- */
-export const toInteger = (cell: ImportCell): number | undefined => {
+/** Cell content as a number rounded to cents, or undefined like `toNumber`. */
+const toCents = (cell: ImportCell): number | undefined => {
   const value = toNumber(cell);
-  return value === undefined ? undefined : Math.round(value);
+  return value === undefined ? undefined : Math.round(value * 100) / 100;
 };
 
 const isoDateRegex = /^\d{4}-\d{2}-\d{2}$/;
@@ -74,7 +70,7 @@ export const toConfiguredValue = (
  * (amounts never carry three decimals), any other comma is the decimal one.
  */
 const toAmount = (text: string): number | undefined =>
-  toInteger(
+  toCents(
     text
       .replace(/[\s$€£¥]/g, "")
       .replace(/[.,](?=\d{3}(\D|$))/g, "")
