@@ -69,13 +69,51 @@ export const toConfiguredValue = (
 };
 
 /**
+ * An amount as users write it: "$8,000", "8 000", "8 000,50". Currency symbols
+ * and spaces go, a comma before three digits is a thousands separator, any
+ * other comma is the decimal one.
+ */
+const toAmount = (text: string): number | undefined =>
+  toInteger(
+    text
+      .replace(/[\s$€£¥]/g, "")
+      .replace(/,(?=\d{3}(\D|$))/g, "")
+      .replace(",", "."),
+  );
+
+/** One `category:amount` part; the amount is optional. */
+const toCategoryAmount = (
+  part: string,
+  options: LabeledValue[],
+): { category: string | null; amount: number | undefined } => {
+  const separator = part.lastIndexOf(":");
+  // A label may itself contain ":", so a whole-part match wins
+  const wholeMatch = toConfiguredValue(part, options);
+  if (separator === -1 || wholeMatch !== undefined) {
+    return { category: wholeMatch ?? null, amount: undefined };
+  }
+  const amountText = toText(part.slice(separator + 1));
+  const amount = amountText === undefined ? undefined : toAmount(amountText);
+  if (amountText !== undefined && amount === undefined) {
+    // Throwing fails the row, which the import report counts, rather than
+    // silently importing the deal without this money
+    throw new Error(`Cannot read the amount of "${part.trim()}"`);
+  }
+  return {
+    category: toConfiguredValue(part.slice(0, separator), options) ?? null,
+    amount,
+  };
+};
+
+/**
  * Per-category amounts of a deal, from the `category:amount` parts the deals
  * export writes, separated by ";" (e.g. "Website design:8000;Copywriting:4000").
  * Each category is matched like `toConfiguredValue`; the amount is optional.
  *
  * Money is never dropped: a category matching no option keeps its amount as an
- * uncategorized line. When no part carries an amount, `totalCell` (the
- * single-amount column of older files) goes to the first line.
+ * uncategorized line, and an unreadable amount throws. When no part carries an
+ * amount, `totalCell` (the single-amount column of older files) goes to the
+ * first line.
  */
 export const toCategoryAmounts = (
   cell: ImportCell,
@@ -85,21 +123,7 @@ export const toCategoryAmounts = (
   const lines = (toText(cell) ?? "")
     .split(";")
     .filter((part) => part.trim() !== "")
-    .map((part) => {
-      const separator = part.lastIndexOf(":");
-      const amount =
-        separator === -1
-          ? undefined
-          : toInteger(
-              // "8 000" or "8,000": drop thousands separators, keep "8,5" as is
-              part.slice(separator + 1).replace(/[\s,](?=\d{3}(\D|$))/g, ""),
-            );
-      const name = amount === undefined ? part : part.slice(0, separator);
-      return {
-        category: toConfiguredValue(name, options) ?? null,
-        amount,
-      };
-    })
+    .map((part) => toCategoryAmount(part, options))
     .filter((line) => line.category !== null || line.amount !== undefined);
 
   const total = toInteger(totalCell);

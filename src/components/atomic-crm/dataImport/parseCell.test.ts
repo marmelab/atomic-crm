@@ -100,6 +100,31 @@ describe("toCategoryAmounts", () => {
     { value: "copywriting", label: "Copywriting" },
   ];
 
+  it("reads amounts with currency symbols and decimal commas", () => {
+    expect(
+      toCategoryAmounts(
+        "Website design:$8000;Copywriting:8 000,50",
+        null,
+        categories,
+      ),
+    ).toEqual([
+      { category: "website-design", amount: 8000 },
+      { category: "copywriting", amount: 8001 },
+    ]);
+  });
+
+  it("keeps a category whose amount is empty", () => {
+    expect(toCategoryAmounts("Website design:", "500", categories)).toEqual([
+      { category: "website-design", amount: 500 },
+    ]);
+  });
+
+  it("throws rather than dropping an unreadable amount", () => {
+    expect(() =>
+      toCategoryAmounts("Website design:8k;Copywriting:4000", null, categories),
+    ).toThrow('Cannot read the amount of "Website design:8k"');
+  });
+
   it("reads amounts written with thousands separators", () => {
     expect(
       toCategoryAmounts(

@@ -52,7 +52,8 @@ export function useDealImport(): ProcessImportBatch {
 
       const now = new Date().toISOString();
       return createEachRow(
-        rows.map(({ row, companyName, stage }) =>
+        // async, so an unreadable amount rejects its row instead of the import
+        rows.map(async ({ row, companyName, stage }) =>
           dataProvider.create("deals", {
             data: {
               name: toText(row.name),
