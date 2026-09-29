@@ -100,6 +100,19 @@ describe("toCategoryAmounts", () => {
     { value: "copywriting", label: "Copywriting" },
   ];
 
+  it("reads amounts written with thousands separators", () => {
+    expect(
+      toCategoryAmounts(
+        "Website design:8 000;Copywriting:4,000",
+        null,
+        categories,
+      ),
+    ).toEqual([
+      { category: "website-design", amount: 8000 },
+      { category: "copywriting", amount: 4000 },
+    ]);
+  });
+
   it("reads the category:amount parts the deals export writes", () => {
     expect(
       toCategoryAmounts(

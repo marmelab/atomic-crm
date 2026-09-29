@@ -88,7 +88,12 @@ export const toCategoryAmounts = (
     .map((part) => {
       const separator = part.lastIndexOf(":");
       const amount =
-        separator === -1 ? undefined : toInteger(part.slice(separator + 1));
+        separator === -1
+          ? undefined
+          : toInteger(
+              // "8 000" or "8,000": drop thousands separators, keep "8,5" as is
+              part.slice(separator + 1).replace(/[\s,](?=\d{3}(\D|$))/g, ""),
+            );
       const name = amount === undefined ? part : part.slice(0, separator);
       return {
         category: toConfiguredValue(name, options) ?? null,
