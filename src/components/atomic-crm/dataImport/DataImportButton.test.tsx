@@ -314,6 +314,40 @@ describe("DataImportButton", () => {
     expect(deals[0].expected_closing_date).toBe("2026-09-30T00:00:00.000Z");
   });
 
+  it("reads a dot-thousands deal amount as text, not as a decimal", async () => {
+    const dataProvider = createDataProvider({
+      db: createCrmDb(),
+      latency: 0,
+      silent: true,
+    });
+    const screen = await render(
+      <StoryWrapper dataProvider={dataProvider}>
+        <DataImportButton />
+      </StoryWrapper>,
+    );
+
+    await screen.getByRole("button", { name: "Import data" }).click();
+    await screen.getByLabelText("Resource").click();
+    await screen.getByRole("listbox").getByText("Deals").click();
+
+    await screen
+      .getByLabelText("CSV File")
+      .upload(
+        csvFile("deals.csv", [
+          "name,stage,amount",
+          "New website,Proposal Sent,8.000",
+        ]),
+      );
+    await screen.getByRole("button", { name: "Start import" }).click();
+
+    await expect.element(screen.getByText(/Import complete/)).toBeVisible();
+
+    const { data: deals } = await listAll(dataProvider, "deals");
+    expect(deals[0].category_amounts).toEqual([
+      { category: null, amount: 8000 },
+    ]);
+  });
+
   it("keeps the leading zero of the text columns of a company CSV", async () => {
     const dataProvider = createDataProvider({
       db: createCrmDb(),
