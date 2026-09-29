@@ -145,6 +145,31 @@ describe("ContactEdit", () => {
         }),
       );
     });
+
+    it("keeps the select closed when pressing the clear button of the email type", async () => {
+      // Arrange: the email type select holds "Work", so its clear button is shown.
+      const screen = await render(<ContactEditWithEmailsAndPhones silent />);
+      await expect
+        .element(screen.getByPlaceholder("Email"))
+        .toHaveValue("ada@example.com");
+      const clearButton = screen
+        .getByRole("button", { name: "Clear value" })
+        .first();
+      await expect.element(clearButton).toBeInTheDocument();
+
+      // Act: Base UI opens a select on mousedown, not on click. A plain .click()
+      // is too fast to expose that, so press and let the popup have its frames.
+      clearButton
+        .element()
+        .dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
+      await new Promise((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(resolve)),
+      );
+
+      // Assert: the popup must not have opened, otherwise it would cover the
+      // trigger and swallow the mouseup, leaving the value uncleared.
+      expect(document.querySelector('[data-slot="select-content"]')).toBeNull();
+    });
   });
   describe("mobile", () => {
     beforeAll(() => {

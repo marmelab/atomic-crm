@@ -7,6 +7,26 @@ Atomic CRM is meant to be forked and customized: there is no npm package to inst
 
 This registry is not meant to bootstrap a new project. If you're starting a new CRM, follow the [Installation](https://github.com/marmelab/atomic-crm#installation) instructions instead. The registry is only useful once you already have a running fork and want to catch up with upstream improvements (bug fixes, new features, dependency bumps in `src/components/admin` and `src/components/ui`).
 
+## One-off: Switching Your Fork to Base UI
+
+Atomic CRM now builds on [Base UI](https://base-ui.com/) instead of Radix UI, following [Shadcn Admin Kit 2.0](https://marmelab.com/shadcn-admin-kit/docs/migrate). Before pulling this release into an older fork, switch your own `components.json` to the Base UI style:
+
+```json
+{
+  "style": "base-vega"
+}
+```
+
+Skipping this step leaves the `src/components/ui` files your fork already owns on Radix while the incoming application code uses the Base UI API (`render` instead of `asChild`, an `items` map on `<Select>`, array values on `<ToggleGroup>`), and `tsc` will fail.
+
+Your own components keep using Radix until you migrate them. Shadcn ships an agent skill for that, one component at a time:
+
+```sh
+pnpm dlx skills add shadcn/ui
+```
+
+Then ask your coding agent `migrate accordion to base-ui`, and so on. The [Shadcn Admin Kit migration guide](https://marmelab.com/shadcn-admin-kit/docs/migrate) covers the details.
+
 ## Refreshing Your Fork
 
 Commit or stash any pending work first, this command overwrites files, and you'll want a clean diff to review the changes:

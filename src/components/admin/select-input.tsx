@@ -243,6 +243,15 @@ export const SelectInput = (props: SelectInputProps) => {
     field.onChange(emptyValue);
   };
 
+  // The clear button sits inside the trigger, and Base UI opens the select on
+  // mousedown. Since the popup is aligned over the trigger, the mouseup would land
+  // on the popup and no click would ever reach the button. Swallowing the mousedown
+  // keeps the select closed so the click below can run.
+  const handleResetMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
   return (
     <>
       <FormField
@@ -290,8 +299,10 @@ export const SelectInput = (props: SelectInputProps) => {
               {field.value && field.value !== emptyValue ? (
                 <div
                   role="button"
+                  aria-label={translate("ra.action.clear_input_value")}
                   className="p-0 ml-auto pointer-events-auto hover:bg-transparent text-muted-foreground opacity-50 hover:opacity-100"
                   onClick={handleReset}
+                  onMouseDown={handleResetMouseDown}
                 >
                   <X className="h-4 w-4" />
                 </div>
