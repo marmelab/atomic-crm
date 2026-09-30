@@ -142,6 +142,12 @@ describe("toCategoryAmounts", () => {
     ).toThrow('Cannot read the amount of "Website design 8000"');
   });
 
+  it("reads an unknown label containing a digit as a name", () => {
+    expect(
+      toCategoryAmounts("Phase 2;Copywriting:4000", null, categories),
+    ).toEqual([{ category: "copywriting", amount: 4000 }]);
+  });
+
   it("reads an unknown label containing a colon as a name", () => {
     expect(
       toCategoryAmounts(

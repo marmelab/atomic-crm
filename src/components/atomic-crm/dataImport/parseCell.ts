@@ -104,10 +104,16 @@ const toCategoryAmount = (
   // A label may itself contain ":" ("Phase 1: Discovery"), so a whole-part
   // match wins, and a digitless end is part of the name, not an amount
   const wholeMatch = toConfiguredValue(part, options);
-  if (separator === -1 && wholeMatch === undefined && /\d/.test(part)) {
-    // "8000" alone is an uncategorized amount; "Website design 8000" (a
-    // forgotten ":") throws rather than silently losing its money
-    return { category: null, amount: toRequiredAmount(part, part.trim()) };
+  if (separator === -1 && wholeMatch === undefined) {
+    // "8000" alone is an uncategorized amount
+    const amount = toAmount(part);
+    if (amount !== undefined) return { category: null, amount };
+    // "Website design 8000", a forgotten ":", throws rather than losing its
+    // money; an unknown label like "Phase 2" is only a name
+    const forgottenColon = /^(.+?)\s+[\d$€£¥][\d\s.,$€£¥]*$/.exec(part.trim());
+    if (forgottenColon && toConfiguredValue(forgottenColon[1], options)) {
+      throw new Error(`Cannot read the amount of "${part.trim()}"`);
+    }
   }
   if (
     separator === -1 ||
