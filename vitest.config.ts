@@ -31,6 +31,13 @@ export default defineConfig({
           name: "app",
           globals: true,
           setupFiles: ["./src/index.css"],
+          // These are browser integration tests: a click can run a mutation, close a
+          // sheet and wait for a toast. The 1s default budget of expect.poll (and of
+          // expect.element, which is built on it) holds on an idle machine but not on
+          // a loaded runner, where the same assertion was measured at 3.3s. This only
+          // raises the ceiling before giving up, so a genuinely broken assertion still
+          // fails, just later.
+          expect: { poll: { timeout: 5000 } },
           browser: {
             headless: true,
             provider: playwright(),

@@ -146,7 +146,7 @@ describe("ContactEdit", () => {
       );
     });
 
-    it("keeps the select closed when pressing the clear button of the email type", async () => {
+    it("clears the email type from the keyboard and with the mouse", async () => {
       // Arrange: the email type select holds "Work", so its clear button is shown.
       const screen = await render(<ContactEditWithEmailsAndPhones silent />);
       await expect
@@ -157,17 +157,20 @@ describe("ContactEdit", () => {
         .first();
       await expect.element(clearButton).toBeInTheDocument();
 
-      // Act: Base UI opens a select on mousedown, not on click. A plain .click()
-      // is too fast to expose that, so press and let the popup have its frames.
-      clearButton
-        .element()
-        .dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
-      await new Promise((resolve) =>
-        requestAnimationFrame(() => requestAnimationFrame(resolve)),
-      );
+      // Assert: it is a real button, reachable with a keyboard. It used to be a
+      // div[role=button] nested inside the trigger, which no Tab could reach.
+      const element = clearButton.element() as HTMLElement;
+      expect(element.tagName).toBe("BUTTON");
+      element.focus();
+      expect(document.activeElement).toBe(element);
 
-      // Assert: the popup must not have opened, otherwise it would cover the
-      // trigger and swallow the mouseup, leaving the value uncleared.
+      // Act & assert: pressing it clears the value, so the button goes away with
+      // it. While it sat inside the trigger, Base UI opened the select on the
+      // mousedown and the popup swallowed the rest of the gesture instead.
+      await clearButton.click();
+      // assert on the element, not the locator: the phone row has a clear button
+      // of its own, which the locator would resolve to once this one is gone.
+      await expect.poll(() => element.isConnected).toBe(false);
       expect(document.querySelector('[data-slot="select-content"]')).toBeNull();
     });
   });

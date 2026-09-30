@@ -504,6 +504,7 @@ const ThemeRow = () => {
         }
         size="lg"
         variant="outline"
+        spacing={0}
         className="w-full"
       >
         <ToggleGroupItem

@@ -238,19 +238,11 @@ export const SelectInput = (props: SelectInputProps) => {
   }
 
   // Handle reset functionality
-  const handleReset = (e: React.MouseEvent<HTMLDivElement>) => {
-    e.stopPropagation();
+  const handleReset = () => {
     field.onChange(emptyValue);
   };
 
-  // The clear button sits inside the trigger, and Base UI opens the select on
-  // mousedown. Since the popup is aligned over the trigger, the mouseup would land
-  // on the popup and no click would ever reach the button. Swallowing the mousedown
-  // keeps the select closed so the click below can run.
-  const handleResetMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
+  const isClearable = !!field.value && field.value !== emptyValue;
 
   return (
     <>
@@ -279,7 +271,10 @@ export const SelectInput = (props: SelectInputProps) => {
             onValueChange={handleChangeWithCreateSupport}
           >
             <SelectTrigger
-              className={cn("w-full transition-all hover:bg-accent")}
+              className={cn(
+                "w-full transition-all hover:bg-accent",
+                isClearable && "pr-11",
+              )}
               disabled={field.disabled}
               aria-labelledby={labelId}
             >
@@ -295,18 +290,6 @@ export const SelectInput = (props: SelectInputProps) => {
                   return choice ? renderMenuItemOption(choice) : value;
                 }}
               </SelectValue>
-
-              {field.value && field.value !== emptyValue ? (
-                <div
-                  role="button"
-                  aria-label={translate("ra.action.clear_input_value")}
-                  className="p-0 ml-auto pointer-events-auto hover:bg-transparent text-muted-foreground opacity-50 hover:opacity-100"
-                  onClick={handleReset}
-                  onMouseDown={handleResetMouseDown}
-                >
-                  <X className="h-4 w-4" />
-                </div>
-              ) : null}
             </SelectTrigger>
             <SelectContent>
               {finalChoices?.map((choice) => {
@@ -330,6 +313,16 @@ export const SelectInput = (props: SelectInputProps) => {
               })}
             </SelectContent>
           </Select>
+          {isClearable ? (
+            <button
+              type="button"
+              aria-label={translate("ra.action.clear_input_value")}
+              className="absolute right-7 top-1/2 -translate-y-1/2 rounded-sm text-muted-foreground opacity-50 hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+              onClick={handleReset}
+            >
+              <X className="h-4 w-4" />
+            </button>
+          ) : null}
         </div>
         <InputHelperText helperText={helperText} />
       </FormField>
