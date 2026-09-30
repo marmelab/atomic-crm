@@ -110,8 +110,16 @@ const toCategoryAmount = (
     if (amount !== undefined) return { category: null, amount };
     // "Website design 8000", a forgotten ":", throws rather than losing its
     // money; an unknown label like "Phase 2" is only a name
-    const forgottenColon = /^(.+?)\s+[\d$€£¥][\d\s.,$€£¥]*$/.exec(part.trim());
-    if (forgottenColon && toConfiguredValue(forgottenColon[1], options)) {
+    // Each label is tried as the prefix, so "Phase 2 500" finds "Phase 2"
+    const text = part.trim().toLowerCase();
+    const forgottenColon = options
+      .flatMap(({ value, label }) => [value, label])
+      .some(
+        (name) =>
+          text.startsWith(name.toLowerCase()) &&
+          /^\s+[\d$€£¥][\d\s.,$€£¥]*$/.test(text.slice(name.length)),
+      );
+    if (forgottenColon) {
       throw new Error(`Cannot read the amount of "${part.trim()}"`);
     }
   }

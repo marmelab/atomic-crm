@@ -142,6 +142,16 @@ describe("toCategoryAmounts", () => {
     ).toThrow('Cannot read the amount of "Website design 8000"');
   });
 
+  it("throws on a forgotten colon after a label ending in a number", () => {
+    const phases = [{ value: "phase-2", label: "Phase 2" }];
+    expect(() => toCategoryAmounts("Phase 2 500", null, phases)).toThrow(
+      'Cannot read the amount of "Phase 2 500"',
+    );
+    expect(() =>
+      toCategoryAmounts("Website design 8 000", null, categories),
+    ).toThrow('Cannot read the amount of "Website design 8 000"');
+  });
+
   it("reads an unknown label containing a digit as a name", () => {
     expect(
       toCategoryAmounts("Phase 2;Copywriting:4000", null, categories),
