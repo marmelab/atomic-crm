@@ -163,7 +163,7 @@ export const ColumnsSelector = ({ children }: ColumnsSelectorProps) => {
 
     const observer = new MutationObserver(resolveContainer);
 
-    observer.observe(document.body, { childList: true, subtree: true });
+    observer.observe(document.body, { childList: true });
 
     return () => {
       observer.disconnect();

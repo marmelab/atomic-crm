@@ -142,7 +142,7 @@ const CreateButton = () => {
         >
           <Plus className="size-10" />
         </DropdownMenuTrigger>
-        <DropdownMenuContent>
+        <DropdownMenuContent align="center">
           <DropdownMenuItem
             className="h-12 px-4 text-base"
             onClick={() => {

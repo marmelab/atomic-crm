@@ -120,7 +120,7 @@ export const TagsListEdit = () => {
             <Plus className="w-4 h-4 md:w-3 md:h-3 mr-1" />
             {translate("resources.tags.action.add")}
           </DropdownMenuTrigger>
-          <DropdownMenuContent>
+          <DropdownMenuContent align="center">
             {unselectedTags?.map((tag) => (
               <DropdownMenuItem
                 key={tag.id}
