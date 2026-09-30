@@ -163,11 +163,7 @@ export const ColumnsSelector = ({ children }: ColumnsSelectorProps) => {
 
     const observer = new MutationObserver(resolveContainer);
 
-    // The popover renders its content in a portal appended to <body>, so
-    // watching body's direct children is enough to catch it opening and
-    // closing. Watching the whole subtree instead would run this on every DOM
-    // mutation of the list for as long as the view is mounted.
-    observer.observe(document.body, { childList: true });
+    observer.observe(document.body, { childList: true, subtree: true });
 
     return () => {
       observer.disconnect();

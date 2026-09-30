@@ -271,14 +271,14 @@ export const SelectInput = (props: SelectInputProps) => {
             onValueChange={handleChangeWithCreateSupport}
           >
             <SelectTrigger
-              className={cn(
-                "w-full transition-all hover:bg-accent",
-                isClearable && "pr-11",
-              )}
+              className={cn("w-full transition-all hover:bg-accent")}
               disabled={field.disabled}
               aria-labelledby={labelId}
             >
-              <SelectValue placeholder={renderEmptyItemOption()}>
+              <SelectValue
+                placeholder={renderEmptyItemOption()}
+                className={cn(isClearable && "pr-6")}
+              >
                 {(value: string | null) => {
                   if (!value || value === emptyValue) {
                     return renderEmptyItemOption();
