@@ -131,11 +131,12 @@ const UsersMenu = () => {
     throw new Error("<UsersMenu> must be used inside <UserMenu?");
   }
   return (
-    <DropdownMenuItem asChild onClick={userMenuContext.onClose}>
-      <Link to="/sales" className="flex items-center gap-2">
-        <Users />
-        {translate("resources.sales.name", { smart_count: 2 })}
-      </Link>
+    <DropdownMenuItem
+      onClick={userMenuContext.onClose}
+      render={<Link to="/sales" className="flex items-center gap-2" />}
+    >
+      <Users />
+      {translate("resources.sales.name", { smart_count: 2 })}
     </DropdownMenuItem>
   );
 };
@@ -147,11 +148,12 @@ const ProfileMenu = () => {
     throw new Error("<ProfileMenu> must be used inside <UserMenu?");
   }
   return (
-    <DropdownMenuItem asChild onClick={userMenuContext.onClose}>
-      <Link to="/profile" className="flex items-center gap-2">
-        <User />
-        {translate("crm.profile.title")}
-      </Link>
+    <DropdownMenuItem
+      onClick={userMenuContext.onClose}
+      render={<Link to="/profile" className="flex items-center gap-2" />}
+    >
+      <User />
+      {translate("crm.profile.title")}
     </DropdownMenuItem>
   );
 };
@@ -163,11 +165,12 @@ const SettingsMenu = () => {
     throw new Error("<SettingsMenu> must be used inside <UserMenu>");
   }
   return (
-    <DropdownMenuItem asChild onClick={userMenuContext.onClose}>
-      <Link to="/settings" className="flex items-center gap-2">
-        <Settings />
-        {translate("crm.settings.title")}
-      </Link>
+    <DropdownMenuItem
+      onClick={userMenuContext.onClose}
+      render={<Link to="/settings" className="flex items-center gap-2" />}
+    >
+      <Settings />
+      {translate("crm.settings.title")}
     </DropdownMenuItem>
   );
 };
@@ -179,11 +182,12 @@ const ImportFromJsonMenuItem = () => {
     throw new Error("<ImportFromJsonMenuItem> must be used inside <UserMenu>");
   }
   return (
-    <DropdownMenuItem asChild onClick={userMenuContext.onClose}>
-      <Link to={ImportPage.path} className="flex items-center gap-2">
-        <Import />
-        {translate("crm.header.import_data")}
-      </Link>
+    <DropdownMenuItem
+      onClick={userMenuContext.onClose}
+      render={<Link to={ImportPage.path} className="flex items-center gap-2" />}
+    >
+      <Import />
+      {translate("crm.header.import_data")}
     </DropdownMenuItem>
   );
 };
@@ -195,11 +199,14 @@ const ChangelogMenuItem = () => {
     throw new Error("<ChangelogMenuItem> must be used inside <UserMenu>");
   }
   return (
-    <DropdownMenuItem asChild onClick={userMenuContext.onClose}>
-      <Link to={ChangelogPage.path} className="flex items-center gap-2">
-        <FileText />
-        {translate("crm.changelog.title")}
-      </Link>
+    <DropdownMenuItem
+      onClick={userMenuContext.onClose}
+      render={
+        <Link to={ChangelogPage.path} className="flex items-center gap-2" />
+      }
+    >
+      <FileText />
+      {translate("crm.changelog.title")}
     </DropdownMenuItem>
   );
 };

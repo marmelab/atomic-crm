@@ -5,18 +5,18 @@ import { useCallback, useEffect, useState, isValidElement } from "react";
 import get from "lodash/get";
 import isEqual from "lodash/isEqual";
 import queryString from "query-string";
+import type { SavedQuery } from "ra-core";
 import {
   extractValidSavedQueries,
   FieldTitle,
   FilterLiveForm,
-  type SavedQuery,
   useFilterContext,
   useListContext,
+  useNavigate,
   useResourceContext,
   useSavedQueries,
   useTranslate,
 } from "ra-core";
-import { useNavigate } from "react-router";
 import {
   Bookmark,
   BookmarkMinus,
@@ -329,17 +329,19 @@ export const FilterButton = (props: FilterButtonProps) => {
   return (
     <div className={cn("inline-block", className)} {...rest}>
       <DropdownMenu open={open} onOpenChange={setOpen}>
-        <DropdownMenuTrigger asChild>
-          <Button
-            type="button"
-            className="add-filter"
-            variant={variant}
-            size={size}
-            aria-haspopup="true"
-          >
-            <Filter className="h-4 w-4" />
-            {translate("ra.action.add_filter")}
-          </Button>
+        <DropdownMenuTrigger
+          render={
+            <Button
+              type="button"
+              className="add-filter"
+              variant={variant}
+              size={size}
+              aria-haspopup="true"
+            />
+          }
+        >
+          <Filter className="h-4 w-4" />
+          {translate("ra.action.add_filter")}
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-56">
           {allTogglableFilters

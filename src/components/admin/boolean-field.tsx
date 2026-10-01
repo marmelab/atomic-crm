@@ -1,7 +1,9 @@
-import { Check, type LucideIcon, X } from "lucide-react";
-import { RaRecord, useFieldValue, useTranslate } from "ra-core";
+import type { LucideIcon } from "lucide-react";
+import { Check, X } from "lucide-react";
+import type { RaRecord } from "ra-core";
+import { useFieldValue, useTranslate } from "ra-core";
 
-import type { FieldProps } from "@/lib/field.type";
+import type { FieldProps } from "@/lib/field.type.ts";
 import { cn } from "@/lib/utils";
 import {
   Tooltip,
@@ -45,22 +47,22 @@ export const BooleanField = <RecordType extends RaRecord = any>({
   const baseClassName = "size-5 text-foreground";
 
   if (looseValue || typeof value === "boolean") {
+    const icon = isTruthyValue ? (
+      TrueIcon ? (
+        <TrueIcon className={cn(baseClassName, className)} />
+      ) : (
+        <div />
+      )
+    ) : FalseIcon ? (
+      <FalseIcon className={cn(baseClassName, className)} />
+    ) : (
+      <div />
+    );
+
     return (
       <TooltipProvider>
         <Tooltip>
-          <TooltipTrigger asChild>
-            {isTruthyValue ? (
-              TrueIcon ? (
-                <TrueIcon className={cn(baseClassName, className)} />
-              ) : (
-                <div />
-              )
-            ) : FalseIcon ? (
-              <FalseIcon className={cn(baseClassName, className)} />
-            ) : (
-              <div />
-            )}
-          </TooltipTrigger>
+          <TooltipTrigger render={icon} />
           <TooltipContent>
             <RenderLabel
               value={!!value}

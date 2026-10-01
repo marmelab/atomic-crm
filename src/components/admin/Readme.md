@@ -20,7 +20,7 @@ The components in this directory come from [Shadcn Admin Kit](https://marmelab.c
 - notifications,
 - and more.
 
-These components are built on top of [TanStack Query](https://tanstack.com/query/latest), [React Hook Form](https://react-hook-form.com/), [React Router](https://reactrouter.com/), [ra-core](https://marmelab.com/ra-core/), [Radix UI](https://www.radix-ui.com/) and [Shadcn UI](https://ui.shadcn.com/).
+These components are built on top of [TanStack Query](https://tanstack.com/query/latest), [React Hook Form](https://react-hook-form.com/), [React Router](https://reactrouter.com/), [ra-core](https://marmelab.com/ra-core/), [Base UI](https://base-ui.com/) and [Shadcn UI](https://ui.shadcn.com/).
 
 ## Documentation
 

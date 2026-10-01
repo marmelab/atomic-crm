@@ -1,8 +1,12 @@
-import { Link } from "react-router";
-import { Translate, useHandleAuthCallback, useTranslate } from "ra-core";
+import {
+  LinkBase,
+  Translate,
+  useHandleAuthCallback,
+  useTranslate,
+} from "ra-core";
 import { CircleAlert, LockIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { Loading } from "@/components/admin/loading";
 
 /**
@@ -76,11 +80,9 @@ export const AuthError = (props: AuthErrorProps) => {
         <Translate i18nKey={title} />
       </h1>
       <p className="my-5">{translate(message, { _: message })}</p>
-      <Button asChild>
-        <Link to="/login">
-          <LockIcon /> {translate("ra.auth.sign_in", { _: "Sign in" })}
-        </Link>
-      </Button>
+      <LinkBase to="/login" className={buttonVariants()}>
+        <LockIcon /> {translate("ra.auth.sign_in", { _: "Sign in" })}
+      </LinkBase>
     </div>
   );
 };

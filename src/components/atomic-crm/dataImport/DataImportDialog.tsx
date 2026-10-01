@@ -7,7 +7,7 @@ import {
 } from "ra-core";
 import { Link } from "react-router";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -67,7 +67,7 @@ export function DataImportDialog({
 
   const sampleUrl = `data:text/csv;name=${sampleFileName(resource.name)};charset=utf-8,${encodeURIComponent(resource.sampleCsv)}`;
 
-  const handleResourceChange = (name: string) => {
+  const handleResourceChange = (name: string | null) => {
     const next = resources.find((candidate) => candidate.name === name);
     if (!next) return;
     onResourceChange(next.name);
@@ -96,6 +96,10 @@ export function DataImportDialog({
                 <Select
                   value={resource.name}
                   onValueChange={handleResourceChange}
+                  items={resources.map(({ name }) => ({
+                    value: name,
+                    label: getResourceLabel(name, 2),
+                  }))}
                 >
                   <SelectTrigger id="data-import-resource" className="w-full">
                     <SelectValue />
@@ -114,11 +118,13 @@ export function DataImportDialog({
             <Alert>
               <AlertDescription className="flex flex-col gap-4">
                 {translate("crm.data_import.sample_hint")}
-                <Button asChild variant="outline" size="sm">
-                  <Link to={sampleUrl} download={sampleFileName(resource.name)}>
-                    {translate("crm.data_import.sample_download")}
-                  </Link>
-                </Button>
+                <Link
+                  to={sampleUrl}
+                  download={sampleFileName(resource.name)}
+                  className={buttonVariants({ variant: "outline", size: "sm" })}
+                >
+                  {translate("crm.data_import.sample_download")}
+                </Link>
               </AlertDescription>
             </Alert>
 

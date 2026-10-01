@@ -3,6 +3,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { Pencil } from "lucide-react";
 import type { RaRecord } from "ra-core";
 import {
+  LinkBase,
   useCreatePath,
   useGetRecordRepresentation,
   useGetResourceLabel,
@@ -10,7 +11,7 @@ import {
   useResourceContext,
   useResourceTranslation,
 } from "ra-core";
-import { Link } from "react-router";
+import { cn } from "@/lib/utils";
 
 export type EditButtonProps = {
   record?: RaRecord;
@@ -66,15 +67,15 @@ export const EditButton = (props: EditButtonProps) => {
     userText: labelProp,
   });
   return (
-    <Link
-      className={buttonVariants({ variant: "outline" })}
+    <LinkBase
+      className={cn(buttonVariants({ variant: "outline" }))}
       to={link}
       onClick={stopPropagation}
       aria-label={typeof label === "string" ? label : undefined}
     >
       <Pencil />
       {label}
-    </Link>
+    </LinkBase>
   );
 };
 

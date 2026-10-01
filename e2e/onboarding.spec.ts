@@ -24,7 +24,7 @@ test("user onboarding", async ({ page, isMobile, menu, dismissToast }) => {
     .getByRole(isMobile ? "button" : "link", { name: "Add contact" })
     .click();
   await page.waitForLoadState("networkidle");
-  await page.getByLabel("She/Her").click();
+  await page.getByRole("radio", { name: "She/Her" }).click();
   await page.getByLabel("First name").fill("Jane");
   await page.getByLabel("Last name").fill("Smith");
   await page.getByLabel("Title").fill("CEO");
@@ -57,7 +57,7 @@ test("user onboarding", async ({ page, isMobile, menu, dismissToast }) => {
     .getByLabel("Background info (bio, how you met, etc)")
     .fill("Met at a conference.");
 
-  await page.getByLabel("Has newsletter").check();
+  await page.getByRole("switch", { name: "Has newsletter" }).check();
 
   await expect(page.getByLabel("Account manager *")).toHaveText("John Doe");
 
@@ -73,9 +73,7 @@ test("user onboarding", async ({ page, isMobile, menu, dismissToast }) => {
 
   await expect(page.getByText("2/3 done")).toBeVisible();
 
-  await page
-    .getByRole(isMobile ? "button" : "link", { name: "Add note" })
-    .click();
+  await page.getByRole("button", { name: "Add note" }).click();
 
   await page.waitForLoadState("networkidle");
 

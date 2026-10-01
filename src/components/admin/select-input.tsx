@@ -238,10 +238,11 @@ export const SelectInput = (props: SelectInputProps) => {
   }
 
   // Handle reset functionality
-  const handleReset = (e: React.MouseEvent<HTMLDivElement>) => {
-    e.stopPropagation();
+  const handleReset = () => {
     field.onChange(emptyValue);
   };
+
+  const isClearable = !!field.value && field.value !== emptyValue;
 
   return (
     <>
@@ -263,10 +264,8 @@ export const SelectInput = (props: SelectInputProps) => {
         )}
         <div className="relative">
           <Select
-            //FIXME https://github.com/radix-ui/primitives/issues/3135
-            // Setting a key based on the value fixes an issue where onValueChange
-            // was called with an empty string when the controlled value was changed.
-            // See: https://github.com/radix-ui/primitives/issues/3135#issuecomment-2916908248
+            // Re-mounting the select when the controlled value changes avoids a stale
+            // internal state edge case where onValueChange can briefly receive "".
             key={`select:${field.value?.toString() ?? emptyValue}`}
             value={field.value?.toString() || emptyValue}
             onValueChange={handleChangeWithCreateSupport}
@@ -276,17 +275,21 @@ export const SelectInput = (props: SelectInputProps) => {
               disabled={field.disabled}
               aria-labelledby={labelId}
             >
-              <SelectValue placeholder={renderEmptyItemOption()} />
-
-              {field.value && field.value !== emptyValue ? (
-                <div
-                  role="button"
-                  className="p-0 ml-auto pointer-events-auto hover:bg-transparent text-muted-foreground opacity-50 hover:opacity-100"
-                  onClick={handleReset}
-                >
-                  <X className="h-4 w-4" />
-                </div>
-              ) : null}
+              <SelectValue
+                placeholder={renderEmptyItemOption()}
+                className={cn(isClearable && "pr-6")}
+              >
+                {(value: string | null) => {
+                  if (!value || value === emptyValue) {
+                    return renderEmptyItemOption();
+                  }
+                  const choice = finalChoices?.find(
+                    (choice) =>
+                      choice && getChoiceValue(choice)?.toString() === value,
+                  );
+                  return choice ? renderMenuItemOption(choice) : value;
+                }}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               {finalChoices?.map((choice) => {
@@ -310,6 +313,16 @@ export const SelectInput = (props: SelectInputProps) => {
               })}
             </SelectContent>
           </Select>
+          {isClearable ? (
+            <button
+              type="button"
+              aria-label={translate("ra.action.clear_input_value")}
+              className="absolute right-7 top-1/2 -translate-y-1/2 rounded-sm text-muted-foreground opacity-50 hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+              onClick={handleReset}
+            >
+              <X className="h-4 w-4" />
+            </button>
+          ) : null}
         </div>
         <InputHelperText helperText={helperText} />
       </FormField>
