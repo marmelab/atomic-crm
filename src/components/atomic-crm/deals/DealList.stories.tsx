@@ -58,3 +58,33 @@ export const NonAdminAccountManagerFilter = () => (
     </ResourceContextProvider>
   </StoryWrapper>
 );
+
+// A filter saved before deals had several categories (stored list params or a
+// bookmarked URL) still carries the single `category` key
+export const LegacyCategoryFilter = () => (
+  <StoryWrapper
+    data={{
+      ...dataForAccountManagerFilter,
+      deals: [
+        buildDeal({
+          id: 1,
+          name: "Copywriting deal",
+          category_amounts: [{ category: "copywriting", amount: 1000 }],
+        }),
+        buildDeal({
+          id: 2,
+          index: 1,
+          name: "Design deal",
+          category_amounts: [{ category: "ui-design", amount: 2000 }],
+        }),
+      ],
+    }}
+    initialEntries={[
+      `/?filter=${encodeURIComponent(JSON.stringify({ category: "copywriting" }))}`,
+    ]}
+  >
+    <ResourceContextProvider value="deals">
+      <DealList />
+    </ResourceContextProvider>
+  </StoryWrapper>
+);

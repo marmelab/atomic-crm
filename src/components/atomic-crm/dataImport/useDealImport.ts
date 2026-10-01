@@ -4,7 +4,13 @@ import { useDataProvider, useGetIdentity, type DataProvider } from "ra-core";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { useCompanyResolver } from "./useCompanyResolver";
 import { createEachRow } from "./createEachRow";
-import { toConfiguredValue, toInteger, toIsoDate, toText } from "./parseCell";
+import {
+  toCategoryAmounts,
+  toConfiguredValue,
+  toIsoDate,
+  toLegacyCategoryAmounts,
+  toText,
+} from "./parseCell";
 import type { ImportRow, ProcessImportBatch } from "./types";
 
 /** One CSV row, with the values needed before its deal can be created. */
@@ -47,7 +53,8 @@ export function useDealImport(): ProcessImportBatch {
 
       const now = new Date().toISOString();
       return createEachRow(
-        rows.map(({ row, companyName, stage }) =>
+        // async, so an unreadable amount rejects its row instead of the import
+        rows.map(async ({ row, companyName, stage }) =>
           dataProvider.create("deals", {
             data: {
               name: toText(row.name),
@@ -55,11 +62,20 @@ export function useDealImport(): ProcessImportBatch {
                 ? companies.get(companyName)?.id
                 : undefined,
               contact_ids: [],
-              category: toConfiguredValue(row.category, dealCategories),
+              category_amounts:
+                row.categories === undefined
+                  ? toLegacyCategoryAmounts(
+                      row.category,
+                      row.amount,
+                      dealCategories,
+                    )
+                  : toCategoryAmounts(
+                      row.categories,
+                      row.amount,
+                      dealCategories,
+                    ),
               stage,
               description: toText(row.description),
-              // amount lands in a bigint column, which rejects "4500.50"
-              amount: toInteger(row.amount),
               expected_closing_date: toIsoDate(row.expected_closing_date),
               sales_id: identity?.id,
               index: indexes.get(row) ?? 0,

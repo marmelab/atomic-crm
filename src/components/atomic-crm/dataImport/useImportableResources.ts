@@ -42,7 +42,13 @@ export function useImportableResources(): ImportableResource[] {
       textColumns: ["zipcode", "phone_number", "tax_identifier"],
       processBatch: processCompanies,
     },
-    { name: "deals", sampleCsv: dealsSampleCsv, processBatch: processDeals },
+    {
+      name: "deals",
+      sampleCsv: dealsSampleCsv,
+      // Kept as text for toAmount: parsed as numbers, "8.000" would be 8
+      textColumns: ["amount", "categories"],
+      processBatch: processDeals,
+    },
   ];
 
   return resources.filter(({ name }) => name in definitions);

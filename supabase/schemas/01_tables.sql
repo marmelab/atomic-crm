@@ -67,16 +67,19 @@ create table public.deals (
     name text not null,
     company_id bigint,
     contact_ids bigint[],
-    category text,
     stage text not null,
     description text,
-    amount bigint,
     created_at timestamp with time zone not null default now(),
     updated_at timestamp with time zone not null default now(),
     archived_at timestamp with time zone,
     expected_closing_date date,
     sales_id bigint,
-    index smallint
+    index smallint,
+    -- the categories of the deal, each with its amount: [{"category": ..., "amount": ...}]
+    category_amounts jsonb not null default '[]'::jsonb,
+    constraint deals_category_amounts_is_array check (jsonb_typeof(category_amounts) = 'array'),
+    -- every line needs a numeric amount: amount() casts it, and the UI reads it
+    constraint deals_category_amounts_numeric check (not jsonb_path_exists(category_amounts, '$[*] ? (!exists(@.amount) || @.amount.type() != "number")'))
 );
 
 create table public.deal_notes (

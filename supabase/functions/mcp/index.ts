@@ -309,7 +309,7 @@ This tool only supports SELECT queries. For INSERT, UPDATE, or DELETE operations
 
 Examples:
 - "SELECT id, first_name, last_name, email_fts FROM contacts_summary WHERE email_fts LIKE '%@company.com%'"
-- "SELECT name, stage, amount FROM deals WHERE created_at > NOW() - INTERVAL '30 days' ORDER BY amount DESC"
+- "SELECT d.name, d.stage, d.amount FROM deals d WHERE d.created_at > NOW() - INTERVAL '30 days' ORDER BY d.amount DESC" (a deal's amount and categories are computed from its category_amounts: read them as d.amount and d.categories, with the table alias)
 - "SELECT COUNT(*) as total_tasks, type FROM tasks WHERE done_date IS NULL GROUP BY type"
 - "SELECT c.first_name, c.last_name, co.name as company_name FROM contacts c JOIN companies co ON c.company_id = co.id WHERE co.sector = 'Technology'"`,
       inputSchema: z.object({
@@ -358,6 +358,8 @@ Use this tool for data modifications such as:
 Row Level Security (RLS) is enforced - mutations only affect data the authenticated user has permission to modify.
 
 IMPORTANT: Never specify sales_id in INSERT or UPDATE statements — it is automatically set to the authenticated user by a database trigger.
+
+IMPORTANT: A deal's categories and their amounts live in its category_amounts column (a JSON array of {"category": <category value>, "amount": <number>}). The deal has no amount column: write category_amounts.
 
 For read-only queries, use the query tool instead.
 

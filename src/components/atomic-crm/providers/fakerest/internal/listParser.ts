@@ -39,9 +39,9 @@ export function parseList(list: string) {
   }
 
   return parsedItems.map((v: string) => {
-    const parsedFloat = Number.parseFloat(v);
-    if (!Number.isNaN(parsedFloat)) {
-      return parsedFloat;
+    const parsedNumber = Number(v);
+    if (v.trim() !== "" && !Number.isNaN(parsedNumber)) {
+      return parsedNumber;
     }
     return v;
   });

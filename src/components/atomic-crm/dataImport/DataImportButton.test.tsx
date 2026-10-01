@@ -198,12 +198,18 @@ describe("DataImportButton", () => {
       {
         name: "New website",
         company: "Acme",
-        category: "Website design",
+        categories: "Website design:8000;Copywriting:4000",
         stage: "Proposal Sent",
-        amount: "12000",
         expected_closing_date: "2026-09-30",
       },
-      { name: "Print campaign", company: "Acme", stage: null },
+      // older files have a single-category "category" column
+      {
+        name: "Print campaign",
+        company: "Acme",
+        category: "Print project",
+        amount: "4500",
+        stage: null,
+      },
     ]);
 
     await screen.getByRole("button", { name: "run import" }).click();
@@ -216,8 +222,10 @@ describe("DataImportButton", () => {
     const { data: deals } = await listAll(dataProvider, "deals");
     expect(deals).toHaveLength(2);
     expect(deals[0]).toMatchObject({
-      amount: 12000,
-      category: "website-design",
+      category_amounts: [
+        { category: "website-design", amount: 8000 },
+        { category: "copywriting", amount: 4000 },
+      ],
       company_id: companies[0].id,
       name: "New website",
       stage: "proposal-sent",
@@ -225,6 +233,9 @@ describe("DataImportButton", () => {
     expect(deals[0].expected_closing_date).toBe("2026-09-30T00:00:00.000Z");
     // Both rows name the same company, which is created once and shared
     expect(deals[1].company_id).toBe(companies[0].id);
+    expect(deals[1].category_amounts).toEqual([
+      { category: "print-project", amount: 4500 },
+    ]);
     // stage is required, so an empty cell falls back to the first stage
     expect(deals[1].stage).toBe("opportunity");
   });
@@ -295,12 +306,46 @@ describe("DataImportButton", () => {
     // wiring this feature adds is covered too — the owner in particular, which
     // the dialog is the only thing to bring in
     expect(deals[0]).toMatchObject({
-      // A fractional amount would make the bigint column reject the row
-      amount: 4501,
+      // Cents are kept, as the deal form allows them
+      category_amounts: [{ category: null, amount: 4500.5 }],
       sales_id: DEFAULT_USER.id,
       stage: "proposal-sent",
     });
     expect(deals[0].expected_closing_date).toBe("2026-09-30T00:00:00.000Z");
+  });
+
+  it("reads a dot-thousands deal amount as text, not as a decimal", async () => {
+    const dataProvider = createDataProvider({
+      db: createCrmDb(),
+      latency: 0,
+      silent: true,
+    });
+    const screen = await render(
+      <StoryWrapper dataProvider={dataProvider}>
+        <DataImportButton />
+      </StoryWrapper>,
+    );
+
+    await screen.getByRole("button", { name: "Import data" }).click();
+    await screen.getByLabelText("Resource").click();
+    await screen.getByRole("listbox").getByText("Deals").click();
+
+    await screen
+      .getByLabelText("CSV File")
+      .upload(
+        csvFile("deals.csv", [
+          "name,stage,amount",
+          "New website,Proposal Sent,8.000",
+        ]),
+      );
+    await screen.getByRole("button", { name: "Start import" }).click();
+
+    await expect.element(screen.getByText(/Import complete/)).toBeVisible();
+
+    const { data: deals } = await listAll(dataProvider, "deals");
+    expect(deals[0].category_amounts).toEqual([
+      { category: null, amount: 8000 },
+    ]);
   });
 
   it("keeps the leading zero of the text columns of a company CSV", async () => {

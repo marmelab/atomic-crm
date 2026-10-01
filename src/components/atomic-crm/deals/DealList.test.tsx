@@ -3,6 +3,7 @@ import { page, userEvent } from "vitest/browser";
 
 import {
   AdminAccountManagerFilter,
+  LegacyCategoryFilter,
   NonAdminAccountManagerFilter,
 } from "./DealList.stories";
 
@@ -40,5 +41,26 @@ describe("DealList", () => {
     await expect
       .element(screen.getByRole("combobox", { name: "Account manager" }))
       .not.toBeInTheDocument();
+  });
+
+  it("shows a stale single-category filter in the Category input, where it can be cleared", async () => {
+    const screen = await render(<LegacyCategoryFilter />);
+
+    await expect.element(screen.getByText("Copywriting deal")).toBeVisible();
+    await expect
+      .element(screen.getByText("Design deal"))
+      .not.toBeInTheDocument();
+    // the Category input shows the migrated filter as a removable chip
+    const removeChip = screen.getByRole("button", {
+      name: "Remove",
+      exact: true,
+    });
+    await expect.element(removeChip).toBeVisible();
+    expect(removeChip.element().parentElement).toHaveTextContent("Copywriting");
+
+    await removeChip.click();
+
+    await expect.element(screen.getByText("Design deal")).toBeVisible();
+    await expect.element(screen.getByText("Copywriting deal")).toBeVisible();
   });
 });

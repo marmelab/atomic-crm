@@ -27,7 +27,12 @@ import { NotesIterator } from "../notes/NotesIterator";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal } from "../types";
 import { ContactList } from "./ContactList";
-import { findDealLabel, formatISODateString } from "./dealUtils";
+import {
+  findDealLabel,
+  formatDealCategories,
+  getDealAmount,
+  formatISODateString,
+} from "./dealUtils";
 
 export const DealShow = ({ open, id }: { open: boolean; id?: string }) => {
   const redirect = useRedirect();
@@ -86,7 +91,7 @@ const DealShowContent = () => {
           </div>
 
           <div className="flex gap-8 m-4">
-            <div className="flex flex-col mr-10">
+            <div className="flex flex-col shrink-0 mr-10">
               <span className="text-xs text-muted-foreground tracking-wide">
                 {translate("resources.deals.fields.expected_closing_date")}
               </span>
@@ -104,34 +109,59 @@ const DealShowContent = () => {
               </div>
             </div>
 
-            <div className="flex flex-col mr-10">
+            <div className="flex flex-col shrink-0 mr-10">
               <span className="text-xs text-muted-foreground tracking-wide">
                 {translate("resources.deals.fields.amount")}
               </span>
               <span className="text-sm">
-                {record.amount.toLocaleString("en-US", {
-                  notation: "compact",
-                  style: "currency",
-                  currency,
-                  currencyDisplay: "narrowSymbol",
-                  minimumSignificantDigits: 3,
-                })}
+                {getDealAmount(record.category_amounts).toLocaleString(
+                  "en-US",
+                  {
+                    notation: "compact",
+                    style: "currency",
+                    currency,
+                    currencyDisplay: "narrowSymbol",
+                    minimumSignificantDigits: 3,
+                  },
+                )}
               </span>
             </div>
 
-            {record.category && (
-              <div className="flex flex-col mr-10">
+            {record.category_amounts?.some((line) => line.category) && (
+              <div className="flex flex-col min-w-0 mr-10">
                 <span className="text-xs text-muted-foreground tracking-wide">
-                  {translate("resources.deals.fields.category")}
+                  {translate("resources.deals.fields.category_amounts")}
                 </span>
-                <span className="text-sm">
-                  {dealCategories.find((c) => c.value === record.category)
-                    ?.label ?? record.category}
-                </span>
+                <ul className="flex flex-wrap gap-2 mt-1">
+                  {record.category_amounts
+                    .filter((line) => line.category)
+                    .sort((a, b) => b.amount - a.amount)
+                    .map((line, index) => (
+                      <li key={index}>
+                        <Badge
+                          variant="secondary"
+                          className="px-2.5 py-1 text-sm font-normal gap-1.5"
+                        >
+                          {formatDealCategories(dealCategories, [
+                            line.category!,
+                          ])}
+                          <span className="font-medium tabular-nums">
+                            {line.amount.toLocaleString("en-US", {
+                              notation: "compact",
+                              style: "currency",
+                              currency,
+                              currencyDisplay: "narrowSymbol",
+                              minimumSignificantDigits: 3,
+                            })}
+                          </span>
+                        </Badge>
+                      </li>
+                    ))}
+                </ul>
               </div>
             )}
 
-            <div className="flex flex-col mr-10">
+            <div className="flex flex-col shrink-0 mr-10">
               <span className="text-xs text-muted-foreground tracking-wide">
                 {translate("resources.deals.fields.stage")}
               </span>

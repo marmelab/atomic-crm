@@ -1,13 +1,16 @@
 import { Draggable } from "@hello-pangea/dnd";
 import { useRedirect, RecordContextProvider } from "ra-core";
 import { ReferenceField } from "@/components/admin/reference-field";
-import { NumberField } from "@/components/admin/number-field";
-import { SelectField } from "@/components/admin/select-field";
 import { Card, CardContent } from "@/components/ui/card";
 
 import { CompanyAvatar } from "../companies/CompanyAvatar";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal } from "../types";
+import {
+  formatDealCategories,
+  getDealAmount,
+  getDealCategories,
+} from "./dealUtils";
 
 export const DealCard = ({ deal, index }: { deal: Deal; index: number }) => {
   if (!deal) return null;
@@ -74,23 +77,18 @@ export const DealCardContent = ({
               </ReferenceField>
             </div>
             <p className="text-xs text-muted-foreground">
-              <NumberField
-                source="amount"
-                options={{
-                  notation: "compact",
-                  style: "currency",
-                  currency,
-                  currencyDisplay: "narrowSymbol",
-                  minimumSignificantDigits: 3,
-                }}
-              />
-              {deal.category && ", "}
-              <SelectField
-                source="category"
-                choices={dealCategories}
-                optionText="label"
-                optionValue="value"
-              />
+              {getDealAmount(deal.category_amounts).toLocaleString("en-US", {
+                notation: "compact",
+                style: "currency",
+                currency,
+                currencyDisplay: "narrowSymbol",
+                minimumSignificantDigits: 3,
+              })}
+              {getDealCategories(deal.category_amounts).length > 0 &&
+                `, ${formatDealCategories(
+                  dealCategories,
+                  getDealCategories(deal.category_amounts),
+                )}`}
             </p>
           </CardContent>
         </Card>
