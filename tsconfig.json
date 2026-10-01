@@ -7,7 +7,6 @@
   "compilerOptions": {
     "esModuleInterop": true,
     // Shadcn
-    "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
     }

@@ -3,7 +3,10 @@ import {
   withLifecycleCallbacks,
   type DataProvider,
   type GetListParams,
+  type GetListResult,
+  type GetOneResult,
   type Identifier,
+  type RaRecord,
   type ResourceCallbacks,
 } from "ra-core";
 import type {
@@ -49,7 +52,10 @@ const getDataProviderWithCustomMethods = () => {
 
   return {
     ...baseDataProvider,
-    async getList(resource: string, params: GetListParams) {
+    async getList<RecordType extends RaRecord = any>(
+      resource: string,
+      params: GetListParams,
+    ): Promise<GetListResult<RecordType>> {
       if (resource === "companies") {
         return baseDataProvider.getList("companies_summary", params);
       }
@@ -76,7 +82,10 @@ const getDataProviderWithCustomMethods = () => {
 
       return baseDataProvider.getList(resource, params);
     },
-    async getOne(resource: string, params: any) {
+    async getOne<RecordType extends RaRecord = any>(
+      resource: string,
+      params: any,
+    ): Promise<GetOneResult<RecordType>> {
       if (resource === "companies") {
         return baseDataProvider.getOne("companies_summary", params);
       }
