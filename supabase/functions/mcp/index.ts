@@ -6,6 +6,11 @@ import { Pool } from "https://deno.land/x/postgres@v0.17.0/mod.ts";
 import { z } from "npm:zod@^3.25";
 import { validateReadOnly, validateWrite } from "./validateSql.ts";
 import { TASK_LIST_HTML, TASK_LIST_UI_URI } from "./taskListUi.ts";
+import {
+  NOTE_ATTACHMENT_CHANGES_SETTING,
+  deleteAttachmentsAsUser,
+  getRemovedAttachmentPaths,
+} from "./attachmentCleanup.ts";
 import { corsHeaders } from "../_shared/cors.ts";
 
 // --- Environment & Config ---
@@ -234,7 +239,17 @@ async function executeQueryWithRLS(
     });
 
     const result = await client.queryObject(sql);
+    const {
+      rows: [attachmentChanges],
+    } = await client.queryObject<{ setting: string | null }>({
+      text: "SELECT current_setting($1, true) AS setting",
+      args: [NOTE_ATTACHMENT_CHANGES_SETTING],
+    });
     await client.queryObject("COMMIT");
+    await deleteAttachmentsAsUser(
+      getRemovedAttachmentPaths(attachmentChanges?.setting),
+      userToken,
+    );
 
     // Convert BigInt values to numbers (Deno Postgres returns bigint for
     // PostgreSQL int8/count results, but JSON.stringify can't handle them)
