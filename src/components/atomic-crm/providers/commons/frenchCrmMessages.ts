@@ -362,6 +362,7 @@ export const frenchCrmMessages = {
         name_label: "Nom de l'étiquette",
         name_placeholder: "Saisir le nom de l'étiquette",
       },
+      empty: "Aucune étiquette pour le moment.",
     },
   },
   crm: {
