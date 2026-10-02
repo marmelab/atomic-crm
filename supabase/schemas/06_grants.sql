@@ -41,6 +41,10 @@ grant all on function public.handle_contact_saved() to anon;
 grant all on function public.handle_contact_saved() to authenticated;
 grant all on function public.handle_contact_saved() to service_role;
 
+grant all on function public.enforce_sales_self_update_scope() to anon;
+grant all on function public.enforce_sales_self_update_scope() to authenticated;
+grant all on function public.enforce_sales_self_update_scope() to service_role;
+
 grant all on function public.handle_new_user() to anon;
 grant all on function public.handle_new_user() to authenticated;
 grant all on function public.handle_new_user() to service_role;
@@ -89,6 +93,9 @@ grant all on table public.deal_notes to service_role;
 grant all on table public.sales to anon;
 grant all on table public.sales to authenticated;
 grant all on table public.sales to service_role;
+
+revoke update on table public.sales from authenticated;
+grant update (preferences) on table public.sales to authenticated;
 
 grant all on table public.tags to anon;
 grant all on table public.tags to authenticated;
