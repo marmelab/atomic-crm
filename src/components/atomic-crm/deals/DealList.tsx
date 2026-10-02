@@ -1,6 +1,11 @@
 import type { ReactNode } from "react";
 import type { InputProps } from "ra-core";
-import { useGetIdentity, useListContext, useTranslate } from "ra-core";
+import {
+  useCanAccess,
+  useGetIdentity,
+  useListContext,
+  useTranslate,
+} from "ra-core";
 import { matchPath, useLocation } from "react-router";
 import { AutocompleteInput } from "@/components/admin/autocomplete-input";
 import { CreateButton } from "@/components/admin/create-button";
@@ -11,8 +16,10 @@ import { FilterButton } from "@/components/admin/filter-form";
 import { SearchInput } from "@/components/admin/search-input";
 import { SelectInput } from "@/components/admin/select-input";
 
+import { DataImportButton } from "../dataImport/DataImportButton";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { TopToolbar } from "../layout/TopToolbar";
+import { AccountManagerInput } from "../sales/AccountManagerInput";
 import { DealArchivedList } from "./DealArchivedList";
 import { DealCreate } from "./DealCreate";
 import { DealEdit } from "./DealEdit";
@@ -25,6 +32,10 @@ const DealList = () => {
   const { identity } = useGetIdentity();
   const { dealCategories } = useConfigurationContext();
   const translate = useTranslate();
+  const { canAccess: canAccessSalesList, isPending } = useCanAccess({
+    resource: "sales",
+    action: "list",
+  });
 
   if (!identity) return null;
 
@@ -46,7 +57,15 @@ const DealList = () => {
         optionValue="value"
       />
     </WrapperField>,
-    <OnlyMineInput source="sales_id" alwaysOn />,
+    ...(isPending
+      ? []
+      : [
+          canAccessSalesList ? (
+            <AccountManagerInput source="sales_id" alwaysOn />
+          ) : (
+            <OnlyMineInput source="sales_id" alwaysOn />
+          ),
+        ]),
   ];
 
   return (
@@ -98,6 +117,7 @@ const DealLayout = () => {
 const DealActions = () => (
   <TopToolbar>
     <FilterButton />
+    <DataImportButton resource="deals" />
     <ExportButton />
     <CreateButton label="resources.deals.action.new" />
   </TopToolbar>

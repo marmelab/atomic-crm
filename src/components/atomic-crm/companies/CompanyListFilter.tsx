@@ -5,6 +5,7 @@ import { SearchInput } from "@/components/admin/search-input";
 
 import { FilterCategory } from "../filters/FilterCategory";
 import { useConfigurationContext } from "../root/ConfigurationContext";
+import { AccountManagerFilter } from "../sales/AccountManagerInput";
 import { getTranslatedCompanySizeLabel } from "./getTranslatedCompanySizeLabel";
 import { sizes } from "./sizes";
 
@@ -59,6 +60,7 @@ export const CompanyListFilter = () => {
           label={translate("crm.common.me")}
           value={{ sales_id: identity?.id }}
         />
+        <AccountManagerFilter className="w-full justify-between" />
       </FilterCategory>
     </div>
   );

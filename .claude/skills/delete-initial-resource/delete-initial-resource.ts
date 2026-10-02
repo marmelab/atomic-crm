@@ -20,6 +20,10 @@ const initialResource = [
 ] as const;
 const dependentFiles: ResourceFiles = {
   companies: [
+    "src/components/atomic-crm/dataImport/useCompanyImport.ts",
+    "src/components/atomic-crm/dataImport/companies_sample.csv",
+    "src/components/atomic-crm/dataImport/useCompanyResolver.ts",
+    "src/components/atomic-crm/dataImport/useImportableResources.ts",
     "src/components/atomic-crm/types.ts",
     "src/components/atomic-crm/consts.ts",
     "src/components/atomic-crm/activity/ActivityLogCompanyCreated.tsx",
@@ -75,6 +79,8 @@ const dependentFiles: ResourceFiles = {
     "test-data/contacts.csv",
   ],
   contacts: [
+    "src/components/atomic-crm/dataImport/useImportableResources.ts",
+    "src/components/atomic-crm/dataImport/useCompanyResolver.ts",
     "src/components/atomic-crm/types.ts",
     "src/components/atomic-crm/consts.ts",
     "src/components/atomic-crm/activity/ActivityLogContactCreated.tsx",
@@ -144,6 +150,9 @@ const dependentFiles: ResourceFiles = {
     "src/test/StoryWrapper.tsx",
   ],
   deals: [
+    "src/components/atomic-crm/dataImport/useDealImport.ts",
+    "src/components/atomic-crm/dataImport/deals_sample.csv",
+    "src/components/atomic-crm/dataImport/useImportableResources.ts",
     "src/components/atomic-crm/types.ts",
     "src/components/atomic-crm/consts.ts",
     "src/components/atomic-crm/dashboard/DealsChart.tsx",

@@ -16,7 +16,7 @@ import { afterAll, describe, test, expect } from "vitest";
 const HERE = dirname(fileURLToPath(import.meta.url));
 const HOOK = join(HERE, "..", "block-nested-orchestrator.mjs");
 const TMP = mkdtempSync(join(tmpdir(), "block-nested-orch-test-"));
-const env = { ...process.env, APP_DIR: TMP, CRM_TMP_ROOT: TMP };
+const env = { ...process.env, APP_DIR: TMP, HARNESS_TMP_ROOT: TMP };
 delete env.CLAUDE_AGENT_NAME;
 
 afterAll(() => rmSync(TMP, { recursive: true, force: true }));

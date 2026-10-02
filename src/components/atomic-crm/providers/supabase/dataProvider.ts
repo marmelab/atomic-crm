@@ -133,7 +133,10 @@ const getDataProviderWithCustomMethods = () => {
             return {};
           }
         })();
-        throw new Error(errorDetails?.message || "Failed to create the user");
+        throw Object.assign(
+          new Error(errorDetails?.message || "Failed to create the user"),
+          { code: errorDetails?.code, email: errorDetails?.email },
+        );
       }
 
       return data.data;
@@ -142,8 +145,15 @@ const getDataProviderWithCustomMethods = () => {
       id: Identifier,
       data: Partial<Omit<SalesFormData, "password">>,
     ) {
-      const { email, first_name, last_name, administrator, avatar, disabled } =
-        data;
+      const {
+        email,
+        secondary_emails,
+        first_name,
+        last_name,
+        administrator,
+        avatar,
+        disabled,
+      } = data;
 
       const { data: updatedData, error } =
         await getSupabaseClient().functions.invoke<{
@@ -153,6 +163,7 @@ const getDataProviderWithCustomMethods = () => {
           body: {
             sales_id: id,
             email,
+            secondary_emails,
             first_name,
             last_name,
             administrator,
@@ -162,8 +173,20 @@ const getDataProviderWithCustomMethods = () => {
         });
 
       if (!updatedData || error) {
-        console.error("salesCreate.error", error);
-        throw new Error("Failed to update account manager");
+        console.error("salesUpdate.error", error);
+        const errorDetails = await (async () => {
+          try {
+            return (await error?.context?.json()) ?? {};
+          } catch {
+            return {};
+          }
+        })();
+        throw Object.assign(
+          new Error(
+            errorDetails?.message || "Failed to update account manager",
+          ),
+          { code: errorDetails?.code, email: errorDetails?.email },
+        );
       }
 
       return updatedData.data;
@@ -354,6 +377,9 @@ const lifeCycleCallbacks: ResourceCallbacks[] = [
   },
   {
     resource: "sales",
+    beforeGetList: async (params) => {
+      return applyFullTextSearch(["first_name", "last_name"])(params);
+    },
     beforeSave: async (data: Sale, _, __) => {
       if (data.avatar) {
         await uploadToBucket(data.avatar);

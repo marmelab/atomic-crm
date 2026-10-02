@@ -221,6 +221,12 @@
             "type": "command",
             "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/record-review-verdict.mjs",
             "timeout": 15
+          },
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/e2e-on-feature-review.mjs",
+            "timeout": 900,
+            "statusMessage": "Running the end-of-feature e2e suite..."
           }
         ]
       },
@@ -231,7 +237,7 @@
             "type": "command",
             "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/validate-on-stop.mjs",
             "timeout": 900,
-            "statusMessage": "Running validation (prettier, typecheck, lint, unit, e2e)..."
+            "statusMessage": "Running validation (prettier, typecheck, lint, unit)..."
           }
         ]
       },

@@ -20,7 +20,7 @@ afterAll(() => {
 });
 
 const runHook = (agent, command) => {
-  const env = { ...process.env, CRM_TMP_ROOT: tmpRoot };
+  const env = { ...process.env, HARNESS_TMP_ROOT: tmpRoot };
   delete env.CLAUDE_AGENT_NAME;
   const input = JSON.stringify({
     tool_name: "Bash",
