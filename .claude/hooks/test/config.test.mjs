@@ -18,6 +18,7 @@ import {
   roleModel,
   worktreeProvision,
   prePrSteps,
+  dependencyPolicy,
 } from "../lib/config.mjs";
 
 const REPO_ROOT = join(
@@ -153,5 +154,37 @@ describe("config loader", () => {
     expect(isDeployEnabled(cfg)).toBe(true);
     expect(roleModel(cfg, "quality-reviewer")).toBe("opus");
     expect(pipelineRoles(cfg)).toContain("test-writer");
+  });
+});
+
+describe("dependencies", () => {
+  const withDependencies = (dependencies) =>
+    makeRepo({ validation: { steps: [] }, roles: {}, dependencies });
+
+  test("defaults to the strict policy", () => {
+    expect(dependencyPolicy(loadConfig(makeRepo(undefined)))).toEqual({
+      minReleaseAgeDays: 21,
+      minWeeklyDownloads: 1000,
+      blockingSeverities: ["high", "critical"],
+      allow: [],
+    });
+  });
+
+  test("a project overrides one threshold and keeps the others", () => {
+    const policy = dependencyPolicy(
+      loadConfig(withDependencies({ minWeeklyDownloads: 200 })),
+    );
+    expect(policy.minWeeklyDownloads).toBe(200);
+    expect(policy.minReleaseAgeDays).toBe(21);
+  });
+
+  test.each([
+    [{ minReleaseAgeDays: -1 }, /dependencies\.minReleaseAgeDays/],
+    [{ minWeeklyDownloads: 1.5 }, /dependencies\.minWeeklyDownloads/],
+    [{ blockingSeverities: ["severe"] }, /dependencies\.blockingSeverities/],
+    [{ allow: [""] }, /dependencies\.allow/],
+    [{ allow: "zod" }, /dependencies\.allow/],
+  ])("rejects %j", (dependencies, error) => {
+    expect(() => loadConfig(withDependencies(dependencies))).toThrow(error);
   });
 });
