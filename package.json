@@ -58,7 +58,7 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "diacritic": "^0.0.2",
-    "dompurify": "^3.4.0",
+    "dompurify": "^3.4.16",
     "faker": "^5.5.3",
     "inflection": "^3.0.2",
     "json-stream-es": "^1.2.1",
