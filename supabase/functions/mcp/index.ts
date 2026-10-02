@@ -232,6 +232,10 @@ async function executeQueryWithRLS(
       text: "SELECT set_config('request.jwt.claims', $1, true)",
       args: [claimsJson],
     });
+    await client.queryObject({
+      text: "SELECT set_config('request.headers', $1, true)",
+      args: [JSON.stringify({ authorization: `Bearer ${userToken}` })],
+    });
 
     const result = await client.queryObject(sql);
     await client.queryObject("COMMIT");
