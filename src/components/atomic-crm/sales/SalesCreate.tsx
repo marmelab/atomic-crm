@@ -1,5 +1,12 @@
 import { useMutation } from "@tanstack/react-query";
-import { useDataProvider, useNotify, useRedirect, useTranslate } from "ra-core";
+import {
+  CanAccess,
+  Navigate,
+  useDataProvider,
+  useNotify,
+  useRedirect,
+  useTranslate,
+} from "ra-core";
 import type { SubmitHandler } from "react-hook-form";
 import { SimpleForm } from "@/components/admin/simple-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -44,21 +51,27 @@ export function SalesCreate() {
   };
 
   return (
-    <div className="max-w-lg w-full mx-auto mt-8">
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            {translate("resources.sales.create.title", {
-              _: "Create a new user",
-            })}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <SimpleForm onSubmit={onSubmit as SubmitHandler<any>}>
-            <SalesInputs />
-          </SimpleForm>
-        </CardContent>
-      </Card>
-    </div>
+    <CanAccess
+      resource="sales"
+      action="create"
+      accessDenied={<Navigate to="/access-denied" />}
+    >
+      <div className="max-w-lg w-full mx-auto mt-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              {translate("resources.sales.create.title", {
+                _: "Create a new user",
+              })}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <SimpleForm onSubmit={onSubmit as SubmitHandler<any>}>
+              <SalesInputs />
+            </SimpleForm>
+          </CardContent>
+        </Card>
+      </div>
+    </CanAccess>
   );
 }
