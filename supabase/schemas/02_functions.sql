@@ -19,6 +19,25 @@ CREATE OR REPLACE FUNCTION "public"."cleanup_note_attachments"() RETURNS "trigge
       auth_header := request_headers ->> 'authorization';
 
       IF auth_header IS NULL OR auth_header = '' THEN
+        IF cardinality(OLD.attachments) > 0 THEN
+          PERFORM set_config(
+            'atomic_crm.note_attachment_changes',
+            (
+              coalesce(
+                nullif(current_setting('atomic_crm.note_attachment_changes', true), '')::jsonb,
+                '[]'::jsonb
+              ) || jsonb_build_array(
+                jsonb_build_object(
+                  'type', TG_OP,
+                  'old_record', jsonb_build_object('attachments', OLD.attachments),
+                  'record', jsonb_build_object('attachments', NEW.attachments)
+                )
+              )
+            )::text,
+            true
+          );
+        END IF;
+
         IF TG_OP = 'DELETE' THEN
           RETURN OLD;
         END IF;
