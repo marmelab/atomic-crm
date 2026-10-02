@@ -1,6 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import {
   CanAccess,
+  Navigate,
   useDataProvider,
   useNotify,
   useRedirect,
@@ -50,7 +51,11 @@ export function SalesCreate() {
   };
 
   return (
-    <CanAccess resource="sales" action="create">
+    <CanAccess
+      resource="sales"
+      action="create"
+      accessDenied={<Navigate to="/access-denied" />}
+    >
       <div className="max-w-lg w-full mx-auto mt-8">
         <Card>
           <CardHeader>
