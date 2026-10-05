@@ -68,14 +68,26 @@ export const toConfiguredValue = (
  * An amount as users write it: "$8,000", "8 000", "8.000,50". Currency symbols
  * and spaces go, a comma or dot before three digits is a thousands separator
  * (amounts never carry three decimals), any other comma is the decimal one.
+ *
+ * A separator repeated in the integer part must group digits — "1,234,567",
+ * "1.234.567,89", or the Indian "1,23,456" — and is dropped; otherwise the
+ * amount is unreadable, rather than "1,23,456" silently becoming 1.23.
  */
-const toAmount = (text: string): number | undefined =>
-  toCents(
-    text
-      .replace(/[\s$€£¥]/g, "")
+const toAmount = (text: string): number | undefined => {
+  const compact = text.replace(/[\s$€£¥]/g, "");
+  // the last group has 3 digits and the decimal separator differs from the
+  // grouping one: "1.000.00" is 1000.00, not 100000
+  const grouped = /^-?\d{1,3}([.,])(\d{2,3}\1)*\d{3}((?!\1)[.,]\d+)?$/.exec(
+    compact,
+  );
+  const integerPart = compact.replace(/[.,]\d+$/, "");
+  if (!grouped && /([.,]).*\1/.test(integerPart)) return undefined;
+  return toCents(
+    (grouped ? compact.replaceAll(grouped[1], "") : compact)
       .replace(/[.,](?=\d{3}(\D|$))/g, "")
       .replace(",", "."),
   );
+};
 
 /**
  * `toAmount` of a cell, undefined when it is empty. Throws on an unreadable

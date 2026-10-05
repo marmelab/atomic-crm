@@ -51,6 +51,27 @@ describe("FakeRest deals getList", () => {
     ]);
   });
 
+  it("ignores a trailing space after a category label", async () => {
+    expect(await getDealNames({ q: "building " })).toEqual([
+      "Site",
+      "Site and blog",
+    ]);
+  });
+
+  it("ignores a doubled space when no category matches", async () => {
+    expect(await getDealNames({ q: "blog  launch" })).toEqual([
+      "Blog",
+      "Site and blog",
+    ]);
+  });
+
+  it("ignores a doubled space between words", async () => {
+    expect(await getDealNames({ q: "site  building" })).toEqual([
+      "Site",
+      "Site and blog",
+    ]);
+  });
+
   it("applies a stale single-category filter as a categories filter", async () => {
     expect(await getDealNames({ category: "copywriting" })).toEqual([
       "Blog",

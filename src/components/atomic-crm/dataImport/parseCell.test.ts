@@ -186,6 +186,51 @@ describe("toCategoryAmounts", () => {
     ).toThrow('Cannot read the amount of "Website design:8k"');
   });
 
+  it("reads repeated separators only when they group digits", () => {
+    expect(
+      toCategoryAmounts(
+        "Website design:1,234,567.89;Copywriting:1.234.567,89",
+        null,
+        categories,
+      ),
+    ).toEqual([
+      { category: "website-design", amount: 1234567.89 },
+      { category: "copywriting", amount: 1234567.89 },
+    ]);
+    // Indian grouping, in both the categories and the legacy amount columns
+    expect(
+      toCategoryAmounts("Website design:1,23,456", null, categories),
+    ).toEqual([{ category: "website-design", amount: 123456 }]);
+    expect(
+      toCategoryAmounts("Website design", "10,00,000", categories),
+    ).toEqual([{ category: "website-design", amount: 1000000 }]);
+    // negative amounts too
+    expect(
+      toCategoryAmounts(
+        "Website design:-1,234,567.89;Copywriting:-1.234.567,89",
+        null,
+        categories,
+      ),
+    ).toEqual([
+      { category: "website-design", amount: -1234567.89 },
+      { category: "copywriting", amount: -1234567.89 },
+    ]);
+    // a 2-digit last group is the decimal part, even with the same separator
+    expect(
+      toCategoryAmounts(
+        "Website design:1.000.00;Copywriting:1,234,56",
+        null,
+        categories,
+      ),
+    ).toEqual([
+      { category: "website-design", amount: 1000 },
+      { category: "copywriting", amount: 1234.56 },
+    ]);
+    expect(() =>
+      toCategoryAmounts("Website design:1,2,3", null, categories),
+    ).toThrow('Cannot read the amount of "Website design:1,2,3"');
+  });
+
   it("reads amounts written with thousands separators", () => {
     expect(
       toCategoryAmounts(

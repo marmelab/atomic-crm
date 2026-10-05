@@ -314,6 +314,41 @@ describe("DataImportButton", () => {
     expect(deals[0].expected_closing_date).toBe("2026-09-30T00:00:00.000Z");
   });
 
+  it("fails only the row whose amount is unreadable", async () => {
+    const dataProvider = createDataProvider({
+      db: createCrmDb(),
+      latency: 0,
+      silent: true,
+    });
+    const screen = await render(
+      <StoryWrapper dataProvider={dataProvider}>
+        <DataImportButton />
+      </StoryWrapper>,
+    );
+
+    await screen.getByRole("button", { name: "Import data" }).click();
+    await screen.getByLabelText("Resource").click();
+    await screen.getByRole("listbox").getByText("Deals").click();
+    // The good row comes first: if a bad amount threw for the whole batch, the
+    // report would count it as an error although it is stored
+    await screen
+      .getByLabelText("CSV File")
+      .upload(
+        csvFile("deals.csv", [
+          "name,company,categories",
+          "Good,Acme,Website design:8000",
+          "Bad,Acme,Website design:8k",
+        ]),
+      );
+    await screen.getByRole("button", { name: "Start import" }).click();
+
+    await expect
+      .element(screen.getByText(/Imported 1 records, with 1 errors/))
+      .toBeVisible();
+    const { data: deals } = await listAll(dataProvider, "deals");
+    expect(deals.map((deal) => deal.name)).toEqual(["Good"]);
+  });
+
   it("reads a dot-thousands deal amount as text, not as a decimal", async () => {
     const dataProvider = createDataProvider({
       db: createCrmDb(),

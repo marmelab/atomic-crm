@@ -604,16 +604,18 @@ export const createDataProvider = ({
           );
           const q = mapped.filter?.q;
           if (!q) return mapped;
+          // whitespace collapsed: FakeRest splits q on single spaces, and an
+          // empty word would match every deal
+          const words = q.trim().split(/\s+/).join(" ");
           // FakeRest ORs the words of q: appending the values of the categories
           // whose label matches makes a renamed label searchable (see DealList)
           const categories = findDealCategoriesMatching(
             mapped.meta?.dealCategories ?? [],
-            q,
+            words,
           );
-          if (categories.length === 0) return mapped;
           return {
             ...mapped,
-            filter: { ...mapped.filter, q: [q, ...categories].join(" ") },
+            filter: { ...mapped.filter, q: [words, ...categories].join(" ") },
           };
         },
         beforeCreate: async (params) => {

@@ -16,12 +16,9 @@ import type {
   SignUpData,
 } from "../../types";
 import type { ConfigurationContextValue } from "../../root/ConfigurationContext";
-import {
-  findDealCategoriesMatching,
-  mapLegacyCategoryFilter,
-} from "../../deals/dealUtils";
 import { ATTACHMENTS_BUCKET } from "../commons/attachments";
 import { getIsInitialized } from "./authProvider";
+import { applyFullTextSearch, getDealsListParams } from "./listParams";
 import { getSupabaseClient } from "./supabase";
 
 const getBaseDataProvider = () =>
@@ -379,28 +376,7 @@ const lifeCycleCallbacks: ResourceCallbacks[] = [
   },
   {
     resource: "deals",
-    beforeGetList: async (params) => {
-      const searched = applyFullTextSearch(["name", "description"])(
-        mapLegacyCategoryFilter(params),
-      );
-      const categories = params.filter?.q
-        ? findDealCategoriesMatching(
-            params.meta?.dealCategories ?? [],
-            params.filter.q,
-          )
-        : [];
-      if (categories.length === 0) return searched;
-      return {
-        ...searched,
-        filter: {
-          ...searched.filter,
-          "@or": {
-            ...searched.filter["@or"],
-            "categories@ov": `{${categories.join(",")}}`,
-          },
-        },
-      };
-    },
+    beforeGetList: async (params) => getDealsListParams(params),
   },
 ];
 
@@ -417,36 +393,6 @@ export const getDataProvider = () => {
     getDataProviderWithCustomMethods(),
     lifeCycleCallbacks,
   ) as CrmDataProvider;
-};
-
-const applyFullTextSearch = (columns: string[]) => (params: GetListParams) => {
-  if (!params.filter?.q) {
-    return params;
-  }
-  const { q, ...filter } = params.filter;
-  return {
-    ...params,
-    filter: {
-      ...filter,
-      "@or": columns.reduce((acc, column) => {
-        if (column === "email")
-          return {
-            ...acc,
-            [`email_fts@ilike`]: q,
-          };
-        if (column === "phone")
-          return {
-            ...acc,
-            [`phone_fts@ilike`]: q,
-          };
-        else
-          return {
-            ...acc,
-            [`${column}@ilike`]: q,
-          };
-      }, {}),
-    },
-  };
 };
 
 const uploadToBucket = async (fi: RAFile) => {

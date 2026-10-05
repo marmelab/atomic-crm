@@ -1,6 +1,7 @@
 import type { Meta } from "@storybook/react-vite";
 import { ResourceContextProvider } from "ra-core";
 
+import type { createDataProvider } from "../providers/fakerest";
 import DealList from "./DealList";
 
 import {
@@ -86,5 +87,20 @@ export const LegacyCategoryFilter = () => (
     <ResourceContextProvider value="deals">
       <DealList />
     </ResourceContextProvider>
+  </StoryWrapper>
+);
+
+// The create dialog, on its own data provider so a test can read what it saves
+export const CreateDeal = ({
+  dataProvider,
+}: {
+  dataProvider?: ReturnType<typeof createDataProvider>;
+}) => (
+  <StoryWrapper
+    data={dataForAccountManagerFilter}
+    dataProvider={dataProvider}
+    initialEntries={["/deals/create"]}
+  >
+    {null}
   </StoryWrapper>
 );
