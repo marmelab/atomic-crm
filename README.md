@@ -25,7 +25,7 @@ Atomic CRM is free and open-source. You can test it online at <https://marmelab.
 To run this project locally, you will need the following tools installed on your computer:
 
 - Make
-- Node 22 LTS
+- Node 24 LTS
 - Docker (required by Supabase)
 
 Fork the [`marmelab/atomic-crm`](https://github.com/marmelab/atomic-crm) repository to your user/organization, then clone it locally:
