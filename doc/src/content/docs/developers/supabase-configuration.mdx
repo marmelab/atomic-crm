@@ -15,6 +15,12 @@ make supabase-remote-init
 
 The script will ask you for the Supabase instance name, create the database, apply the migrations and deploy the edge functions. Finally, it will create a `.env.production.local` file with your remote Supabase configuration.
 
+If you are not already logged into the Supabase CLI, the script logs you in, and logs you out when it is done (even if it fails or is interrupted). The browser login creates a personal access token that never expires, and logging out only deletes the local copy of it. Revoke the token afterwards in your [account's access tokens page](https://supabase.com/dashboard/account/tokens). You can also skip the browser login: create a token with an expiration date on that page, and pass it to the script:
+
+```sh
+SUPABASE_ACCESS_TOKEN=<your_token> make supabase-remote-init
+```
+
 The script cannot yet automate the configuration of the required SMTP provider on your Supabase instance. To do that, please follow the instructions detailed in the [Email Provider Setup](#email-provider-setup) section.
 
 ## Alternative: Using An Existing Supabase Instance
