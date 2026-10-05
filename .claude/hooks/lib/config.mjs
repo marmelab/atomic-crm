@@ -10,8 +10,6 @@ import { REPO } from "./paths.mjs";
 
 export const CONFIG_FILENAME = "harness.config.json";
 
-const SEVERITIES = ["low", "moderate", "high", "critical"];
-
 // Minimal safe baseline. The committed harness.config.json overrides these.
 // Optional capabilities (deploy, app) are ABSENT here on purpose: a capability
 // exists iff its block is present in the config.
@@ -22,12 +20,6 @@ const DEFAULTS = {
   worktree: { provision: "npm-link" },
   skills: { developerMenu: [] },
   roles: {},
-  dependencies: {
-    minReleaseAgeDays: 21,
-    minWeeklyDownloads: 1000,
-    blockingSeverities: ["high", "critical"],
-    allow: [],
-  },
   launcher: {
     sessionDirEnv: "CHAT_SESSION_DIR",
     turnSentinelDir: null,
@@ -88,28 +80,6 @@ function validate(cfg) {
     }
   }
 
-  const deps = cfg.dependencies;
-  if (!isObject(deps)) fail("`dependencies` must be an object");
-  for (const key of ["minReleaseAgeDays", "minWeeklyDownloads"]) {
-    if (!Number.isInteger(deps[key]) || deps[key] < 0) {
-      fail(`dependencies.${key} must be a non-negative integer`);
-    }
-  }
-  if (
-    !Array.isArray(deps.blockingSeverities) ||
-    deps.blockingSeverities.some((s) => !SEVERITIES.includes(s))
-  ) {
-    fail(
-      `dependencies.blockingSeverities must list severities among ${SEVERITIES.join(", ")}`,
-    );
-  }
-  if (
-    !Array.isArray(deps.allow) ||
-    deps.allow.some((name) => typeof name !== "string" || !name)
-  ) {
-    fail("dependencies.allow must be an array of package names");
-  }
-
   if ("deploy" in cfg && cfg.deploy !== undefined) {
     if (!isObject(cfg.deploy) || !Array.isArray(cfg.deploy.relevantGlobs)) {
       fail("`deploy.relevantGlobs` must be an array when `deploy` is present");
@@ -167,8 +137,6 @@ export const debounceRoles = (cfg) =>
   roleNames(cfg).filter((r) => cfg.roles[r]?.debounce);
 // Managed-launcher extension points (empty object when no launcher overlay).
 export const launcher = (cfg) => cfg.launcher ?? {};
-export const dependencyPolicy = (cfg) =>
-  cfg.dependencies ?? DEFAULTS.dependencies;
 // The format-kind validation step (null when none), used by format-on-write.
 export const formatStep = (cfg) =>
   validationSteps(cfg).find((s) => s.kind === "format") ?? null;
