@@ -358,6 +358,7 @@ export const englishCrmMessages = {
         name_label: "Tag name",
         name_placeholder: "Enter tag name",
       },
+      empty: "No tags yet.",
     },
   },
   crm: {

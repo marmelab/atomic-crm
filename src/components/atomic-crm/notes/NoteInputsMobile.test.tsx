@@ -23,13 +23,17 @@ describe("NoteInputsMobile", () => {
   it("does not render the contact selector by default", async () => {
     const screen = await render(<Default />);
 
-    await expect.element(screen.getByText("Contact")).not.toBeInTheDocument();
+    await expect
+      .element(screen.getByRole("combobox", { name: "Contact" }))
+      .not.toBeInTheDocument();
   });
 
   it("renders the contact selector when selectContact is true", async () => {
     const screen = await render(<WithSelectContact />);
 
-    await expect.element(screen.getByText("Contact")).toBeVisible();
+    await expect
+      .element(screen.getByRole("combobox", { name: "Contact" }))
+      .toBeVisible();
   });
 
   it("shows a validation error when submitting an empty note without attachments", async () => {

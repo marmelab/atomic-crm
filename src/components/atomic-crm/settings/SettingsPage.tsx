@@ -28,6 +28,7 @@ import {
 } from "../root/ConfigurationContext";
 import { defaultConfiguration } from "../root/defaultConfiguration";
 import { getDealCategories } from "../deals/dealUtils";
+import { SettingsTags } from "./SettingsTags";
 
 const SECTIONS = [
   {
@@ -43,6 +44,7 @@ const SECTIONS = [
   { id: "deals", label: "resources.deals.name", fallback: "Deals" },
   { id: "notes", label: "resources.notes.name", fallback: "Notes" },
   { id: "tasks", label: "resources.tasks.name", fallback: "Tasks" },
+  { id: "tags", label: "resources.tags.name", fallback: "Tags" },
 ];
 
 /** Ensure every item in a { value, label } array has a value (slug from label). */
@@ -470,6 +472,9 @@ const SettingsFormFields = () => {
             </ArrayInput>
           </CardContent>
         </Card>
+
+        {/* Tags */}
+        <SettingsTags />
       </div>
 
       {/* Sticky save button */}

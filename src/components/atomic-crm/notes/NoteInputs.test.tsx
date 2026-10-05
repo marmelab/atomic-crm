@@ -53,7 +53,9 @@ describe("NoteInputs", () => {
 
     await screen.getByRole("button", { name: "Show options" }).click();
 
-    await expect.element(screen.getByRole("combobox")).toHaveTextContent("Hot");
+    await expect
+      .element(screen.getByRole("combobox"))
+      .toMatchTextContent("Hot");
   });
 
   it("does not render the status selector when showStatus is false", async () => {
@@ -67,7 +69,9 @@ describe("NoteInputs", () => {
       <NoteInputsStory reference="contacts" selectReference />,
     );
 
-    await expect.element(screen.getByText("Contact")).toBeVisible();
+    await expect
+      .element(screen.getByRole("combobox", { name: "Contact" }))
+      .toBeVisible();
   });
 
   it("renders the deal reference selector when selectReference is deals", async () => {
@@ -75,14 +79,20 @@ describe("NoteInputs", () => {
       <NoteInputsStory reference="deals" selectReference />,
     );
 
-    await expect.element(screen.getByText("Deal")).toBeVisible();
+    await expect
+      .element(screen.getByRole("combobox", { name: "Deal" }))
+      .toBeVisible();
   });
 
   it("does not render a reference selector when selectReference is not set", async () => {
     const screen = await render(<Default />);
 
-    await expect.element(screen.getByText("Contact")).not.toBeInTheDocument();
-    await expect.element(screen.getByText("Deal")).not.toBeInTheDocument();
+    await expect
+      .element(screen.getByRole("combobox", { name: "Contact" }))
+      .not.toBeInTheDocument();
+    await expect
+      .element(screen.getByRole("combobox", { name: "Deal" }))
+      .not.toBeInTheDocument();
   });
 
   it("should have the current date as default value for the date input", async () => {
