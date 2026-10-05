@@ -2,13 +2,14 @@ import { useCreate, useGetIdentity, useNotify } from "ra-core";
 import { AutocompleteInput } from "@/components/admin/autocomplete-input";
 import type { InputProps } from "ra-core";
 import { useIsMobile } from "@/hooks/use-mobile";
-import type { PopoverProps } from "@radix-ui/react-popover";
+import type { Popover as PopoverPrimitive } from "@base-ui/react/popover";
 
 export const AutocompleteCompanyInput = ({
   validate,
   label,
   modal,
-}: Pick<InputProps, "validate" | "label"> & Pick<PopoverProps, "modal">) => {
+}: Pick<InputProps, "validate" | "label"> &
+  Pick<PopoverPrimitive.Root.Props, "modal">) => {
   const [create] = useCreate();
   const { identity } = useGetIdentity();
   const notify = useNotify();

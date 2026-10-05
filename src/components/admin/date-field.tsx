@@ -1,7 +1,7 @@
 import type { HTMLAttributes } from "react";
 import { genericMemo, useFieldValue, useTranslate } from "ra-core";
 
-import type { FieldProps } from "@/lib/field.type";
+import type { FieldProps } from "@/lib/field.type.ts";
 
 const DateFieldImpl = <
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

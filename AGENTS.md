@@ -55,7 +55,7 @@ make registry-build   # Build Shadcn registry
 - **Data Fetching**: React Query (TanStack Query)
 - **Forms**: React Hook Form
 - **Application Logic**: shadcn-admin-kit + ra-core (react-admin headless)
-- **UI Components**: Shadcn UI + Radix UI
+- **UI Components**: Shadcn UI (`base-vega` style) + Base UI
 - **Styling**: Tailwind CSS v4
 - **Backend**: Supabase (PostgreSQL + REST API + Auth + Storage + Edge Functions)
 - **Testing**: Vitest

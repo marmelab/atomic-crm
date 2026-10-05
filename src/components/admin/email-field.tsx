@@ -3,7 +3,7 @@ import type { AnchorHTMLAttributes } from "react";
 import React from "react";
 
 import { cn } from "@/lib/utils";
-import type { FieldProps } from "@/lib/field.type";
+import type { FieldProps } from "@/lib/field.type.ts";
 
 const EmailFieldImpl = <
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

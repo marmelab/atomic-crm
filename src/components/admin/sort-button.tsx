@@ -93,17 +93,21 @@ const SortButtonComponent = (props: SortButtonProps) => {
       {isMobile ? (
         <TooltipProvider>
           <Tooltip>
-            <DropdownMenuTrigger asChild>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  aria-label={buttonLabel}
-                  {...rest}
-                >
-                  {icon}
-                </Button>
-              </TooltipTrigger>
+            <DropdownMenuTrigger
+              render={
+                <TooltipTrigger
+                  render={
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      aria-label={buttonLabel}
+                      {...rest}
+                    />
+                  }
+                />
+              }
+            >
+              {icon}
             </DropdownMenuTrigger>
             <TooltipContent>
               <p>{buttonLabel}</p>
@@ -111,12 +115,14 @@ const SortButtonComponent = (props: SortButtonProps) => {
           </Tooltip>
         </TooltipProvider>
       ) : (
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="sm" className="h-9" {...rest}>
-            {icon}
-            <span className="ml-2">{buttonLabel}</span>
-            <ChevronDown className="ml-2 h-4 w-4" />
-          </Button>
+        <DropdownMenuTrigger
+          render={
+            <Button variant="outline" size="sm" className="h-9" {...rest} />
+          }
+        >
+          {icon}
+          <span className="ml-2">{buttonLabel}</span>
+          <ChevronDown className="ml-2 h-4 w-4" />
         </DropdownMenuTrigger>
       )}
       <DropdownMenuContent align="start">

@@ -132,8 +132,8 @@ describe("PullToRefresh", () => {
   it("ignores a pull started inside an overlay portalled out of the page", async () => {
     const screen = await render(
       <Fixture>
-        {/* Shape of a Radix dropdown menu / select: portalled popper, own scrolling. */}
-        <div data-radix-popper-content-wrapper="">
+        {/* Shape of a Base UI dropdown menu / select: portalled popup, own scrolling. */}
+        <div data-base-ui-portal="">
           <div role="menu" data-testid="menu">
             <div role="menuitem">Archive</div>
           </div>
