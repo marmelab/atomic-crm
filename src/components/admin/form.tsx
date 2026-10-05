@@ -283,12 +283,7 @@ interface Props<
   >;
   transform?: TransformData;
   variant?:
-    | "default"
-    | "destructive"
-    | "outline"
-    | "secondary"
-    | "ghost"
-    | "link";
+    "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
 }
 
 export type SaveButtonProps<RecordType extends RaRecord = RaRecord> =

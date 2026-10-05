@@ -78,8 +78,7 @@ export const AutocompleteArrayInput = (
       translateChoice?: boolean;
       placeholder?: string;
       inputText?:
-        | React.ReactNode
-        | ((option: any | undefined) => React.ReactNode);
+        React.ReactNode | ((option: any | undefined) => React.ReactNode);
     },
 ) => {
   const {
