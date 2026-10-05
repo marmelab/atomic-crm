@@ -52,10 +52,13 @@ CREATE OR REPLACE FUNCTION "private"."is_admin"() RETURNS boolean
     AS $$
 begin
   return exists (
-    select 1 from public.sales where user_id = auth.uid() and administrator = true
+    select 1 from public.sales
+    where user_id = auth.uid() and administrator = true and disabled = false
   );
 end;
 $$;
+
+revoke all on all functions in schema private from public, anon, authenticated;
 
 grant all on function private.get_init_state() to anon;
 grant all on function private.get_init_state() to authenticated;
