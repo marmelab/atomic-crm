@@ -8,7 +8,10 @@ import { Layout } from "../layout/Layout";
 import { englishCrmMessages } from "../providers/commons/englishCrmMessages";
 import type { UserPreferences } from "../types";
 import { StoryWrapper } from "@/test/StoryWrapper";
-import { usePersistPreference } from "./usePersistPreference";
+import {
+  resetPendingPreferenceWrites,
+  usePersistPreference,
+} from "./usePersistPreference";
 
 const catalog = mergeTranslations(englishMessages, englishCrmMessages);
 
@@ -87,6 +90,10 @@ const Probe = () => {
 };
 
 describe("preference persistence", () => {
+  beforeEach(() => {
+    resetPendingPreferenceWrites();
+  });
+
   it("applies the preferences stored on the server", async () => {
     const server = createFakeServer({ theme: "dark", locale: "en" });
     const screen = await render(
@@ -281,5 +288,35 @@ describe("preference persistence", () => {
     save.fail();
 
     await expect.element(screen.getByText("locale: en")).toBeVisible();
+  });
+
+  it("does not revert or warn when a save started before a logout fails", async () => {
+    const save = createFailingSave();
+    const screen = await render(
+      <StoryWrapper
+        dataProvider={{
+          getPreferences: createFakeServer({ theme: "dark" }).getPreferences,
+          updatePreferences: save.updatePreferences,
+        }}
+        layout={Layout}
+      >
+        <Probe />
+      </StoryWrapper>,
+    );
+    await expect.element(screen.getByText("theme: dark")).toBeVisible();
+
+    await screen.getByRole("button", { name: "Toggle theme" }).click();
+    await screen.getByRole("menuitem", { name: "Light" }).click();
+    await expect.element(screen.getByText("theme: light")).toBeVisible();
+    resetPendingPreferenceWrites();
+    save.fail();
+    await new Promise((resolve) => setTimeout(resolve, 300));
+
+    await expect.element(screen.getByText("theme: light")).toBeVisible();
+    expect(
+      screen
+        .getByText("Could not save your preferences", { exact: false })
+        .query(),
+    ).toBeNull();
   });
 });

@@ -30,15 +30,8 @@ export const usePersistPreference = () => {
 
   return useCallback(
     (patch: Partial<UserPreferences>) => {
-      const applyLocally = (preferences: Partial<UserPreferences>) => {
-        if (preferences.theme !== undefined) setTheme(preferences.theme);
-        if (preferences.locale !== undefined) setLocale(preferences.locale);
-      };
-      const displayed: Partial<UserPreferences> = {
-        ...(patch.theme !== undefined ? { theme } : {}),
-        ...(patch.locale !== undefined ? { locale } : {}),
-      };
-      applyLocally(patch);
+      if (patch.theme !== undefined) setTheme(patch.theme);
+      if (patch.locale !== undefined) setLocale(patch.locale);
 
       const identityId = identity?.id;
       const queryKey = [PREFERENCES_QUERY_KEY, identityId];
@@ -70,7 +63,9 @@ export const usePersistPreference = () => {
           }
         })
         .catch(() => {
-          applyLocally(displayed);
+          if (enqueuedAt !== generation) return;
+          if (patch.theme !== undefined) setTheme(theme);
+          if (patch.locale !== undefined) setLocale(locale);
           if (tracksCache) {
             if (previous === undefined) {
               queryClient.removeQueries({ queryKey, exact: true });
