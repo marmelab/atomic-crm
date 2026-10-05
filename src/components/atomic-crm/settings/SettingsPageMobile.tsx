@@ -449,13 +449,8 @@ const PreferencesSection = () => {
 const LanguageRow = () => {
   const translate = useTranslate();
   const locales = useLocales();
-  const [locale, setLocale] = useLocaleState();
+  const [locale] = useLocaleState();
   const persist = usePersistPreference();
-
-  const handleSetLocale = (value: string) => {
-    setLocale(value);
-    persist({ locale: value });
-  };
 
   if (locales.length <= 1) return null;
 
@@ -467,7 +462,10 @@ const LanguageRow = () => {
         </ItemTitle>
       </ItemContent>
       <ItemActions>
-        <Select value={locale} onValueChange={handleSetLocale}>
+        <Select
+          value={locale}
+          onValueChange={(value) => persist({ locale: value })}
+        >
           <SelectTrigger
             size="sm"
             className="w-auto !h-auto py-0 border-none shadow-none"
@@ -489,13 +487,8 @@ const LanguageRow = () => {
 
 const ThemeRow = () => {
   const translate = useTranslate();
-  const { theme, setTheme } = useTheme();
+  const { theme } = useTheme();
   const persist = usePersistPreference();
-
-  const handleSetTheme = (value: Theme) => {
-    setTheme(value);
-    persist({ theme: value });
-  };
 
   return (
     <Item size="sm" className="flex-col items-stretch gap-2">
@@ -505,7 +498,7 @@ const ThemeRow = () => {
       <ToggleGroup
         type="single"
         value={theme}
-        onValueChange={(value) => value && handleSetTheme(value as Theme)}
+        onValueChange={(value) => value && persist({ theme: value as Theme })}
         size="lg"
         variant="outline"
         className="w-full"

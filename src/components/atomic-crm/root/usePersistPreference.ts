@@ -1,7 +1,13 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { useDataProvider, useGetIdentity, useNotify } from "ra-core";
+import {
+  useDataProvider,
+  useGetIdentity,
+  useLocaleState,
+  useNotify,
+} from "ra-core";
 import { useCallback } from "react";
 
+import { useTheme } from "@/components/admin/use-theme";
 import type { CrmDataProvider } from "../providers/types";
 import type { UserPreferences } from "../types";
 import { PREFERENCES_QUERY_KEY } from "./preferences";
@@ -19,9 +25,21 @@ export const usePersistPreference = () => {
   const { identity } = useGetIdentity();
   const queryClient = useQueryClient();
   const notify = useNotify();
+  const { theme, setTheme } = useTheme();
+  const [locale, setLocale] = useLocaleState();
 
   return useCallback(
     (patch: Partial<UserPreferences>) => {
+      const applyLocally = (preferences: Partial<UserPreferences>) => {
+        if (preferences.theme !== undefined) setTheme(preferences.theme);
+        if (preferences.locale !== undefined) setLocale(preferences.locale);
+      };
+      const displayed: Partial<UserPreferences> = {
+        ...(patch.theme !== undefined ? { theme } : {}),
+        ...(patch.locale !== undefined ? { locale } : {}),
+      };
+      applyLocally(patch);
+
       const identityId = identity?.id;
       const queryKey = [PREFERENCES_QUERY_KEY, identityId];
       const tracksCache = identityId !== undefined;
@@ -52,6 +70,7 @@ export const usePersistPreference = () => {
           }
         })
         .catch(() => {
+          applyLocally(displayed);
           if (tracksCache) {
             if (previous === undefined) {
               queryClient.removeQueries({ queryKey, exact: true });
@@ -65,6 +84,15 @@ export const usePersistPreference = () => {
           });
         });
     },
-    [dataProvider, identity?.id, queryClient, notify],
+    [
+      dataProvider,
+      identity?.id,
+      queryClient,
+      notify,
+      theme,
+      setTheme,
+      locale,
+      setLocale,
+    ],
   );
 };

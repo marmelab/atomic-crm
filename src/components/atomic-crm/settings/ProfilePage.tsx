@@ -281,13 +281,8 @@ const ProfileForm = ({
 const LanguageSelector = () => {
   const translate = useTranslate();
   const locales = useLocales();
-  const [locale, setLocale] = useLocaleState();
+  const [locale] = useLocaleState();
   const persist = usePersistPreference();
-
-  const handleSetLocale = (value: string) => {
-    setLocale(value);
-    persist({ locale: value });
-  };
 
   if (locales.length <= 1) {
     return null;
@@ -298,7 +293,10 @@ const LanguageSelector = () => {
       <p className="text-xs text-muted-foreground">
         {translate("crm.language")}
       </p>
-      <Select value={locale} onValueChange={handleSetLocale}>
+      <Select
+        value={locale}
+        onValueChange={(value) => persist({ locale: value })}
+      >
         <SelectTrigger className="w-full">
           <SelectValue />
         </SelectTrigger>

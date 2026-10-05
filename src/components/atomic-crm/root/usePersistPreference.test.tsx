@@ -51,21 +51,27 @@ const createFakeServer = (
   };
 };
 
+const createFailingSave = () => {
+  let rejectSave: (error: Error) => void = () => {};
+  return {
+    updatePreferences: () =>
+      new Promise<UserPreferences>((_, reject) => {
+        rejectSave = reject;
+      }),
+    fail: () => rejectSave(new Error("Denied")),
+  };
+};
+
 const Probe = () => {
   const { theme } = useTheme();
-  const [locale, setLocale] = useLocaleState();
+  const [locale] = useLocaleState();
   const persist = usePersistPreference();
 
   return (
     <div>
       <p>{`theme: ${theme}`}</p>
       <p>{`locale: ${locale}`}</p>
-      <button
-        onClick={() => {
-          setLocale("fr");
-          persist({ locale: "fr" });
-        }}
-      >
+      <button onClick={() => persist({ locale: "fr" })}>
         set french locale
       </button>
       <button
@@ -224,5 +230,56 @@ describe("preference persistence", () => {
       .toBeVisible();
     await expect.element(screen.getByText("theme: dark")).toBeVisible();
     expect(server.read().theme).toBe("dark");
+  });
+
+  it("reverts the theme when the first save of a user without stored preferences fails", async () => {
+    const save = createFailingSave();
+    const screen = await render(
+      <StoryWrapper
+        dataProvider={{
+          getPreferences: createFakeServer({}).getPreferences,
+          updatePreferences: save.updatePreferences,
+        }}
+        layout={Layout}
+      >
+        <Probe />
+      </StoryWrapper>,
+    );
+    await expect.element(screen.getByText("theme: system")).toBeVisible();
+
+    await screen.getByRole("button", { name: "Toggle theme" }).click();
+    await screen.getByRole("menuitem", { name: "Dark" }).click();
+    await expect.element(screen.getByText("theme: dark")).toBeVisible();
+    save.fail();
+
+    await expect
+      .element(
+        screen.getByText("Could not save your preferences", { exact: false }),
+      )
+      .toBeVisible();
+    await expect.element(screen.getByText("theme: system")).toBeVisible();
+  });
+
+  it("reverts the locale when its save fails", async () => {
+    const save = createFailingSave();
+    const screen = await render(
+      <StoryWrapper
+        i18nProvider={createTwoLocalesI18nProvider()}
+        dataProvider={{
+          getPreferences: createFakeServer({}).getPreferences,
+          updatePreferences: save.updatePreferences,
+        }}
+        layout={Layout}
+      >
+        <Probe />
+      </StoryWrapper>,
+    );
+    await expect.element(screen.getByText("locale: en")).toBeVisible();
+
+    await screen.getByRole("button", { name: "set french locale" }).click();
+    await expect.element(screen.getByText("locale: fr")).toBeVisible();
+    save.fail();
+
+    await expect.element(screen.getByText("locale: en")).toBeVisible();
   });
 });
