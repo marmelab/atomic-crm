@@ -11,7 +11,7 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
-import { sanitizePath } from "../lib/paths.mjs";
+import { canonicalPath, sanitizePath } from "../lib/paths.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const HOOK = join(HERE, "..", "e2e-on-feature-review.mjs");
@@ -107,7 +107,7 @@ describe("e2e-on-feature-review", () => {
     const r = run(transcriptWithMeta("Feature-review: add deal importance"));
     expect(r.status).toBe(0);
     const ranWith = readFileSync(join(APP_DIR, "ran-with-src"), "utf8").trim();
-    expect(ranWith).toBe(join(sessionDir, "_session"));
+    expect(ranWith).toBe(canonicalPath(join(sessionDir, "_session")));
   });
 
   test("records a passing suite", () => {
