@@ -10,6 +10,7 @@ AS $function$
       payload jsonb;
       request_headers jsonb;
       auth_header text;
+      attachment_changes jsonb;
     BEGIN
       request_headers := coalesce(
         nullif(current_setting('request.headers', true), '')::jsonb,
@@ -18,14 +19,16 @@ AS $function$
       auth_header := request_headers ->> 'authorization';
 
       IF auth_header IS NULL OR auth_header = '' THEN
-        IF cardinality(OLD.attachments) > 0 THEN
+        attachment_changes := nullif(
+          current_setting('atomic_crm.note_attachment_changes', true),
+          ''
+        )::jsonb;
+
+        IF attachment_changes IS NOT NULL AND cardinality(OLD.attachments) > 0 THEN
           PERFORM set_config(
             'atomic_crm.note_attachment_changes',
             (
-              coalesce(
-                nullif(current_setting('atomic_crm.note_attachment_changes', true), '')::jsonb,
-                '[]'::jsonb
-              ) || jsonb_build_array(
+              attachment_changes || jsonb_build_array(
                 jsonb_build_object(
                   'type', TG_OP,
                   'old_record', jsonb_build_object('attachments', OLD.attachments),

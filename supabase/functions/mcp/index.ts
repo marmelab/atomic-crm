@@ -222,6 +222,8 @@ async function executeQueryWithRLS(
     return { success: false, error: validationError };
   }
 
+  const isWrite = validate === validateWrite;
+  let removedAttachmentPaths: string[] = [];
   const client = await pool.connect();
   try {
     const jwtClaims = decodeJwt(userToken);
@@ -237,18 +239,23 @@ async function executeQueryWithRLS(
       text: "SELECT set_config('request.jwt.claims', $1, true)",
       args: [claimsJson],
     });
+    if (isWrite) {
+      await client.queryObject({
+        text: "SELECT set_config($1, '[]', true)",
+        args: [NOTE_ATTACHMENT_CHANGES_SETTING],
+      });
+    }
 
     const result = await client.queryObject(sql);
-    const {
-      rows: [attachmentChanges],
-    } = await client.queryObject<{ setting: string | null }>({
-      text: "SELECT current_setting($1, true) AS setting",
-      args: [NOTE_ATTACHMENT_CHANGES_SETTING],
-    });
+    const attachmentChanges = isWrite
+      ? await client.queryObject<{ setting: string | null }>({
+          text: "SELECT current_setting($1, true) AS setting",
+          args: [NOTE_ATTACHMENT_CHANGES_SETTING],
+        })
+      : null;
     await client.queryObject("COMMIT");
-    await deleteAttachmentsAsUser(
-      getRemovedAttachmentPaths(attachmentChanges?.setting),
-      userToken,
+    removedAttachmentPaths = getRemovedAttachmentPaths(
+      attachmentChanges?.rows[0]?.setting,
     );
 
     // Convert BigInt values to numbers (Deno Postgres returns bigint for
@@ -274,6 +281,7 @@ async function executeQueryWithRLS(
     return { success: false, error: message };
   } finally {
     client.release();
+    await deleteAttachmentsAsUser(removedAttachmentPaths, userToken);
   }
 }
 

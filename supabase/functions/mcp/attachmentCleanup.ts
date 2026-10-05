@@ -45,7 +45,7 @@ export const getRemovedAttachmentPaths = (
 export const deleteAttachmentsAsUser = async (
   paths: string[],
   userToken: string,
-) => {
+): Promise<void> => {
   if (paths.length === 0) {
     return;
   }
