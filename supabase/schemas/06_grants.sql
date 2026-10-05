@@ -10,9 +10,21 @@ grant usage on schema public to authenticated;
 grant usage on schema public to service_role;
 
 -- Function grants
+grant all on function public.amount(public.deals) to anon;
+grant all on function public.amount(public.deals) to authenticated;
+grant all on function public.amount(public.deals) to service_role;
+
+grant all on function public.categories(public.deals) to anon;
+grant all on function public.categories(public.deals) to authenticated;
+grant all on function public.categories(public.deals) to service_role;
+
 grant all on function public.cleanup_note_attachments() to anon;
 grant all on function public.cleanup_note_attachments() to authenticated;
 grant all on function public.cleanup_note_attachments() to service_role;
+
+grant all on function public.deal_categories(jsonb) to anon;
+grant all on function public.deal_categories(jsonb) to authenticated;
+grant all on function public.deal_categories(jsonb) to service_role;
 
 grant all on function public.get_avatar_for_email(text) to anon;
 grant all on function public.get_avatar_for_email(text) to authenticated;

@@ -1,6 +1,7 @@
 import type { Meta } from "@storybook/react-vite";
 import { ResourceContextProvider } from "ra-core";
 
+import type { createDataProvider } from "../providers/fakerest";
 import DealList from "./DealList";
 
 import {
@@ -56,5 +57,50 @@ export const NonAdminAccountManagerFilter = () => (
     <ResourceContextProvider value="deals">
       <DealList />
     </ResourceContextProvider>
+  </StoryWrapper>
+);
+
+// A filter saved before deals had several categories (stored list params or a
+// bookmarked URL) still carries the single `category` key
+export const LegacyCategoryFilter = () => (
+  <StoryWrapper
+    data={{
+      ...dataForAccountManagerFilter,
+      deals: [
+        buildDeal({
+          id: 1,
+          name: "Copywriting deal",
+          category_amounts: [{ category: "copywriting", amount: 1000 }],
+        }),
+        buildDeal({
+          id: 2,
+          index: 1,
+          name: "Design deal",
+          category_amounts: [{ category: "ui-design", amount: 2000 }],
+        }),
+      ],
+    }}
+    initialEntries={[
+      `/?filter=${encodeURIComponent(JSON.stringify({ category: "copywriting" }))}`,
+    ]}
+  >
+    <ResourceContextProvider value="deals">
+      <DealList />
+    </ResourceContextProvider>
+  </StoryWrapper>
+);
+
+// The create dialog, on its own data provider so a test can read what it saves
+export const CreateDeal = ({
+  dataProvider,
+}: {
+  dataProvider?: ReturnType<typeof createDataProvider>;
+}) => (
+  <StoryWrapper
+    data={dataForAccountManagerFilter}
+    dataProvider={dataProvider}
+    initialEntries={["/deals/create"]}
+  >
+    {null}
   </StoryWrapper>
 );

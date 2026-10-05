@@ -3,6 +3,16 @@
 -- This file declares all PL/pgSQL functions in the public schema.
 --
 
+-- Computed field: the amount of a deal, the sum of its category_amounts. PostgREST
+-- filters and sorts on it like a column (deals?order=amount.desc) without returning it.
+CREATE OR REPLACE FUNCTION "public"."amount"("public"."deals") RETURNS numeric
+    LANGUAGE "sql" STABLE
+    SET "search_path" TO ''
+    AS $_$
+  select coalesce(sum((line->>'amount')::numeric), 0)
+  from jsonb_array_elements($1.category_amounts) as line;
+$_$;
+
 CREATE OR REPLACE FUNCTION "public"."cleanup_note_attachments"() RETURNS "trigger"
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO ''
@@ -52,6 +62,29 @@ CREATE OR REPLACE FUNCTION "public"."cleanup_note_attachments"() RETURNS "trigge
       RETURN NEW;
     END;
     $$;
+
+-- The distinct categories of category_amounts lines; immutable so it can be indexed
+CREATE OR REPLACE FUNCTION "public"."deal_categories"("category_amounts" "jsonb") RETURNS "text"[]
+    LANGUAGE "sql" IMMUTABLE
+    SET "search_path" TO ''
+    AS $$
+  select coalesce(array_agg(distinct line->>'category'), '{}')
+  from jsonb_array_elements(category_amounts) as line
+  where coalesce(line->>'category', '') <> '';
+$$;
+
+-- Serves the categories filter (categories=cs.{...}), see public.categories(deals)
+create index deals_categories_idx on public.deals using gin (public.deal_categories(category_amounts));
+
+-- Computed field: the categories of a deal, from its category_amounts. PostgREST
+-- filters it like a column (deals?categories=cs.{a,b}) without returning it.
+-- No SET search_path on purpose: it keeps the function inlinable, so Postgres
+-- rewrites the filter to deal_categories(category_amounts) and uses its index.
+CREATE OR REPLACE FUNCTION "public"."categories"("public"."deals") RETURNS "text"[]
+    LANGUAGE "sql" IMMUTABLE
+    AS $_$
+  select public.deal_categories($1.category_amounts);
+$_$;
 
 CREATE OR REPLACE FUNCTION "public"."get_avatar_for_email"("email" "text") RETURNS "text"
     LANGUAGE "plpgsql"

@@ -18,6 +18,7 @@ import type {
 import type { ConfigurationContextValue } from "../../root/ConfigurationContext";
 import { ATTACHMENTS_BUCKET } from "../commons/attachments";
 import { getIsInitialized } from "./authProvider";
+import { applyFullTextSearch, getDealsListParams } from "./listParams";
 import { getSupabaseClient } from "./supabase";
 
 const getBaseDataProvider = () =>
@@ -375,9 +376,7 @@ const lifeCycleCallbacks: ResourceCallbacks[] = [
   },
   {
     resource: "deals",
-    beforeGetList: async (params) => {
-      return applyFullTextSearch(["name", "category", "description"])(params);
-    },
+    beforeGetList: async (params) => getDealsListParams(params),
   },
 ];
 
@@ -394,36 +393,6 @@ export const getDataProvider = () => {
     getDataProviderWithCustomMethods(),
     lifeCycleCallbacks,
   ) as CrmDataProvider;
-};
-
-const applyFullTextSearch = (columns: string[]) => (params: GetListParams) => {
-  if (!params.filter?.q) {
-    return params;
-  }
-  const { q, ...filter } = params.filter;
-  return {
-    ...params,
-    filter: {
-      ...filter,
-      "@or": columns.reduce((acc, column) => {
-        if (column === "email")
-          return {
-            ...acc,
-            [`email_fts@ilike`]: q,
-          };
-        if (column === "phone")
-          return {
-            ...acc,
-            [`phone_fts@ilike`]: q,
-          };
-        else
-          return {
-            ...acc,
-            [`${column}@ilike`]: q,
-          };
-      }, {}),
-    },
-  };
 };
 
 const uploadToBucket = async (fi: RAFile) => {

@@ -62,10 +62,9 @@ interface DealsTable {
   name: string;
   company_id: number | null;
   contact_ids: number[];
-  category: string | null;
+  category_amounts: Generated<{ category: string | null; amount: number }[]>;
   stage: string;
   description: string | null;
-  amount: number | null;
   created_at: Date;
   updated_at: Date;
   archived_at: Date | null;
