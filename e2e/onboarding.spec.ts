@@ -73,7 +73,9 @@ test("user onboarding", async ({ page, isMobile, menu, dismissToast }) => {
 
   await expect(page.getByText("2/3 done")).toBeVisible();
 
-  await page.getByRole("button", { name: "Add note" }).click();
+  await page
+    .getByRole(isMobile ? "button" : "link", { name: "Add note" })
+    .click();
 
   await page.waitForLoadState("networkidle");
 

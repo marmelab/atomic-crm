@@ -183,7 +183,7 @@ export const SelectInput = (props: SelectInputProps) => {
       } else {
         // Find the choice by value and pass it to field.onChange
         const choice = allChoices?.find(
-          (choice) => getChoiceValue(choice) === value,
+          (choice) => String(getChoiceValue(choice)) === value,
         );
         field.onChange(choice ? getChoiceValue(choice) : value);
       }
@@ -264,9 +264,6 @@ export const SelectInput = (props: SelectInputProps) => {
         )}
         <div className="relative">
           <Select
-            // Re-mounting the select when the controlled value changes avoids a stale
-            // internal state edge case where onValueChange can briefly receive "".
-            key={`select:${field.value?.toString() ?? emptyValue}`}
             value={field.value?.toString() || emptyValue}
             onValueChange={handleChangeWithCreateSupport}
           >

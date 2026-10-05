@@ -8,6 +8,7 @@ import { useState } from "react";
 import { Link } from "react-router";
 
 import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
 import { ContactCreateSheet } from "../contacts/ContactCreateSheet";
 import { DataImportButton } from "../dataImport/DataImportButton";
 import useAppBarHeight from "../misc/useAppBarHeight";
@@ -138,24 +139,25 @@ export const DashboardStepper = ({
                       })}
                     </Button>
                   ) : (
-                    <Button
-                      disabled={step < 2}
-                      className="w-fit"
-                      render={
-                        <Link
-                          to={createPath({
-                            resource: "contacts",
-                            type: "show",
-                            id: contactId,
-                          })}
-                        />
-                      }
-                      nativeButton={false}
+                    <Link
+                      to={createPath({
+                        resource: "contacts",
+                        type: "show",
+                        id: contactId,
+                      })}
+                      aria-disabled={step < 2 || undefined}
+                      tabIndex={step < 2 ? -1 : undefined}
+                      className={buttonVariants({
+                        className: cn(
+                          "w-fit",
+                          step < 2 && "pointer-events-none opacity-50",
+                        ),
+                      })}
                     >
                       {translate("resources.notes.action.add", {
                         _: "Add note",
                       })}
-                    </Button>
+                    </Link>
                   )}
                 </div>
               </div>
