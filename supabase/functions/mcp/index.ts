@@ -6,11 +6,7 @@ import { Pool } from "https://deno.land/x/postgres@v0.17.0/mod.ts";
 import { z } from "npm:zod@^3.25";
 import { validateReadOnly, validateWrite } from "./validateSql.ts";
 import { TASK_LIST_HTML, TASK_LIST_UI_URI } from "./taskListUi.ts";
-import {
-  NOTE_ATTACHMENT_CHANGES_SETTING,
-  deleteAttachmentsAsUser,
-  getRemovedAttachmentPaths,
-} from "./attachmentCleanup.ts";
+import { runQueryWithRLS, type QueryWithRLSResult } from "./queryWithRLS.ts";
 import { corsHeaders } from "../_shared/cors.ts";
 
 // --- Environment & Config ---
@@ -214,75 +210,18 @@ async function executeQueryWithRLS(
   sql: string,
   userToken: string,
   validate: (sql: string) => string | null,
-): Promise<
-  { success: true; data: unknown[] } | { success: false; error: string }
-> {
+): Promise<QueryWithRLSResult> {
   const validationError = validate(sql);
   if (validationError) {
     return { success: false, error: validationError };
   }
 
-  const isWrite = validate === validateWrite;
-  let removedAttachmentPaths: string[] = [];
-  const client = await pool.connect();
-  try {
-    const jwtClaims = decodeJwt(userToken);
-    const claimsJson = JSON.stringify(jwtClaims);
-
-    await client.queryObject("BEGIN");
-    // set_config(..., is_local=true) is the parameterized equivalent of
-    // SET LOCAL — avoids interpolating JWT claims into a SQL string.
-    await client.queryObject(
-      "SELECT set_config('role', 'authenticated', true)",
-    );
-    await client.queryObject({
-      text: "SELECT set_config('request.jwt.claims', $1, true)",
-      args: [claimsJson],
-    });
-    if (isWrite) {
-      await client.queryObject({
-        text: "SELECT set_config($1, '[]', true)",
-        args: [NOTE_ATTACHMENT_CHANGES_SETTING],
-      });
-    }
-
-    const result = await client.queryObject(sql);
-    const attachmentChanges = isWrite
-      ? await client.queryObject<{ setting: string | null }>({
-          text: "SELECT current_setting($1, true) AS setting",
-          args: [NOTE_ATTACHMENT_CHANGES_SETTING],
-        })
-      : null;
-    await client.queryObject("COMMIT");
-    removedAttachmentPaths = getRemovedAttachmentPaths(
-      attachmentChanges?.rows[0]?.setting,
-    );
-
-    // Convert BigInt values to numbers (Deno Postgres returns bigint for
-    // PostgreSQL int8/count results, but JSON.stringify can't handle them)
-    const rows = JSON.parse(
-      JSON.stringify(result.rows, (_key, value) =>
-        typeof value === "bigint" ? Number(value) : value,
-      ),
-    );
-    return { success: true, data: rows };
-  } catch (error) {
-    try {
-      await client.queryObject("ROLLBACK");
-    } catch {
-      // Ignore rollback errors
-    }
-    const message =
-      error instanceof AggregateError
-        ? error.errors.map((e) => e.message).join("; ")
-        : error instanceof Error
-          ? error.message
-          : String(error);
-    return { success: false, error: message };
-  } finally {
-    client.release();
-    await deleteAttachmentsAsUser(removedAttachmentPaths, userToken);
-  }
+  return runQueryWithRLS(pool, {
+    sql,
+    userToken,
+    claimsJson: JSON.stringify(decodeJwt(userToken)),
+    isWrite: validate === validateWrite,
+  });
 }
 
 // --- MCP Server Factory ---
