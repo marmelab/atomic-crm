@@ -1,0 +1,322 @@
+import polyglotI18nProvider from "ra-i18n-polyglot";
+import { mergeTranslations, useLocaleState } from "ra-core";
+import englishMessages from "ra-language-english";
+import { render } from "vitest-browser-react";
+
+import { useTheme } from "@/components/admin/use-theme";
+import { Layout } from "../layout/Layout";
+import { englishCrmMessages } from "../providers/commons/englishCrmMessages";
+import type { UserPreferences } from "../types";
+import { StoryWrapper } from "@/test/StoryWrapper";
+import {
+  resetPendingPreferenceWrites,
+  usePersistPreference,
+} from "./usePersistPreference";
+
+const catalog = mergeTranslations(englishMessages, englishCrmMessages);
+
+const createTwoLocalesI18nProvider = () =>
+  polyglotI18nProvider(
+    () => catalog,
+    "en",
+    [
+      { locale: "en", name: "English" },
+      { locale: "fr", name: "Français" },
+    ],
+    { allowMissing: true },
+  );
+
+const createFakeServer = (
+  initial: UserPreferences,
+  {
+    writeLatency = 0,
+    readLatency = 0,
+  }: { writeLatency?: number; readLatency?: number } = {},
+) => {
+  let stored: UserPreferences = { ...initial };
+  return {
+    read: () => ({ ...stored }),
+    getPreferences: async () => {
+      const current = stored;
+      if (readLatency > 0) {
+        await new Promise((resolve) => setTimeout(resolve, readLatency));
+      }
+      return { ...current };
+    },
+    updatePreferences: async (patch: Partial<UserPreferences>) => {
+      const current = stored;
+      if (writeLatency > 0) {
+        await new Promise((resolve) => setTimeout(resolve, writeLatency));
+      }
+      stored = { ...current, ...patch };
+      return { ...stored };
+    },
+  };
+};
+
+const createFailingSave = () => {
+  let rejectSave: (error: Error) => void = () => {};
+  return {
+    updatePreferences: () =>
+      new Promise<UserPreferences>((_, reject) => {
+        rejectSave = reject;
+      }),
+    fail: () => rejectSave(new Error("Denied")),
+  };
+};
+
+const Probe = () => {
+  const { theme } = useTheme();
+  const [locale] = useLocaleState();
+  const persist = usePersistPreference();
+
+  return (
+    <div>
+      <p>{`theme: ${theme}`}</p>
+      <p>{`locale: ${locale}`}</p>
+      <button onClick={() => persist({ locale: "fr" })}>
+        set french locale
+      </button>
+      <button
+        onClick={() => {
+          persist({ theme: "light" });
+          persist({ locale: "fr" });
+        }}
+      >
+        change both at once
+      </button>
+    </div>
+  );
+};
+
+describe("preference persistence", () => {
+  beforeEach(() => {
+    resetPendingPreferenceWrites();
+  });
+
+  it("applies the preferences stored on the server", async () => {
+    const server = createFakeServer({ theme: "dark", locale: "en" });
+    const screen = await render(
+      <StoryWrapper dataProvider={server} layout={Layout}>
+        <Probe />
+      </StoryWrapper>,
+    );
+
+    await expect.element(screen.getByText("theme: dark")).toBeVisible();
+  });
+
+  it("reaches the profile page from the header user menu", async () => {
+    const server = createFakeServer({ theme: "dark", locale: "en" });
+    const screen = await render(
+      <StoryWrapper dataProvider={server} layout={Layout}>
+        <Probe />
+      </StoryWrapper>,
+    );
+    await expect.element(screen.getByText("theme: dark")).toBeVisible();
+
+    await screen.getByRole("button", { name: "Profile" }).click();
+
+    await expect
+      .element(screen.getByRole("menuitem", { name: "Profile" }))
+      .toBeVisible();
+  });
+
+  it("stores the theme picked from the header toggle", async () => {
+    const server = createFakeServer({ theme: "dark", locale: "fr" });
+    const screen = await render(
+      <StoryWrapper dataProvider={server} layout={Layout}>
+        <Probe />
+      </StoryWrapper>,
+    );
+    await expect.element(screen.getByText("theme: dark")).toBeVisible();
+
+    await screen.getByRole("button", { name: "Toggle theme" }).click();
+    await screen.getByRole("menuitem", { name: "Light" }).click();
+
+    await expect.element(screen.getByText("theme: light")).toBeVisible();
+    await vi.waitFor(() =>
+      expect(server.read()).toEqual({ theme: "light", locale: "fr" }),
+    );
+  });
+
+  it("keeps the new locale applied and stores it", async () => {
+    const server = createFakeServer({ theme: "dark", locale: "en" });
+    const screen = await render(
+      <StoryWrapper
+        i18nProvider={createTwoLocalesI18nProvider()}
+        dataProvider={server}
+        layout={Layout}
+      >
+        <Probe />
+      </StoryWrapper>,
+    );
+    await expect.element(screen.getByText("locale: en")).toBeVisible();
+
+    await screen.getByRole("button", { name: "set french locale" }).click();
+
+    await expect.element(screen.getByText("locale: fr")).toBeVisible();
+    await vi.waitFor(() => expect(server.read().locale).toBe("fr"));
+  });
+
+  it("ignores a stored locale the app does not offer", async () => {
+    const server = createFakeServer({ theme: "dark", locale: "de" });
+    const screen = await render(
+      <StoryWrapper
+        i18nProvider={createTwoLocalesI18nProvider()}
+        dataProvider={server}
+        layout={Layout}
+      >
+        <Probe />
+      </StoryWrapper>,
+    );
+
+    await expect.element(screen.getByText("theme: dark")).toBeVisible();
+    await expect.element(screen.getByText("locale: en")).toBeVisible();
+  });
+
+  it("is not overwritten by a read that was already in flight", async () => {
+    const server = createFakeServer(
+      { theme: "dark", locale: "en" },
+      { readLatency: 400 },
+    );
+    const screen = await render(
+      <StoryWrapper dataProvider={server} layout={Layout}>
+        <Probe />
+      </StoryWrapper>,
+    );
+
+    await screen.getByRole("button", { name: "Toggle theme" }).click();
+    await screen.getByRole("menuitem", { name: "Light" }).click();
+
+    await vi.waitFor(() => expect(server.read().theme).toBe("light"));
+    await new Promise((resolve) => setTimeout(resolve, 600));
+    await expect.element(screen.getByText("theme: light")).toBeVisible();
+  });
+
+  it("does not lose one of two changes made back to back", async () => {
+    const server = createFakeServer(
+      { theme: "dark", locale: "en" },
+      { writeLatency: 30 },
+    );
+    const screen = await render(
+      <StoryWrapper dataProvider={server} layout={Layout}>
+        <Probe />
+      </StoryWrapper>,
+    );
+    await expect.element(screen.getByText("theme: dark")).toBeVisible();
+
+    await screen.getByRole("button", { name: "change both at once" }).click();
+
+    await vi.waitFor(() =>
+      expect(server.read()).toEqual({ theme: "light", locale: "fr" }),
+    );
+  });
+
+  it("reverts the change and warns the user when the server rejects it", async () => {
+    const server = createFakeServer({ theme: "dark", locale: "en" });
+    const screen = await render(
+      <StoryWrapper
+        dataProvider={{
+          getPreferences: server.getPreferences,
+          updatePreferences: () => Promise.reject(new Error("Denied")),
+        }}
+        layout={Layout}
+      >
+        <Probe />
+      </StoryWrapper>,
+    );
+    await expect.element(screen.getByText("theme: dark")).toBeVisible();
+
+    await screen.getByRole("button", { name: "Toggle theme" }).click();
+    await screen.getByRole("menuitem", { name: "Light" }).click();
+
+    await expect
+      .element(
+        screen.getByText("Could not save your preferences", { exact: false }),
+      )
+      .toBeVisible();
+    await expect.element(screen.getByText("theme: dark")).toBeVisible();
+    expect(server.read().theme).toBe("dark");
+  });
+
+  it("reverts the theme when the first save of a user without stored preferences fails", async () => {
+    const save = createFailingSave();
+    const screen = await render(
+      <StoryWrapper
+        dataProvider={{
+          getPreferences: createFakeServer({}).getPreferences,
+          updatePreferences: save.updatePreferences,
+        }}
+        layout={Layout}
+      >
+        <Probe />
+      </StoryWrapper>,
+    );
+    await expect.element(screen.getByText("theme: system")).toBeVisible();
+
+    await screen.getByRole("button", { name: "Toggle theme" }).click();
+    await screen.getByRole("menuitem", { name: "Dark" }).click();
+    await expect.element(screen.getByText("theme: dark")).toBeVisible();
+    save.fail();
+
+    await expect
+      .element(
+        screen.getByText("Could not save your preferences", { exact: false }),
+      )
+      .toBeVisible();
+    await expect.element(screen.getByText("theme: system")).toBeVisible();
+  });
+
+  it("reverts the locale when its save fails", async () => {
+    const save = createFailingSave();
+    const screen = await render(
+      <StoryWrapper
+        i18nProvider={createTwoLocalesI18nProvider()}
+        dataProvider={{
+          getPreferences: createFakeServer({}).getPreferences,
+          updatePreferences: save.updatePreferences,
+        }}
+        layout={Layout}
+      >
+        <Probe />
+      </StoryWrapper>,
+    );
+    await expect.element(screen.getByText("locale: en")).toBeVisible();
+
+    await screen.getByRole("button", { name: "set french locale" }).click();
+    await expect.element(screen.getByText("locale: fr")).toBeVisible();
+    save.fail();
+
+    await expect.element(screen.getByText("locale: en")).toBeVisible();
+  });
+
+  it("does not revert or warn when a save started before a logout fails", async () => {
+    const save = createFailingSave();
+    const screen = await render(
+      <StoryWrapper
+        dataProvider={{
+          getPreferences: createFakeServer({ theme: "dark" }).getPreferences,
+          updatePreferences: save.updatePreferences,
+        }}
+        layout={Layout}
+      >
+        <Probe />
+      </StoryWrapper>,
+    );
+    await expect.element(screen.getByText("theme: dark")).toBeVisible();
+
+    await screen.getByRole("button", { name: "Toggle theme" }).click();
+    await screen.getByRole("menuitem", { name: "Light" }).click();
+    await expect.element(screen.getByText("theme: light")).toBeVisible();
+    resetPendingPreferenceWrites();
+    save.fail();
+    await new Promise((resolve) => setTimeout(resolve, 300));
+
+    await expect.element(screen.getByText("theme: light")).toBeVisible();
+    expect(
+      screen
+        .getByText("Could not save your preferences", { exact: false })
+        .query(),
+    ).toBeNull();
+  });
+});

@@ -99,6 +99,7 @@ create table public.sales (
     avatar jsonb,
     disabled boolean not null default false,
     secondary_emails jsonb not null default '[]'::jsonb,
+    preferences jsonb,
     constraint sales_secondary_emails_is_array check (jsonb_typeof(secondary_emails) = 'array')
 );
 
