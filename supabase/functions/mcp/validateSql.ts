@@ -1,7 +1,26 @@
-import { parse, type Statement } from "npm:pgsql-ast-parser@^12";
+import { astVisitor, parse, type Statement } from "npm:pgsql-ast-parser@^12";
 
 const ALLOWED_READ_TYPES = new Set(["select", "with"]);
 const ALLOWED_WRITE_TYPES = new Set(["insert", "update", "delete", "with"]);
+
+// RLS reads the caller's identity from the request.jwt.claims setting, and the
+// role from the role setting. A query able to call set_config() could rewrite
+// either mid-statement and act as another user, so it is never allowed.
+const FORBIDDEN_FUNCTIONS = new Set(["set_config"]);
+
+function findForbiddenCall(stmts: Statement[]): string | null {
+  let found: string | null = null;
+  const visitor = astVisitor((map) => ({
+    call: (call) => {
+      if (FORBIDDEN_FUNCTIONS.has(call.function.name.toLowerCase())) {
+        found = call.function.name;
+      }
+      map.super().call(call);
+    },
+  }));
+  for (const stmt of stmts) visitor.statement(stmt);
+  return found;
+}
 
 // Collect all statement types found in a parsed AST, including inner
 // statements in WITH (CTE) bindings which can contain writable DML.
@@ -43,6 +62,10 @@ export function validateReadOnly(sql: string): string | null {
       return `Statement type "${type}" is not allowed in read-only queries. Use the mutate tool for data modifications.`;
     }
   }
+  const forbiddenCall = findForbiddenCall(stmts);
+  if (forbiddenCall) {
+    return `Function "${forbiddenCall}" is not allowed.`;
+  }
   return null;
 }
 
@@ -68,6 +91,10 @@ export function validateWrite(sql: string): string | null {
     if (!ALLOWED_WRITE_TYPES.has(type)) {
       return `Statement type "${type}" is not allowed. Only INSERT, UPDATE, and DELETE statements are supported.`;
     }
+  }
+  const forbiddenCall = findForbiddenCall(stmts);
+  if (forbiddenCall) {
+    return `Function "${forbiddenCall}" is not allowed.`;
   }
   return null;
 }
