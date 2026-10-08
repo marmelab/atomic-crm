@@ -461,7 +461,15 @@ Each task should include at least: id (required, used for the mark-as-done actio
 Deno.serve(
   pipeline(
     [
-      withCors({}),
+      // Browser-based MCP clients must read the WWW-Authenticate challenge
+      // to start OAuth discovery, and it is not a CORS-safelisted header.
+      withCors({
+        exposedHeaders: [
+          "WWW-Authenticate",
+          "Mcp-Session-Id",
+          "x-supabase-server-error",
+        ],
+      }),
       withOAuthProtectedResource(),
       withSupabase({ auth: "user" }),
       withPostgresClient(),
