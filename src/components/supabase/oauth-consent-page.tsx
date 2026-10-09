@@ -49,17 +49,20 @@ export function OAuthConsentPage() {
         return;
       }
 
-      // Check if user is authenticated
-      try {
-        await authProvider.checkAuth({});
-      } catch {
-        // useLogin sends the user back to this location state after login
+      // useLogin sends the user back to this location state after login
+      const redirectToLogin = () =>
         navigate("/login", {
           state: {
             nextPathname: OAuthConsentPage.path,
             nextSearch: `?authorization_id=${encodeURIComponent(authorizationId)}`,
           },
         });
+
+      // Check if user is authenticated
+      try {
+        await authProvider.checkAuth({});
+      } catch {
+        redirectToLogin();
         return;
       }
 
@@ -67,6 +70,13 @@ export function OAuthConsentPage() {
       const { data, error } =
         await authProvider.getAuthorizationDetails(authorizationId);
 
+      if (error?.name === "AuthSessionMissingError") {
+        // checkAuth only reads the local session, which the server may have
+        // revoked since: clear it and ask the user to log in again
+        await authProvider.logout({});
+        redirectToLogin();
+        return;
+      }
       if (error) {
         setError(error.message);
       } else if ("redirect_url" in data) {
