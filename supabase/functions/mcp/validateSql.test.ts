@@ -72,6 +72,22 @@ describe("validateReadOnly", () => {
     ["multi-statement (SELECT; SET)", "SELECT 1; SET LOCAL role = 'postgres'"],
     ["multi-statement (two SELECTs)", "SELECT 1; SELECT 2"],
     ["unparseable SQL", "NOT VALID SQL %%%"],
+    [
+      "set_config in a CTE (claims impersonation)",
+      "WITH x AS (SELECT set_config('request.jwt.claims', '{\"sub\":\"other\"}', true)) SELECT * FROM x, contacts",
+    ],
+    [
+      "set_config as a table function",
+      "SELECT * FROM set_config('role', 'postgres', true)",
+    ],
+    [
+      "schema-qualified, uppercase set_config",
+      "SELECT pg_catalog.SET_CONFIG('role', 'postgres', true)",
+    ],
+    [
+      "set_config in a subquery",
+      "SELECT id FROM contacts WHERE first_name = (SELECT set_config('role', 'postgres', true))",
+    ],
   ])("rejects %s", (_label, sql) => {
     expect(validateReadOnly(sql)).not.toBeNull();
   });
@@ -116,6 +132,14 @@ describe("validateWrite", () => {
       "DELETE FROM contacts; SET LOCAL role = 'postgres'",
     ],
     ["unparseable SQL", "NOT VALID SQL %%%"],
+    [
+      "set_config in an upsert (admin impersonation)",
+      "INSERT INTO configuration (id, config) VALUES (1, to_jsonb(set_config('request.jwt.claims', '{\"sub\":\"admin-id\"}', true))) ON CONFLICT (id) DO UPDATE SET config = '{}' RETURNING id",
+    ],
+    [
+      "set_config in an UPDATE",
+      "UPDATE tasks SET text = set_config('role', 'postgres', true) WHERE id = 1",
+    ],
   ])("rejects %s", (_label, sql) => {
     expect(validateWrite(sql)).not.toBeNull();
   });

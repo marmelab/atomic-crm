@@ -172,6 +172,21 @@ When using a remote Supabase instance, you need to configure the callback URL as
 
 If you host Atomic CRM under the `https://example.com/atomic-crm/` URL, the callback URL should be `https://example.com/atomic-crm/auth-callback.html`.
 
+## Enabling The OAuth Server
+
+The [MCP server](../../users/mcp-server) authenticates AI assistants with the Supabase OAuth 2.1 server, which redirects users to a consent page hosted by the frontend. With a local Supabase instance, this is already configured in `supabase/config.toml`.
+
+The OAuth server is disabled by default on remote Supabase instances. To enable it:
+
+1. Go to the project dashboard at [supabase.com](https://supabase.com/).
+2. Go to **Authentication** > **OAuth Server**.
+3. Enable the OAuth server.
+4. Set the **Authorization Path** to `/#/oauth/consent` (the default `/oauth/consent` doesn't work, as Atomic CRM uses hash-based routing).
+5. Enable **Dynamic Client Registration**, so that AI assistants can register themselves.
+6. Save the changes.
+
+The consent page is served relative to the **Site URL** (see [Setting The Login Callback](#setting-the-login-callback)).
+
 ## Customizing Email Templates
 
 Atomic CRM uses Supabase to send authentication-related emails (confirm signup, reset password, etc).
