@@ -53,9 +53,13 @@ export function OAuthConsentPage() {
       try {
         await authProvider.checkAuth({});
       } catch {
-        navigate(
-          `/login?redirect=/oauth/consent?authorization_id=${authorizationId}`,
-        );
+        // useLogin sends the user back to this location state after login
+        navigate("/login", {
+          state: {
+            nextPathname: OAuthConsentPage.path,
+            nextSearch: `?authorization_id=${encodeURIComponent(authorizationId)}`,
+          },
+        });
         return;
       }
 
