@@ -45,6 +45,12 @@ export function transformFilter(filter: Record<string, any>) {
       continue;
     }
 
+    if (key.endsWith("@ov")) {
+      transformedFilters[`${key.slice(0, -3)}_inc_any`] =
+        transformContainsFilter(value);
+      continue;
+    }
+
     // Search query
     if (key.endsWith("@or")) {
       transformedFilters["q"] = transformOrFilter(value);
