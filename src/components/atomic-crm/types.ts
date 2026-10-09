@@ -118,7 +118,7 @@ export type Deal = {
   name: string;
   company_id: Identifier;
   contact_ids: Identifier[];
-  category: string;
+  categories: string[];
   stage: string;
   description: string;
   amount: number;
