@@ -198,7 +198,7 @@ describe("DataImportButton", () => {
       {
         name: "New website",
         company: "Acme",
-        category: "Website design",
+        categories: "Website design; Copywriting",
         stage: "Proposal Sent",
         amount: "12000",
         expected_closing_date: "2026-09-30",
@@ -217,7 +217,7 @@ describe("DataImportButton", () => {
     expect(deals).toHaveLength(2);
     expect(deals[0]).toMatchObject({
       amount: 12000,
-      category: "website-design",
+      categories: ["website-design", "copywriting"],
       company_id: companies[0].id,
       name: "New website",
       stage: "proposal-sent",

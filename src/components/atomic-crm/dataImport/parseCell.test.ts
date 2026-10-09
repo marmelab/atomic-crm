@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   toConfiguredValue,
+  toConfiguredValues,
   toInteger,
   toIsoDate,
   toNumber,
@@ -90,5 +91,25 @@ describe("toConfiguredValue", () => {
   it("returns undefined when no option matches", () => {
     expect(toConfiguredValue("Archived", stages)).toBeUndefined();
     expect(toConfiguredValue(null, stages)).toBeUndefined();
+  });
+});
+
+describe("toConfiguredValues", () => {
+  it("matches each comma or semicolon separated entry", () => {
+    expect(toConfiguredValues("Proposal Sent; opportunity", stages)).toEqual([
+      "proposal-sent",
+      "opportunity",
+    ]);
+    expect(toConfiguredValues("opportunity,Proposal Sent", stages)).toEqual([
+      "opportunity",
+      "proposal-sent",
+    ]);
+  });
+
+  it("drops unknown entries and returns [] for an empty cell", () => {
+    expect(toConfiguredValues("opportunity, Archived", stages)).toEqual([
+      "opportunity",
+    ]);
+    expect(toConfiguredValues(null, stages)).toEqual([]);
   });
 });
