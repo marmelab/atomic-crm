@@ -146,6 +146,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/settings/SettingsTags.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/settings/SettingsPageMobile.tsx",
           "type": "registry:component"
         },
@@ -187,6 +191,10 @@
         },
         {
           "path": "src/components/atomic-crm/sales/useGetSalesName.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/sales/salesErrorNotification.ts",
           "type": "registry:component"
         },
         {
@@ -683,6 +691,14 @@
         },
         {
           "path": "src/components/atomic-crm/dataImport/createEachRow.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/dataImport/DataImportProvider.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/dataImport/DataImportProgressToast.tsx",
           "type": "registry:component"
         },
         {

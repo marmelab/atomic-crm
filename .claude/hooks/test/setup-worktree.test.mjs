@@ -1,7 +1,7 @@
 // Tests for setup-worktree.mjs (vitest, "claude" Node project). setup-worktree is
 // now a PreToolUse(Agent) hook: it reads the dispatch tool_input (subagent_type,
 // name, prompt) and creates the worktree BEFORE the subagent starts. Uses a
-// throwaway git repo (APP_DIR) + CRM_TMP_ROOT. Tests are ordered and stateful —
+// throwaway git repo (APP_DIR) + HARNESS_TMP_ROOT. Tests are ordered and stateful —
 // each observes the state produced by the previous step.
 
 import { spawnSync } from "node:child_process";
@@ -70,10 +70,10 @@ beforeAll(() => {
   g("commit", "-q", "-m", "seed");
   mkdirSync(join(APP_DIR, "node_modules"), { recursive: true });
 
-  const CRM_TMP_ROOT = join(TMP, "scratch");
-  WB = join(CRM_TMP_ROOT, sanitizePath(APP_DIR), SESSION_ID);
+  const HARNESS_TMP_ROOT = join(TMP, "scratch");
+  WB = join(HARNESS_TMP_ROOT, sanitizePath(APP_DIR), SESSION_ID);
 
-  env = { ...process.env, APP_DIR, CRM_TMP_ROOT };
+  env = { ...process.env, APP_DIR, HARNESS_TMP_ROOT };
   delete env.VALIDATE_WORKTREE;
 
   dispatch({ subagentType: "developer", taskId: "TASK-001" });

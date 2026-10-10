@@ -284,6 +284,8 @@ export const frenchCrmMessages = {
         first_name: "Prénom",
         last_name: "Nom",
         email: "E-mail",
+        secondary_email: "E-mail secondaire",
+        secondary_emails: "E-mails secondaires",
         administrator: "Admin",
         disabled: "Désactivé",
       },
@@ -360,6 +362,7 @@ export const frenchCrmMessages = {
         name_label: "Nom de l'étiquette",
         name_placeholder: "Saisir le nom de l'étiquette",
       },
+      empty: "Aucune étiquette pour le moment.",
     },
   },
   crm: {
@@ -443,16 +446,18 @@ export const frenchCrmMessages = {
       csv_file: "Fichier CSV",
       error:
         "Échec de l'importation de ce fichier. Veuillez vous assurer que vous avez fourni un fichier CSV valide.",
+      in_progress: "Import en cours…",
       progress:
         "%{importCount} / %{rowCount} enregistrements importés, avec %{errorCount} erreurs.",
       remaining_time: "Temps restant estimé :",
       resource: "Ressource",
-      running: "L'import est en cours, merci de ne pas fermer cet onglet.",
       sample_download: "Télécharger un exemple CSV",
       sample_hint:
         "Voici un exemple de fichier CSV que vous pouvez utiliser comme modèle",
       start: "Démarrer l'import",
       stop: "Arrêter l'importation",
+      stopped:
+        "Import arrêté. %{importCount} enregistrements importés, %{errorCount} erreurs",
       title: "Importer des données",
     },
     header: {
@@ -563,6 +568,17 @@ export const frenchCrmMessages = {
       label: "Navigation CRM",
     },
     profile: {
+      add_secondary_email: "Ajouter un e-mail",
+      email_taken: "%{email} est déjà utilisée par un autre utilisateur",
+      no_secondary_emails: "Aucun",
+      secondary_email_invalid: "%{email} n'est pas une adresse e-mail valide",
+      secondary_email_is_primary: "%{email} est déjà votre adresse principale",
+      secondary_email_taken:
+        "%{email} est déjà utilisée par un autre utilisateur",
+      too_many_secondary_emails:
+        "Vous ne pouvez pas ajouter plus de 10 adresses e-mail secondaires",
+      secondary_emails_help:
+        "Autres adresses depuis lesquelles vous envoyez des e-mails. Laissez-en une vide pour la supprimer.",
       inbound: {
         description:
           "Vous pouvez commencer à envoyer des e-mails vers l'adresse de réception de votre serveur, par exemple en l'ajoutant au champ %{field}. Atomic CRM traitera les e-mails et ajoutera des notes aux contacts correspondants.",

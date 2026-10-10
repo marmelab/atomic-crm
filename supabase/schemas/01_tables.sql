@@ -97,7 +97,9 @@ create table public.sales (
     administrator boolean not null,
     user_id uuid not null,
     avatar jsonb,
-    disabled boolean not null default false
+    disabled boolean not null default false,
+    secondary_emails jsonb not null default '[]'::jsonb,
+    constraint sales_secondary_emails_is_array check (jsonb_typeof(secondary_emails) = 'array')
 );
 
 create unique index uq__sales__user_id on public.sales using btree (user_id);

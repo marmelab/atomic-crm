@@ -19,6 +19,7 @@ export type SignUpData = {
 export type SalesFormData = {
   avatar?: string;
   email: string;
+  secondary_emails?: string[];
   password?: string;
   first_name: string;
   last_name: string;
@@ -39,6 +40,8 @@ export type Sale = {
    * DO NOT UPDATE this field directly, it should be updated by the backend
    */
   email: string;
+
+  secondary_emails?: string[];
 
   /**
    * This is used by the fake rest provider to store the password

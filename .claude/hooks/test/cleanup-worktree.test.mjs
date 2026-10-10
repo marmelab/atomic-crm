@@ -68,10 +68,10 @@ beforeAll(() => {
   g("commit", "-q", "-m", "seed");
   mkdirSync(join(APP_DIR, "node_modules"), { recursive: true });
 
-  const CRM_TMP_ROOT = join(TMP, "scratch");
-  WB = join(CRM_TMP_ROOT, sanitizePath(APP_DIR), SESSION_ID);
+  const HARNESS_TMP_ROOT = join(TMP, "scratch");
+  WB = join(HARNESS_TMP_ROOT, sanitizePath(APP_DIR), SESSION_ID);
 
-  env = { ...process.env, APP_DIR, CRM_TMP_ROOT };
+  env = { ...process.env, APP_DIR, HARNESS_TMP_ROOT };
   delete env.VALIDATE_WORKTREE;
 
   setupDispatch("TASK-001");

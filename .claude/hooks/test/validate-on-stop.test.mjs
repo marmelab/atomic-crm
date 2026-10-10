@@ -24,7 +24,7 @@ const runHook = (dryRun) => {
   const env = {
     ...process.env,
     APP_DIR: appDir,
-    CRM_TMP_ROOT: tmpRoot,
+    HARNESS_TMP_ROOT: tmpRoot,
   };
   delete env.VALIDATE_WORKTREE;
   delete env.VALIDATE_DRY_RUN;

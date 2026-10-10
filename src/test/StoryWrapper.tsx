@@ -13,6 +13,7 @@ import type {
   Deal,
   Sale,
 } from "@/components/atomic-crm/types";
+import { DataImportProvider } from "@/components/atomic-crm/dataImport/DataImportProvider";
 import { CRM } from "@/components/atomic-crm/root/CRM";
 import { testI18nProvider } from "@/components/atomic-crm/providers/commons/i18nProvider";
 
@@ -170,10 +171,10 @@ export const StoryWrapper = ({
         store={store}
         disableTelemetry
         layout={({ children }) => (
-          <>
+          <DataImportProvider>
             {children}
             <Notification />
-          </>
+          </DataImportProvider>
         )}
       />
     </MemoryRouter>

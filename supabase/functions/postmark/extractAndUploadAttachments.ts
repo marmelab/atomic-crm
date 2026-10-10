@@ -95,3 +95,15 @@ const fixPublicUrl = (url: string) => {
   const localUrl = jwtIssuer.replace("/auth/v1", "");
   return url.replace("http://kong:8000", localUrl);
 };
+
+export const removeUploadedAttachments = async (attachments: Attachment[]) => {
+  if (!attachments.length) {
+    return;
+  }
+  const { error } = await supabaseAdmin.storage
+    .from("attachments")
+    .remove(attachments.map((attachment) => attachment.path));
+  if (error) {
+    console.error("Could not remove the uploaded attachments", error);
+  }
+};
