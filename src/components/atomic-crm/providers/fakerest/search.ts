@@ -106,7 +106,6 @@ export async function getSearchResults(
         return {
           document: [company.name, content].join(" "),
           result: {
-            id: `company.${company.id}`,
             resource: "companies",
             record_id: company.id,
             title: company.name,
@@ -129,7 +128,6 @@ export async function getSearchResults(
         return {
           document: [contact.first_name, contact.last_name, content].join(" "),
           result: {
-            id: `contact.${contact.id}`,
             resource: "contacts",
             record_id: contact.id,
             title: contactName(contact),
@@ -147,7 +145,6 @@ export async function getSearchResults(
         return {
           document: [deal.name, content].join(" "),
           result: {
-            id: `deal.${deal.id}`,
             resource: "deals",
             record_id: deal.id,
             title: deal.name,
@@ -167,7 +164,6 @@ export async function getSearchResults(
           return {
             document: content ?? "",
             result: {
-              id: `task.${task.id}`,
               resource: "tasks",
               record_id: task.id,
               title: task.text?.slice(0, TITLE_LENGTH) ?? null,
@@ -185,7 +181,6 @@ export async function getSearchResults(
         return {
           document: content ?? "",
           result: {
-            id: `contactNote.${note.id}`,
             resource: "contact_notes",
             record_id: note.id,
             title: note.text?.slice(0, TITLE_LENGTH) ?? null,
@@ -208,7 +203,6 @@ export async function getSearchResults(
           return {
             document: content ?? "",
             result: {
-              id: `dealNote.${note.id}`,
               resource: "deal_notes",
               record_id: note.id,
               title: note.text?.slice(0, TITLE_LENGTH) ?? null,

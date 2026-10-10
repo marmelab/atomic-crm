@@ -240,7 +240,6 @@ export type SearchResourceName =
   | "deal_notes";
 
 export type SearchResult = {
-  id: Identifier;
   resource: SearchResourceName;
   record_id: Identifier;
   title: string | null;

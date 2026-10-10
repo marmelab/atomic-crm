@@ -27,7 +27,7 @@ import { getActivityLog } from "../commons/activity";
 import { getCompanyAvatar } from "../commons/getCompanyAvatar";
 import { getContactAvatar } from "../commons/getContactAvatar";
 import { mergeContacts } from "../commons/mergeContacts";
-import { getSearchResults } from "../commons/search";
+import { getSearchResults } from "./search";
 import type { CrmDataProvider } from "../types";
 import {
   authProvider as defaultAuthProvider,

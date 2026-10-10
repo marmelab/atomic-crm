@@ -107,7 +107,6 @@ create or replace function public.global_search(
     resources text[] default null,
     max_results integer default 50
 ) returns table (
-    id text,
     resource text,
     record_id bigint,
     title text,
@@ -124,14 +123,14 @@ declare
     tsq tsquery := public.search_query(query);
     branch_templates constant jsonb := jsonb_build_object(
         'companies', $q$
-            select 'company.' || c.id, 'companies', c.id, c.name, c.sector, null::bigint, null::bigint, c.created_at,
+            select 'companies', c.id, c.name, c.sector, null::bigint, null::bigint, c.created_at,
                 concat_ws(' · ', c.sector, c.description, c.website::text, c.phone_number, c.zipcode, c.city, c.state_abbr)
             from public.companies c
             where c.fts @@ %1$L::tsquery
             order by c.created_at desc
             limit %2$s $q$,
         'contacts', $q$
-            select 'contact.' || co.id, 'contacts', co.id, concat_ws(' ', co.first_name, co.last_name),
+            select 'contacts', co.id, concat_ws(' ', co.first_name, co.last_name),
                 (select cc.name from public.companies cc where cc.id = co.company_id), co.id, null::bigint, co.first_seen,
                 concat_ws(' · ', co.title, co.background,
                     (select string_agg(e ->> 'email', ' ') from jsonb_array_elements(co.email_jsonb) e),
@@ -141,7 +140,7 @@ declare
             order by co.first_seen desc nulls last
             limit %2$s $q$,
         'deals', $q$
-            select 'deal.' || d.id, 'deals', d.id, d.name,
+            select 'deals', d.id, d.name,
                 (select dc.name from public.companies dc where dc.id = d.company_id), null::bigint, d.id, d.created_at,
                 concat_ws(' · ', d.category, d.description)
             from public.deals d
@@ -149,7 +148,7 @@ declare
             order by d.created_at desc
             limit %2$s $q$,
         'tasks', $q$
-            select 'task.' || t.id, 'tasks', t.id, left(t.text, 200),
+            select 'tasks', t.id, left(t.text, 200),
                 (select concat_ws(' ', tc.first_name, tc.last_name) from public.contacts tc where tc.id = t.contact_id),
                 t.contact_id, null::bigint, t.created_at,
                 concat_ws(' · ', t.text, t.type)
@@ -158,7 +157,7 @@ declare
             order by t.created_at desc
             limit %2$s $q$,
         'contact_notes', $q$
-            select 'contactNote.' || cn.id, 'contact_notes', cn.id, left(cn.text, 200),
+            select 'contact_notes', cn.id, left(cn.text, 200),
                 (select concat_ws(' ', nc.first_name, nc.last_name) from public.contacts nc where nc.id = cn.contact_id),
                 cn.contact_id, null::bigint, cn.date,
                 concat_ws(' · ', cn.text, public.search_attachment_titles(cn.attachments))
@@ -167,7 +166,7 @@ declare
             order by cn.date desc nulls last
             limit %2$s $q$,
         'deal_notes', $q$
-            select 'dealNote.' || dn.id, 'deal_notes', dn.id, left(dn.text, 200), nd.name, null::bigint, dn.deal_id, dn.date,
+            select 'deal_notes', dn.id, left(dn.text, 200), nd.name, null::bigint, dn.deal_id, dn.date,
                 concat_ws(' · ', dn.text, public.search_attachment_titles(dn.attachments))
             from public.deal_notes dn
                 join public.deals nd on nd.id = dn.deal_id
@@ -191,7 +190,7 @@ begin
     end if;
 
     return query execute format(
-        'select * from (%s) results order by 8 desc nulls last limit %s',
+        'select * from (%s) results order by 7 desc nulls last limit %s',
         array_to_string(branches, ' union all '),
         max_results
     );
