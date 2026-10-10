@@ -21,6 +21,15 @@ export const getSearchTerms = (query: string): string[] => [
   ...new Set(normalize(query).match(WORD) ?? []),
 ];
 
+/**
+ * Whether every term starts a word of `text`: the `@@` test `global_search`
+ * runs in Postgres, for the FakeRest emulation.
+ */
+export const matchesAllTerms = (text: string, terms: string[]): boolean => {
+  const words = normalize(text).match(WORD) ?? [];
+  return terms.every((term) => words.some((word) => word.startsWith(term)));
+};
+
 /** Length of `word` covered by `term` when it is a prefix of it, else 0. */
 const prefixLength = (word: string, term: string): number => {
   let normalized = "";

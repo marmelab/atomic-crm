@@ -302,12 +302,12 @@ export const createDataProvider = ({
       resources: readonly SearchResourceName[],
       maxResults: number,
     ): Promise<SearchResult[]> => {
-      const results = await getSearchResults(
+      return getSearchResults(
         withSupabaseFilterAdapter(baseDataProvider),
         query,
-        [...resources],
+        resources,
+        maxResults,
       );
-      return results.slice(0, maxResults);
     },
     mergeContacts: async (sourceId: Identifier, targetId: Identifier) => {
       return mergeContacts(sourceId, targetId, baseDataProvider);

@@ -141,18 +141,26 @@ describe("GlobalSearchDialog", () => {
       .toBeVisible();
   });
 
-  it("also surfaces the contacts of a matching company", async () => {
+  it("matches words by their start, ignoring accents and case", async () => {
     const screen = await renderDialog();
 
-    await screen.getByPlaceholder(PLACEHOLDER).fill("Boulangerie");
+    await screen.getByPlaceholder(PLACEHOLDER).fill("BOULÂN mar");
 
     await expect
       .element(
         screen
-          .getByRole("group", { name: "Contacts" })
-          .getByText("Ada Lovelace"),
+          .getByRole("group", { name: "Companies" })
+          .getByText(/Boulangerie Martin/),
       )
       .toBeVisible();
+  });
+
+  it("does not match a term found inside a word", async () => {
+    const screen = await renderDialog();
+
+    await screen.getByPlaceholder(PLACEHOLDER).fill("langerie");
+
+    await expect.element(screen.getByText("No result found")).toBeVisible();
   });
 
   it("finds a note by its text, which no page-specific search can do", async () => {
@@ -180,20 +188,22 @@ describe("GlobalSearchDialog", () => {
       .toBeVisible();
   });
 
-  it("matches a note word together with its contact's name", async () => {
+  it("searches a record's own fields only, like the database", async () => {
     const screen = await renderDialog();
 
-    // The reason `content` carries the subtitle: each word is ANDed, so the
-    // parent name has to be searchable on the note's own row.
-    await screen.getByPlaceholder(PLACEHOLDER).fill("sourdough Lovelace");
-
+    // the company matches, but its contact Ada Lovelace does not: her
+    // company's name is not one of her own fields
+    await screen.getByPlaceholder(PLACEHOLDER).fill("Boulangerie");
     await expect
       .element(
         screen
-          .getByRole("group", { name: "Contact notes" })
-          .getByText("Called about the sourdough contract"),
+          .getByRole("group", { name: "Companies" })
+          .getByText(/Boulangerie Martin/),
       )
       .toBeVisible();
+    await expect
+      .element(screen.getByRole("group", { name: "Contacts" }))
+      .not.toBeInTheDocument();
   });
 
   it("keeps subtitles for records on id 0, which FakeRest generators use", async () => {
