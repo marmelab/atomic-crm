@@ -102,6 +102,9 @@ export const GlobalSearchDialog = ({
         placeholder={translate("crm.search.placeholder")}
         value={query}
         onValueChange={setQuery}
+        // keep the text clear of the dialog's close button, drawn over the
+        // input's right end
+        className="pr-8"
       />
       <CommandList className={isMobile ? "max-h-none flex-1" : "max-h-[60vh]"}>
         {isTooShort ? (
