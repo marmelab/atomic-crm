@@ -13,6 +13,8 @@ import type {
   RAFile,
   Sale,
   SalesFormData,
+  SearchResourceName,
+  SearchResult,
   SignUpData,
 } from "../../types";
 import type { ConfigurationContextValue } from "../../root/ConfigurationContext";
@@ -209,6 +211,22 @@ const getDataProviderWithCustomMethods = () => {
     async isInitialized() {
       return getIsInitialized();
     },
+    async globalSearch(
+      query: string,
+      resources: readonly SearchResourceName[],
+      maxResults: number,
+    ): Promise<SearchResult[]> {
+      const { data, error } = await getSupabaseClient().rpc("global_search", {
+        query,
+        resources,
+        max_results: maxResults,
+      });
+      if (error) {
+        console.error("global_search.error", error);
+        throw new Error("Failed to search");
+      }
+      return data ?? [];
+    },
     async mergeContacts(sourceId: Identifier, targetId: Identifier) {
       const { data, error } = await getSupabaseClient().functions.invoke(
         "merge_contacts",
@@ -354,27 +372,6 @@ const lifeCycleCallbacks: ResourceCallbacks[] = [
     resource: "deals",
     beforeGetList: async (params) => {
       return applyFullTextSearch(["name", "category", "description"])(params);
-    },
-  },
-  {
-    resource: "search_index",
-    beforeGetList: async (params) => {
-      if (!params.filter?.q) {
-        return params;
-      }
-      const { q, ...filter } = params.filter;
-      // A single `ilike` column: ra-data-postgrest splits the term on spaces
-      // and emits one `ilike` per word. qs.stringify uses the indices format,
-      // so the query string carries `content[0]=ilike.*a*&content[1]=ilike.*b*`;
-      // PostgREST strips the `[n]` subscripts and ANDs the repeated column, so
-      // "Thomas TF1" matches only rows whose content contains both words.
-      return {
-        ...params,
-        filter: {
-          ...filter,
-          "content@ilike": q,
-        },
-      };
     },
   },
 ];

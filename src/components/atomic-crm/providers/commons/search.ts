@@ -55,17 +55,16 @@ const byDateDesc = (a: SearchResult, b: SearchResult) =>
   (b.date ?? "").localeCompare(a.date ?? "");
 
 /**
- * Emulates the `search_index` database view for the FakeRest provider, by
- * running FakeRest's own `q` search on each searchable resource and mapping
- * the matches to the view's shape.
+ * Emulates the `global_search` database function for the FakeRest provider,
+ * by running FakeRest's own `q` search on each searchable resource and mapping
+ * the matches to the function's result shape.
  *
- * FIXME: this is an approximation of the view, not a reimplementation.
+ * FIXME: this is an approximation of the function, not a reimplementation.
  *  - one query per resource instead of one;
- *  - FakeRest matches the whole term as a single substring, where Postgres ANDs
- *    one `ilike` per word;
- *  - the result SET differs, not only the field values: this path takes the top
- *    50 per resource and caps at 250, while Supabase takes one global top 50, so
- *    the demo build can surface a record production would not return.
+ *  - FakeRest matches the whole term as a single substring, where Postgres
+ *    matches each word as a word prefix, ignoring accents;
+ *  - FakeRest searches its own `q` fields, which differ from the fields
+ *    indexed by `global_search`.
  */
 export async function getSearchResults(
   dataProvider: DataProvider,

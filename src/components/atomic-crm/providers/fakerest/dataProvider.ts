@@ -17,6 +17,7 @@ import type {
   Sale,
   SalesFormData,
   SearchResourceName,
+  SearchResult,
   SignUpData,
   Task,
 } from "../../types";
@@ -141,11 +142,6 @@ const preserveAttachmentMimeType = <
   })),
 });
 
-const parseResourceFilter = (
-  value: unknown,
-): SearchResourceName[] | undefined =>
-  Array.isArray(value) ? (value as SearchResourceName[]) : undefined;
-
 export const createDataProvider = ({
   db = generateData(),
   latency = 300,
@@ -177,17 +173,6 @@ export const createDataProvider = ({
   const dataProviderWithCustomMethod: CrmDataProvider = {
     ...baseDataProvider,
     async getList(resource: string, params: any) {
-      if (resource === "search_index") {
-        const { filter = {}, pagination } = params;
-        const all = await getSearchResults(
-          withSupabaseFilterAdapter(baseDataProvider),
-          filter.q ?? "",
-          parseResourceFilter(filter.resource_eq_any),
-        );
-        const { page, perPage } = pagination;
-        const start = (page - 1) * perPage;
-        return { data: all.slice(start, start + perPage), total: all.length };
-      }
       if (resource === "activity_log") {
         const { filter = {}, pagination } = params;
         const all = await getActivityLog(
@@ -311,6 +296,18 @@ export const createDataProvider = ({
       });
 
       return true;
+    },
+    globalSearch: async (
+      query: string,
+      resources: readonly SearchResourceName[],
+      maxResults: number,
+    ): Promise<SearchResult[]> => {
+      const results = await getSearchResults(
+        withSupabaseFilterAdapter(baseDataProvider),
+        query,
+        [...resources],
+      );
+      return results.slice(0, maxResults);
     },
     mergeContacts: async (sourceId: Identifier, targetId: Identifier) => {
       return mergeContacts(sourceId, targetId, baseDataProvider);
