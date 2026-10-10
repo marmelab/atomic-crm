@@ -4,6 +4,7 @@ import {
   InfiniteListBase,
   useGetIdentity,
   useListContext,
+  useTranslate,
   type Exporter,
 } from "ra-core";
 import { BulkActionsToolbar } from "@/components/admin/bulk-actions-toolbar";
@@ -114,6 +115,7 @@ export const ContactListMobile = () => {
 };
 
 const ContactListLayoutMobile = () => {
+  const translate = useTranslate();
   const { isPending, data, error, filterValues } = useListContext();
 
   const hasFilters = filterValues && Object.keys(filterValues).length > 0;
@@ -122,8 +124,14 @@ const ContactListLayoutMobile = () => {
 
   return (
     <div>
-      <MobileHeader>
-        <ContactListFilter />
+      <MobileHeader showRefresh>
+        {/* No name search here: the header's global search finds contacts */}
+        <div className="flex flex-1 items-center justify-between">
+          <h1 className="text-xl font-semibold">
+            {translate("resources.contacts.name", { smart_count: 2 })}
+          </h1>
+          <ContactListFilter />
+        </div>
       </MobileHeader>
       <MobileContent>
         <ContactListFilterSummary />

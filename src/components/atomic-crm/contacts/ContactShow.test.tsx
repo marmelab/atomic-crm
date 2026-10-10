@@ -36,6 +36,17 @@ describe("ContactShow", () => {
       .toBe(false);
   });
 
+  it("offers search but no refresh in the header of a contact page", async () => {
+    const screen = await render(<MobileSuccess />);
+
+    await expect
+      .element(screen.getByRole("button", { name: "Search", exact: true }))
+      .toBeVisible();
+    await expect
+      .element(screen.getByRole("button", { name: "Refresh" }))
+      .not.toBeInTheDocument();
+  });
+
   it("opens on the tab named in the URL, as global search links to tasks", async () => {
     const screen = await render(
       <StoryWrapper

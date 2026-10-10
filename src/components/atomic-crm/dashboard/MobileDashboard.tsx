@@ -13,7 +13,7 @@ const Wrapper = ({ children }: { children: React.ReactNode }) => {
   const { darkModeLogo, lightModeLogo, title } = useConfigurationContext();
   return (
     <>
-      <MobileHeader>
+      <MobileHeader showRefresh>
         <div className="flex items-center gap-2 text-secondary-foreground no-underline py-3">
           <img
             className="[.light_&]:hidden h-6"
