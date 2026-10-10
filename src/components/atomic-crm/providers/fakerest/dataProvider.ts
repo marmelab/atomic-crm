@@ -16,6 +16,8 @@ import type {
   DealNote,
   Sale,
   SalesFormData,
+  SearchResourceName,
+  SearchResult,
   SignUpData,
   Tag,
   Task,
@@ -25,6 +27,7 @@ import { getActivityLog } from "../commons/activity";
 import { getCompanyAvatar } from "../commons/getCompanyAvatar";
 import { getContactAvatar } from "../commons/getContactAvatar";
 import { mergeContacts } from "../commons/mergeContacts";
+import { getSearchResults } from "./search";
 import type { CrmDataProvider } from "../types";
 import {
   authProvider as defaultAuthProvider,
@@ -306,6 +309,18 @@ export const createDataProvider = ({
       });
 
       return true;
+    },
+    globalSearch: async (
+      query: string,
+      resources: readonly SearchResourceName[],
+      maxResults: number,
+    ): Promise<SearchResult[]> => {
+      return getSearchResults(
+        withSupabaseFilterAdapter(baseDataProvider),
+        query,
+        resources,
+        maxResults,
+      );
     },
     mergeContacts: async (sourceId: Identifier, targetId: Identifier) => {
       return mergeContacts(sourceId, targetId, baseDataProvider);

@@ -10,6 +10,7 @@ import {
   BulkTagButton,
   NonAdminAccountManagerFilter,
 } from "./ContactList.stories";
+import { MobileSuccess } from "./ContactList.mobile.stories";
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -198,6 +199,28 @@ describe("ContactList", () => {
       await expect
         .element(screen.getByRole("button", { name: "Marie Curie" }))
         .not.toBeInTheDocument();
+    });
+  });
+
+  describe("header on mobile", () => {
+    beforeAll(() => {
+      page.viewport(375, 667);
+    });
+
+    it("leaves name search to the global search, keeping filters and refresh", async () => {
+      const screen = await render(<MobileSuccess />);
+
+      await expect.element(screen.getByText("Ada Lovelace")).toBeVisible();
+      await expect
+        .element(screen.getByRole("button", { name: "Search", exact: true }))
+        .toBeVisible();
+      await expect
+        .element(screen.getByRole("button", { name: "Add filter" }))
+        .toBeVisible();
+      await expect
+        .element(screen.getByRole("button", { name: "Refresh" }))
+        .toBeVisible();
+      await expect.element(screen.getByRole("textbox")).not.toBeInTheDocument();
     });
   });
 

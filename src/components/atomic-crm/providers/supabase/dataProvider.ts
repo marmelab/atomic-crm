@@ -13,6 +13,8 @@ import type {
   RAFile,
   Sale,
   SalesFormData,
+  SearchResourceName,
+  SearchResult,
   SignUpData,
 } from "../../types";
 import type { ConfigurationContextValue } from "../../root/ConfigurationContext";
@@ -231,6 +233,22 @@ const getDataProviderWithCustomMethods = () => {
     },
     async isInitialized() {
       return getIsInitialized();
+    },
+    async globalSearch(
+      query: string,
+      resources: readonly SearchResourceName[],
+      maxResults: number,
+    ): Promise<SearchResult[]> {
+      const { data, error } = await getSupabaseClient().rpc("global_search", {
+        query,
+        resources,
+        max_results: maxResults,
+      });
+      if (error) {
+        console.error("global_search.error", error);
+        throw new Error("Failed to search");
+      }
+      return data ?? [];
     },
     async mergeContacts(sourceId: Identifier, targetId: Identifier) {
       const { data, error } = await getSupabaseClient().functions.invoke(

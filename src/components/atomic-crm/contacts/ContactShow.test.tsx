@@ -7,6 +7,7 @@ import {
 import { render } from "vitest-browser-react";
 import { buildContact, StoryWrapper } from "@/test/StoryWrapper";
 import { ContactAside } from "./ContactAside";
+import { ContactShow } from "./ContactShow";
 import { MobileSuccess } from "./ContactShow.mobile.stories";
 
 const mockIsMobile = vi.hoisted(() => vi.fn(() => true));
@@ -33,6 +34,32 @@ describe("ContactShow", () => {
     await expect
       .poll(() => screen.container.textContent?.includes("||||") ?? false)
       .toBe(false);
+  });
+
+  it("offers search but no refresh in the header of a contact page", async () => {
+    const screen = await render(<MobileSuccess />);
+
+    await expect
+      .element(screen.getByRole("button", { name: "Search", exact: true }))
+      .toBeVisible();
+    await expect
+      .element(screen.getByRole("button", { name: "Refresh" }))
+      .not.toBeInTheDocument();
+  });
+
+  it("opens on the tab named in the URL, as global search links to tasks", async () => {
+    const screen = await render(
+      <StoryWrapper
+        data={{ contacts: [buildContact({ id: 1 })] }}
+        initialEntries={["/?tab=tasks"]}
+      >
+        <ContactShow resource="contacts" id={1} />
+      </StoryWrapper>,
+    );
+
+    await expect
+      .element(screen.getByRole("tab", { name: "0 tasks" }))
+      .toHaveAttribute("aria-selected", "true");
   });
 
   it("updates the contact status from the aside", async () => {

@@ -15,7 +15,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Pencil } from "lucide-react";
-import { Link } from "react-router";
+import { Link, useSearchParams } from "react-router";
 
 import MobileHeader from "../layout/MobileHeader";
 import { MobileContent } from "../layout/MobileContent";
@@ -54,8 +54,15 @@ export const ContactShow = (props: ShowBaseProps = {}) => {
   );
 };
 
+const MOBILE_TABS = ["notes", "tasks", "details"];
+
 const ContactShowContentMobile = () => {
   const translate = useTranslate();
+  // `?tab=tasks` opens a tab directly, e.g. from a global search result
+  const [searchParams] = useSearchParams();
+  const requestedTab = searchParams.get("tab");
+  const initialTab =
+    requestedTab && MOBILE_TABS.includes(requestedTab) ? requestedTab : "notes";
   const { defaultTitle, record, isPending } = useShowContext<Contact>();
   const [noteCreateOpen, setNoteCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
@@ -133,7 +140,7 @@ const ContactShowContentMobile = () => {
           </div>
         </div>
 
-        <Tabs defaultValue="notes" className="w-full">
+        <Tabs key={initialTab} defaultValue={initialTab} className="w-full">
           <TabsList className="grid w-full grid-cols-3 h-10">
             <TabsTrigger value="notes">
               {translate("resources.notes.name", { smart_count: 2 })}

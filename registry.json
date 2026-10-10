@@ -162,6 +162,34 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/search/useGlobalSearch.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/search/searchResources.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/search/searchHighlight.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/search/index.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/search/getSearchResultUrl.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/search/GlobalSearchDialog.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/search/GlobalSearchButton.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/sales/useGetSalesName.ts",
           "type": "registry:component"
         },
@@ -227,6 +255,10 @@
         },
         {
           "path": "src/components/atomic-crm/providers/supabase/authProvider.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/providers/fakerest/search.ts",
           "type": "registry:component"
         },
         {
