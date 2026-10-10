@@ -50,6 +50,19 @@ describe("getSearchResultUrl", () => {
     expect(getSearchResultUrl(result, true)).toBeNull();
   });
 
+  it("opens a contact on its details tab on mobile", () => {
+    const result = buildResult({
+      resource: "contacts",
+      record_id: 3,
+      contact_id: 3,
+      deal_id: null,
+    });
+
+    expect(getSearchResultUrl(result, true)).toBe(
+      "/contacts/3/show?tab=details",
+    );
+  });
+
   it("links a task to the contact it belongs to", () => {
     const result = buildResult({
       resource: "tasks",

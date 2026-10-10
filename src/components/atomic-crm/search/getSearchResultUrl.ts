@@ -20,7 +20,11 @@ export const getSearchResultUrl = (
     case "companies":
       return `/companies/${result.record_id}/show`;
     case "contacts":
-      return `/contacts/${result.record_id}/show`;
+      // On mobile, open the details tab: looking up a contact is usually
+      // about reaching their email or phone, not their notes.
+      return isMobile
+        ? `/contacts/${result.record_id}/show?tab=details`
+        : `/contacts/${result.record_id}/show`;
     case "deals":
       return isMobile ? null : `/deals/${result.record_id}/show`;
     case "tasks":

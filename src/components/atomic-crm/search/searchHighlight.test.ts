@@ -63,6 +63,16 @@ describe("getSnippet", () => {
     expect(snippet).toContain("delivery of sourdough loaves");
   });
 
+  it("does not end an excerpt on the separator between two fields", () => {
+    // the 60-character window after "Web" ends inside the long last field,
+    // so the cut falls back to the space right after the " · "
+    const content = `Web-enabled · Voluptate in nihil dolor sit amet. · ${"x".repeat(80)}`;
+
+    const snippet = getSnippet("Rachel", content, getSearchTerms("web"));
+
+    expect(snippet).toBe("Web-enabled · Voluptate in nihil dolor sit amet.…");
+  });
+
   it("looks only for the terms missing from the title", () => {
     const snippet = getSnippet(
       "Boulangerie Martin",

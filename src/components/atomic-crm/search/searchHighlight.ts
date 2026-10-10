@@ -111,6 +111,10 @@ export const getSnippet = (
       : Math.min(content.indexOf(" ", from) + 1 || from, match.start);
   const lastSpace = content.lastIndexOf(" ", to);
   const end = to === content.length || lastSpace <= match.end ? to : lastSpace;
-  const excerpt = content.slice(start, end).replace(/\s+/g, " ").trim();
+  // trim whitespace, and the " · " between fields when the cut lands on one
+  const excerpt = content
+    .slice(start, end)
+    .replace(/\s+/g, " ")
+    .replace(/^[\s·]+|[\s·]+$/g, "");
   return `${start > 0 ? "…" : ""}${excerpt}${end < content.length ? "…" : ""}`;
 };
