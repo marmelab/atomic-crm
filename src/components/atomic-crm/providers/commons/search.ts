@@ -51,6 +51,13 @@ const getLabels = async <T extends { id: Identifier }>(
 const contactName = (contact: Pick<Contact, "first_name" | "last_name">) =>
   [contact.first_name, contact.last_name].filter(Boolean).join(" ");
 
+// Same fields, same separator as the `content` column of `global_search`.
+const joinFields = (...values: (string | null | undefined)[]) =>
+  values.filter(Boolean).join(" · ") || null;
+
+const attachmentTitles = (note: ContactNote | DealNote) =>
+  note.attachments?.map((attachment) => attachment.title).join(" ");
+
 const byDateDesc = (a: SearchResult, b: SearchResult) =>
   (b.date ?? "").localeCompare(a.date ?? "");
 
@@ -124,6 +131,15 @@ export async function getSearchResults(
       contact_id: null,
       deal_id: null,
       date: company.created_at ?? null,
+      content: joinFields(
+        company.sector,
+        company.description,
+        company.website,
+        company.phone_number,
+        company.zipcode,
+        company.city,
+        company.state_abbr,
+      ),
     })),
     ...contacts.map((contact) => ({
       id: `contact.${contact.id}`,
@@ -134,6 +150,12 @@ export async function getSearchResults(
       contact_id: contact.id,
       deal_id: null,
       date: contact.first_seen ?? null,
+      content: joinFields(
+        contact.title,
+        contact.background,
+        contact.email_jsonb?.map(({ email }) => email).join(" "),
+        contact.phone_jsonb?.map(({ number }) => number).join(" "),
+      ),
     })),
     ...deals.map((deal) => ({
       id: `deal.${deal.id}`,
@@ -147,6 +169,7 @@ export async function getSearchResults(
       contact_id: null,
       deal_id: deal.id,
       date: deal.created_at ?? null,
+      content: joinFields(deal.category, deal.description),
     })),
     ...tasks.map((task) => ({
       id: `task.${task.id}`,
@@ -157,6 +180,7 @@ export async function getSearchResults(
       contact_id: task.contact_id,
       deal_id: null,
       date: task.created_at ?? null,
+      content: joinFields(task.text, task.type),
     })),
     ...contactNotes.map((note) => ({
       id: `contactNote.${note.id}`,
@@ -167,6 +191,7 @@ export async function getSearchResults(
       contact_id: note.contact_id,
       deal_id: null,
       date: note.date ?? null,
+      content: joinFields(note.text, attachmentTitles(note)),
     })),
     ...dealNotes.map((note) => ({
       id: `dealNote.${note.id}`,
@@ -177,6 +202,7 @@ export async function getSearchResults(
       contact_id: null,
       deal_id: note.deal_id,
       date: note.date ?? null,
+      content: joinFields(note.text, attachmentTitles(note)),
     })),
   ];
 

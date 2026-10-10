@@ -245,4 +245,6 @@ export type SearchResult = {
   contact_id: Identifier | null;
   deal_id: Identifier | null;
   date: string | null;
+  /** The searched fields, to show and highlight where the query matched. */
+  content: string | null;
 };

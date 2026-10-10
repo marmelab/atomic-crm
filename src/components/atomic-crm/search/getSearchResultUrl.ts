@@ -24,10 +24,14 @@ export const getSearchResultUrl = (
     case "deals":
       return isMobile ? null : `/deals/${result.record_id}/show`;
     case "tasks":
-      // Tasks have no page of their own: link to the contact they belong to.
-      return result.contact_id != null
-        ? `/contacts/${result.contact_id}/show`
-        : null;
+      // Tasks have no page of their own: link to the contact they belong to,
+      // on mobile straight to its tasks tab.
+      if (result.contact_id == null) {
+        return null;
+      }
+      return isMobile
+        ? `/contacts/${result.contact_id}/show?tab=tasks`
+        : `/contacts/${result.contact_id}/show`;
     case "contact_notes":
       if (result.contact_id == null) {
         return null;

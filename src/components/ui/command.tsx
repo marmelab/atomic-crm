@@ -31,16 +31,18 @@ function CommandDialog({
   title = "Command Palette",
   description = "Search for a command to run...",
   shouldFilter,
+  className,
   children,
   ...props
 }: React.ComponentProps<typeof Dialog> & {
   title?: string
   description?: string
   shouldFilter?: boolean
+  className?: string
 }) {
   return (
     <Dialog {...props}>
-      <DialogContent className="overflow-hidden p-0">
+      <DialogContent className={cn("overflow-hidden p-0", className)}>
         <DialogHeader className="sr-only">
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>

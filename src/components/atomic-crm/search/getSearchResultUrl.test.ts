@@ -61,6 +61,17 @@ describe("getSearchResultUrl", () => {
     expect(getSearchResultUrl(result, false)).toBe("/contacts/4/show");
   });
 
+  it("opens a task's contact on its tasks tab on mobile", () => {
+    const result = buildResult({
+      resource: "tasks",
+      record_id: 11,
+      contact_id: 4,
+      deal_id: null,
+    });
+
+    expect(getSearchResultUrl(result, true)).toBe("/contacts/4/show?tab=tasks");
+  });
+
   it("links a contact note to the contact page on desktop", () => {
     const result = buildResult({
       resource: "contact_notes",

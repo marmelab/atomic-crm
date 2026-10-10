@@ -205,8 +205,9 @@ describe("GlobalSearchDialog", () => {
 
     await screen.getByPlaceholder(PLACEHOLDER).fill("sourdough");
 
+    // the title is the note's text, cut to show the matched word
     await expect
-      .element(screen.getByText("Note on the zeroth contact about sourdough"))
+      .element(screen.getByText(/zeroth contact about sourdough/))
       .toBeVisible();
     await expect
       .element(
@@ -248,6 +249,31 @@ describe("GlobalSearchDialog", () => {
     await expect
       .element(screen.getByText("Finished sourdough task"))
       .not.toBeInTheDocument();
+  });
+
+  it("shows and highlights where a record matched when its title does not", async () => {
+    const screen = await renderDialog();
+
+    // "supply" is only in the deal's description, not in its name
+    await screen.getByPlaceholder(PLACEHOLDER).fill("supply");
+
+    const match = screen
+      .getByRole("group", { name: "Deals" })
+      .getByText("supply", { exact: true });
+    await expect.element(match).toBeVisible();
+    expect(match.element().tagName).toBe("MARK");
+  });
+
+  it("highlights the query in result titles", async () => {
+    const screen = await renderDialog();
+
+    await screen.getByPlaceholder(PLACEHOLDER).fill("boul");
+
+    const match = screen
+      .getByRole("group", { name: "Companies" })
+      .getByText("Boul", { exact: true });
+    await expect.element(match).toBeVisible();
+    expect(match.element().tagName).toBe("MARK");
   });
 
   it("reports when nothing matches", async () => {
