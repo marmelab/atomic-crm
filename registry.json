@@ -166,6 +166,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/search/searchHighlight.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/search/index.ts",
           "type": "registry:component"
         },
