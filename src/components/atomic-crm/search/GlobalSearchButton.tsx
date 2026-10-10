@@ -58,10 +58,12 @@ export const GlobalSearchButton = ({
         <Button
           variant="ghost"
           size="icon"
+          // same shape and icon size as its neighbour, MobileRefreshButton
+          className="rounded-full"
           onClick={() => setOpen(true)}
           aria-label={translate("crm.search.title")}
         >
-          <Search />
+          <Search className="size-5" />
         </Button>
       ) : (
         // Looks like a search field, so its purpose reads at a glance; the
