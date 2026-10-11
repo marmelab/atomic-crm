@@ -1,4 +1,5 @@
 import { page } from "vitest/browser";
+import type { ComponentProps } from "react";
 import { beforeEach, describe, expect, it } from "vitest";
 import { render } from "vitest-browser-react";
 import { onlineManager } from "@tanstack/react-query";
@@ -93,12 +94,19 @@ const zeroIdData = {
   ],
 } as any;
 
-const renderDialog = (open = true) =>
-  render(
-    <StoryWrapper data={data}>
-      <GlobalSearchDialog open={open} onOpenChange={() => {}} />
-    </StoryWrapper>,
-  );
+const Dialog = ({
+  open = true,
+  data: db = data,
+  dataProvider,
+}: {
+  open?: boolean;
+  data?: ComponentProps<typeof StoryWrapper>["data"];
+  dataProvider?: ComponentProps<typeof StoryWrapper>["dataProvider"];
+}) => (
+  <StoryWrapper data={db} dataProvider={dataProvider}>
+    <GlobalSearchDialog open={open} onOpenChange={() => {}} />
+  </StoryWrapper>
+);
 
 describe("GlobalSearchDialog", () => {
   // The dialog reads useIsMobile, and the layouts expose different resources,
@@ -108,7 +116,7 @@ describe("GlobalSearchDialog", () => {
   });
 
   it("puts nothing in the document while closed", async () => {
-    const screen = await renderDialog(false);
+    const screen = await render(<Dialog open={false} />);
 
     // The dialog's accessible description mentions every searchable resource,
     // so leaking it into a closed dialog breaks text queries app-wide.
@@ -119,7 +127,7 @@ describe("GlobalSearchDialog", () => {
   });
 
   it("asks for a longer query before searching", async () => {
-    const screen = await renderDialog();
+    const screen = await render(<Dialog />);
 
     await screen.getByPlaceholder(PLACEHOLDER).fill("a");
 
@@ -129,7 +137,7 @@ describe("GlobalSearchDialog", () => {
   });
 
   it("finds a company by name", async () => {
-    const screen = await renderDialog();
+    const screen = await render(<Dialog />);
 
     await screen.getByPlaceholder(PLACEHOLDER).fill("Boulangerie");
 
@@ -143,7 +151,7 @@ describe("GlobalSearchDialog", () => {
   });
 
   it("matches words by their start, ignoring accents and case", async () => {
-    const screen = await renderDialog();
+    const screen = await render(<Dialog />);
 
     await screen.getByPlaceholder(PLACEHOLDER).fill("BOULÂN mar");
 
@@ -157,7 +165,7 @@ describe("GlobalSearchDialog", () => {
   });
 
   it("does not match a term found inside a word", async () => {
-    const screen = await renderDialog();
+    const screen = await render(<Dialog />);
 
     await screen.getByPlaceholder(PLACEHOLDER).fill("langerie");
 
@@ -165,7 +173,7 @@ describe("GlobalSearchDialog", () => {
   });
 
   it("finds a note by its text, which no page-specific search can do", async () => {
-    const screen = await renderDialog();
+    const screen = await render(<Dialog />);
 
     await screen.getByPlaceholder(PLACEHOLDER).fill("sourdough");
 
@@ -176,7 +184,7 @@ describe("GlobalSearchDialog", () => {
   });
 
   it("shows the note's contact as the result subtitle", async () => {
-    const screen = await renderDialog();
+    const screen = await render(<Dialog />);
 
     await screen.getByPlaceholder(PLACEHOLDER).fill("sourdough");
 
@@ -190,7 +198,7 @@ describe("GlobalSearchDialog", () => {
   });
 
   it("searches a record's own fields only, like the database", async () => {
-    const screen = await renderDialog();
+    const screen = await render(<Dialog />);
 
     // the company matches, but its contact Ada Lovelace does not: her
     // company's name is not one of her own fields
@@ -208,11 +216,7 @@ describe("GlobalSearchDialog", () => {
   });
 
   it("keeps subtitles for records on id 0, which FakeRest generators use", async () => {
-    const screen = await render(
-      <StoryWrapper data={zeroIdData}>
-        <GlobalSearchDialog open onOpenChange={() => {}} />
-      </StoryWrapper>,
-    );
+    const screen = await render(<Dialog data={zeroIdData} />);
 
     await screen.getByPlaceholder(PLACEHOLDER).fill("sourdough");
 
@@ -235,7 +239,7 @@ describe("GlobalSearchDialog", () => {
   });
 
   it("shows the deal's company as its subtitle", async () => {
-    const screen = await renderDialog();
+    const screen = await render(<Dialog />);
 
     await screen.getByPlaceholder(PLACEHOLDER).fill("sourdough");
 
@@ -249,7 +253,7 @@ describe("GlobalSearchDialog", () => {
   });
 
   it("hides archived deals and completed tasks", async () => {
-    const screen = await renderDialog();
+    const screen = await render(<Dialog />);
 
     await screen.getByPlaceholder(PLACEHOLDER).fill("sourdough");
 
@@ -263,7 +267,7 @@ describe("GlobalSearchDialog", () => {
   });
 
   it("shows and highlights where a record matched when its title does not", async () => {
-    const screen = await renderDialog();
+    const screen = await render(<Dialog />);
 
     // "supply" is only in the deal's description, not in its name
     await screen.getByPlaceholder(PLACEHOLDER).fill("supply");
@@ -276,7 +280,7 @@ describe("GlobalSearchDialog", () => {
   });
 
   it("highlights the query in result titles", async () => {
-    const screen = await renderDialog();
+    const screen = await render(<Dialog />);
 
     await screen.getByPlaceholder(PLACEHOLDER).fill("boul");
 
@@ -289,7 +293,7 @@ describe("GlobalSearchDialog", () => {
 
   it("keeps search results out of the query cache the mobile app saves for offline use", async () => {
     await page.viewport(375, 667);
-    const screen = await renderDialog();
+    const screen = await render(<Dialog />);
 
     await screen.getByPlaceholder(PLACEHOLDER).fill("Boulangerie");
     await expect
@@ -309,15 +313,13 @@ describe("GlobalSearchDialog", () => {
 
   it("reports a failed search instead of loading forever while offline", async () => {
     const screen = await render(
-      <StoryWrapper
+      <Dialog
         dataProvider={{
           globalSearch: async () => {
             throw new Error("Failed to fetch");
           },
         }}
-      >
-        <GlobalSearchDialog open onOpenChange={() => {}} />
-      </StoryWrapper>,
+      />,
     );
     const input = screen.getByPlaceholder(PLACEHOLDER);
     await expect.element(input).toBeVisible();
@@ -336,7 +338,7 @@ describe("GlobalSearchDialog", () => {
   }, 15_000);
 
   it("reports when nothing matches", async () => {
-    const screen = await renderDialog();
+    const screen = await render(<Dialog />);
 
     await screen.getByPlaceholder(PLACEHOLDER).fill("zzzzznomatch");
 
@@ -350,7 +352,7 @@ describe("GlobalSearchDialog on mobile", () => {
   });
 
   it("omits deals, which have no page on the mobile layout", async () => {
-    const screen = await renderDialog();
+    const screen = await render(<Dialog />);
 
     await screen.getByPlaceholder(PLACEHOLDER).fill("sourdough");
 
@@ -364,7 +366,7 @@ describe("GlobalSearchDialog on mobile", () => {
   });
 
   it("still finds tasks, which link to their contact", async () => {
-    const screen = await renderDialog();
+    const screen = await render(<Dialog />);
 
     await screen.getByPlaceholder(PLACEHOLDER).fill("sourdough");
 
