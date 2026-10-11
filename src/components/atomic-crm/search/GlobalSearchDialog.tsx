@@ -32,16 +32,6 @@ import { MIN_SEARCH_LENGTH, useGlobalSearch } from "./useGlobalSearch";
 
 type LinkedResult = { result: SearchResult; url: string };
 
-// Desktop: pinned near the top so the box grows downwards as results arrive
-// instead of re-centering on every keystroke. Mobile: the whole screen.
-const DESKTOP_DIALOG_CLASSES = "top-[12vh] translate-y-0 sm:max-w-xl";
-// Same look as shadcn's CommandDialog, which this composes from Dialog and
-// Command itself to control the layout and filtering.
-const COMMAND_CLASSES =
-  "[&_[cmdk-group-heading]]:text-muted-foreground **:data-[slot=command-input-wrapper]:h-12 [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group]]:px-2 [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5";
-const MOBILE_DIALOG_CLASSES =
-  "inset-0 h-dvh max-w-none translate-x-0 translate-y-0 grid-rows-[minmax(0,1fr)] rounded-none border-0 sm:max-w-none";
-
 // A title-line excerpt must keep the match on screen, so less lead-in text.
 const TITLE_SNIPPET_RADIUS = 25;
 
@@ -103,10 +93,15 @@ export const GlobalSearchDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
+      {/* Desktop: pinned near the top so the box grows downwards as results
+          arrive instead of re-centering on every keystroke. Mobile: the whole
+          screen. */}
       <DialogContent
         className={cn(
           "overflow-hidden p-0",
-          isMobile ? MOBILE_DIALOG_CLASSES : DESKTOP_DIALOG_CLASSES,
+          isMobile
+            ? "inset-0 h-dvh max-w-none translate-x-0 translate-y-0 grid-rows-[minmax(0,1fr)] rounded-none border-0 sm:max-w-none"
+            : "top-[12vh] translate-y-0 sm:max-w-xl",
         )}
       >
         {/* inside the content, so nothing renders while the dialog is closed */}
@@ -116,8 +111,13 @@ export const GlobalSearchDialog = ({
             {translate("crm.search.placeholder")}
           </DialogDescription>
         </DialogHeader>
-        {/* results come from the server, already filtered */}
-        <Command shouldFilter={false} className={COMMAND_CLASSES}>
+        {/* results come from the server, already filtered; same look as
+            shadcn's CommandDialog, which this composes from Dialog and Command
+            itself to control the layout and filtering */}
+        <Command
+          shouldFilter={false}
+          className="[&_[cmdk-group-heading]]:text-muted-foreground **:data-[slot=command-input-wrapper]:h-12 [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group]]:px-2 [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5"
+        >
           <CommandInput
             placeholder={translate("crm.search.placeholder")}
             value={query}
