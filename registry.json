@@ -162,27 +162,7 @@
           "type": "registry:component"
         },
         {
-          "path": "src/components/atomic-crm/search/useGlobalSearch.ts",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/search/searchResources.ts",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/search/searchHighlight.ts",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/search/index.ts",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/search/getSearchResultUrl.ts",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/search/GlobalSearchDialog.tsx",
+          "path": "src/components/atomic-crm/search/searchModel.ts",
           "type": "registry:component"
         },
         {

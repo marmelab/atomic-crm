@@ -9,7 +9,7 @@ import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { ImportPage } from "../misc/ImportPage";
 import { ChangelogPage } from "../misc/ChangelogPage";
-import { GlobalSearchButton } from "../search";
+import { GlobalSearchButton } from "../search/GlobalSearchButton";
 
 const Header = () => {
   const { darkModeLogo, lightModeLogo, title } = useConfigurationContext();

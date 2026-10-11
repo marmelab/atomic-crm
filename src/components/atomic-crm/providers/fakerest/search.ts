@@ -10,8 +10,11 @@ import type {
   SearchResult,
   Task,
 } from "../../types";
-import { getSearchTerms, matchesAllTerms } from "../../search/searchHighlight";
-import { DESKTOP_SEARCH_RESOURCES } from "../../search/searchResources";
+import {
+  DESKTOP_SEARCH_RESOURCES,
+  getSearchTerms,
+  matchesAllTerms,
+} from "../../search/searchModel";
 
 const DEFAULT_MAX_RESULTS = 50;
 const TITLE_LENGTH = 200;

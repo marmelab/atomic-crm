@@ -6,7 +6,7 @@ import { onlineManager } from "@tanstack/react-query";
 
 import { StoryWrapper, buildContact } from "@/test/StoryWrapper";
 
-import { GlobalSearchDialog } from "./GlobalSearchDialog";
+import { GlobalSearchDialog } from "./GlobalSearchButton";
 
 const PLACEHOLDER = "Search contacts, companies, deals, tasks and notes...";
 

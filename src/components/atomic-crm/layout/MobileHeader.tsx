@@ -1,4 +1,4 @@
-import { GlobalSearchButton } from "../search";
+import { GlobalSearchButton } from "../search/GlobalSearchButton";
 import { MobileRefreshButton } from "./MobileRefreshButton";
 
 // The search lives here rather than in each screen: there is no Cmd+K on a

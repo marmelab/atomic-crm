@@ -1,7 +1,13 @@
+import { Building2, DollarSign, FileText, ListTodo, User } from "lucide-react";
+import type { ComponentType } from "react";
+
+import type { SearchResourceName, SearchResult } from "../types";
+
 /**
- * Client-side mirror of the matching done by `global_search` in Postgres:
- * text is unaccented and lowercased, split on anything that is not a letter or
- * a digit, and a query term matches a word it is a prefix of.
+ * Global search helpers, shared by the search dialog and the FakeRest
+ * emulation. Matching mirrors `global_search` in Postgres: text is unaccented
+ * and lowercased, split on anything that is not a letter or a digit, and a
+ * query term matches a word it is a prefix of.
  */
 
 export type TextPart = { text: string; isMatch: boolean };
@@ -145,4 +151,92 @@ export const getSnippet = (
     .replace(/\s+/g, " ")
     .replace(/^[\s·]+|[\s·]+$/g, "");
   return `${start > 0 ? "…" : ""}${excerpt}${end < content.length ? "…" : ""}`;
+};
+
+export type SearchResourceDescriptor = {
+  name: SearchResourceName;
+  icon: ComponentType<{ className?: string }>;
+  labelKey: string;
+};
+
+/** Result groups, in the order they appear in the search dialog. */
+export const SEARCH_RESOURCES: SearchResourceDescriptor[] = [
+  { name: "contacts", icon: User, labelKey: "crm.search.groups.contacts" },
+  {
+    name: "companies",
+    icon: Building2,
+    labelKey: "crm.search.groups.companies",
+  },
+  { name: "deals", icon: DollarSign, labelKey: "crm.search.groups.deals" },
+  { name: "tasks", icon: ListTodo, labelKey: "crm.search.groups.tasks" },
+  {
+    name: "contact_notes",
+    icon: FileText,
+    labelKey: "crm.search.groups.contact_notes",
+  },
+  {
+    name: "deal_notes",
+    icon: FileText,
+    labelKey: "crm.search.groups.deal_notes",
+  },
+];
+
+export const DESKTOP_SEARCH_RESOURCES: SearchResourceName[] =
+  SEARCH_RESOURCES.map(({ name }) => name);
+
+export const MOBILE_SEARCH_RESOURCES: SearchResourceName[] =
+  DESKTOP_SEARCH_RESOURCES.filter(
+    (name) => name !== "deals" && name !== "deal_notes",
+  );
+
+type LinkableResult = Pick<
+  SearchResult,
+  "resource" | "record_id" | "contact_id" | "deal_id"
+>;
+
+/**
+ * Resolve the in-app URL for a global search result.
+ *
+ * Returns null when the result has no reachable page on the current layout:
+ * the mobile app registers no deal resource, and a note or task whose parent
+ * record is missing cannot be linked.
+ */
+export const getSearchResultUrl = (
+  result: LinkableResult,
+  isMobile: boolean,
+): string | null => {
+  switch (result.resource) {
+    case "companies":
+      return `/companies/${result.record_id}/show`;
+    case "contacts":
+      // On mobile, open the details tab: looking up a contact is usually
+      // about reaching their email or phone, not their notes.
+      return isMobile
+        ? `/contacts/${result.record_id}/show?tab=details`
+        : `/contacts/${result.record_id}/show`;
+    case "deals":
+      return isMobile ? null : `/deals/${result.record_id}/show`;
+    case "tasks":
+      // Tasks have no page of their own: link to the contact they belong to,
+      // on mobile straight to its tasks tab.
+      if (result.contact_id == null) {
+        return null;
+      }
+      return isMobile
+        ? `/contacts/${result.contact_id}/show?tab=tasks`
+        : `/contacts/${result.contact_id}/show`;
+    case "contact_notes":
+      if (result.contact_id == null) {
+        return null;
+      }
+      return isMobile
+        ? `/contacts/${result.contact_id}/notes/${result.record_id}`
+        : `/contacts/${result.contact_id}/show`;
+    case "deal_notes":
+      return isMobile || result.deal_id == null
+        ? null
+        : `/deals/${result.deal_id}/show`;
+    default:
+      return null;
+  }
 };
