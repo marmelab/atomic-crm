@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { getSearchTerms, getSnippet, highlight } from "./searchHighlight";
+import {
+  getSearchTerms,
+  getSnippet,
+  highlight,
+  matchesAllTerms,
+} from "./searchHighlight";
 
 const matchedText = (text: string, query: string) =>
   highlight(text, getSearchTerms(query))
@@ -19,6 +24,14 @@ describe("highlight", () => {
     ]);
   });
 
+  it("folds letters that have no accent to strip, like the database does", () => {
+    expect(matchedText("Łódź, Straße, Œuvre", "lodz strasse oeu")).toEqual([
+      "Łódź",
+      "Straße",
+      "Œu",
+    ]);
+  });
+
   it("does not mark a term found in the middle of a word", () => {
     expect(matchedText("Thomas", "homas")).toEqual([]);
   });
@@ -29,6 +42,17 @@ describe("highlight", () => {
     expect(parts.map((part) => part.text).join("")).toBe(
       "Call Thomas, then Anna",
     );
+  });
+});
+
+describe("matchesAllTerms", () => {
+  it("requires every term to start a word, folding letters like the database", () => {
+    expect(
+      matchesAllTerms("Søren Kierkegaard", getSearchTerms("soren kier")),
+    ).toBe(true);
+    expect(
+      matchesAllTerms("Søren Kierkegaard", getSearchTerms("soren ren")),
+    ).toBe(false);
   });
 });
 

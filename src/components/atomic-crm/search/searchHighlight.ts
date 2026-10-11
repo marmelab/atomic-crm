@@ -14,8 +14,36 @@ const SNIPPET_RADIUS = 60;
 // term past this point does not count as shown by the title.
 const VISIBLE_TITLE_LENGTH = 30;
 
+// Letters Postgres unaccent() folds but Unicode does not decompose
+const FOLDED_LETTERS: Record<string, string> = {
+  æ: "ae",
+  ð: "d",
+  ø: "o",
+  þ: "th",
+  ß: "ss",
+  đ: "d",
+  ħ: "h",
+  ı: "i",
+  ĳ: "ij",
+  ĸ: "q",
+  ŀ: "l",
+  ł: "l",
+  ŋ: "n",
+  œ: "oe",
+  ŧ: "t",
+  ſ: "s",
+};
+const FOLDABLE_LETTER = new RegExp(
+  `[${Object.keys(FOLDED_LETTERS).join("")}]`,
+  "g",
+);
+
 const normalize = (value: string): string =>
-  value.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
+  value
+    .normalize("NFD")
+    .replace(/\p{M}/gu, "")
+    .toLowerCase()
+    .replace(FOLDABLE_LETTER, (letter) => FOLDED_LETTERS[letter]);
 
 export const getSearchTerms = (query: string): string[] => [
   ...new Set(normalize(query).match(WORD) ?? []),
