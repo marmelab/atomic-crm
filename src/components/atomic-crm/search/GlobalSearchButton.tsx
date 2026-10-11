@@ -6,6 +6,10 @@ import { Button } from "@/components/ui/button";
 
 import { GlobalSearchDialog } from "./GlobalSearchDialog";
 
+// Whether the keyboard shortcut fired while the user is typing in a field, in
+// which case it must not open the dialog. contenteditable covers rich text
+// editors (Tiptap, Lexical...), which have no such field today but commonly
+// bind Ctrl/Cmd+K to "insert link".
 const isEditableTarget = (target: EventTarget | null): boolean => {
   if (!(target instanceof HTMLElement)) {
     return false;
