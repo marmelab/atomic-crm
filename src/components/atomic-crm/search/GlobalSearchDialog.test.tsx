@@ -286,6 +286,26 @@ describe("GlobalSearchDialog", () => {
     expect(match.element().tagName).toBe("MARK");
   });
 
+  it("keeps search results out of the query cache the mobile app saves for offline use", async () => {
+    await page.viewport(375, 667);
+    const screen = await renderDialog();
+
+    await screen.getByPlaceholder(PLACEHOLDER).fill("Boulangerie");
+    await expect
+      .element(screen.getByRole("group", { name: "Companies" }))
+      .toBeVisible();
+    const searchedAt = Date.now();
+    // any later cache change saves a snapshot that includes the results
+    await screen.getByPlaceholder(PLACEHOLDER).fill("B");
+
+    const readSavedCache = () =>
+      JSON.parse(localStorage.getItem("REACT_QUERY_OFFLINE_CACHE") ?? "null");
+    await expect
+      .poll(() => readSavedCache()?.timestamp ?? 0, { timeout: 3000 })
+      .toBeGreaterThan(searchedAt);
+    expect(JSON.stringify(readSavedCache())).not.toContain("globalSearch");
+  });
+
   it("reports when nothing matches", async () => {
     const screen = await renderDialog();
 

@@ -298,7 +298,13 @@ const MobileAdmin = (
   return (
     <PersistQueryClientProvider
       client={queryClient}
-      persistOptions={{ persister: asyncStoragePersister }}
+      persistOptions={{
+        persister: asyncStoragePersister,
+        dehydrateOptions: {
+          shouldDehydrateQuery: (query) =>
+            query.state.status === "success" && query.meta?.persist !== false,
+        },
+      }}
     >
       <Admin
         queryClient={queryClient}

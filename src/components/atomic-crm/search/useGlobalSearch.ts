@@ -40,6 +40,7 @@ export const useGlobalSearch = (
     queryFn: () =>
       dataProvider.globalSearch(debouncedQuery, resources, MAX_RESULTS),
     enabled: isEnabled,
+    meta: { persist: false },
   });
 
   return {
