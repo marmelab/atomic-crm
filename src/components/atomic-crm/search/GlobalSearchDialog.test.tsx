@@ -1,6 +1,7 @@
 import { page } from "vitest/browser";
 import { beforeEach, describe, expect, it } from "vitest";
 import { render } from "vitest-browser-react";
+import { onlineManager } from "@tanstack/react-query";
 
 import { StoryWrapper, buildContact } from "@/test/StoryWrapper";
 
@@ -305,6 +306,34 @@ describe("GlobalSearchDialog", () => {
       .toBeGreaterThan(searchedAt);
     expect(JSON.stringify(readSavedCache())).not.toContain("globalSearch");
   });
+
+  it("reports a failed search instead of loading forever while offline", async () => {
+    const screen = await render(
+      <StoryWrapper
+        dataProvider={{
+          globalSearch: async () => {
+            throw new Error("Failed to fetch");
+          },
+        }}
+      >
+        <GlobalSearchDialog open onOpenChange={() => {}} />
+      </StoryWrapper>,
+    );
+    const input = screen.getByPlaceholder(PLACEHOLDER);
+    await expect.element(input).toBeVisible();
+
+    onlineManager.setOnline(false);
+    try {
+      await input.fill("Boulangerie");
+
+      // react-query retries 3 times with a backoff before giving up
+      await expect
+        .element(screen.getByRole("alert"), { timeout: 10_000 })
+        .toBeVisible();
+    } finally {
+      onlineManager.setOnline(true);
+    }
+  }, 15_000);
 
   it("reports when nothing matches", async () => {
     const screen = await renderDialog();

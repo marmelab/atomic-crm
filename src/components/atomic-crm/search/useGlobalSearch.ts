@@ -41,6 +41,9 @@ export const useGlobalSearch = (
       dataProvider.globalSearch(debouncedQuery, resources, MAX_RESULTS),
     enabled: isEnabled,
     meta: { persist: false },
+    // offlineFirst (the app default) pauses a failed search while offline,
+    // leaving the dialog loading forever instead of reporting the error
+    networkMode: "always",
   });
 
   return {
