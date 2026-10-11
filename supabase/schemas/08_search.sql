@@ -96,12 +96,13 @@ alter table public.tasks alter column fts set statistics 10000;
 alter table public.contact_notes alter column fts set statistics 10000;
 alter table public.deal_notes alter column fts set statistics 10000;
 
--- Each branch takes its own newest max_results matches, so the union never
--- holds more than 6 * max_results rows, and the lookups that build display
--- labels only run on those. `content` carries the searched fields in their
--- original form, so the client can show and highlight where the words matched. The SQL is built per call with the tsquery inlined
--- as a literal: with a parameter the planner could not tell a rare word (use
--- the GIN index) from a common one (walk the date index).
+-- Each branch takes its own newest max_results matches (at most 200), so the
+-- union never holds more than 6 * max_results rows, and the lookups that build
+-- display labels only run on those. `content` carries the searched fields in
+-- their original form, so the client can show and highlight where the words
+-- matched. The SQL is built per call with the tsquery inlined as a literal:
+-- with a parameter the planner could not tell a rare word (use the GIN index)
+-- from a common one (walk the date index).
 create or replace function public.global_search(
     query text,
     resources text[] default null,
@@ -174,13 +175,14 @@ declare
             order by dn.date desc nulls last
             limit %2$s $q$
     );
+    row_limit constant integer := least(coalesce(max_results, 50), 200);
     branches text[];
 begin
-    if tsq is null or max_results < 1 then
+    if tsq is null or row_limit < 1 then
         return;
     end if;
 
-    select array_agg(format('(%s)', format(template, tsq::text, max_results)))
+    select array_agg(format('(%s)', format(template, tsq::text, row_limit)))
     into branches
     from jsonb_each_text(branch_templates) as b(name, template)
     where resources is null or b.name = any(resources);
@@ -192,7 +194,7 @@ begin
     return query execute format(
         'select * from (%s) results order by 7 desc nulls last limit %s',
         array_to_string(branches, ' union all '),
-        max_results
+        row_limit
     );
 end
 $$;
