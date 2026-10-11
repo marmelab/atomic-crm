@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Search } from "lucide-react";
-import { useDataProvider, useTranslate } from "ra-core";
+import { useDataProvider, useDebouncedEvent, useTranslate } from "ra-core";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 
@@ -126,30 +126,18 @@ const MIN_SEARCH_LENGTH = 2;
 const DEBOUNCE_MS = 300;
 const MAX_RESULTS = 50;
 
-const useDebouncedValue = <T,>(value: T, delay: number): T => {
-  const [debouncedValue, setDebouncedValue] = useState(value);
-
-  useEffect(() => {
-    const timeout = setTimeout(() => setDebouncedValue(value), delay);
-    return () => clearTimeout(timeout);
-  }, [value, delay]);
-
-  return debouncedValue;
-};
-
 /**
- * Run the global search for a debounced search term.
+ * Run the global search for an already debounced search term.
  *
  * Stays idle until the term reaches MIN_SEARCH_LENGTH, so opening the dialog
  * does not fire a request. `resources` restricts the query server-side, so the
  * row cap is spent only on resources the current layout can actually link to.
  */
 const useGlobalSearch = (
-  query: string,
+  debouncedQuery: string,
   resources: readonly SearchResourceName[],
 ) => {
   const dataProvider = useDataProvider<CrmDataProvider>();
-  const debouncedQuery = useDebouncedValue(query.trim(), DEBOUNCE_MS);
   const isEnabled = debouncedQuery.length >= MIN_SEARCH_LENGTH;
 
   const { data, isPending, error } = useQuery({
@@ -167,7 +155,6 @@ const useGlobalSearch = (
     results: isEnabled ? (data ?? []) : [],
     isPending: isEnabled && isPending,
     error,
-    debouncedQuery,
   };
 };
 
@@ -201,7 +188,12 @@ export const GlobalSearchDialog = ({
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [query, setQuery] = useState("");
-  const { results, isPending, error, debouncedQuery } = useGlobalSearch(
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+  const updateDebouncedQuery = useDebouncedEvent(
+    setDebouncedQuery,
+    DEBOUNCE_MS,
+  );
+  const { results, isPending, error } = useGlobalSearch(
     query,
     isMobile ? MOBILE_SEARCH_RESOURCES : DESKTOP_SEARCH_RESOURCES,
   );
@@ -220,6 +212,9 @@ export const GlobalSearchDialog = ({
   const handleOpenChange = (nextOpen: boolean) => {
     if (!nextOpen) {
       setQuery("");
+      setDebouncedQuery("");
+      // replaces an update still pending from the last keystroke
+      updateDebouncedQuery("");
     }
     onOpenChange(nextOpen);
   };
@@ -262,7 +257,10 @@ export const GlobalSearchDialog = ({
           <CommandInput
             placeholder={translate("crm.search.placeholder")}
             value={query}
-            onValueChange={setQuery}
+            onValueChange={(value) => {
+              setQuery(value);
+              updateDebouncedQuery(value.trim());
+            }}
             // keep the text clear of the dialog's close button, drawn over the
             // input's right end
             className="pr-8"

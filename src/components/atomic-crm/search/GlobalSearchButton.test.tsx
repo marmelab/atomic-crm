@@ -1,4 +1,4 @@
-import { page } from "vitest/browser";
+import { page, userEvent } from "vitest/browser";
 import type { ComponentProps } from "react";
 import { beforeEach, describe, expect, it } from "vitest";
 import { render } from "vitest-browser-react";
@@ -343,6 +343,21 @@ describe("GlobalSearchDialog", () => {
     await screen.getByPlaceholder(PLACEHOLDER).fill("zzzzznomatch");
 
     await expect.element(screen.getByText("No result found")).toBeVisible();
+  });
+
+  it("forgets a term typed just before closing", async () => {
+    const screen = await render(<Dialog />);
+
+    await screen.getByPlaceholder(PLACEHOLDER).fill("Boulangerie");
+    // closes before the search debounce elapses (this Dialog stays open, as
+    // its open prop does not follow the close request)
+    await userEvent.keyboard("{Escape}");
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    await expect.element(screen.getByPlaceholder(PLACEHOLDER)).toHaveValue("");
+    await expect
+      .element(screen.getByText("Type at least 2 characters to search"))
+      .toBeVisible();
   });
 });
 
