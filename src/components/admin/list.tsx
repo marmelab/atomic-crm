@@ -6,6 +6,7 @@ import {
 import type { ListBaseProps, ListControllerResult, RaRecord } from "ra-core";
 import {
   FilterContext,
+  LinkBase,
   ListBase,
   Translate,
   useGetResourceLabel,
@@ -15,7 +16,6 @@ import {
   useTranslate,
 } from "ra-core";
 import type { ReactElement, ReactNode } from "react";
-import { Link } from "react-router";
 import { cn } from "@/lib/utils";
 import { CreateButton } from "@/components/admin/create-button";
 import { ExportButton } from "@/components/admin/export-button";
@@ -132,9 +132,9 @@ export const ListView = <RecordType extends RaRecord = RaRecord>(
         <Breadcrumb>
           {hasDashboard && (
             <BreadcrumbItem>
-              <Link to="/">
+              <LinkBase to="/">
                 <Translate i18nKey="ra.page.dashboard">Home</Translate>
-              </Link>
+              </LinkBase>
             </BreadcrumbItem>
           )}
           <BreadcrumbPage>{resourceLabel}</BreadcrumbPage>

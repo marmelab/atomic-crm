@@ -9,11 +9,11 @@
       "title": "Atomic CRM",
       "description": "A fully fledged CRM application built with Shadcn Admin Kit",
       "registryDependencies": [
-        "item",
-        "progress",
-        "tabs",
-        "toggle",
-        "toggle-group",
+        "https://ui.shadcn.com/r/styles/base-vega/item.json",
+        "https://ui.shadcn.com/r/styles/base-vega/progress.json",
+        "https://ui.shadcn.com/r/styles/base-vega/tabs.json",
+        "https://ui.shadcn.com/r/styles/base-vega/toggle.json",
+        "https://ui.shadcn.com/r/styles/base-vega/toggle-group.json",
         "https://marmelab.com/shadcn-admin-kit/r/admin.json"
       ],
       "dependencies": [
@@ -30,7 +30,9 @@
         "dompurify@^3.3.1",
         "marked@^17.0.1",
         "@streamparser/json-whatwg@^0.0.22",
-        "mime@^4.1.0"
+        "mime@^4.1.0",
+        "@base-ui/react@^1.8.0",
+        "date-fns@^4.4.0"
       ],
       "files": [
         {

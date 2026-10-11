@@ -35,6 +35,20 @@ describe("DashboardStepper", () => {
       .toHaveAttribute("href", "/contacts/create");
   });
 
+  it("shows the add note link as disabled while no contact exists", async () => {
+    // Arrange: at step 1 the stepper disables "Add note".
+    const screen = await render(<FirstStep />);
+    const addNote = screen.getByRole("link", { name: "Add note" });
+    await expect.element(addNote).toBeVisible();
+
+    // Assert: it is announced as disabled, and it also LOOKS disabled. A link
+    // has no native disabled state, so both are set by hand.
+    await expect.element(addNote).toHaveAttribute("aria-disabled", "true");
+    const style = getComputedStyle(addNote.element());
+    expect(style.pointerEvents).toBe("none");
+    expect(Number(style.opacity)).toBeLessThan(1);
+  });
+
   it("opens the contact creation sheet on mobile", async () => {
     mockIsMobile.mockReturnValue(true);
     const screen = await render(<FirstStep />);

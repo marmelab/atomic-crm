@@ -5,6 +5,7 @@ import type {
   UseReferenceFieldControllerResult,
 } from "ra-core";
 import {
+  LinkBase,
   ReferenceFieldBase,
   useFieldValue,
   useGetRecordRepresentation,
@@ -12,7 +13,6 @@ import {
   useTranslate,
 } from "ra-core";
 import type { MouseEvent, ReactNode } from "react";
-import { Link } from "react-router";
 import type { UseQueryOptions } from "@tanstack/react-query";
 
 /**
@@ -126,9 +126,9 @@ export const ReferenceFieldView = <
   if (link) {
     return (
       <span className={className}>
-        <Link to={link} onClick={stopPropagation}>
+        <LinkBase to={link} onClick={stopPropagation}>
           {child}
-        </Link>
+        </LinkBase>
       </span>
     );
   }

@@ -5,6 +5,7 @@ import {
 } from "@/components/admin/breadcrumb";
 import type { ShowBaseProps } from "ra-core";
 import {
+  LinkBase,
   ShowBase,
   Translate,
   useCreatePath,
@@ -16,7 +17,6 @@ import {
   useResourceDefinition,
 } from "ra-core";
 import type { ReactNode } from "react";
-import { Link } from "react-router";
 import { cn } from "@/lib/utils";
 import { EditButton } from "@/components/admin/edit-button";
 
@@ -151,13 +151,13 @@ export const ShowView = ({
         <Breadcrumb>
           {hasDashboard && (
             <BreadcrumbItem>
-              <Link to="/">
+              <LinkBase to="/">
                 <Translate i18nKey="ra.page.dashboard">Home</Translate>
-              </Link>
+              </LinkBase>
             </BreadcrumbItem>
           )}
           <BreadcrumbItem>
-            <Link to={listLink}>{listLabel}</Link>
+            <LinkBase to={listLink}>{listLabel}</LinkBase>
           </BreadcrumbItem>
           <BreadcrumbPage>{recordRepresentation}</BreadcrumbPage>
         </Breadcrumb>
