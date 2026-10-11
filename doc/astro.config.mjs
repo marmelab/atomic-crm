@@ -102,7 +102,7 @@ export default defineConfig({
         },
         {
           label: "Developers Documentation",
-          autogenerate: { directory: "developers" },
+          items: [{ autogenerate: { directory: "developers" } }],
         },
         {
           label: "What's New",
