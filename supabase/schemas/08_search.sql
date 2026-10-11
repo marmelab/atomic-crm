@@ -9,18 +9,18 @@ create extension if not exists "unaccent" with schema "extensions";
 
 -- unaccent() is only STABLE (its dictionary could change), which generated
 -- columns reject. The dictionary is fixed here, so the wrapper is immutable.
-create or replace function public.search_unaccent(value text) returns text
-    language sql immutable strict parallel safe
-    set search_path to ''
-    as $$ select extensions.unaccent('extensions.unaccent'::regdictionary, value) $$;
+CREATE OR REPLACE FUNCTION "public"."search_unaccent"("value" "text") RETURNS "text"
+    LANGUAGE "sql" IMMUTABLE STRICT PARALLEL SAFE
+    SET "search_path" TO ''
+    AS $$ select extensions.unaccent('extensions.unaccent'::regdictionary, value) $$;
 
 -- Documents and queries are normalized the same way: unaccented, lowercased,
 -- split on anything that is not a letter or a digit. So "hélène.dupont@acme.fr"
 -- indexes as helene, dupont, acme, fr and any of those prefixes finds it.
-create or replace function public.search_document(variadic parts text[]) returns tsvector
-    language sql immutable parallel safe
-    set search_path to ''
-    as $$
+CREATE OR REPLACE FUNCTION "public"."search_document"(VARIADIC "parts" "text"[]) RETURNS "tsvector"
+    LANGUAGE "sql" IMMUTABLE PARALLEL SAFE
+    SET "search_path" TO ''
+    AS $$
         select to_tsvector(
             'simple'::regconfig,
             regexp_replace(public.search_unaccent(array_to_string(parts, ' ')), '[^[:alnum:]]+', ' ', 'g')
@@ -29,19 +29,19 @@ create or replace function public.search_document(variadic parts text[]) returns
 
 -- Every word of the query must match, each one as a prefix: "tho dup" finds
 -- "Thomas Dupont". Returns null (matching nothing) for a blank query.
-create or replace function public.search_query(query text) returns tsquery
-    language sql immutable strict parallel safe
-    set search_path to ''
-    as $$
+CREATE OR REPLACE FUNCTION "public"."search_query"("query" "text") RETURNS "tsquery"
+    LANGUAGE "sql" IMMUTABLE STRICT PARALLEL SAFE
+    SET "search_path" TO ''
+    AS $$
         select to_tsquery('simple'::regconfig, string_agg(word || ':*', ' & '))
         from regexp_split_to_table(lower(public.search_unaccent(query)), '[^[:alnum:]]+') as word
         where word <> ''
     $$;
 
-create or replace function public.search_attachment_titles(attachments jsonb[]) returns text
-    language sql immutable parallel safe
-    set search_path to ''
-    as $$ select string_agg(attachment ->> 'title', ' ') from unnest(attachments) as attachment $$;
+CREATE OR REPLACE FUNCTION "public"."search_attachment_titles"("attachments" "jsonb"[]) RETURNS "text"
+    LANGUAGE "sql" IMMUTABLE PARALLEL SAFE
+    SET "search_path" TO ''
+    AS $$ select string_agg(attachment ->> 'title', ' ') from unnest(attachments) as attachment $$;
 
 alter table public.companies add column fts tsvector generated always as (
     public.search_document(name, sector, description, website::text, phone_number, zipcode, city, state_abbr)
@@ -103,23 +103,10 @@ alter table public.deal_notes alter column fts set statistics 10000;
 -- matched. The SQL is built per call with the tsquery inlined as a literal:
 -- with a parameter the planner could not tell a rare word (use the GIN index)
 -- from a common one (walk the date index).
-create or replace function public.global_search(
-    query text,
-    resources text[] default null,
-    max_results integer default 50
-) returns table (
-    resource text,
-    record_id bigint,
-    title text,
-    subtitle text,
-    contact_id bigint,
-    deal_id bigint,
-    date timestamp with time zone,
-    content text
-)
-    language plpgsql stable security invoker
-    set search_path to ''
-    as $$
+CREATE OR REPLACE FUNCTION "public"."global_search"("query" "text", "resources" "text"[] DEFAULT NULL::"text"[], "max_results" integer DEFAULT 50) RETURNS TABLE("resource" "text", "record_id" bigint, "title" "text", "subtitle" "text", "contact_id" bigint, "deal_id" bigint, "date" timestamp with time zone, "content" "text")
+    LANGUAGE "plpgsql" STABLE
+    SET "search_path" TO ''
+    AS $_$
 declare
     tsq tsquery := public.search_query(query);
     branch_templates constant jsonb := jsonb_build_object(
@@ -197,7 +184,7 @@ begin
         row_limit
     );
 end
-$$;
+$_$;
 
 revoke execute on function public.global_search(text, text[], integer) from public, anon;
 grant execute on function public.global_search(text, text[], integer) to authenticated, service_role;
