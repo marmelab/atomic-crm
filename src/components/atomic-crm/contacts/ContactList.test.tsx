@@ -10,7 +10,10 @@ import {
   BulkTagButton,
   NonAdminAccountManagerFilter,
 } from "./ContactList.stories";
-import { MobileSuccess } from "./ContactList.mobile.stories";
+import {
+  MobileSuccess,
+  MobileWithNameSearch,
+} from "./ContactList.mobile.stories";
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -221,6 +224,13 @@ describe("ContactList", () => {
         .element(screen.getByRole("button", { name: "Refresh" }))
         .toBeVisible();
       await expect.element(screen.getByRole("textbox")).not.toBeInTheDocument();
+    });
+
+    it("drops a name search it has no search box to show", async () => {
+      const screen = await render(<MobileWithNameSearch />);
+
+      await expect.element(screen.getByText("Ada Lovelace")).toBeVisible();
+      await expect.element(screen.getByText("Grace Hopper")).toBeVisible();
     });
   });
 

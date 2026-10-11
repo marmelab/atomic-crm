@@ -1,4 +1,5 @@
 import jsonExport from "jsonexport/dist";
+import { useEffect } from "react";
 import {
   downloadCSV,
   InfiniteListBase,
@@ -116,7 +117,16 @@ export const ContactListMobile = () => {
 
 const ContactListLayoutMobile = () => {
   const translate = useTranslate();
-  const { isPending, data, error, filterValues } = useListContext();
+  const { isPending, data, error, filterValues, displayedFilters, setFilters } =
+    useListContext();
+
+  // No search box here to show or clear a name search set on desktop or in a URL
+  const { q, ...filtersWithoutSearch } = filterValues ?? {};
+  useEffect(() => {
+    if (q != null) {
+      setFilters(filtersWithoutSearch, displayedFilters);
+    }
+  });
 
   const hasFilters = filterValues && Object.keys(filterValues).length > 0;
 
