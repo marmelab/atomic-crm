@@ -48,14 +48,16 @@ export const ResponsiveFilters = ({
 
   if (isMobile) {
     return (
-      <div className="flex flex-1 gap-2">
-        <FilterLiveForm formComponent={FlexForm}>
-          <SearchInput
-            source={source}
-            className={className}
-            {...otherSearchInputProps}
-          />
-        </FilterLiveForm>
+      <div className={searchInput ? "flex flex-1 gap-2" : "flex"}>
+        {searchInput ? (
+          <FilterLiveForm formComponent={FlexForm}>
+            <SearchInput
+              source={source}
+              className={className}
+              {...otherSearchInputProps}
+            />
+          </FilterLiveForm>
+        ) : null}
         <Sheet>
           <SheetTrigger asChild>
             <Button

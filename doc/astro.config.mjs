@@ -87,6 +87,7 @@ export default defineConfig({
             "users/user-management",
             "users/preferences",
             "users/settings",
+            "users/global-search",
             "users/import-data",
             "users/merging-contacts",
             "users/inbound-email",

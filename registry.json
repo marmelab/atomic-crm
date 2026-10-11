@@ -162,6 +162,14 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/search/searchModel.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/search/GlobalSearchButton.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/sales/useGetSalesName.ts",
           "type": "registry:component"
         },
@@ -227,6 +235,10 @@
         },
         {
           "path": "src/components/atomic-crm/providers/supabase/authProvider.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/providers/fakerest/search.ts",
           "type": "registry:component"
         },
         {
