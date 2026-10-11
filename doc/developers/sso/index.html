@@ -99,23 +99,63 @@
 <li>
 <p><strong>Add service provider details</strong></p>
 <p>Fill out these service provider details on the next screen. Replace <code dir="auto">&lt;project&gt;</code> with your Supabase project identifier in the URLs below.</p>
-<p>| Detail | Value |
-|--------|-------|
-| ACS URL | https://&lt;project&gt;.supabase.co/auth/v1/sso/saml/acs |
-| Entity ID | https://&lt;project&gt;.supabase.co/auth/v1/sso/saml/metadata |
-| Start URL | Your application URL (optional) |
-| Name ID format | EMAIL |
-| Name ID | Basic Information &gt; Primary email |</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Detail</th><th>Value</th></tr></thead><tbody><tr><td>ACS URL</td><td>https://&lt;project&gt;.supabase.co/auth/v1/sso/saml/acs</td></tr><tr><td>Entity ID</td><td>https://&lt;project&gt;.supabase.co/auth/v1/sso/saml/metadata</td></tr><tr><td>Start URL</td><td>Your application URL (optional)</td></tr><tr><td>Name ID format</td><td>EMAIL</td></tr><tr><td>Name ID</td><td>Basic Information &gt; Primary email</td></tr></tbody></table>
 <p><img src="/atomic-crm/doc/assets/sso-google-5.DZuFKOX7_Z12PTnN.webp" alt="Service provider details screen" loading="lazy" decoding="async" width="2560" height="1934"></p>
 </li>
 <li>
 <p><strong>Configure attribute mapping</strong></p>
 <p>To properly map the identity details to the sales fields in Atomic CRM, add the following mappings:</p>
-<p>| Google Directory attributes | App attributes |
-|-----------------------------|----------------|
-| Primary email | <code dir="auto">email</code> |
-| First name | <code dir="auto">first_name</code> |
-| Last name | <code dir="auto">last_name</code> |</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Google Directory attributes</th><th>App attributes</th></tr></thead><tbody><tr><td>Primary email</td><td><code dir="auto">email</code></td></tr><tr><td>First name</td><td><code dir="auto">first_name</code></td></tr><tr><td>Last name</td><td><code dir="auto">last_name</code></td></tr></tbody></table>
 <p><img src="/atomic-crm/doc/assets/sso-google-6.BCJwTCkA_Z19AEmh.webp" alt="Attribute mapping screen" loading="lazy" decoding="async" width="2560" height="1934"></p>
 </li>
 <li>
