@@ -494,6 +494,10 @@ export const createDataProvider = ({
       } satisfies ResourceCallbacks<Contact>,
       {
         resource: "tasks",
+        beforeCreate: async (params) => ({
+          ...params,
+          data: { ...params.data, created_at: new Date().toISOString() },
+        }),
         afterCreate: async (result, dataProvider) => {
           // update the task count in the related contact
           const { contact_id } = result.data;
