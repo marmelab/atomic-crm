@@ -214,3 +214,72 @@ $$;
 
 revoke execute on function public.global_search(text, text[], integer) from public, anon;
 grant execute on function public.global_search(text, text[], integer) to authenticated, service_role;
+
+-- The activity log serializes whole rows: keep the search vectors out of them.
+create or replace view public.activity_log with (security_invoker = on) as
+select
+    ('company.' || c.id || '.created') as id,
+    'company.created' as type,
+    c.created_at as date,
+    c.id as company_id,
+    c.sales_id,
+    (to_jsonb(c.*) - 'fts')::json as company,
+    null::json as contact,
+    null::json as deal,
+    null::json as contact_note,
+    null::json as deal_note
+from public.companies c
+union all
+select
+    ('contact.' || co.id || '.created') as id,
+    'contact.created' as type,
+    co.first_seen as date,
+    co.company_id,
+    co.sales_id,
+    null::json as company,
+    (to_jsonb(co.*) - 'fts')::json as contact,
+    null::json as deal,
+    null::json as contact_note,
+    null::json as deal_note
+from public.contacts co
+union all
+select
+    ('contactNote.' || cn.id || '.created') as id,
+    'contactNote.created' as type,
+    cn.date,
+    co.company_id,
+    cn.sales_id,
+    null::json as company,
+    null::json as contact,
+    null::json as deal,
+    (to_jsonb(cn.*) - 'fts')::json as contact_note,
+    null::json as deal_note
+from public.contact_notes cn
+    left join public.contacts co on co.id = cn.contact_id
+union all
+select
+    ('deal.' || d.id || '.created') as id,
+    'deal.created' as type,
+    d.created_at as date,
+    d.company_id,
+    d.sales_id,
+    null::json as company,
+    null::json as contact,
+    (to_jsonb(d.*) - 'fts')::json as deal,
+    null::json as contact_note,
+    null::json as deal_note
+from public.deals d
+union all
+select
+    ('dealNote.' || dn.id || '.created') as id,
+    'dealNote.created' as type,
+    dn.date,
+    d.company_id,
+    dn.sales_id,
+    null::json as company,
+    null::json as contact,
+    null::json as deal,
+    null::json as contact_note,
+    (to_jsonb(dn.*) - 'fts')::json as deal_note
+from public.deal_notes dn
+    left join public.deals d on d.id = dn.deal_id;
