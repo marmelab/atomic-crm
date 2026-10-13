@@ -139,7 +139,8 @@ export const frenchCrmMessages = {
         empty:
           "Aucune étiquette pour le moment. Créez-en une pour étiqueter les contacts sélectionnés.",
         error: "Impossible d'ajouter l'étiquette aux contacts",
-        noop: "Les contacts sélectionnés ont déjà cette étiquette",
+        removed:
+          "Étiquette retirée de %{smart_count} contact |||| Étiquette retirée de %{smart_count} contacts",
         success:
           "Étiquette ajoutée à %{smart_count} contact |||| Étiquette ajoutée à %{smart_count} contacts",
         title: "Ajouter une étiquette aux contacts",

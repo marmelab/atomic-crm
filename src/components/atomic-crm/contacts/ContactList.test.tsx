@@ -103,6 +103,37 @@ describe("ContactList", () => {
     await screen.getByRole("button", { name: /close/i }).click();
   });
 
+  it("removes a tag from selected contacts when they all already have it", async () => {
+    const screen = await render(<BulkTagButton />);
+
+    await expect
+      .poll(() => getSelectionCheckboxes(screen.container).length)
+      .toBe(2);
+
+    const checkboxes = getSelectionCheckboxes(screen.container);
+    await checkboxes[0].click();
+    await checkboxes[1].click();
+    await screen.getByRole("button", { name: /^tag$/i }).click();
+    await screen.getByRole("button", { name: "VIP" }).click();
+    await expect
+      .element(screen.getByText("Tag added to 1 contact"))
+      .toBeInTheDocument();
+    await screen.getByRole("button", { name: /close/i }).click();
+
+    await checkboxes[0].click();
+    await checkboxes[1].click();
+    await screen.getByRole("button", { name: /^tag$/i }).click();
+    await screen.getByRole("button", { name: "VIP" }).click();
+
+    await expect
+      .element(screen.getByText("Tag removed from 2 contacts"))
+      .toBeInTheDocument();
+    await expect
+      .poll(() => screen.getByRole("row").getByText("VIP").all().length)
+      .toBe(0);
+    await screen.getByRole("button", { name: /close/i }).click();
+  });
+
   it("creates a new tag inline and applies it to the full selected list", async () => {
     const screen = await render(<BulkTagButton />);
 

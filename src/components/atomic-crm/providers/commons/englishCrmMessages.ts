@@ -135,7 +135,8 @@ export const englishCrmMessages = {
           "Choose an existing tag or create a new one for the selected contacts.",
         empty: "No tags yet. Create one to tag the selected contacts.",
         error: "Failed to add tag to contacts",
-        noop: "Selected contacts already have this tag",
+        removed:
+          "Tag removed from %{smart_count} contact |||| Tag removed from %{smart_count} contacts",
         success:
           "Tag added to %{smart_count} contact |||| Tag added to %{smart_count} contacts",
         title: "Add tag to contacts",
