@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/components/admin/use-theme";
+import { usePersistPreference } from "@/components/atomic-crm/root/usePersistPreference";
 
 /**
  * Toggle button that lets users switch between light, dark, and system UI themes.
@@ -18,7 +19,8 @@ import { useTheme } from "@/components/admin/use-theme";
  * @see {@link https://marmelab.com/shadcn-admin-kit/docs/thememodetoggle ThemeModeToggle documentation}
  */
 export function ThemeModeToggle() {
-  const { theme, setTheme } = useTheme();
+  const { theme } = useTheme();
+  const persist = usePersistPreference();
 
   return (
     <DropdownMenu modal={false}>
@@ -30,15 +32,15 @@ export function ThemeModeToggle() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => setTheme("light")}>
+        <DropdownMenuItem onClick={() => persist({ theme: "light" })}>
           Light
           <Check className={cn("ml-auto", theme !== "light" && "hidden")} />
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("dark")}>
+        <DropdownMenuItem onClick={() => persist({ theme: "dark" })}>
           Dark
           <Check className={cn("ml-auto", theme !== "dark" && "hidden")} />
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("system")}>
+        <DropdownMenuItem onClick={() => persist({ theme: "system" })}>
           System
           <Check className={cn("ml-auto", theme !== "system" && "hidden")} />
         </DropdownMenuItem>
