@@ -79,10 +79,8 @@ export const ResponsiveFilters = ({
           </SheetTrigger>
           <SheetContent side="bottom" className="h-dvh p-4 flex flex-col">
             <SheetHeader className="-p-4">
-              <SheetTitle>
-                <h1 className="text-xl font-semibold">
-                  {translate("ra.action.add_filter")}
-                </h1>
+              <SheetTitle className="text-xl">
+                {translate("ra.action.add_filter")}
               </SheetTitle>
             </SheetHeader>
             <div className="flex-1 overflow-y-auto flex flex-col gap-3 pb-4">
