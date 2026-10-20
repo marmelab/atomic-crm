@@ -565,6 +565,33 @@ describe("preference persistence", () => {
     await expect.element(screen.getByText("locale: fr")).toBeVisible();
   });
 
+  it("reverts only the failed theme while a newer locale save is pending", async () => {
+    const save = createFailingSave();
+    const screen = await render(
+      <StoryWrapper
+        i18nProvider={createTwoLocalesI18nProvider()}
+        dataProvider={{
+          getPreferences: createFakeServer({ theme: "dark", locale: "en" })
+            .getPreferences,
+          updatePreferences: save.updatePreferences,
+        }}
+        layout={Layout}
+      >
+        <Probe />
+      </StoryWrapper>,
+    );
+    await expect.element(screen.getByText("theme: dark")).toBeVisible();
+
+    await screen.getByRole("button", { name: "Toggle theme" }).click();
+    await screen.getByRole("menuitem", { name: "Light" }).click();
+    await screen.getByRole("button", { name: "set french locale" }).click();
+    await vi.waitFor(() => expect(save.calls()).toBe(1));
+    save.fail();
+
+    await expect.element(screen.getByText("theme: dark")).toBeVisible();
+    await expect.element(screen.getByText("locale: fr")).toBeVisible();
+  });
+
   it("does not revert or warn when a save started before a logout fails", async () => {
     const save = createFailingSave();
     const screen = await render(
