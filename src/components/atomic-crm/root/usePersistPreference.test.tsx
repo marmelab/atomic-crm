@@ -1,4 +1,4 @@
-import { useQueryClient } from "@tanstack/react-query";
+import { useIsFetching, useQueryClient } from "@tanstack/react-query";
 import polyglotI18nProvider from "ra-i18n-polyglot";
 import { mergeTranslations, useLocaleState } from "ra-core";
 import englishMessages from "ra-language-english";
@@ -100,13 +100,37 @@ const createHeldFirstRead = () => {
   };
 };
 
+const createHeldIdentity = (isHeld: boolean) => {
+  let releaseIdentity: () => void = () => {};
+  const identityLoaded = isHeld
+    ? new Promise<void>((resolve) => {
+        releaseIdentity = resolve;
+      })
+    : Promise.resolve();
+  return {
+    authProvider: {
+      getIdentity: async () => {
+        await identityLoaded;
+        return { id: 0, fullName: "Jane Doe" };
+      },
+    },
+    release: () => releaseIdentity(),
+  };
+};
+
+const pickTheme = async (
+  screen: Awaited<ReturnType<typeof render>>,
+  name: string,
+) => {
+  await screen.getByRole("button", { name: "Toggle theme" }).click();
+  await screen.getByRole("menuitem", { name }).click();
+};
+
 const pickDarkThenSystem = async (
   screen: Awaited<ReturnType<typeof render>>,
 ) => {
-  await screen.getByRole("button", { name: "Toggle theme" }).click();
-  await screen.getByRole("menuitem", { name: "Dark" }).click();
-  await screen.getByRole("button", { name: "Toggle theme" }).click();
-  await screen.getByRole("menuitem", { name: "System" }).click();
+  await pickTheme(screen, "Dark");
+  await pickTheme(screen, "System");
   await expect.element(screen.getByText("theme: system")).toBeVisible();
 };
 
@@ -118,11 +142,13 @@ const Probe = () => {
   const [locale] = useLocaleState();
   const persist = usePersistPreference();
   const queryClient = useQueryClient();
+  const fetching = useIsFetching({ queryKey: [PREFERENCES_QUERY_KEY] });
 
   return (
     <div>
       <p>{`theme: ${theme}`}</p>
       <p>{`locale: ${locale}`}</p>
+      <p>{`fetching: ${fetching}`}</p>
       <button onClick={() => persist({ locale: "fr" })}>
         set french locale
       </button>
@@ -483,61 +509,57 @@ describe("preference persistence", () => {
     await expect.element(screen.getByText("locale: en")).toBeVisible();
   });
 
-  it("applies the stored locale read during a theme save that then fails", async () => {
-    const reads = createHeldFirstRead();
-    const save = createFailingSave();
-    const screen = await render(
-      <StoryWrapper
-        i18nProvider={createTwoLocalesI18nProvider()}
-        dataProvider={{
-          getPreferences: reads.getPreferences,
-          updatePreferences: save.updatePreferences,
-        }}
-        layout={Layout}
-      >
-        <Probe />
-      </StoryWrapper>,
-    );
-    await expect.element(screen.getByText("theme: system")).toBeVisible();
+  it.each([
+    {
+      outcome: "fails",
+      stored: { theme: "dark" as const, locale: "fr" },
+      settle: (save: ReturnType<typeof createFailingSave>) => save.fail(),
+      expectedTheme: "dark",
+      identity: "before",
+    },
+    {
+      outcome: "succeeds with the same preferences",
+      stored: { theme: "light" as const, locale: "fr" },
+      settle: (save: ReturnType<typeof createFailingSave>) =>
+        save.succeed({ theme: "light", locale: "fr" }),
+      expectedTheme: "light",
+      identity: "before",
+    },
+  ])(
+    "applies the stored locale read during a theme save, made $identity the identity loaded, that then $outcome",
+    async ({ stored, settle, expectedTheme, identity: loaded }) => {
+      const identity = createHeldIdentity(loaded === "after");
+      const reads = createHeldFirstRead();
+      const save = createFailingSave();
+      const screen = await render(
+        <StoryWrapper
+          i18nProvider={createTwoLocalesI18nProvider()}
+          authProvider={identity.authProvider}
+          dataProvider={{
+            getPreferences: reads.getPreferences,
+            updatePreferences: save.updatePreferences,
+          }}
+          layout={Layout}
+        >
+          <Probe />
+        </StoryWrapper>,
+      );
+      await expect.element(screen.getByText("theme: system")).toBeVisible();
 
-    await screen.getByRole("button", { name: "Toggle theme" }).click();
-    await screen.getByRole("menuitem", { name: "Light" }).click();
-    await vi.waitFor(() => expect(save.calls()).toBe(1));
-    reads.release({ theme: "dark", locale: "fr" });
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    save.fail();
+      await pickTheme(screen, "Light");
+      await vi.waitFor(() => expect(save.calls()).toBe(1));
+      identity.release();
+      await expect.element(screen.getByText("fetching: 1")).toBeVisible();
+      reads.release(stored);
+      await expect.element(screen.getByText("fetching: 0")).toBeVisible();
+      settle(save);
 
-    await expect.element(screen.getByText("theme: dark")).toBeVisible();
-    await expect.element(screen.getByText("locale: fr")).toBeVisible();
-  });
-
-  it("applies the stored locale read during a theme save that then succeeds with the same preferences", async () => {
-    const reads = createHeldFirstRead();
-    const save = createFailingSave();
-    const screen = await render(
-      <StoryWrapper
-        i18nProvider={createTwoLocalesI18nProvider()}
-        dataProvider={{
-          getPreferences: reads.getPreferences,
-          updatePreferences: save.updatePreferences,
-        }}
-        layout={Layout}
-      >
-        <Probe />
-      </StoryWrapper>,
-    );
-    await expect.element(screen.getByText("theme: system")).toBeVisible();
-
-    await screen.getByRole("button", { name: "Toggle theme" }).click();
-    await screen.getByRole("menuitem", { name: "Light" }).click();
-    await vi.waitFor(() => expect(save.calls()).toBe(1));
-    reads.release({ theme: "light", locale: "fr" });
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    save.succeed({ theme: "light", locale: "fr" });
-
-    await expect.element(screen.getByText("locale: fr")).toBeVisible();
-    await expect.element(screen.getByText("theme: light")).toBeVisible();
-  });
+      await expect.element(screen.getByText("locale: fr")).toBeVisible();
+      await expect
+        .element(screen.getByText(`theme: ${expectedTheme}`))
+        .toBeVisible();
+    },
+  );
 
   it("applies the locale confirmed by a successful save when the next save fails", async () => {
     const save = createFailingSave();
