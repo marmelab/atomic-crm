@@ -592,6 +592,40 @@ describe("preference persistence", () => {
     await expect.element(screen.getByText("locale: fr")).toBeVisible();
   });
 
+  it("applies the stored preferences once a save made before the identity loaded succeeds", async () => {
+    const server = createFakeServer({ theme: "dark", locale: "en" });
+    let releaseIdentity: () => void = () => {};
+    const identityLoaded = new Promise<void>((resolve) => {
+      releaseIdentity = resolve;
+    });
+    const screen = await render(
+      <StoryWrapper
+        i18nProvider={createTwoLocalesI18nProvider()}
+        authProvider={{
+          getIdentity: async () => {
+            await identityLoaded;
+            return { id: 0, fullName: "Jane Doe" };
+          },
+        }}
+        dataProvider={{
+          getPreferences: server.getPreferences,
+          updatePreferences: server.updatePreferences,
+        }}
+        layout={Layout}
+      >
+        <Probe />
+      </StoryWrapper>,
+    );
+    await expect.element(screen.getByText("theme: system")).toBeVisible();
+
+    await screen.getByRole("button", { name: "set french locale" }).click();
+    await vi.waitFor(() => expect(server.read().locale).toBe("fr"));
+    releaseIdentity();
+
+    await expect.element(screen.getByText("theme: dark")).toBeVisible();
+    await expect.element(screen.getByText("locale: fr")).toBeVisible();
+  });
+
   it("does not revert or warn when a save started before a logout fails", async () => {
     const save = createFailingSave();
     const screen = await render(
