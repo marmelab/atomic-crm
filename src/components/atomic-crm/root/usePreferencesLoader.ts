@@ -10,6 +10,7 @@ import {
   PREFERENCES_QUERY_KEY,
   PREFERENCES_STALE_TIME_MS,
 } from "./preferences";
+import { hasPendingPreferenceWrites } from "./usePersistPreference";
 
 export const usePreferencesLoader = () => {
   const dataProvider = useDataProvider<CrmDataProvider>();
@@ -27,7 +28,7 @@ export const usePreferencesLoader = () => {
   });
 
   useEffect(() => {
-    if (!data) return;
+    if (!data || hasPendingPreferenceWrites()) return;
     if (data.theme) setTheme(data.theme);
     if (isOfferedLocale(data.locale, locales)) setLocale(data.locale);
   }, [data, locales, setTheme, setLocale]);

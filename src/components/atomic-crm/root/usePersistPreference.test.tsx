@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import polyglotI18nProvider from "ra-i18n-polyglot";
 import { mergeTranslations, useLocaleState } from "ra-core";
 import englishMessages from "ra-language-english";
@@ -8,6 +9,7 @@ import { Layout } from "../layout/Layout";
 import { englishCrmMessages } from "../providers/commons/englishCrmMessages";
 import type { UserPreferences } from "../types";
 import { StoryWrapper } from "@/test/StoryWrapper";
+import { PREFERENCES_QUERY_KEY } from "./preferences";
 import {
   resetPendingPreferenceWrites,
   usePersistPreference,
@@ -56,12 +58,31 @@ const createFakeServer = (
 
 const createFailingSave = () => {
   let rejectSave: (error: Error) => void = () => {};
+  let calls = 0;
   return {
     updatePreferences: () =>
       new Promise<UserPreferences>((_, reject) => {
+        calls += 1;
         rejectSave = reject;
       }),
     fail: () => rejectSave(new Error("Denied")),
+    calls: () => calls,
+  };
+};
+
+const createHeldReads = (initial: UserPreferences) => {
+  let reads = 0;
+  let releaseRead: () => void = () => {};
+  return {
+    getPreferences: () => {
+      reads += 1;
+      if (reads === 1) return Promise.resolve({ ...initial });
+      return new Promise<UserPreferences>((resolve) => {
+        releaseRead = () => resolve({ ...initial });
+      });
+    },
+    release: () => releaseRead(),
+    reads: () => reads,
   };
 };
 
@@ -69,6 +90,7 @@ const Probe = () => {
   const { theme } = useTheme();
   const [locale] = useLocaleState();
   const persist = usePersistPreference();
+  const queryClient = useQueryClient();
 
   return (
     <div>
@@ -84,6 +106,13 @@ const Probe = () => {
         }}
       >
         change both at once
+      </button>
+      <button
+        onClick={() =>
+          queryClient.refetchQueries({ queryKey: [PREFERENCES_QUERY_KEY] })
+        }
+      >
+        refetch preferences
       </button>
     </div>
   );
@@ -212,6 +241,34 @@ describe("preference persistence", () => {
     );
   });
 
+  it("keeps both changes on screen while the second of two back to back saves is pending", async () => {
+    const server = createFakeServer({ theme: "dark", locale: "en" });
+    const save = createFailingSave();
+    const screen = await render(
+      <StoryWrapper
+        i18nProvider={createTwoLocalesI18nProvider()}
+        dataProvider={{
+          getPreferences: server.getPreferences,
+          updatePreferences: (patch: Partial<UserPreferences>) =>
+            save.calls() === 0 && patch.theme !== undefined
+              ? server.updatePreferences(patch)
+              : save.updatePreferences(),
+        }}
+        layout={Layout}
+      >
+        <Probe />
+      </StoryWrapper>,
+    );
+    await expect.element(screen.getByText("locale: en")).toBeVisible();
+
+    await screen.getByRole("button", { name: "change both at once" }).click();
+    await vi.waitFor(() => expect(save.calls()).toBe(1));
+    await new Promise((resolve) => setTimeout(resolve, 300));
+
+    await expect.element(screen.getByText("theme: light")).toBeVisible();
+    await expect.element(screen.getByText("locale: fr")).toBeVisible();
+  });
+
   it("reverts the change and warns the user when the server rejects it", async () => {
     const server = createFakeServer({ theme: "dark", locale: "en" });
     const screen = await render(
@@ -267,6 +324,61 @@ describe("preference persistence", () => {
     await expect.element(screen.getByText("theme: system")).toBeVisible();
   });
 
+  it("goes back to the stored theme when two quick changes both fail", async () => {
+    const save = createFailingSave();
+    const screen = await render(
+      <StoryWrapper
+        dataProvider={{
+          getPreferences: createFakeServer({ theme: "light" }).getPreferences,
+          updatePreferences: save.updatePreferences,
+        }}
+        layout={Layout}
+      >
+        <Probe />
+      </StoryWrapper>,
+    );
+    await expect.element(screen.getByText("theme: light")).toBeVisible();
+
+    await screen.getByRole("button", { name: "Toggle theme" }).click();
+    await screen.getByRole("menuitem", { name: "Dark" }).click();
+    await screen.getByRole("button", { name: "Toggle theme" }).click();
+    await screen.getByRole("menuitem", { name: "System" }).click();
+    await expect.element(screen.getByText("theme: system")).toBeVisible();
+    save.fail();
+    await vi.waitFor(() => expect(save.calls()).toBe(2));
+    save.fail();
+    await new Promise((resolve) => setTimeout(resolve, 300));
+
+    await expect.element(screen.getByText("theme: light")).toBeVisible();
+  });
+
+  it("keeps the new theme when a refetch during the save returns the old one", async () => {
+    const reads = createHeldReads({ theme: "dark" });
+    const save = createFailingSave();
+    const screen = await render(
+      <StoryWrapper
+        dataProvider={{
+          getPreferences: reads.getPreferences,
+          updatePreferences: save.updatePreferences,
+        }}
+        layout={Layout}
+      >
+        <Probe />
+      </StoryWrapper>,
+    );
+    await expect.element(screen.getByText("theme: dark")).toBeVisible();
+
+    await screen.getByRole("button", { name: "Toggle theme" }).click();
+    await screen.getByRole("menuitem", { name: "Light" }).click();
+    await vi.waitFor(() => expect(save.calls()).toBe(1));
+    await screen.getByRole("button", { name: "refetch preferences" }).click();
+    await vi.waitFor(() => expect(reads.reads()).toBe(2));
+    reads.release();
+    await new Promise((resolve) => setTimeout(resolve, 300));
+
+    await expect.element(screen.getByText("theme: light")).toBeVisible();
+  });
+
   it("reverts the locale when its save fails", async () => {
     const save = createFailingSave();
     const screen = await render(
@@ -274,6 +386,29 @@ describe("preference persistence", () => {
         i18nProvider={createTwoLocalesI18nProvider()}
         dataProvider={{
           getPreferences: createFakeServer({}).getPreferences,
+          updatePreferences: save.updatePreferences,
+        }}
+        layout={Layout}
+      >
+        <Probe />
+      </StoryWrapper>,
+    );
+    await expect.element(screen.getByText("locale: en")).toBeVisible();
+
+    await screen.getByRole("button", { name: "set french locale" }).click();
+    await expect.element(screen.getByText("locale: fr")).toBeVisible();
+    save.fail();
+
+    await expect.element(screen.getByText("locale: en")).toBeVisible();
+  });
+
+  it("reverts the locale to the displayed one when the stored locale is not offered", async () => {
+    const save = createFailingSave();
+    const screen = await render(
+      <StoryWrapper
+        i18nProvider={createTwoLocalesI18nProvider()}
+        dataProvider={{
+          getPreferences: createFakeServer({ locale: "de" }).getPreferences,
           updatePreferences: save.updatePreferences,
         }}
         layout={Layout}
