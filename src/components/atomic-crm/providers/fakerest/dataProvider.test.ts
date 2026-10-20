@@ -124,18 +124,47 @@ describe("fakerest preferences", () => {
     });
   });
 
-  it("refuses to write, and touches no sale, when nobody is logged in", async () => {
+  it("follows the injected authProvider identity when localStorage holds no user", async () => {
     localStorage.removeItem(USER_STORAGE_KEY);
-    const dataProvider = createProvider();
+    const db = structuredClone(createCrmDb());
+    db.sales.push({ ...db.sales[0], id: 7, preferences: undefined });
+    const dataProvider = createDataProvider({
+      db,
+      latency: 0,
+      silent: true,
+      authProvider: { getIdentity: async () => ({ id: 7 }) },
+    });
 
-    expect(await dataProvider.getPreferences()).toEqual({});
+    await dataProvider.updatePreferences({ theme: "dark" });
+
+    expect(await dataProvider.getPreferences()).toEqual({ theme: "dark" });
+    const { data: otherSale } = await dataProvider.getOne("sales", {
+      id: DEFAULT_USER.id,
+    });
+    expect(otherSale.preferences).toBeUndefined();
+  });
+
+  it("refuses to write, and touches no sale, when the authProvider has no identity", async () => {
+    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(DEFAULT_USER));
+    const dataProvider = createDataProvider({
+      db: createCrmDb(),
+      latency: 0,
+      silent: true,
+      authProvider: {
+        getIdentity: async () => {
+          throw new Error("Not authenticated");
+        },
+      },
+    });
 
     await expect(
       dataProvider.updatePreferences({ theme: "dark" }),
     ).rejects.toThrow();
 
-    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(DEFAULT_USER));
-    expect(await dataProvider.getPreferences()).toEqual({});
+    const { data: sale } = await dataProvider.getOne("sales", {
+      id: DEFAULT_USER.id,
+    });
+    expect(sale.preferences).toBeUndefined();
   });
 
   it("returns a validated value, so a corrupt stored theme cannot reach the UI", async () => {

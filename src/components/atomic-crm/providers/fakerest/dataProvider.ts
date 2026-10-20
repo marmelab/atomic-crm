@@ -39,16 +39,6 @@ import generateData from "./dataGenerator";
 import type { Db } from "./dataGenerator/types";
 import { withSupabaseFilterAdapter } from "./internal/supabaseAdapter";
 
-const getLoggedSaleId = (): Identifier | undefined => {
-  const item = localStorage.getItem(USER_STORAGE_KEY);
-  if (!item) return undefined;
-  try {
-    return (JSON.parse(item) as Sale).id;
-  } catch {
-    return undefined;
-  }
-};
-
 const TASK_MARKED_AS_DONE = "TASK_MARKED_AS_DONE";
 const TASK_MARKED_AS_UNDONE = "TASK_MARKED_AS_UNDONE";
 const TASK_DONE_NOT_CHANGED = "TASK_DONE_NOT_CHANGED";
@@ -357,22 +347,22 @@ export const createDataProvider = ({
       return config;
     },
     getPreferences: async (): Promise<UserPreferences> => {
-      const saleId = getLoggedSaleId();
-      if (saleId === undefined) return {};
+      const identity = await getIdentity();
+      if (!identity) return {};
       const { data } = await dataProvider.getOne<Sale>("sales", {
-        id: saleId,
+        id: identity.id,
       });
       return parseUserPreferences(data?.preferences);
     },
     updatePreferences: async (
       patch: Partial<UserPreferences>,
     ): Promise<UserPreferences> => {
-      const saleId = getLoggedSaleId();
-      if (saleId === undefined) {
+      const identity = await getIdentity();
+      if (!identity) {
         throw new Error("Cannot save preferences without a logged in user");
       }
       const { data: sale } = await dataProvider.getOne<Sale>("sales", {
-        id: saleId,
+        id: identity.id,
       });
       if (!sale) {
         throw new Error("Failed to update preferences");
@@ -383,7 +373,7 @@ export const createDataProvider = ({
           : {};
       const preferences = { ...stored, ...patch };
       await dataProvider.update("sales", {
-        id: saleId,
+        id: identity.id,
         data: { preferences },
         previousData: sale,
       });
