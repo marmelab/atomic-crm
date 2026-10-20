@@ -1,5 +1,6 @@
-import { useQueryClient } from "@tanstack/react-query";
+import { type QueryClient, useQueryClient } from "@tanstack/react-query";
 import {
+  type Identifier,
   useDataProvider,
   useGetIdentity,
   useLocales,
@@ -8,6 +9,7 @@ import {
 } from "ra-core";
 import { useCallback } from "react";
 
+import type { Theme } from "@/components/admin/theme-context";
 import { useTheme } from "@/components/admin/use-theme";
 import type { CrmDataProvider } from "../providers/types";
 import type { UserPreferences } from "../types";
@@ -41,6 +43,97 @@ const lastConfirmed = (
     : baseline.locale,
 });
 
+type PreferenceWrite = {
+  patch: Partial<UserPreferences>;
+  changedKeys: (keyof UserPreferences)[];
+  writeId: number;
+  enqueuedAt: number;
+};
+
+type SaveContext = {
+  dataProvider: CrmDataProvider;
+  queryClient: QueryClient;
+  notify: ReturnType<typeof useNotify>;
+  setTheme: (theme: Theme) => void;
+  setLocale: (locale: string) => void;
+  locales: readonly { locale: string }[];
+  identityId: Identifier | undefined;
+};
+
+const startWrite = (
+  patch: Partial<UserPreferences>,
+  displayed: UserPreferences,
+): PreferenceWrite => {
+  if (pendingCount === 0) baseline = displayed;
+  pendingCount += 1;
+  writeCount += 1;
+  const write: PreferenceWrite = {
+    patch,
+    changedKeys: PREFERENCE_KEYS.filter((key) => patch[key] !== undefined),
+    writeId: writeCount,
+    enqueuedAt: generation,
+  };
+  latestWriteByKey = {
+    ...latestWriteByKey,
+    ...Object.fromEntries(write.changedKeys.map((key) => [key, write.writeId])),
+  };
+  return write;
+};
+
+const revertFailedWrite = (write: PreferenceWrite, context: SaveContext) => {
+  const { queryClient, identityId, locales, setTheme, setLocale } = context;
+  const keysToRevert = write.changedKeys.filter(
+    (key) => latestWriteByKey[key] === write.writeId,
+  );
+  if (keysToRevert.length === 0) return;
+  const confirmed = lastConfirmed(
+    identityId !== undefined
+      ? queryClient.getQueryData<UserPreferences>([
+          PREFERENCES_QUERY_KEY,
+          identityId,
+        ])
+      : undefined,
+    locales,
+  );
+  if (keysToRevert.includes("theme") && confirmed.theme) {
+    setTheme(confirmed.theme);
+  }
+  if (keysToRevert.includes("locale") && confirmed.locale) {
+    setLocale(confirmed.locale);
+  }
+  context.notify("crm.preferences.update_error", {
+    type: "error",
+    messageArgs: { _: "Could not save your preferences" },
+  });
+};
+
+const savePreferenceWrite = async (
+  write: PreferenceWrite,
+  context: SaveContext,
+) => {
+  const { dataProvider, queryClient, identityId } = context;
+  const isCurrent = () => write.enqueuedAt === generation;
+  if (!isCurrent()) return;
+  try {
+    const preferences = await dataProvider.updatePreferences(write.patch);
+    if (!isCurrent()) return;
+    if (identityId === undefined) {
+      pendingCount -= 1;
+      queryClient.invalidateQueries({ queryKey: [PREFERENCES_QUERY_KEY] });
+      return;
+    }
+    const queryKey = [PREFERENCES_QUERY_KEY, identityId];
+    await queryClient.cancelQueries({ queryKey, exact: true });
+    if (!isCurrent()) return;
+    pendingCount -= 1;
+    queryClient.setQueryData(queryKey, preferences);
+  } catch {
+    if (!isCurrent()) return;
+    pendingCount -= 1;
+    revertFailedWrite(write, context);
+  }
+};
+
 export const usePersistPreference = () => {
   const dataProvider = useDataProvider<CrmDataProvider>();
   const { identity } = useGetIdentity();
@@ -52,69 +145,22 @@ export const usePersistPreference = () => {
 
   return useCallback(
     (patch: Partial<UserPreferences>) => {
-      if (pendingCount === 0) baseline = { theme, locale };
-      pendingCount += 1;
-      writeCount += 1;
-      const writeId = writeCount;
-      const changedKeys = PREFERENCE_KEYS.filter(
-        (key) => patch[key] !== undefined,
-      );
-      latestWriteByKey = {
-        ...latestWriteByKey,
-        ...Object.fromEntries(changedKeys.map((key) => [key, writeId])),
-      };
+      const write = startWrite(patch, { theme, locale });
       if (patch.theme !== undefined) setTheme(patch.theme);
       if (patch.locale !== undefined) setLocale(patch.locale);
 
-      const identityId = identity?.id;
-      const queryKey = [PREFERENCES_QUERY_KEY, identityId];
-      const tracksCache = identityId !== undefined;
-      const enqueuedAt = generation;
-      const isCurrent = () => enqueuedAt === generation;
-
-      const save = async () => {
-        if (!isCurrent()) return;
-        try {
-          const preferences = await dataProvider.updatePreferences(patch);
-          if (!isCurrent()) return;
-          if (!tracksCache) {
-            pendingCount -= 1;
-            queryClient.invalidateQueries({
-              queryKey: [PREFERENCES_QUERY_KEY],
-            });
-            return;
-          }
-          await queryClient.cancelQueries({ queryKey, exact: true });
-          if (!isCurrent()) return;
-          pendingCount -= 1;
-          queryClient.setQueryData(queryKey, preferences);
-        } catch {
-          if (!isCurrent()) return;
-          pendingCount -= 1;
-          const keysToRevert = changedKeys.filter(
-            (key) => latestWriteByKey[key] === writeId,
-          );
-          if (keysToRevert.length === 0) return;
-          const confirmed = lastConfirmed(
-            tracksCache
-              ? queryClient.getQueryData<UserPreferences>(queryKey)
-              : undefined,
-            locales,
-          );
-          if (keysToRevert.includes("theme") && confirmed.theme) {
-            setTheme(confirmed.theme);
-          }
-          if (keysToRevert.includes("locale") && confirmed.locale) {
-            setLocale(confirmed.locale);
-          }
-          notify("crm.preferences.update_error", {
-            type: "error",
-            messageArgs: { _: "Could not save your preferences" },
-          });
-        }
+      const context: SaveContext = {
+        dataProvider,
+        queryClient,
+        notify,
+        setTheme,
+        setLocale,
+        locales,
+        identityId: identity?.id,
       };
-
-      pendingWrites = pendingWrites.catch(() => {}).then(save);
+      pendingWrites = pendingWrites
+        .catch(() => {})
+        .then(() => savePreferenceWrite(write, context));
     },
     [
       dataProvider,
