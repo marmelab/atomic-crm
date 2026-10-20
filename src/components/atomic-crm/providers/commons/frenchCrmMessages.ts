@@ -323,7 +323,7 @@ export const frenchCrmMessages = {
         edit: "Modifier la tâche",
       },
       actions: {
-        postpone_next_week: "Reporté à la semaine prochaine",
+        postpone_next_week: "Reporter à la semaine prochaine",
         postpone_tomorrow: "Reporter à demain",
         title: "Actions de tâche",
       },
