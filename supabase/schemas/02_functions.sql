@@ -487,6 +487,10 @@ CREATE OR REPLACE FUNCTION "public"."update_sales_preferences"("patch" "jsonb") 
 declare
   updated_preferences jsonb;
 begin
+  if patch is null or jsonb_typeof(patch) <> 'object' then
+    raise exception 'patch must be a JSON object' using errcode = '22023';
+  end if;
+
   update public.sales
   set preferences = coalesce(preferences, '{}'::jsonb) || patch
   where user_id = auth.uid()
