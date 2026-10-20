@@ -479,3 +479,23 @@ BEGIN
   RETURN NEW;
 END;
 $$;
+
+CREATE OR REPLACE FUNCTION "public"."update_sales_preferences"("patch" "jsonb") RETURNS "jsonb"
+    LANGUAGE "plpgsql"
+    SET "search_path" TO ''
+    AS $$
+declare
+  updated_preferences jsonb;
+begin
+  update public.sales
+  set preferences = coalesce(preferences, '{}'::jsonb) || patch
+  where user_id = auth.uid()
+  returning preferences into updated_preferences;
+
+  if not found then
+    raise exception 'No sales record found for the current user' using errcode = 'P0002';
+  end if;
+
+  return updated_preferences;
+end;
+$$;

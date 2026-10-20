@@ -69,6 +69,11 @@ grant all on function public.set_sales_id_default() to anon;
 grant all on function public.set_sales_id_default() to authenticated;
 grant all on function public.set_sales_id_default() to service_role;
 
+revoke all on function public.update_sales_preferences(jsonb) from public;
+revoke all on function public.update_sales_preferences(jsonb) from anon;
+grant execute on function public.update_sales_preferences(jsonb) to authenticated;
+grant execute on function public.update_sales_preferences(jsonb) to service_role;
+
 -- Table grants
 grant all on table public.companies to anon;
 grant all on table public.companies to authenticated;
