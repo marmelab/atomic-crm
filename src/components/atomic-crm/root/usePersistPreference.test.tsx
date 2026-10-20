@@ -574,7 +574,7 @@ describe("preference persistence", () => {
   ])(
     "applies the stored locale read during a theme save, made $identity the identity loaded, that then $outcome",
     async ({ stored, settle, expectedTheme, identity: loaded }) => {
-      const identity = createHeldIdentity(loaded === "after");
+      const identity = createHeldIdentity(loaded === "before");
       const reads = createHeldFirstRead();
       const save = createFailingSave();
       const screen = await render(
