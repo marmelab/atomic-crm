@@ -678,19 +678,11 @@ describe("preference persistence", () => {
 
   it("applies the stored preferences once a save made before the identity loaded succeeds", async () => {
     const server = createFakeServer({ theme: "dark", locale: "en" });
-    let releaseIdentity: () => void = () => {};
-    const identityLoaded = new Promise<void>((resolve) => {
-      releaseIdentity = resolve;
-    });
+    const identity = createHeldIdentity(true);
     const screen = await render(
       <StoryWrapper
         i18nProvider={createTwoLocalesI18nProvider()}
-        authProvider={{
-          getIdentity: async () => {
-            await identityLoaded;
-            return { id: 0, fullName: "Jane Doe" };
-          },
-        }}
+        authProvider={identity.authProvider}
         dataProvider={{
           getPreferences: server.getPreferences,
           updatePreferences: server.updatePreferences,
@@ -704,7 +696,7 @@ describe("preference persistence", () => {
 
     await screen.getByRole("button", { name: "set french locale" }).click();
     await vi.waitFor(() => expect(server.read().locale).toBe("fr"));
-    releaseIdentity();
+    identity.release();
 
     await expect.element(screen.getByText("theme: dark")).toBeVisible();
     await expect.element(screen.getByText("locale: fr")).toBeVisible();
