@@ -7,7 +7,7 @@ import {
   useLocaleState,
   useNotify,
 } from "ra-core";
-import { useCallback } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 import type { Theme } from "@/components/admin/theme-context";
 import { useTheme } from "@/components/admin/use-theme";
@@ -57,7 +57,7 @@ type SaveContext = {
   setTheme: (theme: Theme) => void;
   setLocale: (locale: string) => void;
   locales: readonly { locale: string }[];
-  identityId: Identifier | undefined;
+  getIdentityId: () => Identifier | undefined;
 };
 
 const startWrite = (
@@ -81,7 +81,8 @@ const startWrite = (
 };
 
 const applyConfirmedWhenSettled = (context: SaveContext) => {
-  const { identityId, queryClient, locales, setTheme, setLocale } = context;
+  const { queryClient, locales, setTheme, setLocale } = context;
+  const identityId = context.getIdentityId();
   if (identityId === undefined || pendingCount > 0) return;
   const stored = queryClient.getQueryData<UserPreferences>([
     PREFERENCES_QUERY_KEY,
@@ -92,7 +93,8 @@ const applyConfirmedWhenSettled = (context: SaveContext) => {
 };
 
 const revertFailedWrite = (write: PreferenceWrite, context: SaveContext) => {
-  const { queryClient, identityId, locales, setTheme, setLocale } = context;
+  const { queryClient, locales, setTheme, setLocale } = context;
+  const identityId = context.getIdentityId();
   const keysToRevert = write.changedKeys.filter(
     (key) => latestWriteByKey[key] === write.writeId,
   );
@@ -122,15 +124,15 @@ const savePreferenceWrite = async (
   write: PreferenceWrite,
   context: SaveContext,
 ) => {
-  const { dataProvider, queryClient, identityId } = context;
+  const { dataProvider, queryClient } = context;
   const isCurrent = () => write.enqueuedAt === generation;
   if (!isCurrent()) return;
   try {
     const preferences = await dataProvider.updatePreferences(write.patch);
     if (!isCurrent()) return;
+    const identityId = context.getIdentityId();
     if (identityId === undefined) {
       pendingCount -= 1;
-      queryClient.invalidateQueries({ queryKey: [PREFERENCES_QUERY_KEY] });
       return;
     }
     const queryKey = [PREFERENCES_QUERY_KEY, identityId];
@@ -155,6 +157,10 @@ export const usePersistPreference = () => {
   const { theme, setTheme } = useTheme();
   const [locale, setLocale] = useLocaleState();
   const locales = useLocales();
+  const identityIdRef = useRef(identity?.id);
+  useEffect(() => {
+    identityIdRef.current = identity?.id;
+  }, [identity?.id]);
 
   return useCallback(
     (patch: Partial<UserPreferences>) => {
@@ -169,7 +175,7 @@ export const usePersistPreference = () => {
         setTheme,
         setLocale,
         locales,
-        identityId: identity?.id,
+        getIdentityId: () => identityIdRef.current,
       };
       pendingWrites = pendingWrites
         .catch(() => {})
@@ -177,7 +183,6 @@ export const usePersistPreference = () => {
     },
     [
       dataProvider,
-      identity?.id,
       queryClient,
       notify,
       theme,

@@ -518,12 +518,27 @@ describe("preference persistence", () => {
       identity: "before",
     },
     {
+      outcome: "fails",
+      stored: { theme: "dark" as const, locale: "fr" },
+      settle: (save: ReturnType<typeof createFailingSave>) => save.fail(),
+      expectedTheme: "dark",
+      identity: "after",
+    },
+    {
       outcome: "succeeds with the same preferences",
       stored: { theme: "light" as const, locale: "fr" },
       settle: (save: ReturnType<typeof createFailingSave>) =>
         save.succeed({ theme: "light", locale: "fr" }),
       expectedTheme: "light",
       identity: "before",
+    },
+    {
+      outcome: "succeeds with the same preferences",
+      stored: { theme: "light" as const, locale: "fr" },
+      settle: (save: ReturnType<typeof createFailingSave>) =>
+        save.succeed({ theme: "light", locale: "fr" }),
+      expectedTheme: "light",
+      identity: "after",
     },
   ])(
     "applies the stored locale read during a theme save, made $identity the identity loaded, that then $outcome",
@@ -561,31 +576,47 @@ describe("preference persistence", () => {
     },
   );
 
-  it("applies the locale confirmed by a successful save when the next save fails", async () => {
-    const save = createFailingSave();
-    const screen = await render(
-      <StoryWrapper
-        i18nProvider={createTwoLocalesI18nProvider()}
-        dataProvider={{
-          getPreferences: createFakeServer({ theme: "light", locale: "en" })
-            .getPreferences,
-          updatePreferences: save.updatePreferences,
-        }}
-        layout={Layout}
-      >
-        <Probe />
-      </StoryWrapper>,
-    );
-    await expect.element(screen.getByText("theme: light")).toBeVisible();
+  it.each([
+    { identity: "before", isHeld: true },
+    { identity: "after", isHeld: false },
+  ])(
+    "applies the locale confirmed by a successful save, made $identity the identity loaded, when the next save fails",
+    async ({ isHeld }) => {
+      const identity = createHeldIdentity(isHeld);
+      const getPreferences = vi.fn(
+        createFakeServer({ theme: "light", locale: "en" }).getPreferences,
+      );
+      const save = createFailingSave();
+      const screen = await render(
+        <StoryWrapper
+          i18nProvider={createTwoLocalesI18nProvider()}
+          authProvider={identity.authProvider}
+          dataProvider={{
+            getPreferences,
+            updatePreferences: save.updatePreferences,
+          }}
+          layout={Layout}
+        >
+          <Probe />
+        </StoryWrapper>,
+      );
+      await expect
+        .element(screen.getByText(isHeld ? "theme: system" : "theme: light"))
+        .toBeVisible();
 
-    await pickDarkThenSystem(screen);
-    save.succeed({ theme: "dark", locale: "fr" });
-    await vi.waitFor(() => expect(save.calls()).toBe(2));
-    save.fail();
+      await pickTheme(screen, "Dark");
+      identity.release();
+      await vi.waitFor(() => expect(getPreferences).toHaveBeenCalled());
+      await pickTheme(screen, "System");
+      await expect.element(screen.getByText("theme: system")).toBeVisible();
+      save.succeed({ theme: "dark", locale: "fr" });
+      await vi.waitFor(() => expect(save.calls()).toBe(2));
+      save.fail();
 
-    await expect.element(screen.getByText("theme: dark")).toBeVisible();
-    await expect.element(screen.getByText("locale: fr")).toBeVisible();
-  });
+      await expect.element(screen.getByText("theme: dark")).toBeVisible();
+      await expect.element(screen.getByText("locale: fr")).toBeVisible();
+    },
+  );
 
   it("reverts only the failed theme while a newer locale save is pending", async () => {
     const save = createFailingSave();
