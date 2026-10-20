@@ -68,7 +68,7 @@ const DealShowContent = () => {
               >
                 <CompanyAvatar />
               </ReferenceField>
-              <h2 className="text-2xl font-semibold">{record.name}</h2>
+              <h2 className="text-xl font-semibold">{record.name}</h2>
             </div>
             <div className={`flex gap-2 ${record.archived_at ? "" : "pr-12"}`}>
               {record.archived_at ? (
