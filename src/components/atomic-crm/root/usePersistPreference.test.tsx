@@ -58,14 +58,17 @@ const createFakeServer = (
 
 const createFailingSave = () => {
   let rejectSave: (error: Error) => void = () => {};
+  let resolveSave: (preferences: UserPreferences) => void = () => {};
   let calls = 0;
   return {
     updatePreferences: () =>
-      new Promise<UserPreferences>((_, reject) => {
+      new Promise<UserPreferences>((resolve, reject) => {
         calls += 1;
+        resolveSave = resolve;
         rejectSave = reject;
       }),
     fail: () => rejectSave(new Error("Denied")),
+    succeed: (preferences: UserPreferences) => resolveSave(preferences),
     calls: () => calls,
   };
 };
@@ -85,6 +88,19 @@ const createHeldReads = (initial: UserPreferences) => {
     reads: () => reads,
   };
 };
+
+const pickDarkThenSystem = async (
+  screen: Awaited<ReturnType<typeof render>>,
+) => {
+  await screen.getByRole("button", { name: "Toggle theme" }).click();
+  await screen.getByRole("menuitem", { name: "Dark" }).click();
+  await screen.getByRole("button", { name: "Toggle theme" }).click();
+  await screen.getByRole("menuitem", { name: "System" }).click();
+  await expect.element(screen.getByText("theme: system")).toBeVisible();
+};
+
+const queryErrorToast = (screen: Awaited<ReturnType<typeof render>>) =>
+  screen.getByText("Could not save your preferences", { exact: false }).query();
 
 const Probe = () => {
   const { theme } = useTheme();
@@ -324,6 +340,34 @@ describe("preference persistence", () => {
     await expect.element(screen.getByText("theme: system")).toBeVisible();
   });
 
+  it("keeps the newer theme without warning when an older save fails", async () => {
+    const save = createFailingSave();
+    const screen = await render(
+      <StoryWrapper
+        dataProvider={{
+          getPreferences: createFakeServer({ theme: "light" }).getPreferences,
+          updatePreferences: save.updatePreferences,
+        }}
+        layout={Layout}
+      >
+        <Probe />
+      </StoryWrapper>,
+    );
+    await expect.element(screen.getByText("theme: light")).toBeVisible();
+
+    await pickDarkThenSystem(screen);
+    save.fail();
+    await vi.waitFor(() => expect(save.calls()).toBe(2));
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    await expect.element(screen.getByText("theme: system")).toBeVisible();
+    expect(queryErrorToast(screen)).toBeNull();
+    save.succeed({ theme: "system" });
+    await new Promise((resolve) => setTimeout(resolve, 300));
+
+    await expect.element(screen.getByText("theme: system")).toBeVisible();
+    expect(queryErrorToast(screen)).toBeNull();
+  });
+
   it("goes back to the stored theme when two quick changes both fail", async () => {
     const save = createFailingSave();
     const screen = await render(
@@ -339,17 +383,20 @@ describe("preference persistence", () => {
     );
     await expect.element(screen.getByText("theme: light")).toBeVisible();
 
-    await screen.getByRole("button", { name: "Toggle theme" }).click();
-    await screen.getByRole("menuitem", { name: "Dark" }).click();
-    await screen.getByRole("button", { name: "Toggle theme" }).click();
-    await screen.getByRole("menuitem", { name: "System" }).click();
-    await expect.element(screen.getByText("theme: system")).toBeVisible();
+    await pickDarkThenSystem(screen);
     save.fail();
     await vi.waitFor(() => expect(save.calls()).toBe(2));
-    save.fail();
     await new Promise((resolve) => setTimeout(resolve, 300));
+    await expect.element(screen.getByText("theme: system")).toBeVisible();
+    expect(queryErrorToast(screen)).toBeNull();
+    save.fail();
 
     await expect.element(screen.getByText("theme: light")).toBeVisible();
+    await expect
+      .element(
+        screen.getByText("Could not save your preferences", { exact: false }),
+      )
+      .toBeVisible();
   });
 
   it("keeps the new theme when a refetch during the save returns the old one", async () => {

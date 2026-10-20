@@ -17,10 +17,15 @@ let pendingWrites: Promise<unknown> = Promise.resolve();
 let pendingCount = 0;
 let generation = 0;
 let baseline: UserPreferences = {};
+let writeCount = 0;
+let latestWriteByKey: Partial<Record<keyof UserPreferences, number>> = {};
+
+const PREFERENCE_KEYS = ["theme", "locale"] as const;
 
 export const resetPendingPreferenceWrites = () => {
   generation += 1;
   pendingCount = 0;
+  latestWriteByKey = {};
   pendingWrites = Promise.resolve();
 };
 
@@ -49,6 +54,15 @@ export const usePersistPreference = () => {
     (patch: Partial<UserPreferences>) => {
       if (pendingCount === 0) baseline = { theme, locale };
       pendingCount += 1;
+      writeCount += 1;
+      const writeId = writeCount;
+      const changedKeys = PREFERENCE_KEYS.filter(
+        (key) => patch[key] !== undefined,
+      );
+      latestWriteByKey = {
+        ...latestWriteByKey,
+        ...Object.fromEntries(changedKeys.map((key) => [key, writeId])),
+      };
       if (patch.theme !== undefined) setTheme(patch.theme);
       if (patch.locale !== undefined) setLocale(patch.locale);
 
@@ -77,16 +91,20 @@ export const usePersistPreference = () => {
         } catch {
           if (!isCurrent()) return;
           pendingCount -= 1;
+          const keysToRevert = changedKeys.filter(
+            (key) => latestWriteByKey[key] === writeId,
+          );
+          if (keysToRevert.length === 0) return;
           const confirmed = lastConfirmed(
             tracksCache
               ? queryClient.getQueryData<UserPreferences>(queryKey)
               : undefined,
             locales,
           );
-          if (patch.theme !== undefined && confirmed.theme !== undefined) {
+          if (keysToRevert.includes("theme") && confirmed.theme) {
             setTheme(confirmed.theme);
           }
-          if (patch.locale !== undefined && confirmed.locale !== undefined) {
+          if (keysToRevert.includes("locale") && confirmed.locale) {
             setLocale(confirmed.locale);
           }
           notify("crm.preferences.update_error", {
