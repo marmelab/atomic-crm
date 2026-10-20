@@ -167,6 +167,20 @@ describe("fakerest preferences", () => {
     expect(sale.preferences).toBeUndefined();
   });
 
+  it("refuses to write, and touches no sale, when the default authProvider has no stored user", async () => {
+    localStorage.removeItem(USER_STORAGE_KEY);
+    const dataProvider = createProvider();
+
+    await expect(
+      dataProvider.updatePreferences({ theme: "dark" }),
+    ).rejects.toThrow();
+
+    const { data: sale } = await dataProvider.getOne("sales", {
+      id: DEFAULT_USER.id,
+    });
+    expect(sale.preferences).toBeUndefined();
+  });
+
   it("returns a validated value, so a corrupt stored theme cannot reach the UI", async () => {
     localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(DEFAULT_USER));
     const db = structuredClone(createCrmDb());

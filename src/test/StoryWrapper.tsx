@@ -157,7 +157,11 @@ export const StoryWrapper = ({
   );
   const dataProvider = useMemo(
     () => ({
-      ...createDataProvider({ db: createCrmDb(cloneDeep(data)), silent }),
+      ...createDataProvider({
+        db: createCrmDb(cloneDeep(data)),
+        silent,
+        authProvider,
+      }),
       ...dataProviderOverrides,
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
