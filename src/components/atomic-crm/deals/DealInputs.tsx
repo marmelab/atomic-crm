@@ -16,7 +16,7 @@ import { AutocompleteCompanyInput } from "../companies/AutocompleteCompanyInput.
 export const DealInputs = () => {
   const isMobile = useIsMobile();
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-10 p-1">
       <DealInfoInputs />
 
       <div className={`flex gap-6 ${isMobile ? "flex-col" : "flex-row"}`}>
@@ -41,9 +41,9 @@ const DealLinkedToInputs = () => {
   const translate = useTranslate();
   return (
     <div className="flex flex-col gap-4 flex-1">
-      <h3 className="text-base font-medium">
+      <h6 className="text-lg font-semibold">
         {translate("resources.deals.inputs.linked_to")}
-      </h3>
+      </h6>
       <ReferenceInput source="company_id" reference="companies">
         <AutocompleteCompanyInput
           label="resources.deals.fields.company_id"
@@ -68,9 +68,9 @@ const DealMiscInputs = () => {
   const translate = useTranslate();
   return (
     <div className="flex flex-col gap-4 flex-1">
-      <h3 className="text-base font-medium">
+      <h6 className="text-lg font-semibold">
         {translate("resources.deals.field_categories.misc")}
-      </h3>
+      </h6>
 
       <SelectInput
         source="category"

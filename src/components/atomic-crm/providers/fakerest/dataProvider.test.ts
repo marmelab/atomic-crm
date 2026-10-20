@@ -46,6 +46,39 @@ describe("fakerest dataProvider", () => {
 
     expect(tags.map((tag) => tag.id)).toEqual([2]);
   });
+
+  it("lists a task created in the app before older ones in the global search", async () => {
+    const dataProvider = createDataProvider({
+      db: {
+        companies: [],
+        contacts: [{ id: 1, first_name: "Ann", nb_tasks: 1 }],
+        deals: [],
+        contact_notes: [],
+        deal_notes: [],
+        tasks: [
+          {
+            id: 1,
+            contact_id: 1,
+            text: "Call back",
+            created_at: "2020-01-01T00:00:00.000Z",
+            done_date: null,
+          },
+        ],
+      } as unknown as Db,
+      latency: 0,
+      silent: true,
+    });
+
+    await dataProvider.create("tasks", {
+      data: { contact_id: 1, text: "Call again", done_date: null },
+    });
+    const results = await dataProvider.globalSearch("call", ["tasks"], 10);
+
+    expect(results.map((result) => result.title)).toEqual([
+      "Call again",
+      "Call back",
+    ]);
+  });
 });
 
 describe("fakerest preferences", () => {

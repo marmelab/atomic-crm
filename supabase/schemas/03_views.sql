@@ -10,7 +10,7 @@ select
     c.created_at as date,
     c.id as company_id,
     c.sales_id,
-    to_json(c.*) as company,
+    (to_jsonb(c.*) - 'fts')::json as company,
     null::json as contact,
     null::json as deal,
     null::json as contact_note,
@@ -24,7 +24,7 @@ select
     co.company_id,
     co.sales_id,
     null::json as company,
-    to_json(co.*) as contact,
+    (to_jsonb(co.*) - 'fts')::json as contact,
     null::json as deal,
     null::json as contact_note,
     null::json as deal_note
@@ -39,7 +39,7 @@ select
     null::json as company,
     null::json as contact,
     null::json as deal,
-    to_json(cn.*) as contact_note,
+    (to_jsonb(cn.*) - 'fts')::json as contact_note,
     null::json as deal_note
 from public.contact_notes cn
     left join public.contacts co on co.id = cn.contact_id
@@ -52,7 +52,7 @@ select
     d.sales_id,
     null::json as company,
     null::json as contact,
-    to_json(d.*) as deal,
+    (to_jsonb(d.*) - 'fts')::json as deal,
     null::json as contact_note,
     null::json as deal_note
 from public.deals d
@@ -67,7 +67,7 @@ select
     null::json as contact,
     null::json as deal,
     null::json as contact_note,
-    to_json(dn.*) as deal_note
+    (to_jsonb(dn.*) - 'fts')::json as deal_note
 from public.deal_notes dn
     left join public.deals d on d.id = dn.deal_id;
 

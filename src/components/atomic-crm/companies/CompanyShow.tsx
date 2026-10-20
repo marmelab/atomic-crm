@@ -115,7 +115,9 @@ const CompanyShowContent = () => {
           <CardContent>
             <div className="flex mb-3">
               <CompanyAvatar />
-              <h5 className="text-xl ml-2 flex-1">{record.name}</h5>
+              <h5 className="text-xl font-semibold ml-2 flex-1">
+                {record.name}
+              </h5>
             </div>
             <Tabs defaultValue={currentTab} onValueChange={handleTabChange}>
               <TabsList className="grid w-full grid-cols-3">

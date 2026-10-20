@@ -313,7 +313,18 @@ const MobileAdmin = (
   return (
     <PersistQueryClientProvider
       client={queryClient}
-      persistOptions={{ persister: asyncStoragePersister }}
+      persistOptions={{
+        persister: asyncStoragePersister,
+        dehydrateOptions: {
+          // Picks the queries saved to localStorage for offline use: successful
+          // ones (react-query's default rule, inlined because the persister
+          // types its own copy of query-core), except those flagged with
+          // `meta: { persist: false }`, like the global search, which caches one
+          // query per typed term.
+          shouldDehydrateQuery: (query) =>
+            query.state.status === "success" && query.meta?.persist !== false,
+        },
+      }}
     >
       <Admin
         queryClient={queryClient}

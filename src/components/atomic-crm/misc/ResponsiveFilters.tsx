@@ -48,14 +48,16 @@ export const ResponsiveFilters = ({
 
   if (isMobile) {
     return (
-      <div className="flex flex-1 gap-2">
-        <FilterLiveForm formComponent={FlexForm}>
-          <SearchInput
-            source={source}
-            className={className}
-            {...otherSearchInputProps}
-          />
-        </FilterLiveForm>
+      <div className={searchInput ? "flex flex-1 gap-2" : "flex"}>
+        {searchInput ? (
+          <FilterLiveForm formComponent={FlexForm}>
+            <SearchInput
+              source={source}
+              className={className}
+              {...otherSearchInputProps}
+            />
+          </FilterLiveForm>
+        ) : null}
         <Sheet>
           <SheetTrigger asChild>
             <Button
@@ -77,10 +79,8 @@ export const ResponsiveFilters = ({
           </SheetTrigger>
           <SheetContent side="bottom" className="h-dvh p-4 flex flex-col">
             <SheetHeader className="-p-4">
-              <SheetTitle>
-                <h1 className="text-xl font-semibold">
-                  {translate("ra.action.add_filter")}
-                </h1>
+              <SheetTitle className="text-xl">
+                {translate("ra.action.add_filter")}
               </SheetTitle>
             </SheetHeader>
             <div className="flex-1 overflow-y-auto flex flex-col gap-3 pb-4">

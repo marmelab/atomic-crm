@@ -61,9 +61,11 @@ export function BulkTagButton() {
 
   const applyTagToSelection = useCallback(
     async (tag: Tag) => {
-      const contactsToUpdate = selectedContacts.filter(
-        (contact) => !contact.tags.includes(tag.id),
+      const contactsToTag = selectedContacts.filter(
+        (contact) => !(contact.tags ?? []).includes(tag.id),
       );
+      const isRemoving = contactsToTag.length === 0;
+      const contactsToUpdate = isRemoving ? selectedContacts : contactsToTag;
 
       setIsApplying(true);
 
@@ -72,16 +74,20 @@ export function BulkTagButton() {
           contactsToUpdate.map((contact) =>
             update("contacts", {
               id: contact.id,
-              data: { tags: [...(contact.tags ?? []), tag.id] },
+              data: {
+                tags: isRemoving
+                  ? contact.tags.filter((id) => id !== tag.id)
+                  : [...(contact.tags ?? []), tag.id],
+              },
               previousData: contact,
             }),
           ),
         );
 
         notify(
-          contactsToUpdate.length > 0
-            ? "resources.contacts.bulk_tag.success"
-            : "resources.contacts.bulk_tag.noop",
+          isRemoving
+            ? "resources.contacts.bulk_tag.removed"
+            : "resources.contacts.bulk_tag.success",
           {
             messageArgs: { smart_count: contactsToUpdate.length },
             type: "success",

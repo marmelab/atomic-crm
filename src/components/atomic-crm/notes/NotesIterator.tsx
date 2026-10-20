@@ -24,11 +24,7 @@ export const NotesIterator = ({
         <div className="mt-4 space-y-4">
           {data.map((note, index) => (
             <Fragment key={note.id}>
-              <Note
-                note={note}
-                isLast={index === data.length - 1}
-                showStatus={showStatus}
-              />
+              <Note note={note} isCompact={index > 0} showStatus={showStatus} />
               {index < data.length - 1 && <Separator />}
             </Fragment>
           ))}

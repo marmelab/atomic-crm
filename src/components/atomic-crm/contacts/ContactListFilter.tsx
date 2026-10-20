@@ -29,9 +29,12 @@ export const ContactListFilter = () => {
 
   return (
     <ResponsiveFilters
-      searchInput={{
-        placeholder: translate("resources.contacts.filters.search"),
-      }}
+      // on mobile, the header's global search replaces the name search
+      searchInput={
+        isMobile
+          ? undefined
+          : { placeholder: translate("resources.contacts.filters.search") }
+      }
     >
       <FilterCategory
         label="resources.contacts.fields.last_seen"
