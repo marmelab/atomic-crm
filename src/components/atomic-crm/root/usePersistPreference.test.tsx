@@ -2,6 +2,7 @@ import { useIsFetching, useQueryClient } from "@tanstack/react-query";
 import polyglotI18nProvider from "ra-i18n-polyglot";
 import { mergeTranslations, useLocaleState } from "ra-core";
 import englishMessages from "ra-language-english";
+import { useState } from "react";
 import { render } from "vitest-browser-react";
 
 import { useTheme } from "@/components/admin/use-theme";
@@ -168,6 +169,36 @@ const Probe = () => {
         refetch preferences
       </button>
     </div>
+  );
+};
+
+const LeavingFrenchSaver = ({ onLeave }: { onLeave: () => void }) => {
+  const persist = usePersistPreference();
+  return (
+    <button
+      onClick={() => {
+        persist({ locale: "fr" });
+        onLeave();
+      }}
+    >
+      set french locale and leave
+    </button>
+  );
+};
+
+const SaveFrenchThenLeave = () => {
+  const [hasLeft, setHasLeft] = useState(false);
+  return hasLeft ? null : (
+    <LeavingFrenchSaver onLeave={() => setHasLeft(true)} />
+  );
+};
+
+const EnglishSaver = () => {
+  const persist = usePersistPreference();
+  return (
+    <button onClick={() => persist({ locale: "en" })}>
+      set english locale
+    </button>
   );
 };
 
@@ -676,6 +707,46 @@ describe("preference persistence", () => {
     releaseIdentity();
 
     await expect.element(screen.getByText("theme: dark")).toBeVisible();
+    await expect.element(screen.getByText("locale: fr")).toBeVisible();
+  });
+
+  it("reverts a failed locale save to the locale confirmed by a save whose component left before the identity loaded", async () => {
+    const identity = createHeldIdentity(true);
+    const getPreferences = vi.fn(
+      createFakeServer({ locale: "en" }).getPreferences,
+    );
+    const save = createFailingSave();
+    const screen = await render(
+      <StoryWrapper
+        i18nProvider={createTwoLocalesI18nProvider()}
+        authProvider={identity.authProvider}
+        dataProvider={{
+          getPreferences,
+          updatePreferences: save.updatePreferences,
+        }}
+        layout={Layout}
+      >
+        <Probe />
+        <SaveFrenchThenLeave />
+        <EnglishSaver />
+      </StoryWrapper>,
+    );
+    await expect.element(screen.getByText("locale: en")).toBeVisible();
+
+    await screen
+      .getByRole("button", { name: "set french locale and leave" })
+      .click();
+    await expect.element(screen.getByText("locale: fr")).toBeVisible();
+    await vi.waitFor(() => expect(save.calls()).toBe(1));
+    identity.release();
+    await vi.waitFor(() => expect(getPreferences).toHaveBeenCalled());
+    await expect.element(screen.getByText("fetching: 0")).toBeVisible();
+    save.succeed({ locale: "fr" });
+    await screen.getByRole("button", { name: "set english locale" }).click();
+    await expect.element(screen.getByText("locale: en")).toBeVisible();
+    await vi.waitFor(() => expect(save.calls()).toBe(2));
+    save.fail();
+
     await expect.element(screen.getByText("locale: fr")).toBeVisible();
   });
 

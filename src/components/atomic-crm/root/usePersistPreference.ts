@@ -1,13 +1,12 @@
 import { type QueryClient, useQueryClient } from "@tanstack/react-query";
 import {
-  type Identifier,
   useDataProvider,
-  useGetIdentity,
   useLocales,
   useLocaleState,
   useNotify,
+  type UserIdentity,
 } from "ra-core";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback } from "react";
 
 import type { Theme } from "@/components/admin/theme-context";
 import { useTheme } from "@/components/admin/use-theme";
@@ -57,8 +56,10 @@ type SaveContext = {
   setTheme: (theme: Theme) => void;
   setLocale: (locale: string) => void;
   locales: readonly { locale: string }[];
-  getIdentityId: () => Identifier | undefined;
 };
+
+const getIdentityId = (queryClient: QueryClient) =>
+  queryClient.getQueryData<UserIdentity>(["auth", "getIdentity"])?.id;
 
 const startWrite = (
   patch: Partial<UserPreferences>,
@@ -82,7 +83,7 @@ const startWrite = (
 
 const applyConfirmedWhenSettled = (context: SaveContext) => {
   const { queryClient, locales, setTheme, setLocale } = context;
-  const identityId = context.getIdentityId();
+  const identityId = getIdentityId(queryClient);
   if (identityId === undefined || pendingCount > 0) return;
   const stored = queryClient.getQueryData<UserPreferences>([
     PREFERENCES_QUERY_KEY,
@@ -94,7 +95,7 @@ const applyConfirmedWhenSettled = (context: SaveContext) => {
 
 const revertFailedWrite = (write: PreferenceWrite, context: SaveContext) => {
   const { queryClient, locales, setTheme, setLocale } = context;
-  const identityId = context.getIdentityId();
+  const identityId = getIdentityId(queryClient);
   const keysToRevert = write.changedKeys.filter(
     (key) => latestWriteByKey[key] === write.writeId,
   );
@@ -130,7 +131,7 @@ const savePreferenceWrite = async (
   try {
     const preferences = await dataProvider.updatePreferences(write.patch);
     if (!isCurrent()) return;
-    const identityId = context.getIdentityId();
+    const identityId = getIdentityId(queryClient);
     if (identityId === undefined) {
       pendingCount -= 1;
       return;
@@ -151,16 +152,11 @@ const savePreferenceWrite = async (
 
 export const usePersistPreference = () => {
   const dataProvider = useDataProvider<CrmDataProvider>();
-  const { identity } = useGetIdentity();
   const queryClient = useQueryClient();
   const notify = useNotify();
   const { theme, setTheme } = useTheme();
   const [locale, setLocale] = useLocaleState();
   const locales = useLocales();
-  const identityIdRef = useRef(identity?.id);
-  useEffect(() => {
-    identityIdRef.current = identity?.id;
-  }, [identity?.id]);
 
   return useCallback(
     (patch: Partial<UserPreferences>) => {
@@ -175,7 +171,6 @@ export const usePersistPreference = () => {
         setTheme,
         setLocale,
         locales,
-        getIdentityId: () => identityIdRef.current,
       };
       pendingWrites = pendingWrites
         .catch(() => {})
