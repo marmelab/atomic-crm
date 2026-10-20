@@ -89,6 +89,17 @@ const createHeldReads = (initial: UserPreferences) => {
   };
 };
 
+const createHeldFirstRead = () => {
+  let releaseRead: (preferences: UserPreferences) => void = () => {};
+  const firstRead = new Promise<UserPreferences>((resolve) => {
+    releaseRead = resolve;
+  });
+  return {
+    getPreferences: () => firstRead.then((preferences) => ({ ...preferences })),
+    release: (preferences: UserPreferences) => releaseRead(preferences),
+  };
+};
+
 const pickDarkThenSystem = async (
   screen: Awaited<ReturnType<typeof render>>,
 ) => {
@@ -470,6 +481,88 @@ describe("preference persistence", () => {
     save.fail();
 
     await expect.element(screen.getByText("locale: en")).toBeVisible();
+  });
+
+  it("applies the stored locale read during a theme save that then fails", async () => {
+    const reads = createHeldFirstRead();
+    const save = createFailingSave();
+    const screen = await render(
+      <StoryWrapper
+        i18nProvider={createTwoLocalesI18nProvider()}
+        dataProvider={{
+          getPreferences: reads.getPreferences,
+          updatePreferences: save.updatePreferences,
+        }}
+        layout={Layout}
+      >
+        <Probe />
+      </StoryWrapper>,
+    );
+    await expect.element(screen.getByText("theme: system")).toBeVisible();
+
+    await screen.getByRole("button", { name: "Toggle theme" }).click();
+    await screen.getByRole("menuitem", { name: "Light" }).click();
+    await vi.waitFor(() => expect(save.calls()).toBe(1));
+    reads.release({ theme: "dark", locale: "fr" });
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    save.fail();
+
+    await expect.element(screen.getByText("theme: dark")).toBeVisible();
+    await expect.element(screen.getByText("locale: fr")).toBeVisible();
+  });
+
+  it("applies the stored locale read during a theme save that then succeeds with the same preferences", async () => {
+    const reads = createHeldFirstRead();
+    const save = createFailingSave();
+    const screen = await render(
+      <StoryWrapper
+        i18nProvider={createTwoLocalesI18nProvider()}
+        dataProvider={{
+          getPreferences: reads.getPreferences,
+          updatePreferences: save.updatePreferences,
+        }}
+        layout={Layout}
+      >
+        <Probe />
+      </StoryWrapper>,
+    );
+    await expect.element(screen.getByText("theme: system")).toBeVisible();
+
+    await screen.getByRole("button", { name: "Toggle theme" }).click();
+    await screen.getByRole("menuitem", { name: "Light" }).click();
+    await vi.waitFor(() => expect(save.calls()).toBe(1));
+    reads.release({ theme: "light", locale: "fr" });
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    save.succeed({ theme: "light", locale: "fr" });
+
+    await expect.element(screen.getByText("locale: fr")).toBeVisible();
+    await expect.element(screen.getByText("theme: light")).toBeVisible();
+  });
+
+  it("applies the locale confirmed by a successful save when the next save fails", async () => {
+    const save = createFailingSave();
+    const screen = await render(
+      <StoryWrapper
+        i18nProvider={createTwoLocalesI18nProvider()}
+        dataProvider={{
+          getPreferences: createFakeServer({ theme: "light", locale: "en" })
+            .getPreferences,
+          updatePreferences: save.updatePreferences,
+        }}
+        layout={Layout}
+      >
+        <Probe />
+      </StoryWrapper>,
+    );
+    await expect.element(screen.getByText("theme: light")).toBeVisible();
+
+    await pickDarkThenSystem(screen);
+    save.succeed({ theme: "dark", locale: "fr" });
+    await vi.waitFor(() => expect(save.calls()).toBe(2));
+    save.fail();
+
+    await expect.element(screen.getByText("theme: dark")).toBeVisible();
+    await expect.element(screen.getByText("locale: fr")).toBeVisible();
   });
 
   it("does not revert or warn when a save started before a logout fails", async () => {

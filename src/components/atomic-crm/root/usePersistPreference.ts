@@ -80,6 +80,17 @@ const startWrite = (
   return write;
 };
 
+const applyConfirmedWhenSettled = (context: SaveContext) => {
+  const { identityId, queryClient, locales, setTheme, setLocale } = context;
+  if (identityId === undefined || pendingCount > 0) return;
+  const stored = queryClient.getQueryData<UserPreferences>([
+    PREFERENCES_QUERY_KEY,
+    identityId,
+  ]);
+  if (stored?.theme) setTheme(stored.theme);
+  if (isOfferedLocale(stored?.locale, locales)) setLocale(stored.locale);
+};
+
 const revertFailedWrite = (write: PreferenceWrite, context: SaveContext) => {
   const { queryClient, identityId, locales, setTheme, setLocale } = context;
   const keysToRevert = write.changedKeys.filter(
@@ -127,9 +138,11 @@ const savePreferenceWrite = async (
     if (!isCurrent()) return;
     pendingCount -= 1;
     queryClient.setQueryData(queryKey, preferences);
+    applyConfirmedWhenSettled(context);
   } catch {
     if (!isCurrent()) return;
     pendingCount -= 1;
+    applyConfirmedWhenSettled(context);
     revertFailedWrite(write, context);
   }
 };
