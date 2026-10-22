@@ -74,4 +74,45 @@ describe("fakerest dataProvider", () => {
       "Call back",
     ]);
   });
+
+  it("finds an old contact in the global search despite many newer notes mentioning them", async () => {
+    const dataProvider = createDataProvider({
+      db: {
+        companies: [],
+        contacts: [
+          {
+            id: 1,
+            first_name: "Marc",
+            last_name: "Durand",
+            first_seen: "2021-03-01T00:00:00.000Z",
+          },
+        ],
+        deals: [],
+        tasks: [],
+        contact_notes: Array.from({ length: 20 }, (_, index) => ({
+          id: index + 1,
+          contact_id: 1,
+          text: `Called Marc about the renewal (${index})`,
+          date: "2026-09-01T00:00:00.000Z",
+          attachments: [],
+        })),
+        deal_notes: [],
+      } as unknown as Db,
+      latency: 0,
+      silent: true,
+    });
+
+    const results = await dataProvider.globalSearch(
+      "marc",
+      ["contacts", "contact_notes"],
+      10,
+    );
+
+    expect(
+      results.filter((result) => result.resource === "contacts"),
+    ).toHaveLength(1);
+    expect(
+      results.filter((result) => result.resource === "contact_notes"),
+    ).toHaveLength(10);
+  });
 });

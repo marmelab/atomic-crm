@@ -98,7 +98,8 @@ alter table public.deal_notes alter column fts set statistics 10000;
 
 -- Each branch takes its own newest max_results matches (at most 200), so the
 -- union never holds more than 6 * max_results rows, and the lookups that build
--- display labels only run on those. `content` carries the searched fields in
+-- display labels only run on those. The cap is per resource, not overall: an
+-- old contact must not be crowded out by newer notes that mention its name. `content` carries the searched fields in
 -- their original form, so the client can show and highlight where the words
 -- matched. The SQL is built per call with the tsquery inlined as a literal:
 -- with a parameter the planner could not tell a rare word (use the GIN index)
@@ -179,9 +180,8 @@ begin
     end if;
 
     return query execute format(
-        'select * from (%s) results order by 7 desc nulls last limit %s',
-        array_to_string(branches, ' union all '),
-        row_limit
+        'select * from (%s) results order by 7 desc nulls last',
+        array_to_string(branches, ' union all ')
     );
 end
 $_$;

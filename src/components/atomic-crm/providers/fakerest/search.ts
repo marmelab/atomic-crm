@@ -52,9 +52,8 @@ type Candidate = { result: SearchResult; document: string };
  *
  * It follows the same rules: the same fields per resource, every query word
  * must start a word of the record (accents and case ignored), open tasks and
- * live deals only, each resource's newest `maxResults` matches, then the
- * newest `maxResults` overall. It scans every record, which is fine for the
- * in-browser demo data.
+ * live deals only, each resource's newest `maxResults` matches, newest first.
+ * It scans every record, which is fine for the in-browser demo data.
  */
 export async function getSearchResults(
   dataProvider: DataProvider,
@@ -227,6 +226,5 @@ export async function getSearchResults(
         .sort(byDateDesc)
         .slice(0, maxResults),
     )
-    .sort(byDateDesc)
-    .slice(0, maxResults);
+    .sort(byDateDesc);
 }
