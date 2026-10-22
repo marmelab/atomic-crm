@@ -124,14 +124,15 @@ export const GlobalSearchButton = ({
 
 const MIN_SEARCH_LENGTH = 2;
 const DEBOUNCE_MS = 300;
-const MAX_RESULTS = 50;
+const MAX_RESULTS_PER_RESOURCE = 10;
 
 /**
  * Run the global search for an already debounced search term.
  *
  * Stays idle until the term reaches MIN_SEARCH_LENGTH, so opening the dialog
- * does not fire a request. `resources` restricts the query server-side, so the
- * row cap is spent only on resources the current layout can actually link to.
+ * does not fire a request. `resources` restricts the query server-side to the
+ * resources the current layout can actually link to. The row cap applies to
+ * each resource, so every group shows its own newest matches.
  */
 const useGlobalSearch = (
   debouncedQuery: string,
@@ -143,7 +144,11 @@ const useGlobalSearch = (
   const { data, isPending, error } = useQuery({
     queryKey: ["globalSearch", debouncedQuery, resources],
     queryFn: () =>
-      dataProvider.globalSearch(debouncedQuery, resources, MAX_RESULTS),
+      dataProvider.globalSearch(
+        debouncedQuery,
+        resources,
+        MAX_RESULTS_PER_RESOURCE,
+      ),
     enabled: isEnabled,
     meta: { persist: false },
     // offlineFirst (the app default) pauses a failed search while offline,
