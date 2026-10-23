@@ -292,23 +292,25 @@ export const GlobalSearchDialog = ({
             }
           >
             {isTooShort ? (
-              <div className="py-6 text-center text-sm text-muted-foreground">
+              <div className="px-4 py-6 text-center text-sm text-muted-foreground">
                 {translate("crm.search.hint", { min: MIN_SEARCH_LENGTH })}
               </div>
             ) : error ? (
               <div
                 role="alert"
-                className="py-6 text-center text-sm text-destructive"
+                className="px-4 py-6 text-center text-sm text-destructive"
               >
                 {translate("crm.search.error")}
               </div>
             ) : isPending ? (
-              <div className="py-6 text-center text-sm text-muted-foreground">
+              <div className="px-4 py-6 text-center text-sm text-muted-foreground">
                 {translate("crm.common.loading")}
               </div>
             ) : (
               <>
-                <CommandEmpty>{translate("crm.search.empty")}</CommandEmpty>
+                <CommandEmpty className="px-4 py-6 text-center text-sm">
+                  {translate("crm.search.empty")}
+                </CommandEmpty>
                 {SEARCH_RESOURCES.map(({ name, icon: Icon, labelKey }) => {
                   const groupResults = linkedResults.filter(
                     ({ result }) => result.resource === name,
