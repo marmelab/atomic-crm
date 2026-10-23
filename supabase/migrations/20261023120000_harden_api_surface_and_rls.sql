@@ -161,7 +161,24 @@ create policy "Enable access for authenticated users only" on public.favicons_ex
 
 drop function if exists public.is_admin();
 
-revoke all on all functions in schema public from public, anon, authenticated;
+-- One by one, not `all functions in schema public`: that would also strip
+-- EXECUTE from the global search functions, which the fts generated columns
+-- call on every insert/update. Mirrors the blanket revoke of 06_grants.sql,
+-- which only sees the 02_functions.sql functions.
+revoke all on function public.cleanup_note_attachments() from public, anon, authenticated;
+revoke all on function public.get_avatar_for_email(text) from public, anon, authenticated;
+revoke all on function public.get_domain_favicon(text) from public, anon, authenticated;
+revoke all on function public.get_note_attachments_function_url() from public, anon, authenticated;
+revoke all on function public.get_user_id_by_email(text) from public, anon, authenticated;
+revoke all on function public.handle_company_saved() from public, anon, authenticated;
+revoke all on function public.handle_contact_note_created_or_updated() from public, anon, authenticated;
+revoke all on function public.handle_contact_saved() from public, anon, authenticated;
+revoke all on function public.handle_new_user() from public, anon, authenticated;
+revoke all on function public.handle_tag_deleted() from public, anon, authenticated;
+revoke all on function public.handle_update_user() from public, anon, authenticated;
+revoke all on function public.merge_contacts(bigint, bigint) from public, anon, authenticated;
+revoke all on function public.lowercase_email_jsonb() from public, anon, authenticated;
+revoke all on function public.set_sales_id_default() from public, anon, authenticated;
 grant all on all functions in schema public to service_role;
 
 grant all on function public.get_avatar_for_email(text) to authenticated;
@@ -178,11 +195,6 @@ grant all on all sequences in schema public to service_role;
 
 -- Must stay after the blanket revoke above.
 grant all on table public.init_state to anon;
-
-alter default privileges for role postgres in schema public revoke all on sequences from anon;
-alter default privileges for role postgres in schema public revoke execute on functions from public;
-alter default privileges for role postgres in schema public revoke all on functions from anon;
-alter default privileges for role postgres in schema public revoke all on tables from anon;
 
 -- The bucket is public, so objects are served by URL without any policy on
 -- storage.objects; this one only enabled enumeration. See 07_storage.sql.

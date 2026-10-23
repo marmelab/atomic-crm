@@ -6,10 +6,8 @@
 -- probe. Everything else in public is behind RLS that requires an active sales
 -- member, so an anon grant would only widen the exposed API surface.
 --
--- Known residual: pg_default_acl also holds a supabase_admin entry for schema
--- public that still grants anon. A postgres-owned schema file cannot alter it,
--- so objects created by supabase_admin (not by migrations) escape the defaults
--- below.
+-- Known residual: Supabase's own default privileges still grant anon on new
+-- objects in public, so the migration creating one must revoke anon itself.
 --
 
 -- Schema usage
