@@ -98,8 +98,11 @@ prod-deploy: build supabase-deploy
 	npm run ghpages:deploy
 
 supabase-remote-init:
-	npm run supabase:remote:init
-	$(MAKE) supabase-deploy
+	if ! npx supabase projects list >/dev/null 2>&1; then \
+		trap 'npx supabase projects list >/dev/null 2>&1 && npx supabase logout --yes && echo "The Supabase CLI login created a personal access token that never expires. Revoke it at https://supabase.com/dashboard/account/tokens"' EXIT; \
+		trap 'exit 130' INT TERM; \
+	fi; \
+	npm run supabase:remote:init && $(MAKE) supabase-deploy
 
 supabase-deploy:
 	npx supabase db push
