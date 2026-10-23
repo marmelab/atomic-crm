@@ -75,6 +75,11 @@ create or replace trigger on_tag_deleted
     after delete on public.tags
     for each row execute function public.handle_tag_deleted();
 
+-- Restrict what an authenticated user may change on their own sales row
+create or replace trigger enforce_sales_self_update_scope_trigger
+    before update on public.sales
+    for each row execute function public.enforce_sales_self_update_scope();
+
 -- Auth triggers: sync auth.users to public.sales
 create or replace trigger on_auth_user_created
     after insert on auth.users

@@ -5,7 +5,7 @@ import type {
   LayoutComponent,
 } from "ra-core";
 import { CustomRoutes, localStorageStore, Resource } from "ra-core";
-import { useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { Route } from "react-router";
 import { QueryClient } from "@tanstack/react-query";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
@@ -51,6 +51,8 @@ import {
   defaultTaskTypes,
   defaultTitle,
 } from "./defaultConfiguration";
+import { isOfferedLocale } from "./preferences";
+import { resetPendingPreferenceWrites } from "./usePersistPreference";
 import { i18nProvider as defaulti18nProvider } from "../providers/commons/i18nProvider";
 import { StartPage } from "../login/StartPage.tsx";
 import { useIsMobile } from "@/hooks/use-mobile.ts";
@@ -168,21 +170,40 @@ export const CRM = ({
 
   const isMobile = useIsMobile();
 
-  // on login, pre-fetch the configuration to avoid a flickering
-  // when accessing the app for the first time
+  // on login, pre-fetch the configuration and preferences to avoid
+  // a flickering when accessing the app for the first time
+  const prefetchConfigAndPreferences = useCallback(async () => {
+    const loadConfiguration = async () => {
+      try {
+        const config = await dataProvider.getConfiguration();
+        if (Object.keys(config).length > 0) {
+          store.setItem(CONFIGURATION_STORE_KEY, config);
+        }
+      } catch {
+        // Non-critical: config will load via useConfigurationLoader
+      }
+    };
+    const loadPreferences = async () => {
+      try {
+        const preferences = await dataProvider.getPreferences();
+        if (preferences.theme) store.setItem("theme", preferences.theme);
+        const offeredLocales = i18nProvider.getLocales?.() ?? [];
+        if (isOfferedLocale(preferences.locale, offeredLocales)) {
+          store.setItem("locale", preferences.locale);
+        }
+      } catch {
+        // Non-critical: preferences will load via usePreferencesLoader
+      }
+    };
+    await Promise.all([loadConfiguration(), loadPreferences()]);
+  }, [dataProvider, i18nProvider, store]);
+
   const wrappedAuthProvider = useMemo<AuthProvider>(
     () => ({
       ...authProvider,
       login: async (params: any) => {
         const result = await authProvider.login(params);
-        try {
-          const config = await dataProvider.getConfiguration();
-          if (Object.keys(config).length > 0) {
-            store.setItem(CONFIGURATION_STORE_KEY, config);
-          }
-        } catch {
-          // Non-critical: config will load via useConfigurationLoader
-        }
+        await prefetchConfigAndPreferences();
         return result;
       },
       handleCallback: async (params: any) => {
@@ -192,17 +213,11 @@ export const CRM = ({
           );
         }
         const result = await authProvider.handleCallback(params);
-        try {
-          const config = await dataProvider.getConfiguration();
-          if (Object.keys(config).length > 0) {
-            store.setItem(CONFIGURATION_STORE_KEY, config);
-          }
-        } catch {
-          // Non-critical: config will load via useConfigurationLoader
-        }
+        await prefetchConfigAndPreferences();
         return result;
       },
       logout: async (params: any) => {
+        resetPendingPreferenceWrites();
         try {
           store.removeItem(CONFIGURATION_STORE_KEY);
         } catch {
@@ -211,7 +226,7 @@ export const CRM = ({
         return authProvider.logout(params);
       },
     }),
-    [authProvider, dataProvider, store],
+    [authProvider, prefetchConfigAndPreferences, store],
   );
 
   const ResponsiveAdmin = isMobile ? MobileAdmin : DesktopAdmin;
