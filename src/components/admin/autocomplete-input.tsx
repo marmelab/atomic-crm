@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react";
 import { useCallback, useId } from "react";
-import { Check, ChevronsUpDown, X } from "lucide-react";
+import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -40,6 +40,7 @@ import {
   useSupportCreateSuggestion,
 } from "ra-core";
 import { InputHelperText } from "./input-helper-text";
+import { ClearInputButton } from "./clear-input-button";
 
 /**
  * Form control that lets users choose a value from a list using a dropdown with autocompletion.
@@ -257,14 +258,7 @@ export const AutocompleteInput = (
               }
             />
             {isClearable && (
-              <button
-                type="button"
-                aria-label={translate("ra.action.clear_input_value")}
-                className="absolute right-8 top-1/2 -translate-y-1/2 text-muted-foreground opacity-50 hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 rounded-sm"
-                onClick={handleReset}
-              >
-                <X className="h-4 w-4" />
-              </button>
+              <ClearInputButton className="right-8" onClick={handleReset} />
             )}
           </div>
           <PopoverContent className="w-full max-w-(--anchor-width) p-0">

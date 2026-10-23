@@ -1,4 +1,4 @@
-import { X } from "lucide-react";
+import { ClearInputButton } from "@/components/admin/clear-input-button";
 import type {
   ChoicesProps,
   InputProps,
@@ -311,14 +311,7 @@ export const SelectInput = (props: SelectInputProps) => {
             </SelectContent>
           </Select>
           {isClearable ? (
-            <button
-              type="button"
-              aria-label={translate("ra.action.clear_input_value")}
-              className="absolute right-7 top-1/2 -translate-y-1/2 rounded-sm text-muted-foreground opacity-50 hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
-              onClick={handleReset}
-            >
-              <X className="h-4 w-4" />
-            </button>
+            <ClearInputButton className="right-7" onClick={handleReset} />
           ) : null}
         </div>
         <InputHelperText helperText={helperText} />

@@ -30,7 +30,6 @@ import { FieldToggle } from "@/components/admin/field-toggle";
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import {
@@ -80,29 +79,25 @@ export const ColumnsButton = (props: ColumnsButtonProps) => {
     <span className={cn("inline-flex", className)}>
       <Popover open={open} onOpenChange={setOpen}>
         {isMobile ? (
-          // Base UI defaults tooltips to a 600ms open delay; the provider keeps
-          // them instant without app-level setup.
-          <TooltipProvider delay={0}>
-            <Tooltip>
-              <PopoverTrigger
-                render={
-                  <TooltipTrigger
-                    render={
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        aria-label={title}
-                        {...rest}
-                      />
-                    }
-                  />
-                }
-              >
-                <Columns className="size-4" />
-              </PopoverTrigger>
-              <TooltipContent>{title}</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <Tooltip>
+            <PopoverTrigger
+              render={
+                <TooltipTrigger
+                  render={
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label={title}
+                      {...rest}
+                    />
+                  }
+                />
+              }
+            >
+              <Columns className="size-4" />
+            </PopoverTrigger>
+            <TooltipContent>{title}</TooltipContent>
+          </Tooltip>
         ) : (
           <PopoverTrigger
             render={
@@ -146,24 +141,16 @@ export const ColumnsSelector = ({ children }: ColumnsSelectorProps) => {
   const [container, setContainer] = useState<HTMLElement | null>(null);
 
   // Track the portal container across popover mount/unmount cycles.
+  // subtree: Base UI nests portals, so inside a Dialog/Sheet the popover is not a direct child of body.
   useEffect(() => {
-    if (typeof document === "undefined") return;
-
-    const resolveContainer = () => {
-      const target = document.getElementById(elementId);
-      setContainer((current) => {
-        if (target === current) return current;
-        if (target) return target;
-        if (current && !document.body.contains(current)) return null;
-        return current;
-      });
-    };
+    const resolveContainer = () =>
+      setContainer(document.getElementById(elementId));
 
     resolveContainer();
 
     const observer = new MutationObserver(resolveContainer);
 
-    observer.observe(document.body, { childList: true });
+    observer.observe(document.body, { childList: true, subtree: true });
 
     return () => {
       observer.disconnect();

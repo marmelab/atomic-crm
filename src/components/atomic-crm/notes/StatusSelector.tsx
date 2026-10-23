@@ -10,7 +10,7 @@ import { ChevronDownIcon } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 import { useConfigurationContext } from "../root/ConfigurationContext";
-import { Translate, useTranslate } from "ra-core";
+import { useTranslate } from "ra-core";
 
 const NONE_VALUE = "__none__";
 
@@ -89,7 +89,7 @@ export const StatusSelector = ({
     setStatus(!value || value === NONE_VALUE ? "" : value);
   };
 
-  // <SelectValue> renders the trigger label from this map, not from the items' children.
+  // <SelectValue> renders the trigger label from this map; the items render from it too.
   const items = [
     { value: NONE_VALUE, label: noneLabel },
     ...noteStatuses.map((statusOption) => ({
@@ -109,14 +109,9 @@ export const StatusSelector = ({
         <SelectValue placeholder={noneLabel} />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value={NONE_VALUE}>
-          <Translate i18nKey="resources.contacts.background.status_none">
-            None
-          </Translate>
-        </SelectItem>
-        {noteStatuses.map((statusOption) => (
-          <SelectItem key={statusOption.value} value={statusOption.value}>
-            <StatusOption {...statusOption} />
+        {items.map((item) => (
+          <SelectItem key={item.value} value={item.value}>
+            {item.label}
           </SelectItem>
         ))}
       </SelectContent>
