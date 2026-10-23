@@ -2,6 +2,7 @@ import path from "node:path";
 import { defineConfig } from "vitest/config";
 import { playwright } from "@vitest/browser-playwright";
 import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
 
 // Three test projects (https://vitest.dev/guide/projects.html):
 //   - "app":       React/DOM unit tests, run in a real browser (Playwright/Chromium).
@@ -16,7 +17,7 @@ export default defineConfig({
   test: {
     projects: [
       {
-        plugins: [react()],
+        plugins: [react(), tailwindcss()],
         optimizeDeps: {
           exclude: ["playwright", "playwright-core"],
         },
@@ -30,10 +31,23 @@ export default defineConfig({
         test: {
           name: "app",
           globals: true,
+          setupFiles: ["./src/index.css"],
+          // These are browser integration tests: a click can run a mutation, close a
+          // sheet and wait for a toast. The 1s default budget of expect.poll (and of
+          // expect.element, which is built on it) holds on an idle machine but not on
+          // a loaded runner, where the same assertion was measured at 3.3s. This only
+          // raises the ceiling before giving up, so a genuinely broken assertion still
+          // fails, just later.
+          expect: { poll: { timeout: 5000 } },
           browser: {
             headless: true,
             provider: playwright(),
             enabled: true,
+            // Vitest defaults to 414px. Now that the stylesheet above is loaded,
+            // Tailwind's responsive classes actually apply, so that default would
+            // render the mobile branch of every desktop story. Mobile tests opt in
+            // explicitly with `page.viewport(375, 667)`.
+            viewport: { width: 1280, height: 800 },
             instances: [
               {
                 browser: "chromium",

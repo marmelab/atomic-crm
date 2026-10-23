@@ -1,4 +1,4 @@
-import { X } from "lucide-react";
+import { ClearInputButton } from "@/components/admin/clear-input-button";
 import type {
   ChoicesProps,
   InputProps,
@@ -183,7 +183,7 @@ export const SelectInput = (props: SelectInputProps) => {
       } else {
         // Find the choice by value and pass it to field.onChange
         const choice = allChoices?.find(
-          (choice) => getChoiceValue(choice) === value,
+          (choice) => String(getChoiceValue(choice)) === value,
         );
         field.onChange(choice ? getChoiceValue(choice) : value);
       }
@@ -238,10 +238,11 @@ export const SelectInput = (props: SelectInputProps) => {
   }
 
   // Handle reset functionality
-  const handleReset = (e: React.MouseEvent<HTMLDivElement>) => {
-    e.stopPropagation();
+  const handleReset = () => {
     field.onChange(emptyValue);
   };
+
+  const isClearable = !!field.value && field.value !== emptyValue;
 
   return (
     <>
@@ -263,11 +264,6 @@ export const SelectInput = (props: SelectInputProps) => {
         )}
         <div className="relative">
           <Select
-            //FIXME https://github.com/radix-ui/primitives/issues/3135
-            // Setting a key based on the value fixes an issue where onValueChange
-            // was called with an empty string when the controlled value was changed.
-            // See: https://github.com/radix-ui/primitives/issues/3135#issuecomment-2916908248
-            key={`select:${field.value?.toString() ?? emptyValue}`}
             value={field.value?.toString() || emptyValue}
             onValueChange={handleChangeWithCreateSupport}
           >
@@ -276,17 +272,21 @@ export const SelectInput = (props: SelectInputProps) => {
               disabled={field.disabled}
               aria-labelledby={labelId}
             >
-              <SelectValue placeholder={renderEmptyItemOption()} />
-
-              {field.value && field.value !== emptyValue ? (
-                <div
-                  role="button"
-                  className="p-0 ml-auto pointer-events-auto hover:bg-transparent text-muted-foreground opacity-50 hover:opacity-100"
-                  onClick={handleReset}
-                >
-                  <X className="h-4 w-4" />
-                </div>
-              ) : null}
+              <SelectValue
+                placeholder={renderEmptyItemOption()}
+                className={cn(isClearable && "pr-6")}
+              >
+                {(value: string | null) => {
+                  if (!value || value === emptyValue) {
+                    return renderEmptyItemOption();
+                  }
+                  const choice = finalChoices?.find(
+                    (choice) =>
+                      choice && getChoiceValue(choice)?.toString() === value,
+                  );
+                  return choice ? renderMenuItemOption(choice) : value;
+                }}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               {finalChoices?.map((choice) => {
@@ -310,6 +310,9 @@ export const SelectInput = (props: SelectInputProps) => {
               })}
             </SelectContent>
           </Select>
+          {isClearable ? (
+            <ClearInputButton className="right-7" onClick={handleReset} />
+          ) : null}
         </div>
         <InputHelperText helperText={helperText} />
       </FormField>

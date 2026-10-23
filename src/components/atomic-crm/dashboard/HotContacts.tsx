@@ -1,7 +1,8 @@
 import { Plus, Users } from "lucide-react";
 import { useGetIdentity, useGetList, useTranslate } from "ra-core";
 import { Link } from "react-router";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
 import {
   Tooltip,
@@ -42,17 +43,18 @@ export const HotContacts = () => {
         </h2>
         <TooltipProvider>
           <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="ml-auto text-muted-foreground"
-                asChild
-              >
-                <Link to="/contacts/create">
-                  <Plus className="w-4 h-4 text-primary" />
-                </Link>
-              </Button>
+            <TooltipTrigger
+              render={
+                <Link
+                  to="/contacts/create"
+                  className={cn(
+                    buttonVariants({ variant: "ghost", size: "sm" }),
+                    "ml-auto text-muted-foreground",
+                  )}
+                />
+              }
+            >
+              <Plus className="w-4 h-4 text-primary" />
             </TooltipTrigger>
             <TooltipContent>
               {translate("resources.contacts.action.create")}

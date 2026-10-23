@@ -120,14 +120,8 @@ const readProgressSnackbar = () => {
     /Imported (\d+) \/ (\d+) records, with (\d+) errors/.exec(
       bar.parentElement?.innerText ?? "",
     ) ?? [];
-  // The shadcn Progress does not forward its value as `aria-valuenow`.
-  const indicator = bar.querySelector<HTMLElement>(
-    '[data-slot="progress-indicator"]',
-  );
-  const [, offset] =
-    /translateX\(-([\d.]+)%\)/.exec(indicator?.style.transform ?? "") ?? [];
   return {
-    value: 100 - Number(offset),
+    value: Number(bar.getAttribute("aria-valuenow")),
     importCount: Number(importCount),
     rowCount: Number(rowCount),
     errorCount: Number(errorCount),
