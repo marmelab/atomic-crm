@@ -50,6 +50,19 @@ export const MobileSuccess = () => (
   </StoryWrapper>
 );
 
+export const MobileWithNameSearch = () => (
+  <StoryWrapper
+    data={{ contacts: successContacts }}
+    initialEntries={[
+      `/?filter=${encodeURIComponent(JSON.stringify({ q: "Lovelace" }))}`,
+    ]}
+  >
+    <ResourceContextProvider value="contacts">
+      <ContactListMobile />
+    </ResourceContextProvider>
+  </StoryWrapper>
+);
+
 export const MobileLoading = () => (
   <StoryWrapper
     dataProvider={{

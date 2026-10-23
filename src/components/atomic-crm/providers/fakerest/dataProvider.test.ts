@@ -41,4 +41,78 @@ describe("fakerest dataProvider", () => {
 
     expect(tags.map((tag) => tag.id)).toEqual([2]);
   });
+
+  it("lists a task created in the app before older ones in the global search", async () => {
+    const dataProvider = createDataProvider({
+      db: {
+        companies: [],
+        contacts: [{ id: 1, first_name: "Ann", nb_tasks: 1 }],
+        deals: [],
+        contact_notes: [],
+        deal_notes: [],
+        tasks: [
+          {
+            id: 1,
+            contact_id: 1,
+            text: "Call back",
+            created_at: "2020-01-01T00:00:00.000Z",
+            done_date: null,
+          },
+        ],
+      } as unknown as Db,
+      latency: 0,
+      silent: true,
+    });
+
+    await dataProvider.create("tasks", {
+      data: { contact_id: 1, text: "Call again", done_date: null },
+    });
+    const results = await dataProvider.globalSearch("call", ["tasks"], 10);
+
+    expect(results.map((result) => result.title)).toEqual([
+      "Call again",
+      "Call back",
+    ]);
+  });
+
+  it("finds an old contact in the global search despite many newer notes mentioning them", async () => {
+    const dataProvider = createDataProvider({
+      db: {
+        companies: [],
+        contacts: [
+          {
+            id: 1,
+            first_name: "Marc",
+            last_name: "Durand",
+            first_seen: "2021-03-01T00:00:00.000Z",
+          },
+        ],
+        deals: [],
+        tasks: [],
+        contact_notes: Array.from({ length: 20 }, (_, index) => ({
+          id: index + 1,
+          contact_id: 1,
+          text: `Called Marc about the renewal (${index})`,
+          date: "2026-09-01T00:00:00.000Z",
+          attachments: [],
+        })),
+        deal_notes: [],
+      } as unknown as Db,
+      latency: 0,
+      silent: true,
+    });
+
+    const results = await dataProvider.globalSearch(
+      "marc",
+      ["contacts", "contact_notes"],
+      10,
+    );
+
+    expect(
+      results.filter((result) => result.resource === "contacts"),
+    ).toHaveLength(1);
+    expect(
+      results.filter((result) => result.resource === "contact_notes"),
+    ).toHaveLength(10);
+  });
 });

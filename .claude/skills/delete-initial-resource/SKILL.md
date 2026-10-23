@@ -98,4 +98,4 @@ Resolve whatever `tsc` surfaces (the dependent-file list is a guide, not a guara
 
 **i18n is all-or-nothing:** `frenchCrmMessages.ts` is type-checked against the type derived from `englishCrmMessages.ts`, so remove a key from **both** catalogs or **neither** (a one-sided removal is a `tsc` error). Dead `resources.<x>.*` keys are harmless — flag rather than force. `frenchCrmMessages.ts` uses literal `…` escapes; if an exact-string `Edit` fails on a block spanning one, fall back to `sed -i '<from>,<to>d'`.
 
-If Supabase is running, `npx supabase db reset --local` replays the chain + `seed.sql` and catches a broken view/function/grant `db diff` misses (benign `index "…_pkey" does not exist` NOTICEs expected). On Node 22 (see `.nvmrc`), `make test` (vitest) is also available.
+If Supabase is running, `npx supabase db reset --local` replays the chain + `seed.sql` and catches a broken view/function/grant `db diff` misses (benign `index "…_pkey" does not exist` NOTICEs expected). On Node 24 (see `.nvmrc`), `make test` (vitest) is also available.

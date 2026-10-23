@@ -146,11 +146,16 @@ Migration checklist (BLOCKING):
 - Idempotent (`IF [NOT] EXISTS`), no destructive change without intent.
 - Column types/constraints/FKs match the TS types the migration is derived from.
 - RLS enabled + real policies on every new table (never `USING (true)`).
+- Explicit `GRANT`s to `anon`/`authenticated`/`service_role` for every new
+  table, view and `serial` sequence, in the migration itself (Supabase no
+  longer auto-exposes new `public` objects; a missing grant passes locally
+  and fails with 42501 in production).
 - View-recreation rule respected: `CREATE OR REPLACE VIEW` with the new column
   as the LAST item in the SELECT list (after every existing column AND every
   existing computed `AS` alias). `DROP VIEW … CASCADE; CREATE VIEW …` only
-  for column removal/rename, with dropped dependents re-created in the same
-  migration. Column order in `03_views.sql` must mirror the deployed view.
+  for column removal/rename, with the view's `GRANT`s re-declared right after
+  the `CREATE VIEW` and dropped dependents re-created (with their grants) in
+  the same migration. Column order in `03_views.sql` must mirror the deployed view.
 - No data loss on existing tables; reversible where feasible.
 
 Files to review are listed in the spawn prompt. Read them in
@@ -170,7 +175,7 @@ Detection: your spawn prompt contains `ROLE: quality-reviewer (SIMPLE mode — s
    git -C <WORKTREE_PATH> diff "session-base/$SHORT"..HEAD
    ```
 2. **Apply the scope-relevant rubric only** — SIMPLE diffs are small and schema-focused:
-   - **A.6b (schema changes)** — no `supabase/migrations/*.sql` in the diff (off-limits to SIMPLE); schema files in `supabase/schemas/*.sql` only; new column appended at the end of the `03_views.sql` SELECT, no ordinal shift.
+   - **A.6b (schema changes)** — no `supabase/migrations/*.sql` in the diff (off-limits to SIMPLE); schema files in `supabase/schemas/*.sql` only; new column appended at the end of the `03_views.sql` SELECT, no ordinal shift; every new table, view and `serial` sequence declared in `06_grants.sql` (no default privileges, so a missing grant means `permission denied`).
    - **B.1 (RLS)** — RLS enabled, policies cover required ops, no `USING (true)`.
    - **B.3 (injection)** — no string-concatenated SQL, no `||` of user input.
    - **A.6 (backend patterns)** — input validation, no unbounded queries.

@@ -135,7 +135,8 @@ export const englishCrmMessages = {
           "Choose an existing tag or create a new one for the selected contacts.",
         empty: "No tags yet. Create one to tag the selected contacts.",
         error: "Failed to add tag to contacts",
-        noop: "Selected contacts already have this tag",
+        removed:
+          "Tag removed from %{smart_count} contact |||| Tag removed from %{smart_count} contacts",
         success:
           "Tag added to %{smart_count} contact |||| Tag added to %{smart_count} contacts",
         title: "Add tag to contacts",
@@ -455,6 +456,23 @@ export const englishCrmMessages = {
     },
     header: {
       import_data: "Import from JSON",
+    },
+    search: {
+      title: "Search",
+      placeholder: "Search contacts, companies, deals, tasks and notes...",
+      hint: "Type at least %{min} characters to search",
+      empty: "No result found",
+      error: "Search is unavailable right now. Please try again.",
+      untitled_result: "(no title)",
+      show_more: "Show more",
+      groups: {
+        contacts: "Contacts",
+        companies: "Companies",
+        deals: "Deals",
+        tasks: "Tasks",
+        contact_notes: "Contact notes",
+        deal_notes: "Deal notes",
+      },
     },
     image_editor: {
       change: "Change",

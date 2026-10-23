@@ -12,6 +12,12 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
       "port": 5173
+    },
+    {
+      "name": "doc",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "doc", "run", "dev", "--", "--port", "4321"],
+      "port": 4321
     }
   ]
 }

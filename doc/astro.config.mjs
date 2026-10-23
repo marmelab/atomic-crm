@@ -12,6 +12,11 @@ export default defineConfig({
   build: {
     assets: "assets",
   },
+  markdown: {
+    // Astro >= 6.4 leaves this undefined by default, which the @astrojs/mdx
+    // version bundled with Starlight reads as "disabled" (no GFM tables in .mdx)
+    gfm: true,
+  },
   integrations: [
     starlight({
       title: "Atomic CRM",
@@ -87,6 +92,7 @@ export default defineConfig({
             "users/user-management",
             "users/preferences",
             "users/settings",
+            "users/global-search",
             "users/import-data",
             "users/merging-contacts",
             "users/inbound-email",
@@ -96,7 +102,7 @@ export default defineConfig({
         },
         {
           label: "Developers Documentation",
-          autogenerate: { directory: "developers" },
+          items: [{ autogenerate: { directory: "developers" } }],
         },
         {
           label: "What's New",
