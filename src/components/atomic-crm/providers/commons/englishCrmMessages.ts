@@ -464,6 +464,7 @@ export const englishCrmMessages = {
       empty: "No result found",
       error: "Search is unavailable right now. Please try again.",
       untitled_result: "(no title)",
+      show_more: "Show more",
       groups: {
         contacts: "Contacts",
         companies: "Companies",

@@ -473,6 +473,7 @@ export const frenchCrmMessages = {
       error:
         "La recherche est indisponible pour le moment. Veuillez réessayer.",
       untitled_result: "(sans titre)",
+      show_more: "Afficher plus",
       groups: {
         contacts: "Contacts",
         companies: "Entreprises",
