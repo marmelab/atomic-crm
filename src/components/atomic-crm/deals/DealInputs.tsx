@@ -67,8 +67,8 @@ const DealMiscInputs = () => {
         {translate("resources.deals.field_categories.misc")}
       </h6>
 
-      <SelectInput
-        source="category"
+      <AutocompleteArrayInput
+        source="categories"
         choices={dealCategories}
         optionText="label"
         optionValue="value"

@@ -4,9 +4,9 @@ import { validateItemsInUse } from "./SettingsPage";
 
 describe("validateItemsInUse", () => {
   const deals: RaRecord[] = [
-    { id: 1, stage: "won", category: "ui-design" },
-    { id: 2, stage: "lost", category: "copywriting" },
-    { id: 3, stage: "opportunity", category: "ui-design" },
+    { id: 1, stage: "won", categories: ["ui-design"] },
+    { id: 2, stage: "lost", categories: ["copywriting", "ui-design"] },
+    { id: 3, stage: "opportunity", categories: ["ui-design"] },
   ];
 
   it("returns undefined when items is undefined", () => {
@@ -74,19 +74,19 @@ describe("validateItemsInUse", () => {
 
   it("ignores deals with a falsy value for the checked field", () => {
     const dealsWithEmpty: RaRecord[] = [
-      { id: 1, stage: "won", category: "" },
-      { id: 2, stage: "won", category: null },
+      { id: 1, stage: "won", categories: [] },
+      { id: 2, stage: "won", categories: null },
     ];
     const items = [{ value: "other", label: "Other" }];
     expect(
-      validateItemsInUse(items, dealsWithEmpty, "category", "categories"),
+      validateItemsInUse(items, dealsWithEmpty, "categories", "categories"),
     ).toBe(undefined);
   });
 
-  it("works with the category field", () => {
+  it("works with the categories array field", () => {
     const items = [{ value: "ui-design", label: "UI Design" }];
     expect(
-      validateItemsInUse(items, deals, "category", "categories"),
+      validateItemsInUse(items, deals, "categories", "categories"),
     ).toContain("copywriting");
   });
 });
