@@ -78,6 +78,9 @@ jobs:
 
             - name: ⚙️ Setup supabase
               uses: supabase/setup-cli@v1
+              with:
+                  # the default (2.20.3) rejects config.toml; match `npx supabase` used elsewhere
+                  version: latest
 
             # A fresh database applies every migration in order, then the seed.
             - name: 🗃️ Apply migrations
