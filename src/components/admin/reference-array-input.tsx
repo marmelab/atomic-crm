@@ -62,7 +62,6 @@ const defaultChildren = <AutocompleteArrayInput />;
 const defaultFilter = {};
 
 export interface ReferenceArrayInputProps
-  extends InputProps,
-    UseReferenceArrayInputParams {
+  extends InputProps, UseReferenceArrayInputParams {
   children?: ReactElement;
 }

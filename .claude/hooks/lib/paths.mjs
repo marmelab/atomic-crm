@@ -1,4 +1,5 @@
-import { join } from "node:path";
+import { realpathSync } from "node:fs";
+import { basename, dirname, join } from "node:path";
 import { exec } from "./process.mjs";
 
 // APP_DIR / CLAUDE_PROJECT_DIR override the detected root (used by hook tests).
@@ -21,4 +22,16 @@ export const TMP_ROOT =
 
 export function sanitizePath(p) {
   return String(p ?? "").replace(/\//g, "_");
+}
+
+// Resolve symlinks in the deepest existing ancestor of `p` (which may not exist
+// yet). Git records worktree paths canonicalized, so on macOS a `/tmp/...` or
+// `/var/folders/...` base must become `/private/...` to match `git worktree list`.
+export function canonicalPath(p) {
+  try {
+    return realpathSync(p);
+  } catch {
+    const parent = dirname(p);
+    return parent === p ? p : join(canonicalPath(parent), basename(p));
+  }
 }

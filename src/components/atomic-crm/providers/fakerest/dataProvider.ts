@@ -16,7 +16,10 @@ import type {
   DealNote,
   Sale,
   SalesFormData,
+  SearchResourceName,
+  SearchResult,
   SignUpData,
+  Tag,
   Task,
 } from "../../types";
 import type { ConfigurationContextValue } from "../../root/ConfigurationContext";
@@ -24,6 +27,7 @@ import { getActivityLog } from "../commons/activity";
 import { getCompanyAvatar } from "../commons/getCompanyAvatar";
 import { getContactAvatar } from "../commons/getContactAvatar";
 import { mergeContacts } from "../commons/mergeContacts";
+import { getSearchResults } from "./search";
 import type { CrmDataProvider } from "../types";
 import {
   authProvider as defaultAuthProvider,
@@ -169,6 +173,18 @@ export const createDataProvider = ({
 
   const dataProviderWithCustomMethod: CrmDataProvider = {
     ...baseDataProvider,
+    async getMany(resource: string, params: any) {
+      if (resource === "tags") {
+        // like PostgREST, ignore unknown ids (a deleted tag may still be in cached contacts)
+        const { data } = await baseDataProvider.getList(resource, {
+          filter: { id_eq_any: params.ids },
+          pagination: { page: 1, perPage: params.ids.length },
+          sort: { field: "id", order: "ASC" },
+        });
+        return { data };
+      }
+      return baseDataProvider.getMany(resource, params);
+    },
     async getList(resource: string, params: any) {
       if (resource === "activity_log") {
         const { filter = {}, pagination } = params;
@@ -293,6 +309,18 @@ export const createDataProvider = ({
       });
 
       return true;
+    },
+    globalSearch: async (
+      query: string,
+      resources: readonly SearchResourceName[],
+      maxResults: number,
+    ): Promise<SearchResult[]> => {
+      return getSearchResults(
+        withSupabaseFilterAdapter(baseDataProvider),
+        query,
+        resources,
+        maxResults,
+      );
     },
     mergeContacts: async (sourceId: Identifier, targetId: Identifier) => {
       return mergeContacts(sourceId, targetId, baseDataProvider);
@@ -466,6 +494,10 @@ export const createDataProvider = ({
       } satisfies ResourceCallbacks<Contact>,
       {
         resource: "tasks",
+        beforeCreate: async (params) => ({
+          ...params,
+          data: { ...params.data, created_at: new Date().toISOString() },
+        }),
         afterCreate: async (result, dataProvider) => {
           // update the task count in the related contact
           const { contact_id } = result.data;
@@ -597,6 +629,31 @@ export const createDataProvider = ({
           return result;
         },
       } satisfies ResourceCallbacks<Deal>,
+      {
+        resource: "tags",
+        afterDelete: async (result, dataProvider) => {
+          // remove the deleted tag from all contacts, like the on_tag_deleted DB trigger
+          const tagId = result.data.id;
+          const { data: contacts } = await dataProvider.getList<Contact>(
+            "contacts",
+            {
+              filter: { "tags@cs": `{${tagId}}` },
+              pagination: { page: 1, perPage: 10_000 },
+              sort: { field: "id", order: "ASC" },
+            },
+          );
+          await Promise.all(
+            contacts.map((contact) =>
+              dataProvider.update("contacts", {
+                id: contact.id,
+                data: { tags: contact.tags.filter((id) => id !== tagId) },
+                previousData: contact,
+              }),
+            ),
+          );
+          return result;
+        },
+      } satisfies ResourceCallbacks<Tag>,
       {
         resource: "contact_notes",
         beforeSave: async (params) => preserveAttachmentMimeType(params),

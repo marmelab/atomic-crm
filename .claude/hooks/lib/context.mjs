@@ -7,7 +7,7 @@
 import { appendFileSync, existsSync, mkdirSync, rmSync } from "node:fs";
 import { basename, dirname, isAbsolute, join } from "node:path";
 import { decisionBlock } from "./io.mjs";
-import { REPO, TMP_ROOT, sanitizePath } from "./paths.mjs";
+import { REPO, TMP_ROOT, canonicalPath, sanitizePath } from "./paths.mjs";
 import { exec } from "./process.mjs";
 import { loadConfig, worktreeProvision } from "./config.mjs";
 
@@ -125,7 +125,7 @@ export function createHookContext(input, name = "hook") {
     agentId,
     sessionShort,
     sessionDir,
-    worktreeBase: sessionDir,
+    worktreeBase: canonicalPath(sessionDir),
     logFile,
     ticketsDir: process.env.TICKETS_DIR || join(sessionDir, "tickets"),
 

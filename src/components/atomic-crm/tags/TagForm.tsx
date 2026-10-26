@@ -36,6 +36,7 @@ export function TagForm({
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    event.stopPropagation();
     setIsSubmitting(true);
 
     try {

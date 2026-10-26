@@ -202,6 +202,10 @@ begin
         return new;
     end if;
 
+    if tg_op = 'UPDATE' and new.email_jsonb is not distinct from old.email_jsonb then
+        return new;
+    end if;
+
     select coalesce(jsonb_array_length(new.email_jsonb), 0) into emails_length;
 
     if emails_length = 0 then
@@ -243,6 +247,16 @@ begin
     case when sales_count > 0 then FALSE else TRUE end
   );
   return new;
+end;
+$$;
+
+CREATE OR REPLACE FUNCTION "public"."handle_tag_deleted"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    SET "search_path" TO ''
+    AS $$
+begin
+  update public.contacts set tags = array_remove(tags, old.id) where tags @> array[old.id];
+  return old;
 end;
 $$;
 

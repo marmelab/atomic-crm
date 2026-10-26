@@ -1,3 +1,4 @@
+export * from "./access-denied";
 export * from "./admin";
 export * from "./app-sidebar";
 export * from "./array-field";

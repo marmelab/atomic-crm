@@ -7,7 +7,7 @@ export const MobileTasksList = () => {
   const translate = useTranslate();
   return (
     <>
-      <MobileHeader>
+      <MobileHeader showRefresh>
         <h1 className="text-xl font-semibold">
           {translate("resources.tasks.name", { smart_count: 2 })}
         </h1>
