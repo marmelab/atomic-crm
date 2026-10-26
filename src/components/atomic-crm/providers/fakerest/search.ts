@@ -143,7 +143,10 @@ export async function getSearchResults(
       }),
     deals: () =>
       liveDeals.map((deal) => {
-        const content = joinFields(deal.category, deal.description);
+        const content = joinFields(
+          ...(deal.categories ?? []),
+          deal.description,
+        );
         return {
           document: [deal.name, content].join(" "),
           result: {
