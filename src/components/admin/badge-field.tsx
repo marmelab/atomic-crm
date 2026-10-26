@@ -59,6 +59,7 @@ export const BadgeField = <RecordType extends RaRecord = RaRecord>({
 };
 
 export interface BadgeFieldProps<RecordType extends RaRecord = RaRecord>
-  extends FieldProps<RecordType>, BadgeProps {
+  extends FieldProps<RecordType>,
+    BadgeProps {
   variant?: "default" | "outline" | "secondary" | "destructive";
 }

@@ -248,7 +248,8 @@ export const SimpleFormIteratorItem = React.forwardRef(
   },
 );
 
-export interface SimpleFormIteratorItemProps extends SimpleFormIteratorItemBaseProps {
+export interface SimpleFormIteratorItemProps
+  extends SimpleFormIteratorItemBaseProps {
   disabled?: boolean;
   disableRemove?: boolean | SimpleFormIteratorDisableRemoveFunction;
   disableReordering?: boolean;

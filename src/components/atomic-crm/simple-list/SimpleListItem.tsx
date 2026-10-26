@@ -122,9 +122,8 @@ export interface SimpleListBaseProps<RecordType extends RaRecord = any> {
   tertiaryText?: FunctionToElement<RecordType> | ReactElement | string;
 }
 
-export interface SimpleListItemProps<
-  RecordType extends RaRecord = any,
-> extends SimpleListBaseProps<RecordType> {
+export interface SimpleListItemProps<RecordType extends RaRecord = any>
+  extends SimpleListBaseProps<RecordType> {
   rowIndex: number;
   className?: string;
   style?: CSSProperties;
