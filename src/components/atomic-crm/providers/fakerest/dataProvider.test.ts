@@ -115,4 +115,42 @@ describe("fakerest dataProvider", () => {
       results.filter((result) => result.resource === "contact_notes"),
     ).toHaveLength(10);
   });
+
+  it("finds a deal in the global search by any of its categories", async () => {
+    const dataProvider = createDataProvider({
+      db: {
+        companies: [],
+        contacts: [],
+        deals: [
+          {
+            id: 1,
+            name: "Acme rebrand",
+            categories: ["copywriting", "design"],
+            description: "New logo",
+          },
+          { id: 2, name: "Design review", description: "No categories" },
+        ],
+        tasks: [],
+        contact_notes: [],
+        deal_notes: [],
+      } as unknown as Db,
+      latency: 0,
+      silent: true,
+    });
+
+    const copyResults = await dataProvider.globalSearch("copy", ["deals"], 10);
+    const designResults = await dataProvider.globalSearch(
+      "design",
+      ["deals"],
+      10,
+    );
+
+    expect(copyResults.map((result) => result.content)).toEqual([
+      "copywriting · design · New logo",
+    ]);
+    expect(designResults.map((result) => result.title).sort()).toEqual([
+      "Acme rebrand",
+      "Design review",
+    ]);
+  });
 });
