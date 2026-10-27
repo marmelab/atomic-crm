@@ -127,8 +127,7 @@ from public.contacts co
     left join public.companies c on co.company_id = c.id
 group by co.id, c.name;
 
-create or replace view public.init_state with (security_invoker = off) as
-select count(sub.id) as is_initialized
-from (
-    select sales.id from public.sales limit 1
-) sub;
+-- anon reads this before login, but RLS hides sales from anon: the definer
+-- function exposes only whether a user exists.
+create or replace view public.init_state with (security_invoker = on) as
+select public.is_initialized()::integer::bigint as is_initialized;
