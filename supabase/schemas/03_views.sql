@@ -127,5 +127,8 @@ from public.contacts co
     left join public.companies c on co.company_id = c.id
 group by co.id, c.name;
 
-create or replace view public.init_state with (security_invoker = on) as
-select private.get_init_state() as is_initialized;
+create or replace view public.init_state with (security_invoker = off) as
+select count(sub.id) as is_initialized
+from (
+    select sales.id from public.sales limit 1
+) sub;
