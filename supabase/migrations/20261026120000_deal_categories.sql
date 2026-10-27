@@ -9,7 +9,7 @@ update "public"."deals" set "categories" = array["category"] where "category" is
 alter table "public"."deals" drop column "category";
 
 alter table public.deals add column fts tsvector generated always as (
-    public.search_document(variadic array[name] || categories || description)
+    public.search_document(variadic array[name, description] || categories)
 ) stored;
 
 create index deals_fts_idx on public.deals using gin (fts) where archived_at is null;
