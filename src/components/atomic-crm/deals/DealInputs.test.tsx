@@ -16,7 +16,8 @@ describe("DealInputs", () => {
     await screen.getByRole("combobox", { name: /company/i }).click();
     await screen.getByRole("option", { name: /Smith Corp/ }).click();
 
-    const contactInput = screen.getByPlaceholder("Search");
+    // contacts is the first of the form's autocompletes (categories comes later)
+    const contactInput = screen.getByPlaceholder("Search").first();
     await contactInput.click();
     await userEvent.type(contactInput, "Grace Hopper");
 
@@ -45,7 +46,7 @@ describe("DealInputs", () => {
   it("does not offer to create a contact before anything is typed", async () => {
     const screen = await render(<CreateForm />);
 
-    await screen.getByPlaceholder("Search").click();
+    await screen.getByPlaceholder("Search").first().click();
 
     // the hint is shown instead, and cannot be selected
     const hint = screen.getByRole("option", {

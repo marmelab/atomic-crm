@@ -66,7 +66,7 @@ jobs:
 
             - name: 🏷️ Typecheck
               run: npm run typecheck
-              
+
     test-app:
         name: 🔎 Test
         runs-on: ubuntu-latest

@@ -48,8 +48,8 @@ test.describe("user creating a contact from the deal form", () => {
     await dealForm.getByRole("combobox", { name: "Company" }).click();
     await page.getByRole("option", { name: "Smith Corp" }).click();
 
-    // Grace is not in the contact list yet
-    const contactInput = dealForm.getByPlaceholder("Search");
+    // Grace is not in the contact list yet; contacts is the form's first autocomplete
+    const contactInput = dealForm.getByPlaceholder("Search").first();
     await contactInput.click();
     await contactInput.fill("Grace Hopper");
     await expect(

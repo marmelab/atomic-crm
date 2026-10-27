@@ -7,8 +7,10 @@ import {
   defaultPhoneJsonb,
 } from "./contactModel";
 
-export interface ContactCreateSheetProps
-  extends Pick<CreateSheetProps, "mutationOptions" | "redirect"> {
+export interface ContactCreateSheetProps extends Pick<
+  CreateSheetProps,
+  "mutationOptions" | "redirect"
+> {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   defaultValues?: CreateSheetProps["defaultValues"];
