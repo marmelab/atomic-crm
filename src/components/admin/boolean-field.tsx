@@ -3,7 +3,7 @@ import { Check, X } from "lucide-react";
 import type { RaRecord } from "ra-core";
 import { useFieldValue, useTranslate } from "ra-core";
 
-import type { FieldProps } from "@/lib/field.type.ts";
+import type { FieldProps } from "@/lib/field.type";
 import { cn } from "@/lib/utils";
 import {
   Tooltip,

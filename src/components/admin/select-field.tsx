@@ -2,7 +2,7 @@ import type { HTMLAttributes } from "react";
 import type { ChoicesProps } from "ra-core";
 import { genericMemo, useChoices, useFieldValue, useTranslate } from "ra-core";
 
-import type { FieldProps } from "@/lib/field.type.ts";
+import type { FieldProps } from "@/lib/field.type";
 
 /**
  * Displays a value from an enumeration by mapping it to a human-readable label.
@@ -102,8 +102,9 @@ export const SelectField = genericMemo(SelectFieldImpl);
 export interface SelectFieldProps<
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   RecordType extends Record<string, any> = Record<string, any>,
->
-  extends
-    Omit<ChoicesProps, "disableValue" | "createValue" | "createHintValue">,
+> extends Omit<
+      ChoicesProps,
+      "disableValue" | "createValue" | "createHintValue"
+    >,
     FieldProps<RecordType>,
     HTMLAttributes<HTMLSpanElement> {}

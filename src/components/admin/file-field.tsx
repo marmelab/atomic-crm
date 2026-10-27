@@ -3,7 +3,7 @@ import get from "lodash/get";
 import type { ExtractRecordPaths, HintedString } from "ra-core";
 import { useFieldValue, useTranslate } from "ra-core";
 import { cn } from "@/lib/utils";
-import type { FieldProps } from "@/lib/field.type.ts";
+import type { FieldProps } from "@/lib/field.type";
 
 /**
  * Displays a downloadable file link with customizable title and target.
@@ -111,8 +111,8 @@ export const FileField = <
 export interface FileFieldProps<
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   RecordType extends Record<string, any> = Record<string, any>,
->
-  extends FieldProps<RecordType>, HTMLAttributes<HTMLElement> {
+> extends FieldProps<RecordType>,
+    HTMLAttributes<HTMLElement> {
   /**
    * The source of the link to the file, for an array of files.
    */

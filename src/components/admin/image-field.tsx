@@ -5,7 +5,7 @@ import type { ExtractRecordPaths, HintedString } from "ra-core";
 import { useFieldValue, useTranslate } from "ra-core";
 import { cn } from "@/lib/utils";
 
-import type { FieldProps } from "@/lib/field.type.ts";
+import type { FieldProps } from "@/lib/field.type";
 
 /**
  * Displays an image or a list of images from a record field inside an img element or a ul of img elements.
@@ -89,8 +89,8 @@ ImageField.displayName = "ImageField";
 
 export interface ImageFieldProps<
   RecordType extends Record<string, any> = Record<string, any>,
->
-  extends FieldProps<RecordType>, HTMLAttributes<HTMLSpanElement> {
+> extends FieldProps<RecordType>,
+    HTMLAttributes<HTMLSpanElement> {
   defaultValue?: any;
   src?: string;
   title?: HintedString<ExtractRecordPaths<RecordType>>;

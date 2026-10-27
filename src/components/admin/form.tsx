@@ -19,7 +19,7 @@ import { FormProvider, useFormContext, useFormState } from "react-hook-form";
 import type { UseMutationOptions } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button.tsx";
+import { Button } from "@/components/ui/button";
 
 const Form = FormProvider;
 
@@ -283,7 +283,12 @@ interface Props<
   >;
   transform?: TransformData;
   variant?:
-    "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
+    | "default"
+    | "destructive"
+    | "outline"
+    | "secondary"
+    | "ghost"
+    | "link";
 }
 
 export type SaveButtonProps<RecordType extends RaRecord = RaRecord> =
