@@ -133,6 +133,7 @@ export const Note = ({
                     size="sm"
                     onClick={handleEnterEditMode}
                     className="p-1 h-auto cursor-pointer"
+                    aria-label={translate("resources.notes.action.edit")}
                   />
                 }
               >
@@ -152,6 +153,7 @@ export const Note = ({
                     size="sm"
                     onClick={handleDelete}
                     className="p-1 h-auto cursor-pointer"
+                    aria-label={translate("resources.notes.action.delete")}
                   />
                 }
               >

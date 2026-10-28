@@ -78,6 +78,7 @@ export const AddTask = ({
                   variant="ghost"
                   className="p-2 cursor-pointer"
                   onClick={handleOpen}
+                  aria-label={translate("resources.tasks.action.create")}
                 />
               }
             >

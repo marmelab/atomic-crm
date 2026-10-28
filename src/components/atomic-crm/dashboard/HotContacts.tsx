@@ -47,6 +47,7 @@ export const HotContacts = () => {
               render={
                 <Link
                   to="/contacts/create"
+                  aria-label={translate("resources.contacts.action.create")}
                   className={cn(
                     buttonVariants({ variant: "ghost", size: "sm" }),
                     "ml-auto text-muted-foreground",

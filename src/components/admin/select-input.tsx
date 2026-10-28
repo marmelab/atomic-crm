@@ -242,7 +242,8 @@ export const SelectInput = (props: SelectInputProps) => {
     field.onChange(emptyValue);
   };
 
-  const isClearable = !!field.value && field.value !== emptyValue;
+  const isClearable =
+    !field.disabled && !!field.value && field.value !== emptyValue;
 
   return (
     <>
