@@ -99,7 +99,6 @@ prod-deploy: build supabase-deploy
 
 supabase-remote-init:
 	npm run supabase:remote:init
-	$(MAKE) supabase-deploy
 
 supabase-deploy:
 	npx supabase db push
