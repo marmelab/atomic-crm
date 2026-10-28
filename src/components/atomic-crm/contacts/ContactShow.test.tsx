@@ -62,6 +62,22 @@ describe("ContactShow", () => {
       .toHaveAttribute("aria-selected", "true");
   });
 
+  it("shows an error with a retry button when the contact cannot be loaded", async () => {
+    const screen = await render(
+      <StoryWrapper data={{ contacts: [] }}>
+        {/* An id no other test loads, so no persisted query cache can serve it */}
+        <ContactShow resource="contacts" id={404} />
+      </StoryWrapper>,
+    );
+
+    await expect
+      .element(screen.getByText("Error loading contact"))
+      .toBeVisible();
+    await expect
+      .element(screen.getByRole("button", { name: "Retry" }))
+      .toBeVisible();
+  });
+
   it("updates the contact status from the aside", async () => {
     mockIsMobile.mockReturnValue(false);
 
