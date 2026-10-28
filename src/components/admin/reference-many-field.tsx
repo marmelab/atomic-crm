@@ -61,10 +61,9 @@ export const ReferenceManyField = <
 export interface ReferenceManyFieldProps<
   RecordType extends RaRecord = RaRecord,
   ReferenceRecordType extends RaRecord = RaRecord,
-> extends UseReferenceManyFieldControllerParams<
-      RecordType,
-      ReferenceRecordType
-    >,
+>
+  extends
+    UseReferenceManyFieldControllerParams<RecordType, ReferenceRecordType>,
     ReferenceManyFieldViewProps<ReferenceRecordType> {}
 
 const ReferenceManyFieldView = <
