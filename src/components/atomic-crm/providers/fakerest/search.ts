@@ -58,8 +58,10 @@ const byNameMatchThenDateDesc = (a: RankedResult, b: RankedResult) =>
  *
  * It follows the same rules: the same fields per resource, every query word
  * must start a word of the record (accents and case ignored), open tasks and
- * live deals only, records whose name matches first, then newest first, each
- * resource's first `maxResults` matches.
+ * live deals only, newest first, each resource's first `maxResults` matches.
+ * Postgres ranks companies, contacts and deals by relevance with `ts_rank`,
+ * where the name weighs most: this approximates it by listing the records whose
+ * name matches first.
  * It scans every record, which is fine for the in-browser demo data.
  */
 export async function getSearchResults(
