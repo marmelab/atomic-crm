@@ -41,18 +41,25 @@ const joinFields = (...values: (string | null | undefined)[]) =>
 const attachmentTitles = (note: ContactNote | DealNote) =>
   note.attachments?.map((attachment) => attachment.title).join(" ");
 
-const byDateDesc = (a: SearchResult, b: SearchResult) =>
-  (b.date ?? "").localeCompare(a.date ?? "");
+/**
+ * A result, plus the text its table's `fts` column indexes in Postgres, and
+ * the record's name for the resources that have one.
+ */
+type Candidate = { result: SearchResult; document: string; name?: string };
 
-/** A result, plus the text its table's `fts` column indexes in Postgres. */
-type Candidate = { result: SearchResult; document: string };
+type RankedResult = { result: SearchResult; isTitleMatch: boolean };
+
+const byTitleMatchThenDateDesc = (a: RankedResult, b: RankedResult) =>
+  Number(b.isTitleMatch) - Number(a.isTitleMatch) ||
+  (b.result.date ?? "").localeCompare(a.result.date ?? "");
 
 /**
  * Emulates the `global_search` database function for the FakeRest provider.
  *
  * It follows the same rules: the same fields per resource, every query word
  * must start a word of the record (accents and case ignored), open tasks and
- * live deals only, each resource's newest `maxResults` matches, newest first.
+ * live deals only, records whose name matches first, then newest first, each
+ * resource's first `maxResults` matches.
  * It scans every record, which is fine for the in-browser demo data.
  */
 export async function getSearchResults(
@@ -107,6 +114,7 @@ export async function getSearchResults(
         );
         return {
           document: [company.name, content].join(" "),
+          name: company.name,
           result: {
             resource: "companies",
             record_id: company.id,
@@ -129,6 +137,7 @@ export async function getSearchResults(
         );
         return {
           document: [contact.first_name, contact.last_name, content].join(" "),
+          name: contactName(contact),
           result: {
             resource: "contacts",
             record_id: contact.id,
@@ -149,6 +158,7 @@ export async function getSearchResults(
         );
         return {
           document: [deal.name, content].join(" "),
+          name: deal.name,
           result: {
             resource: "deals",
             record_id: deal.id,
@@ -225,9 +235,13 @@ export async function getSearchResults(
     .flatMap((resource) =>
       candidates[resource]()
         .filter(({ document }) => matchesAllTerms(document, terms))
-        .map(({ result }) => result)
-        .sort(byDateDesc)
+        .map(({ result, name }) => ({
+          result,
+          isTitleMatch: name != null && matchesAllTerms(name, terms),
+        }))
+        .sort(byTitleMatchThenDateDesc)
         .slice(0, maxResults),
     )
-    .sort(byDateDesc);
+    .sort(byTitleMatchThenDateDesc)
+    .map(({ result }) => result);
 }
