@@ -108,7 +108,7 @@ export interface BooleanInputProps {
   label?: React.ReactNode;
   onBlur?: (event: React.FocusEvent<HTMLButtonElement>) => void;
   onChange?: (value: any) => void;
-  onFocus?: (event: React.FocusEvent<HTMLButtonElement>) => void;
+  onFocus?: React.ComponentProps<typeof Switch>["onFocus"];
   readOnly?: boolean;
   disabled?: boolean;
   parse?: (value: any) => any;

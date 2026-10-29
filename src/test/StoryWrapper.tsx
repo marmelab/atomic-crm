@@ -3,6 +3,7 @@ import { memoryStore, type AuthProvider } from "ra-core";
 import { useEffect, useMemo, type ReactNode } from "react";
 import { MemoryRouter } from "react-router";
 import cloneDeep from "lodash/cloneDeep";
+import { toast } from "sonner";
 import { Notification } from "@/components/admin/notification";
 import { createDataProvider } from "@/components/atomic-crm/providers/fakerest";
 import { DEFAULT_USER } from "@/components/atomic-crm/providers/fakerest/authProvider";
@@ -159,6 +160,11 @@ export const StoryWrapper = ({
   useEffect(() => {
     // Clear localStorage on mount to prevent data pollution from previous story / test, since we persist react-query cache in localStorage.
     localStorage.clear();
+    // Sonner replays still-active toasts to every new <Toaster>, so dismiss ours on
+    // unmount or they reappear in the next story / test.
+    return () => {
+      toast.dismiss();
+    };
   }, []);
 
   return (

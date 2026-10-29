@@ -178,8 +178,7 @@ async function runValidatedSql(
 
 function sqlToolResult(
   result:
-    | { success: true; data: unknown[] }
-    | { success: false; error: string },
+    { success: true; data: unknown[] } | { success: false; error: string },
 ) {
   if (result.success) {
     return {

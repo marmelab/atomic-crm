@@ -232,12 +232,7 @@ export interface ContactGender {
 }
 
 export type SearchResourceName =
-  | "companies"
-  | "contacts"
-  | "deals"
-  | "tasks"
-  | "contact_notes"
-  | "deal_notes";
+  "companies" | "contacts" | "deals" | "tasks" | "contact_notes" | "deal_notes";
 
 export type SearchResult = {
   resource: SearchResourceName;

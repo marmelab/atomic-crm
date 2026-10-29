@@ -145,6 +145,34 @@ describe("ContactEdit", () => {
         }),
       );
     });
+
+    it("clears the email type from the keyboard and with the mouse", async () => {
+      // Arrange: the email type select holds "Work", so its clear button is shown.
+      const screen = await render(<ContactEditWithEmailsAndPhones silent />);
+      await expect
+        .element(screen.getByPlaceholder("Email"))
+        .toHaveValue("ada@example.com");
+      const clearButton = screen
+        .getByRole("button", { name: "Clear value" })
+        .first();
+      await expect.element(clearButton).toBeInTheDocument();
+
+      // Assert: it is a real button, reachable with a keyboard. It used to be a
+      // div[role=button] nested inside the trigger, which no Tab could reach.
+      const element = clearButton.element() as HTMLElement;
+      expect(element.tagName).toBe("BUTTON");
+      element.focus();
+      expect(document.activeElement).toBe(element);
+
+      // Act & assert: pressing it clears the value, so the button goes away with
+      // it. While it sat inside the trigger, Base UI opened the select on the
+      // mousedown and the popup swallowed the rest of the gesture instead.
+      await clearButton.click();
+      // assert on the element, not the locator: the phone row has a clear button
+      // of its own, which the locator would resolve to once this one is gone.
+      await expect.poll(() => element.isConnected).toBe(false);
+      expect(document.querySelector('[data-slot="select-content"]')).toBeNull();
+    });
   });
   describe("mobile", () => {
     beforeAll(() => {
