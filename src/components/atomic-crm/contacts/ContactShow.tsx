@@ -14,7 +14,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Pencil, RotateCcw } from "lucide-react";
+import { Pencil } from "lucide-react";
 import { Link, useSearchParams } from "react-router";
 
 import MobileHeader from "../layout/MobileHeader";
@@ -47,10 +47,28 @@ export const ContactShow = (props: ShowBaseProps = {}) => {
             }
           : undefined,
       }}
+      // The error notification is disabled on mobile, so show the error here
+      error={isMobile ? <ContactShowErrorMobile /> : undefined}
       {...props}
     >
       {isMobile ? <ContactShowContentMobile /> : <ContactShowContent />}
     </ShowBase>
+  );
+};
+
+const ContactShowErrorMobile = () => {
+  const translate = useTranslate();
+  return (
+    <>
+      <MobileHeader>
+        <MobileBackButton />
+      </MobileHeader>
+      <MobileContent>
+        <div className="p-4 text-center text-muted-foreground">
+          {translate("resources.contacts.show.error_loading")}
+        </div>
+      </MobileContent>
+    </>
   );
 };
 
@@ -63,34 +81,10 @@ const ContactShowContentMobile = () => {
   const requestedTab = searchParams.get("tab");
   const initialTab =
     requestedTab && MOBILE_TABS.includes(requestedTab) ? requestedTab : "notes";
-  const { defaultTitle, record, isPending, refetch } =
-    useShowContext<Contact>();
+  const { defaultTitle, record, isPending } = useShowContext<Contact>();
   const [noteCreateOpen, setNoteCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
-  if (isPending) return null;
-  if (!record) {
-    // The error notification is disabled on mobile, so show the error here
-    return (
-      <>
-        <MobileHeader>
-          <MobileBackButton />
-        </MobileHeader>
-        <MobileContent>
-          <div className="p-4">
-            <div className="text-center text-muted-foreground mb-4">
-              {translate("resources.contacts.show.error_loading")}
-            </div>
-            <div className="text-center mt-2">
-              <Button onClick={() => refetch()}>
-                <RotateCcw />
-                {translate("crm.common.retry")}
-              </Button>
-            </div>
-          </div>
-        </MobileContent>
-      </>
-    );
-  }
+  if (isPending || !record) return null;
 
   const taskCount = record.nb_tasks ?? 0;
 

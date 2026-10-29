@@ -62,7 +62,7 @@ describe("ContactShow", () => {
       .toHaveAttribute("aria-selected", "true");
   });
 
-  it("shows an error with a retry button when the contact cannot be loaded", async () => {
+  it("shows an error when the contact cannot be loaded", async () => {
     const screen = await render(
       <StoryWrapper data={{ contacts: [] }}>
         {/* An id no other test loads, so no persisted query cache can serve it */}
@@ -72,9 +72,6 @@ describe("ContactShow", () => {
 
     await expect
       .element(screen.getByText("Error loading contact"))
-      .toBeVisible();
-    await expect
-      .element(screen.getByRole("button", { name: "Retry" }))
       .toBeVisible();
   });
 
