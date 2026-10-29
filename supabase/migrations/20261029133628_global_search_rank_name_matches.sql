@@ -55,13 +55,17 @@ CREATE OR REPLACE FUNCTION public.global_search(query text, resources text[] DEF
 AS $function$
 declare
     tsq tsquery := public.search_query(query);
+    name_tsq tsquery := public.search_name_query(query);
+    -- Placeholders: %1$L is the query, %2$s the row limit. Branches of named
+    -- resources also take %3$s, whether the name matches, and %4$s, the
+    -- matching condition on fts.
     branch_templates constant jsonb := jsonb_build_object(
         'companies', $q$
             select 'companies', c.id, c.name, c.sector, null::bigint, null::bigint, c.created_at,
                 concat_ws(' · ', c.sector, c.description, c.website::text, c.phone_number, c.zipcode, c.city, c.state_abbr),
-                %4$s
+                %3$s as is_name_match
             from public.companies c
-            where %3$s
+            where %4$s
             order by c.created_at desc
             limit %2$s $q$,
         'contacts', $q$
@@ -70,25 +74,25 @@ declare
                 concat_ws(' · ', co.title, co.background,
                     (select string_agg(e ->> 'email', ' ') from jsonb_array_elements(co.email_jsonb) e),
                     (select string_agg(p ->> 'number', ' ') from jsonb_array_elements(co.phone_jsonb) p)),
-                %4$s
+                %3$s as is_name_match
             from public.contacts co
-            where %3$s
+            where %4$s
             order by co.first_seen desc nulls last
             limit %2$s $q$,
         'deals', $q$
             select 'deals', d.id, d.name,
                 (select dc.name from public.companies dc where dc.id = d.company_id), null::bigint, d.id, d.created_at,
                 concat_ws(' · ', variadic d.categories || d.description),
-                %4$s
+                %3$s as is_name_match
             from public.deals d
-            where d.archived_at is null and %3$s
+            where d.archived_at is null and %4$s
             order by d.created_at desc
             limit %2$s $q$,
         'tasks', $q$
             select 'tasks', t.id, left(t.text, 200),
                 (select concat_ws(' ', tc.first_name, tc.last_name) from public.contacts tc where tc.id = t.contact_id),
                 t.contact_id, null::bigint, t.created_at,
-                concat_ws(' · ', t.text, t.type), false
+                concat_ws(' · ', t.text, t.type), false as is_name_match
             from public.tasks t
             where t.done_date is null and t.fts @@ %1$L::tsquery
             order by t.created_at desc
@@ -97,23 +101,26 @@ declare
             select 'contact_notes', cn.id, left(cn.text, 200),
                 (select concat_ws(' ', nc.first_name, nc.last_name) from public.contacts nc where nc.id = cn.contact_id),
                 cn.contact_id, null::bigint, cn.date,
-                concat_ws(' · ', cn.text, public.search_attachment_titles(cn.attachments)), false
+                concat_ws(' · ', cn.text, public.search_attachment_titles(cn.attachments)), false as is_name_match
             from public.contact_notes cn
             where cn.fts @@ %1$L::tsquery
             order by cn.date desc nulls last
             limit %2$s $q$,
         'deal_notes', $q$
             select 'deal_notes', dn.id, left(dn.text, 200), nd.name, null::bigint, dn.deal_id, dn.date,
-                concat_ws(' · ', dn.text, public.search_attachment_titles(dn.attachments)), false
+                concat_ws(' · ', dn.text, public.search_attachment_titles(dn.attachments)), false as is_name_match
             from public.deal_notes dn
                 join public.deals nd on nd.id = dn.deal_id
             where nd.archived_at is null and dn.fts @@ %1$L::tsquery
             order by dn.date desc nulls last
             limit %2$s $q$
     );
-    name_tsq tsquery := public.search_name_query(query);
+    -- A named resource's branch runs once with each condition
+    named_resources constant text[] := array['companies', 'contacts', 'deals'];
+    name_match constant text := format('fts @@ %L::tsquery', name_tsq);
+    other_match constant text := format('fts @@ %L::tsquery and not fts @@ %L::tsquery', tsq, name_tsq);
     row_limit constant integer := least(coalesce(max_results, 50), 200);
-    columns constant text := 'resource, record_id, title, subtitle, contact_id, deal_id, date, content, is_title_match';
+    columns constant text := 'resource, record_id, title, subtitle, contact_id, deal_id, date, content, is_name_match';
     branches text[];
 begin
     if tsq is null or row_limit < 1 then
@@ -121,15 +128,13 @@ begin
     end if;
 
     select array_agg(case
-        -- %3$s is the search condition, %4$s whether it is a name match
-        when position('%3$s' in template) > 0 then format(
-            '(select * from ((%s) union all (%s)) b(%s) order by is_title_match desc, date desc nulls last limit %s)',
-            format(template, tsq::text, row_limit, format('fts @@ %L::tsquery', name_tsq::text), 'true'),
-            format(template, tsq::text, row_limit,
-                format('fts @@ %L::tsquery and not fts @@ %L::tsquery', tsq::text, name_tsq::text), 'false'),
+        when b.name = any(named_resources) then format(
+            '(select * from ((%s) union all (%s)) halves(%s) order by is_name_match desc, date desc nulls last limit %s)',
+            format(template, tsq, row_limit, 'true', name_match),
+            format(template, tsq, row_limit, 'false', other_match),
             columns,
             row_limit)
-        else format('(%s)', format(template, tsq::text, row_limit))
+        else format('(%s)', format(template, tsq, row_limit))
     end)
     into branches
     from jsonb_each_text(branch_templates) as b(name, template)
@@ -142,7 +147,7 @@ begin
     return query execute format(
         'select resource, record_id, title, subtitle, contact_id, deal_id, date, content
         from (%s) results(%s)
-        order by is_title_match desc, date desc nulls last',
+        order by is_name_match desc, date desc nulls last',
         array_to_string(branches, ' union all '),
         columns
     );

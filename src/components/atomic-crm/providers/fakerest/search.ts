@@ -47,10 +47,10 @@ const attachmentTitles = (note: ContactNote | DealNote) =>
  */
 type Candidate = { result: SearchResult; document: string; name?: string };
 
-type RankedResult = { result: SearchResult; isTitleMatch: boolean };
+type RankedResult = { result: SearchResult; isNameMatch: boolean };
 
-const byTitleMatchThenDateDesc = (a: RankedResult, b: RankedResult) =>
-  Number(b.isTitleMatch) - Number(a.isTitleMatch) ||
+const byNameMatchThenDateDesc = (a: RankedResult, b: RankedResult) =>
+  Number(b.isNameMatch) - Number(a.isNameMatch) ||
   (b.result.date ?? "").localeCompare(a.result.date ?? "");
 
 /**
@@ -237,11 +237,11 @@ export async function getSearchResults(
         .filter(({ document }) => matchesAllTerms(document, terms))
         .map(({ result, name }) => ({
           result,
-          isTitleMatch: name != null && matchesAllTerms(name, terms),
+          isNameMatch: name != null && matchesAllTerms(name, terms),
         }))
-        .sort(byTitleMatchThenDateDesc)
+        .sort(byNameMatchThenDateDesc)
         .slice(0, maxResults),
     )
-    .sort(byTitleMatchThenDateDesc)
+    .sort(byNameMatchThenDateDesc)
     .map(({ result }) => result);
 }
