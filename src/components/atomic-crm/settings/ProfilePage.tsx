@@ -37,6 +37,7 @@ import {
 import ImageEditorField from "../misc/ImageEditorField";
 import type { CrmDataProvider } from "../providers/types";
 import { getSalesErrorNotification } from "../sales/salesErrorNotification";
+import { usePersistPreference } from "../root/usePersistPreference";
 import type { Sale, SalesFormData } from "../types";
 
 export const ProfilePage = () => {
@@ -280,7 +281,8 @@ const ProfileForm = ({
 const LanguageSelector = () => {
   const translate = useTranslate();
   const locales = useLocales();
-  const [locale, setLocale] = useLocaleState();
+  const [locale] = useLocaleState();
+  const persist = usePersistPreference();
 
   if (locales.length <= 1) {
     return null;
@@ -298,7 +300,7 @@ const LanguageSelector = () => {
       </p>
       <Select
         value={locale}
-        onValueChange={(value) => value && setLocale(value)}
+        onValueChange={(value) => value && persist({ locale: value })}
         items={localeItems}
       >
         <SelectTrigger className="w-full">

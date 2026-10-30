@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import type { Theme } from "@/components/admin/theme-context";
 import { useTheme } from "@/components/admin/use-theme";
 import { ChevronRight, KeyRound } from "lucide-react";
 import { Link } from "react-router";
@@ -48,6 +49,7 @@ import { ChangelogPage } from "../misc/ChangelogPage";
 import ImageEditorField from "../misc/ImageEditorField";
 import type { CrmDataProvider } from "../providers/types";
 import { getSalesErrorNotification } from "../sales/salesErrorNotification";
+import { usePersistPreference } from "../root/usePersistPreference";
 import type { SalesFormData } from "../types";
 
 const ChangePasswordButton = () => {
@@ -447,7 +449,8 @@ const PreferencesSection = () => {
 const LanguageRow = () => {
   const translate = useTranslate();
   const locales = useLocales();
-  const [locale, setLocale] = useLocaleState();
+  const [locale] = useLocaleState();
+  const persist = usePersistPreference();
 
   if (locales.length <= 1) return null;
 
@@ -466,7 +469,7 @@ const LanguageRow = () => {
       <ItemActions>
         <Select
           value={locale}
-          onValueChange={(value) => value && setLocale(value)}
+          onValueChange={(value) => value && persist({ locale: value })}
           items={localeItems}
         >
           <SelectTrigger
@@ -490,7 +493,8 @@ const LanguageRow = () => {
 
 const ThemeRow = () => {
   const translate = useTranslate();
-  const { theme, setTheme } = useTheme();
+  const { theme } = useTheme();
+  const persist = usePersistPreference();
 
   return (
     <Item size="sm" className="flex-col items-stretch gap-2">
@@ -499,9 +503,7 @@ const ThemeRow = () => {
       </ItemTitle>
       <ToggleGroup
         value={theme ? [theme] : []}
-        onValueChange={([value]) =>
-          value && setTheme(value as "light" | "dark" | "system")
-        }
+        onValueChange={([value]) => value && persist({ theme: value as Theme })}
         size="lg"
         variant="outline"
         spacing={0}

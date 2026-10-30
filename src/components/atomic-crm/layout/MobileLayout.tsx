@@ -6,11 +6,13 @@ import { ErrorBoundary } from "react-error-boundary";
 
 import { DataImportProvider } from "../dataImport/DataImportProvider";
 import { useConfigurationLoader } from "../root/useConfigurationLoader";
+import { usePreferencesLoader } from "../root/usePreferencesLoader";
 import { MobileNavigation } from "./MobileNavigation";
 import { PullToRefresh } from "./PullToRefresh";
 
 export const MobileLayout = ({ children }: { children: ReactNode }) => {
   useConfigurationLoader();
+  usePreferencesLoader();
   return (
     <DataImportProvider>
       <PullToRefresh />

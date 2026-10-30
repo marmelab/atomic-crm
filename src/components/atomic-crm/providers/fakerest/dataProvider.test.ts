@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
 
 import type { Db } from "./dataGenerator/types";
+import { createCrmDb } from "@/test/StoryWrapper";
+import { DEFAULT_USER, USER_STORAGE_KEY } from "./authProvider";
 import { createDataProvider } from "./dataProvider";
+
+const createProvider = () =>
+  createDataProvider({ db: createCrmDb(), latency: 0, silent: true });
 
 describe("fakerest dataProvider", () => {
   it("removes a deleted tag from contacts without touching other fields", async () => {
@@ -152,5 +157,117 @@ describe("fakerest dataProvider", () => {
       "Acme rebrand",
       "Design review",
     ]);
+  });
+});
+
+describe("fakerest preferences", () => {
+  it("round trips the preferences of the logged sale, whose id is 0", async () => {
+    expect(DEFAULT_USER.id).toBe(0);
+    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(DEFAULT_USER));
+    const dataProvider = createProvider();
+
+    expect(await dataProvider.getPreferences()).toEqual({});
+
+    await dataProvider.updatePreferences({ theme: "dark" });
+    expect(await dataProvider.getPreferences()).toEqual({ theme: "dark" });
+
+    await dataProvider.updatePreferences({ locale: "fr" });
+    expect(await dataProvider.getPreferences()).toEqual({
+      theme: "dark",
+      locale: "fr",
+    });
+  });
+
+  it("keeps keys it does not know about when writing", async () => {
+    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(DEFAULT_USER));
+    const db = structuredClone(createCrmDb());
+    db.sales[0].preferences = {
+      locale: "fr",
+      writtenByAnotherVersion: "keep me",
+    } as never;
+    const dataProvider = createDataProvider({ db, latency: 0, silent: true });
+
+    await dataProvider.updatePreferences({ theme: "dark" });
+
+    const { data } = await dataProvider.getOne("sales", {
+      id: DEFAULT_USER.id,
+    });
+    expect(data.preferences).toEqual({
+      theme: "dark",
+      locale: "fr",
+      writtenByAnotherVersion: "keep me",
+    });
+    expect(await dataProvider.getPreferences()).toEqual({
+      theme: "dark",
+      locale: "fr",
+    });
+  });
+
+  it("follows the injected authProvider identity when localStorage holds no user", async () => {
+    localStorage.removeItem(USER_STORAGE_KEY);
+    const db = structuredClone(createCrmDb());
+    db.sales.push({ ...db.sales[0], id: 7, preferences: undefined });
+    const dataProvider = createDataProvider({
+      db,
+      latency: 0,
+      silent: true,
+      authProvider: { getIdentity: async () => ({ id: 7 }) },
+    });
+
+    await dataProvider.updatePreferences({ theme: "dark" });
+
+    expect(await dataProvider.getPreferences()).toEqual({ theme: "dark" });
+    const { data: otherSale } = await dataProvider.getOne("sales", {
+      id: DEFAULT_USER.id,
+    });
+    expect(otherSale.preferences).toBeUndefined();
+  });
+
+  it("refuses to write, and touches no sale, when the authProvider has no identity", async () => {
+    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(DEFAULT_USER));
+    const dataProvider = createDataProvider({
+      db: createCrmDb(),
+      latency: 0,
+      silent: true,
+      authProvider: {
+        getIdentity: async () => {
+          throw new Error("Not authenticated");
+        },
+      },
+    });
+
+    await expect(
+      dataProvider.updatePreferences({ theme: "dark" }),
+    ).rejects.toThrow();
+
+    const { data: sale } = await dataProvider.getOne("sales", {
+      id: DEFAULT_USER.id,
+    });
+    expect(sale.preferences).toBeUndefined();
+  });
+
+  it("refuses to write, and touches no sale, when the default authProvider has no stored user", async () => {
+    localStorage.removeItem(USER_STORAGE_KEY);
+    const dataProvider = createProvider();
+
+    await expect(
+      dataProvider.updatePreferences({ theme: "dark" }),
+    ).rejects.toThrow();
+
+    const { data: sale } = await dataProvider.getOne("sales", {
+      id: DEFAULT_USER.id,
+    });
+    expect(sale.preferences).toBeUndefined();
+  });
+
+  it("returns a validated value, so a corrupt stored theme cannot reach the UI", async () => {
+    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(DEFAULT_USER));
+    const db = structuredClone(createCrmDb());
+    db.sales[0].preferences = { theme: "a b" } as never;
+    const dataProvider = createDataProvider({ db, latency: 0, silent: true });
+
+    expect(await dataProvider.updatePreferences({ locale: "fr" })).toEqual({
+      locale: "fr",
+    });
   });
 });

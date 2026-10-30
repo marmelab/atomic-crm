@@ -228,6 +228,18 @@ begin
     return new;
 end;$$;
 
+CREATE OR REPLACE FUNCTION "public"."enforce_sales_self_update_scope"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    SET "search_path" TO ''
+    AS $$
+BEGIN
+  IF current_user IN ('authenticated', 'anon')
+     AND to_jsonb(NEW) - 'preferences' IS DISTINCT FROM to_jsonb(OLD) - 'preferences' THEN
+    RAISE EXCEPTION 'Only the preferences column may be self-updated on public.sales';
+  END IF;
+  RETURN NEW;
+END;$$;
+
 CREATE OR REPLACE FUNCTION "public"."handle_new_user"() RETURNS "trigger"
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO ''
@@ -466,4 +478,28 @@ BEGIN
   END IF;
   RETURN NEW;
 END;
+$$;
+
+CREATE OR REPLACE FUNCTION "public"."update_sales_preferences"("patch" "jsonb") RETURNS "jsonb"
+    LANGUAGE "plpgsql"
+    SET "search_path" TO ''
+    AS $$
+declare
+  updated_preferences jsonb;
+begin
+  if patch is null or jsonb_typeof(patch) <> 'object' then
+    raise exception 'patch must be a JSON object' using errcode = '22023';
+  end if;
+
+  update public.sales
+  set preferences = coalesce(preferences, '{}'::jsonb) || patch
+  where user_id = auth.uid()
+  returning preferences into updated_preferences;
+
+  if not found then
+    raise exception 'No sales record found for the current user' using errcode = 'P0002';
+  end if;
+
+  return updated_preferences;
+end;
 $$;

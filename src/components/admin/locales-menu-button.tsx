@@ -7,6 +7,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { usePersistPreference } from "@/components/atomic-crm/root/usePersistPreference";
 import { useLocales, useLocaleState } from "ra-core";
 
 /**
@@ -21,7 +22,8 @@ import { useLocales, useLocaleState } from "ra-core";
  */
 export function LocalesMenuButton() {
   const languages = useLocales();
-  const [locale, setLocale] = useLocaleState();
+  const [locale] = useLocaleState();
+  const persist = usePersistPreference();
 
   const getNameForLocale = (locale: string): string => {
     const language = languages.find((language) => language.locale === locale);
@@ -29,7 +31,7 @@ export function LocalesMenuButton() {
   };
 
   const changeLocale = (locale: string) => (): void => {
-    setLocale(locale);
+    persist({ locale });
   };
 
   if (languages.length <= 1) {

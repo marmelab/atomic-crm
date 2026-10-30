@@ -41,6 +41,10 @@ grant all on function public.handle_contact_saved() to anon;
 grant all on function public.handle_contact_saved() to authenticated;
 grant all on function public.handle_contact_saved() to service_role;
 
+grant all on function public.enforce_sales_self_update_scope() to anon;
+grant all on function public.enforce_sales_self_update_scope() to authenticated;
+grant all on function public.enforce_sales_self_update_scope() to service_role;
+
 grant all on function public.handle_new_user() to anon;
 grant all on function public.handle_new_user() to authenticated;
 grant all on function public.handle_new_user() to service_role;
@@ -64,6 +68,11 @@ grant all on function public.merge_contacts(bigint, bigint) to service_role;
 grant all on function public.set_sales_id_default() to anon;
 grant all on function public.set_sales_id_default() to authenticated;
 grant all on function public.set_sales_id_default() to service_role;
+
+revoke all on function public.update_sales_preferences(jsonb) from public;
+revoke all on function public.update_sales_preferences(jsonb) from anon;
+grant execute on function public.update_sales_preferences(jsonb) to authenticated;
+grant execute on function public.update_sales_preferences(jsonb) to service_role;
 
 -- Table grants
 grant all on table public.companies to anon;
@@ -89,6 +98,9 @@ grant all on table public.deal_notes to service_role;
 grant all on table public.sales to anon;
 grant all on table public.sales to authenticated;
 grant all on table public.sales to service_role;
+
+revoke update on table public.sales from authenticated;
+grant update (preferences) on table public.sales to authenticated;
 
 grant all on table public.tags to anon;
 grant all on table public.tags to authenticated;
