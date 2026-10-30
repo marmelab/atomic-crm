@@ -16,18 +16,19 @@
 //
 // 3. SQL validator (validateSql.ts): a single statement per call, SELECT/WITH
 //    for `query`, INSERT/UPDATE/DELETE for `mutate`, no `set_config()` (it
-//    could rewrite the claims or the role mid-statement), and schema-qualified
-//    function calls restricted to `public`, `pg_catalog` and `auth`. It walks
-//    the raw AST so no syntactic position escapes it (DISTINCT ON and OVER
-//    once did).
+//    could rewrite the claims or the role mid-statement), and every
+//    schema-qualified reference (table, function, type) restricted to
+//    `public`, `pg_catalog`, `auth` and `information_schema`. It walks the raw
+//    AST so no syntactic position escapes it (DISTINCT ON and OVER once did).
 //
 // 4. Postgres as the backstop for what the validator cannot know:
 //    - `SET LOCAL search_path = public`: the `http` (extensions schema) and
-//      `pg_net` (net schema) functions let a query make the database issue
-//      HTTP requests, i.e. an SSRF primitive. Their EXECUTE grants cannot be
-//      revoked from a migration (they are owned by supabase_admin), so they
-//      are kept off the search_path instead: an unqualified `http_get(...)`
-//      does not resolve, whatever the validator did.
+//      `pg_net` (net schema) functions, and pg_net's request queue and
+//      response tables, let a query make the database issue HTTP requests,
+//      i.e. an SSRF primitive. Their grants cannot be revoked from a migration
+//      (they are owned by supabase_admin), so they are kept off the
+//      search_path instead: an unqualified `http_get(...)` or
+//      `http_request_queue` does not resolve, whatever the validator did.
 //    - `SET TRANSACTION READ ONLY` for `query`: a SELECT that calls a volatile
 //      function (merge_contacts, the pg_net request queue...) cannot write.
 //    - `SET LOCAL statement_timeout`: the connection logs in as `postgres`,

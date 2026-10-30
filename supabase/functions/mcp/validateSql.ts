@@ -8,31 +8,45 @@ const ALLOWED_WRITE_TYPES = new Set(["insert", "update", "delete", "with"]);
 // either mid-statement and act as another user, so it is never allowed.
 const FORBIDDEN_FUNCTIONS = new Set(["set_config"]);
 
-// Schema-qualified calls may only target these schemas. `extensions` (http
-// extension) and `net` (pg_net) hold functions that make the database issue
-// HTTP requests, which turns the query tool into an SSRF primitive; their
-// EXECUTE grants cannot be revoked from a migration (they are owned by
-// supabase_admin), so the endpoint has to refuse them itself. Unqualified
-// names are left to Postgres: the transaction wrapper sets search_path to
-// `public` (pg_catalog is implicit), so an unqualified `http_get(...)` does not
-// resolve at all. The two layers back each other up.
-const ALLOWED_FUNCTION_SCHEMAS = new Set(["public", "pg_catalog", "auth"]);
+// Schema-qualified references (tables, functions, types...) may only target
+// these schemas. `extensions` (http extension) and `net` (pg_net) hold the
+// functions AND the queue tables that make the database issue HTTP requests,
+// which turns the SQL tools into an SSRF primitive; their grants cannot be
+// revoked from a migration (they are owned by supabase_admin), so the endpoint
+// has to refuse them itself. Unqualified names are left to Postgres: the
+// transaction wrapper sets search_path to `public` (pg_catalog is implicit),
+// so an unqualified `http_get(...)` or `http_request_queue` does not resolve at
+// all. The two layers back each other up.
+const ALLOWED_SCHEMAS = new Set([
+  "public",
+  "pg_catalog",
+  "auth",
+  "information_schema",
+]);
 
-interface FunctionCall {
+interface QualifiedName {
   schema?: string;
   name: string;
 }
 
+// pgsql-ast-parser gives every named reference (table, function, type, column
+// qualifier) the same { schema?, name } shape, so one predicate covers them.
+function isQualifiedName(node: object): node is QualifiedName {
+  const candidate = node as { schema?: unknown; name?: unknown };
+  return (
+    typeof candidate.schema === "string" && typeof candidate.name === "string"
+  );
+}
+
 function isFunctionCallNode(
-  node: unknown,
-): node is { type: "call"; function: FunctionCall } {
-  if (typeof node !== "object" || node === null) return false;
+  node: object,
+): node is { type: "call"; function: { name: string } } {
   const candidate = node as { type?: unknown; function?: unknown };
   return (
     candidate.type === "call" &&
     typeof candidate.function === "object" &&
     candidate.function !== null &&
-    typeof (candidate.function as FunctionCall).name === "string"
+    typeof (candidate.function as { name?: unknown }).name === "string"
   );
 }
 
@@ -40,31 +54,31 @@ function isFunctionCallNode(
 // reaches the fields its default mapper enumerates, and it skips the
 // expression lists of `DISTINCT ON (...)` and `OVER (...)`, which was enough
 // to smuggle a set_config() call past the previous version of this check.
-// Descending into every object and array reaches a call wherever it sits.
-function collectFunctionCalls(node: unknown, calls: FunctionCall[]): void {
+// Descending into every object and array reaches a node wherever it sits.
+function findForbiddenReference(node: unknown): string | null {
   if (Array.isArray(node)) {
-    for (const child of node) collectFunctionCalls(child, calls);
-    return;
-  }
-  if (typeof node !== "object" || node === null) return;
-  if (isFunctionCallNode(node)) {
-    calls.push(node.function);
-  }
-  for (const child of Object.values(node)) collectFunctionCalls(child, calls);
-}
-
-function findForbiddenCall(stmts: Statement[]): string | null {
-  const calls: FunctionCall[] = [];
-  collectFunctionCalls(stmts, calls);
-  for (const call of calls) {
-    const name = call.name.toLowerCase();
-    if (FORBIDDEN_FUNCTIONS.has(name)) {
-      return `Function "${call.name}" is not allowed.`;
+    for (const child of node) {
+      const found = findForbiddenReference(child);
+      if (found) return found;
     }
-    const schema = call.schema?.toLowerCase();
-    if (schema !== undefined && !ALLOWED_FUNCTION_SCHEMAS.has(schema)) {
-      return `Function "${call.schema}.${call.name}" is not allowed: only functions from the ${[...ALLOWED_FUNCTION_SCHEMAS].join(", ")} schemas can be called.`;
-    }
+    return null;
+  }
+  if (typeof node !== "object" || node === null) return null;
+  if (
+    isFunctionCallNode(node) &&
+    FORBIDDEN_FUNCTIONS.has(node.function.name.toLowerCase())
+  ) {
+    return `Function "${node.function.name}" is not allowed.`;
+  }
+  if (
+    isQualifiedName(node) &&
+    !ALLOWED_SCHEMAS.has(node.schema.toLowerCase())
+  ) {
+    return `Reference to "${node.schema}.${node.name}" is not allowed: only objects from the ${[...ALLOWED_SCHEMAS].join(", ")} schemas can be used.`;
+  }
+  for (const child of Object.values(node)) {
+    const found = findForbiddenReference(child);
+    if (found) return found;
   }
   return null;
 }
@@ -116,7 +130,7 @@ export function validateReadOnly(sql: string): string | null {
       return `Statement type "${type}" is not allowed in read-only queries. Use the mutate tool for data modifications.`;
     }
   }
-  return findForbiddenCall(parsed.stmts);
+  return findForbiddenReference(parsed.stmts);
 }
 
 export function validateWrite(sql: string): string | null {
@@ -127,5 +141,5 @@ export function validateWrite(sql: string): string | null {
       return `Statement type "${type}" is not allowed. Only INSERT, UPDATE, and DELETE statements are supported.`;
     }
   }
-  return findForbiddenCall(parsed.stmts);
+  return findForbiddenReference(parsed.stmts);
 }

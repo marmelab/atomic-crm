@@ -50,6 +50,12 @@ describe("validateReadOnly", () => {
     ["auth schema function", "SELECT * FROM tasks WHERE sales_id = auth.uid()"],
     ["pg_catalog schema function", "SELECT pg_catalog.now()"],
     ["public schema function", "SELECT public.search_query('john')"],
+    ["public schema table", "SELECT id FROM public.contacts"],
+    ["pg_catalog table", "SELECT relname FROM pg_catalog.pg_class"],
+    [
+      "information_schema view",
+      "SELECT table_name FROM information_schema.tables",
+    ],
     [
       // Not the validator's job: the transaction wrapper sets search_path to
       // `public`, so this name does not resolve and Postgres rejects it.
@@ -135,14 +141,34 @@ describe("validateReadOnly", () => {
       "uppercase schema qualification",
       "SELECT * FROM EXTENSIONS.HTTP_GET('http://127.0.0.1/')",
     ],
+    [
+      "pg_net response table (SSRF read-back)",
+      "SELECT status_code, content FROM net._http_response",
+    ],
+    [
+      "pg_net table in a JOIN",
+      "SELECT c.id FROM contacts c JOIN net._http_response r ON r.id = c.id",
+    ],
+    [
+      "pg_net table in a CTE",
+      "WITH r AS (SELECT content FROM net._http_response) SELECT * FROM r",
+    ],
+    [
+      "pg_net table in a subquery",
+      "SELECT (SELECT content FROM net._http_response LIMIT 1)",
+    ],
+    ["extension-schema type in a cast", "SELECT 'x'::extensions.citext"],
   ])("rejects %s", (_label, sql) => {
     expect(validateReadOnly(sql)).not.toBeNull();
   });
 
-  it("names the offending schema-qualified function", () => {
+  it("names the offending schema-qualified reference", () => {
     expect(
       validateReadOnly("SELECT * FROM extensions.http_get('http://x/')"),
     ).toMatch(/"extensions\.http_get" is not allowed/);
+    expect(validateReadOnly("SELECT * FROM net._http_response")).toMatch(
+      /"net\._http_response" is not allowed/,
+    );
   });
 });
 
@@ -169,6 +195,10 @@ describe("validateWrite", () => {
     [
       "UPDATE scoped to the caller",
       "UPDATE tasks SET done_date = now() WHERE id = 1 AND sales_id = auth.uid()",
+    ],
+    [
+      "INSERT into a public-qualified table",
+      "INSERT INTO public.tasks (text) VALUES ('x')",
     ],
   ])("allows %s", (_label, sql) => {
     expect(validateWrite(sql)).toBeNull();
@@ -209,6 +239,19 @@ describe("validateWrite", () => {
       "pg_net in an INSERT ... SELECT (SSRF)",
       "INSERT INTO tasks (text) SELECT net.http_get('http://127.0.0.1/')::text",
     ],
+    [
+      "direct INSERT into the pg_net request queue (SSRF)",
+      "INSERT INTO net.http_request_queue (method, url, headers, timeout_milliseconds) VALUES ('GET', 'http://169.254.169.254/latest/meta-data/', '{}', 5000)",
+    ],
+    [
+      "writable CTE into the pg_net request queue (SSRF)",
+      "WITH q AS (INSERT INTO net.http_request_queue (method, url, headers, timeout_milliseconds) VALUES ('GET', 'http://127.0.0.1/', '{}', 5000) RETURNING id) INSERT INTO tasks (text) SELECT id::text FROM q",
+    ],
+    [
+      "UPDATE on a pg_net table",
+      "UPDATE net.http_request_queue SET url = 'http://127.0.0.1/' WHERE id = 1",
+    ],
+    ["DELETE on a pg_net table", "DELETE FROM net._http_response WHERE id = 1"],
   ])("rejects %s", (_label, sql) => {
     expect(validateWrite(sql)).not.toBeNull();
   });
