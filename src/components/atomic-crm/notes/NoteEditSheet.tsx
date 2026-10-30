@@ -98,22 +98,24 @@ const NoteEditMenuButton = ({
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <button
-          type="button"
-          className="opacity-70 transition-opacity hover:opacity-100 rounded-xs"
-        >
-          <EllipsisVertical className="size-6" />
-          <span className="sr-only">
-            {translate("ra.action.open_menu", { _: "More" })}
-          </span>
-        </button>
+      <DropdownMenuTrigger
+        render={
+          <button
+            type="button"
+            className="opacity-70 transition-opacity hover:opacity-100 rounded-xs"
+          />
+        }
+      >
+        <EllipsisVertical className="size-6" />
+        <span className="sr-only">
+          {translate("ra.action.open_menu", { _: "More" })}
+        </span>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem
           variant="destructive"
           className="h-12 md:h-8 px-4 md:px-2 text-base md:text-sm"
-          onSelect={onDelete}
+          onClick={onDelete}
         >
           <Trash2 />
           {translate("ra.action.delete")}

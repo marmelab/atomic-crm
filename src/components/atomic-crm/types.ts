@@ -125,7 +125,7 @@ export type Deal = {
   name: string;
   company_id: Identifier;
   contact_ids: Identifier[];
-  category: string;
+  categories: string[];
   stage: string;
   description: string;
   amount: number;
@@ -239,12 +239,7 @@ export interface ContactGender {
 }
 
 export type SearchResourceName =
-  | "companies"
-  | "contacts"
-  | "deals"
-  | "tasks"
-  | "contact_notes"
-  | "deal_notes";
+  "companies" | "contacts" | "deals" | "tasks" | "contact_notes" | "deal_notes";
 
 export type SearchResult = {
   resource: SearchResourceName;

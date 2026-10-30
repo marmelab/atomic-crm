@@ -242,6 +242,28 @@ describe("getList", () => {
     });
   });
 
+  it("should transform '@ov'", async () => {
+    const getList = vi.fn();
+    const mockDataProvider = {
+      getList,
+    } as unknown as DataProvider;
+
+    getList.mockResolvedValueOnce([{ id: 1 }]);
+
+    const { getList: getListAdapter } =
+      withSupabaseFilterAdapter(mockDataProvider);
+
+    await expect(
+      getListAdapter("resource", {
+        filter: { "categories@ov": '{"ui-design","copywriting"}' },
+      }),
+    ).resolves.toEqual([{ id: 1 }]);
+
+    expect(getList).toHaveBeenCalledWith("resource", {
+      filter: { categories_inc_any: ["ui-design", "copywriting"] },
+    });
+  });
+
   it("should transform '@or'", async () => {
     const getList = vi.fn();
     const mockDataProvider = {

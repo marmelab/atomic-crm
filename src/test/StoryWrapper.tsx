@@ -8,6 +8,7 @@ import {
 import { useEffect, useMemo, type ReactNode } from "react";
 import { MemoryRouter } from "react-router";
 import cloneDeep from "lodash/cloneDeep";
+import { toast } from "sonner";
 import { Notification } from "@/components/admin/notification";
 import { createDataProvider } from "@/components/atomic-crm/providers/fakerest";
 import { DEFAULT_USER } from "@/components/atomic-crm/providers/fakerest/authProvider";
@@ -116,7 +117,7 @@ export const buildContact = (overrides: Partial<Contact> = {}): Contact => ({
 export const buildDeal = (overrides: Partial<Deal> = {}): Deal => ({
   amount: 1000,
   archived_at: undefined,
-  category: "Other",
+  categories: ["other"],
   company_id: 1,
   contact_ids: [],
   created_at: "2025-01-01T09:00:00.000Z",
@@ -172,6 +173,11 @@ export const StoryWrapper = ({
   useEffect(() => {
     // Clear localStorage on mount to prevent data pollution from previous story / test, since we persist react-query cache in localStorage.
     localStorage.clear();
+    // Sonner replays still-active toasts to every new <Toaster>, so dismiss ours on
+    // unmount or they reappear in the next story / test.
+    return () => {
+      toast.dismiss();
+    };
   }, []);
 
   return (

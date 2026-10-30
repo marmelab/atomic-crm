@@ -288,6 +288,11 @@ const LanguageSelector = () => {
     return null;
   }
 
+  const localeItems = locales.map(({ locale, name }) => ({
+    value: locale,
+    label: name,
+  }));
+
   return (
     <div className="space-y-2">
       <p className="text-xs text-muted-foreground">
@@ -295,7 +300,8 @@ const LanguageSelector = () => {
       </p>
       <Select
         value={locale}
-        onValueChange={(value) => persist({ locale: value })}
+        onValueChange={(value) => value && persist({ locale: value })}
+        items={localeItems}
       >
         <SelectTrigger className="w-full">
           <SelectValue />
@@ -387,20 +393,22 @@ const CopyPaste = ({ value }: { value: string }) => {
   return (
     <TooltipProvider>
       <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            type="button"
-            onClick={handleCopy}
-            variant="ghost"
-            className="normal-case justify-between w-full"
-          >
-            <span className="overflow-hidden text-ellipsis">{value}</span>
-            {copied ? (
-              <Check className="h-4 w-4 ml-2" />
-            ) : (
-              <Copy className="h-4 w-4 ml-2" />
-            )}
-          </Button>
+        <TooltipTrigger
+          render={
+            <Button
+              type="button"
+              onClick={handleCopy}
+              variant="ghost"
+              className="normal-case justify-between w-full"
+            />
+          }
+        >
+          <span className="overflow-hidden text-ellipsis">{value}</span>
+          {copied ? (
+            <Check className="h-4 w-4 ml-2" />
+          ) : (
+            <Copy className="h-4 w-4 ml-2" />
+          )}
         </TooltipTrigger>
         <TooltipContent>
           <p>

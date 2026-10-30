@@ -361,6 +361,60 @@ describe("GlobalSearchDialog", () => {
   });
 });
 
+describe("GlobalSearchDialog with many results in a group", () => {
+  const manyCompanies = {
+    ...data,
+    companies: Array.from({ length: 5 }, (_, index) => ({
+      id: index + 1,
+      name: `Bakery ${index + 1}`,
+      sector: "Food",
+      created_at: `2025-01-0${index + 1}T10:00:00.000Z`,
+    })),
+    contact_notes: [
+      {
+        contact_id: 1,
+        date: "2025-02-01T10:00:00.000Z",
+        id: 1,
+        sales_id: 0,
+        status: "warm",
+        text: "Visited the bakery",
+      },
+    ],
+  };
+
+  beforeEach(async () => {
+    await page.viewport(1600, 900);
+  });
+
+  it("shows the first results of each group and a link to the rest", async () => {
+    const screen = await render(<Dialog data={manyCompanies} />);
+
+    await screen.getByPlaceholder(PLACEHOLDER).fill("bakery");
+
+    const companies = screen.getByRole("group", { name: "Companies" });
+    await expect.element(companies.getByText("Show more")).toBeVisible();
+    expect(companies.getByRole("option").elements()).toHaveLength(4);
+    await expect
+      .element(
+        screen
+          .getByRole("group", { name: "Contact notes" })
+          .getByText("Visited the bakery"),
+      )
+      .toBeVisible();
+  });
+
+  it("shows the rest of a group when asked", async () => {
+    const screen = await render(<Dialog data={manyCompanies} />);
+
+    await screen.getByPlaceholder(PLACEHOLDER).fill("bakery");
+    const companies = screen.getByRole("group", { name: "Companies" });
+    await companies.getByText("Show more").click();
+
+    await expect.element(companies.getByText("Bakery 1")).toBeVisible();
+    expect(companies.getByRole("option").elements()).toHaveLength(5);
+  });
+});
+
 describe("GlobalSearchDialog on mobile", () => {
   beforeEach(async () => {
     await page.viewport(375, 667);

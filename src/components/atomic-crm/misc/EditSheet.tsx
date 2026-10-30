@@ -129,7 +129,7 @@ export const EditSheet = ({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="bottom"
-        className="h-dvh flex flex-col"
+        className="data-[side=bottom]:h-dvh flex flex-col"
         aria-describedby={undefined}
       >
         <EditBase

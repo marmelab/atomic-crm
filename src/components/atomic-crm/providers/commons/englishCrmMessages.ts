@@ -95,6 +95,10 @@ export const englishCrmMessages = {
         new: "New Contact",
         show: "Show contact",
       },
+      autocomplete: {
+        create_item: "Create %{item}",
+        create_label: "Start typing to create a new contact",
+      },
       background: {
         last_activity_on: "Last activity on %{date}",
         added_on: "Added on %{date}",
@@ -183,7 +187,7 @@ export const englishCrmMessages = {
         description: "Description",
         company_id: "Company",
         contact_ids: "Contacts",
-        category: "Category",
+        categories: "Categories",
         amount: "Budget",
         expected_closing_date: "Expected closing date",
         stage: "Stage",
@@ -464,6 +468,7 @@ export const englishCrmMessages = {
       empty: "No result found",
       error: "Search is unavailable right now. Please try again.",
       untitled_result: "(no title)",
+      show_more: "Show more",
       groups: {
         contacts: "Contacts",
         companies: "Companies",

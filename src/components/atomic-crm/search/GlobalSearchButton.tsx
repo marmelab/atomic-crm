@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Search } from "lucide-react";
+import { ChevronDown, Search } from "lucide-react";
 import { useDataProvider, useDebouncedEvent, useTranslate } from "ra-core";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
@@ -124,14 +124,18 @@ export const GlobalSearchButton = ({
 
 const MIN_SEARCH_LENGTH = 2;
 const DEBOUNCE_MS = 300;
-const MAX_RESULTS = 50;
+const MAX_RESULTS_PER_RESOURCE = 10;
+// Results shown per group until the user asks for more, so a busy group does
+// not push the others out of view.
+const GROUP_PREVIEW_SIZE = 3;
 
 /**
  * Run the global search for an already debounced search term.
  *
  * Stays idle until the term reaches MIN_SEARCH_LENGTH, so opening the dialog
- * does not fire a request. `resources` restricts the query server-side, so the
- * row cap is spent only on resources the current layout can actually link to.
+ * does not fire a request. `resources` restricts the query server-side to the
+ * resources the current layout can actually link to. The row cap applies to
+ * each resource, so every group shows its own newest matches.
  */
 const useGlobalSearch = (
   debouncedQuery: string,
@@ -143,7 +147,11 @@ const useGlobalSearch = (
   const { data, isPending, error } = useQuery({
     queryKey: ["globalSearch", debouncedQuery, resources],
     queryFn: () =>
-      dataProvider.globalSearch(debouncedQuery, resources, MAX_RESULTS),
+      dataProvider.globalSearch(
+        debouncedQuery,
+        resources,
+        MAX_RESULTS_PER_RESOURCE,
+      ),
     enabled: isEnabled,
     meta: { persist: false },
     // offlineFirst (the app default) pauses a failed search while offline,
@@ -189,12 +197,15 @@ export const GlobalSearchDialog = ({
   const isMobile = useIsMobile();
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
+  const [expandedGroups, setExpandedGroups] = useState<
+    ReadonlySet<SearchResourceName>
+  >(new Set());
   const updateDebouncedQuery = useDebouncedEvent(
     setDebouncedQuery,
     DEBOUNCE_MS,
   );
   const { results, isPending, error } = useGlobalSearch(
-    query,
+    debouncedQuery,
     isMobile ? MOBILE_SEARCH_RESOURCES : DESKTOP_SEARCH_RESOURCES,
   );
 
@@ -213,6 +224,7 @@ export const GlobalSearchDialog = ({
     if (!nextOpen) {
       setQuery("");
       setDebouncedQuery("");
+      setExpandedGroups(new Set());
       // replaces an update still pending from the last keystroke
       updateDebouncedQuery("");
     }
@@ -259,33 +271,46 @@ export const GlobalSearchDialog = ({
             value={query}
             onValueChange={(value) => {
               setQuery(value);
+              setExpandedGroups(new Set());
               updateDebouncedQuery(value.trim());
             }}
             // keep the text clear of the dialog's close button, drawn over the
             // input's right end
-            className="pr-8"
+            className="pr-8 text-base"
           />
           <CommandList
-            className={isMobile ? "max-h-none flex-1" : "max-h-[60vh]"}
+            className={cn(
+              "overscroll-contain",
+              isMobile ? "max-h-none min-h-0 flex-1" : "max-h-[60vh]",
+            )}
+            // On a phone the keyboard covers the bottom of the list, and
+            // dragging then pans the page behind the dialog: close it first.
+            onTouchStart={
+              isMobile
+                ? () => (document.activeElement as HTMLElement | null)?.blur()
+                : undefined
+            }
           >
             {isTooShort ? (
-              <div className="py-6 text-center text-sm text-muted-foreground">
+              <div className="px-4 py-6 text-center text-sm text-muted-foreground">
                 {translate("crm.search.hint", { min: MIN_SEARCH_LENGTH })}
               </div>
             ) : error ? (
               <div
                 role="alert"
-                className="py-6 text-center text-sm text-destructive"
+                className="px-4 py-6 text-center text-sm text-destructive"
               >
                 {translate("crm.search.error")}
               </div>
             ) : isPending ? (
-              <div className="py-6 text-center text-sm text-muted-foreground">
+              <div className="px-4 py-6 text-center text-sm text-muted-foreground">
                 {translate("crm.common.loading")}
               </div>
             ) : (
               <>
-                <CommandEmpty>{translate("crm.search.empty")}</CommandEmpty>
+                <CommandEmpty className="px-4 py-6 text-center text-sm">
+                  {translate("crm.search.empty")}
+                </CommandEmpty>
                 {SEARCH_RESOURCES.map(({ name, icon: Icon, labelKey }) => {
                   const groupResults = linkedResults.filter(
                     ({ result }) => result.resource === name,
@@ -293,9 +318,20 @@ export const GlobalSearchDialog = ({
                   if (groupResults.length === 0) {
                     return null;
                   }
+                  const hiddenCount = expandedGroups.has(name)
+                    ? 0
+                    : Math.max(0, groupResults.length - GROUP_PREVIEW_SIZE);
+                  const shownResults = groupResults.slice(
+                    0,
+                    groupResults.length - hiddenCount,
+                  );
                   return (
-                    <CommandGroup key={name} heading={translate(labelKey)}>
-                      {groupResults.map(({ result, url }) => {
+                    <CommandGroup
+                      key={name}
+                      heading={translate(labelKey)}
+                      className="[&_[cmdk-group-heading]]:text-sm"
+                    >
+                      {shownResults.map(({ result, url }) => {
                         const title =
                           result.title ||
                           translate("crm.search.untitled_result");
@@ -321,7 +357,7 @@ export const GlobalSearchDialog = ({
                             key={`${result.resource}.${result.record_id}`}
                             value={`${result.resource}.${result.record_id}`}
                             onSelect={() => handleSelect(url)}
-                            className="items-start"
+                            className="items-start text-base"
                           >
                             <Icon className="mt-0.5 shrink-0" />
                             <div className="flex min-w-0 flex-1 flex-col gap-0.5">
@@ -339,13 +375,13 @@ export const GlobalSearchDialog = ({
                                   />
                                 </span>
                                 {result.subtitle ? (
-                                  <span className="ml-auto shrink-0 text-xs text-muted-foreground">
+                                  <span className="ml-auto shrink-0 text-sm text-muted-foreground">
                                     {result.subtitle}
                                   </span>
                                 ) : null}
                               </div>
                               {secondLine ? (
-                                <span className="line-clamp-2 text-xs text-muted-foreground">
+                                <span className="line-clamp-2 text-sm text-muted-foreground">
                                   <Highlighted
                                     text={secondLine}
                                     terms={terms}
@@ -356,6 +392,20 @@ export const GlobalSearchDialog = ({
                           </CommandItem>
                         );
                       })}
+                      {hiddenCount > 0 ? (
+                        <CommandItem
+                          value={`${name}.show_more`}
+                          onSelect={() =>
+                            setExpandedGroups(
+                              (groups) => new Set([...groups, name]),
+                            )
+                          }
+                          className="text-sm text-muted-foreground"
+                        >
+                          <ChevronDown className="shrink-0" />
+                          {translate("crm.search.show_more")}
+                        </CommandItem>
+                      ) : null}
                     </CommandGroup>
                   );
                 })}

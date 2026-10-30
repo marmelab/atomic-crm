@@ -67,7 +67,7 @@ create table public.deals (
     name text not null,
     company_id bigint,
     contact_ids bigint[],
-    category text,
+    categories text[],
     stage text not null,
     description text,
     amount bigint,

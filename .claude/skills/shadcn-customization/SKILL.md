@@ -75,7 +75,7 @@ npx shadcn@latest apply --preset nova
 npx shadcn@latest init --preset nova --force --no-reinstall
 
 # Use a custom theme URL.
-npx shadcn@latest apply --preset "https://ui.shadcn.com/init?base=radix&style=nova&theme=blue&..."
+npx shadcn@latest apply --preset "https://ui.shadcn.com/init?base=base-ui&style=base-vega&theme=blue&..."
 ```
 
 Or edit CSS variables directly in `globals.css`.
@@ -152,7 +152,7 @@ Compose shadcn/ui primitives into higher-level components:
 export function ConfirmDialog({ title, description, onConfirm, children }) {
   return (
     <AlertDialog>
-      <AlertDialogTrigger asChild>{children}</AlertDialogTrigger>
+      <AlertDialogTrigger render={children} />
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>{title}</AlertDialogTitle>

@@ -3,7 +3,50 @@ import { execa } from "execa";
 import fs from "node:fs";
 
 (async () => {
-  await loginToSupabase();
+  // Only log out if we logged in: keep an existing login (or SUPABASE_ACCESS_TOKEN) untouched
+  const shouldLogout = !(await isLoggedIn());
+  if (shouldLogout) {
+    for (const [signal, code] of [
+      ["SIGHUP", 129],
+      ["SIGINT", 130],
+      ["SIGQUIT", 131],
+      ["SIGTERM", 143],
+    ]) {
+      process.on(signal, () => logout().finally(() => process.exit(code)));
+    }
+    await execa("npx", ["supabase", "login"], { stdio: "inherit" });
+  }
+  try {
+    await initRemoteProject();
+  } finally {
+    if (shouldLogout) await logout();
+  }
+})();
+
+async function isLoggedIn() {
+  const { exitCode } = await execa(
+    "npx",
+    ["--yes", "supabase", "projects", "list"],
+    { stdout: "ignore", stderr: "ignore", reject: false },
+  );
+  return exitCode === 0;
+}
+
+let logoutPromise;
+function logout() {
+  logoutPromise ??= execa("npx", ["supabase", "logout", "--yes"], {
+    stdout: "ignore",
+    reject: false,
+  }).then(() => {
+    // eslint-disable-next-line no-console
+    console.log(
+      "The Supabase CLI login created a personal access token that never expires. Revoke it at https://supabase.com/dashboard/account/tokens",
+    );
+  });
+  return logoutPromise;
+}
+
+async function initRemoteProject() {
   const projectName = await input({
     message: "Enter the name of the project:",
     default: "Atomic CRM",
@@ -48,10 +91,11 @@ import fs from "node:fs";
     projectRef,
     publishableKey,
   });
-})();
 
-async function loginToSupabase() {
-  await execa("npx", ["supabase", "login"], { stdio: "inherit" });
+  // Deploy here rather than in the makefile, so it runs before the logout
+  await execa("npx", ["supabase", "functions", "deploy"], {
+    stdio: "inherit",
+  });
 }
 
 async function createProject({

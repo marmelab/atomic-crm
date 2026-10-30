@@ -23,6 +23,7 @@ import type { ConfigurationContextValue } from "../../root/ConfigurationContext"
 import { parseUserPreferences } from "../../root/preferences";
 import { ATTACHMENTS_BUCKET } from "../commons/attachments";
 import { getIsInitialized } from "./authProvider";
+import { searchDealCategories } from "./searchDealCategories";
 import { getSupabaseClient } from "./supabase";
 
 const getBaseDataProvider = () =>
@@ -427,8 +428,12 @@ const lifeCycleCallbacks: ResourceCallbacks[] = [
   },
   {
     resource: "deals",
-    beforeGetList: async (params) => {
-      return applyFullTextSearch(["name", "category", "description"])(params);
+    beforeGetList: async (params, dataProvider) => {
+      return searchDealCategories(
+        applyFullTextSearch(["name", "description"])(params),
+        params.filter?.q,
+        dataProvider,
+      );
     },
   },
 ];
