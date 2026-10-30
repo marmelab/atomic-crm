@@ -1,6 +1,6 @@
 import { ReferenceManyField } from "@/components/admin/reference-many-field";
 import { SortButton } from "@/components/admin/sort-button";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UserPlus } from "lucide-react";
@@ -22,10 +22,11 @@ import {
 } from "react-router";
 
 import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
 import { ActivityLog } from "../activity/ActivityLog";
 import { Avatar } from "../contacts/Avatar";
 import { TagsList } from "../contacts/TagsList";
-import { findDealLabel } from "../deals/dealUtils";
+import { findDealLabel, formatDealCategories } from "../deals/dealUtils";
 import { MobileContent } from "../layout/MobileContent";
 import MobileHeader from "../layout/MobileHeader";
 import { MobileBackButton } from "../misc/MobileBackButton";
@@ -115,7 +116,9 @@ const CompanyShowContent = () => {
           <CardContent>
             <div className="flex mb-3">
               <CompanyAvatar />
-              <h5 className="text-xl ml-2 flex-1">{record.name}</h5>
+              <h5 className="text-xl font-semibold ml-2 flex-1">
+                {record.name}
+              </h5>
             </div>
             <Tabs defaultValue={currentTab} onValueChange={handleTabChange}>
               <TabsList className="grid w-full grid-cols-3">
@@ -245,16 +248,17 @@ const CreateRelatedContactButton = () => {
   const translate = useTranslate();
   const company = useRecordContext<Company>();
   return (
-    <Button variant="outline" asChild size="sm" className="h-9">
-      <RouterLink
-        to="/contacts/create"
-        state={company ? { record: { company_id: company.id } } : undefined}
-        className="flex items-center gap-2"
-      >
-        <UserPlus className="h-4 w-4" />
-        {translate("resources.contacts.action.add")}
-      </RouterLink>
-    </Button>
+    <RouterLink
+      to="/contacts/create"
+      state={company ? { record: { company_id: company.id } } : undefined}
+      className={cn(
+        buttonVariants({ variant: "outline", size: "sm" }),
+        "h-9 flex items-center gap-2",
+      )}
+    >
+      <UserPlus className="h-4 w-4" />
+      {translate("resources.contacts.action.add")}
+    </RouterLink>
   );
 };
 
@@ -284,8 +288,8 @@ const DealsIterator = () => {
                     currencyDisplay: "narrowSymbol",
                     minimumSignificantDigits: 3,
                   })}
-                  {deal.category
-                    ? `, ${dealCategories.find((c) => c.value === deal.category)?.label ?? deal.category}`
+                  {deal.categories?.length
+                    ? `, ${formatDealCategories(dealCategories, deal.categories)}`
                     : ""}
                 </div>
               </div>

@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { CheckCircle, Circle, Plus } from "lucide-react";
@@ -8,6 +8,7 @@ import { useState } from "react";
 import { Link } from "react-router";
 
 import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
 import { ContactCreateSheet } from "../contacts/ContactCreateSheet";
 import { DataImportButton } from "../dataImport/DataImportButton";
 import useAppBarHeight from "../misc/useAppBarHeight";
@@ -100,16 +101,15 @@ export const DashboardStepper = ({
                         {addContactLabel}
                       </Button>
                     ) : (
-                      <Button asChild className="w-fit">
-                        <Link
-                          to={createPath({
-                            resource: "contacts",
-                            type: "create",
-                          })}
-                        >
-                          {addContactLabel}
-                        </Link>
-                      </Button>
+                      <Link
+                        to={createPath({
+                          resource: "contacts",
+                          type: "create",
+                        })}
+                        className={buttonVariants({ className: "w-fit" })}
+                      >
+                        {addContactLabel}
+                      </Link>
                     )}
                   </div>
                 </div>
@@ -139,19 +139,25 @@ export const DashboardStepper = ({
                       })}
                     </Button>
                   ) : (
-                    <Button asChild disabled={step < 2} className="w-fit">
-                      <Link
-                        to={createPath({
-                          resource: "contacts",
-                          type: "show",
-                          id: contactId,
-                        })}
-                      >
-                        {translate("resources.notes.action.add", {
-                          _: "Add note",
-                        })}
-                      </Link>
-                    </Button>
+                    <Link
+                      to={createPath({
+                        resource: "contacts",
+                        type: "show",
+                        id: contactId,
+                      })}
+                      aria-disabled={step < 2 || undefined}
+                      tabIndex={step < 2 ? -1 : undefined}
+                      className={buttonVariants({
+                        className: cn(
+                          "w-fit",
+                          step < 2 && "pointer-events-none opacity-50",
+                        ),
+                      })}
+                    >
+                      {translate("resources.notes.action.add", {
+                        _: "Add note",
+                      })}
+                    </Link>
                   )}
                 </div>
               </div>

@@ -27,7 +27,11 @@ import { NotesIterator } from "../notes/NotesIterator";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal } from "../types";
 import { ContactList } from "./ContactList";
-import { findDealLabel, formatISODateString } from "./dealUtils";
+import {
+  findDealLabel,
+  formatDealCategories,
+  formatISODateString,
+} from "./dealUtils";
 
 export const DealShow = ({ open, id }: { open: boolean; id?: string }) => {
   const redirect = useRedirect();
@@ -68,7 +72,7 @@ const DealShowContent = () => {
               >
                 <CompanyAvatar />
               </ReferenceField>
-              <h2 className="text-2xl font-semibold">{record.name}</h2>
+              <h2 className="text-xl font-semibold">{record.name}</h2>
             </div>
             <div className={`flex gap-2 ${record.archived_at ? "" : "pr-12"}`}>
               {record.archived_at ? (
@@ -119,14 +123,13 @@ const DealShowContent = () => {
               </span>
             </div>
 
-            {record.category && (
+            {!!record.categories?.length && (
               <div className="flex flex-col mr-10">
                 <span className="text-xs text-muted-foreground tracking-wide">
-                  {translate("resources.deals.fields.category")}
+                  {translate("resources.deals.fields.categories")}
                 </span>
                 <span className="text-sm">
-                  {dealCategories.find((c) => c.value === record.category)
-                    ?.label ?? record.category}
+                  {formatDealCategories(dealCategories, record.categories)}
                 </span>
               </div>
             )}

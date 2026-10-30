@@ -32,10 +32,11 @@ import { useGetSalesName } from "../sales/useGetSalesName";
 export const Note = ({
   showStatus,
   note,
+  isCompact,
 }: {
   showStatus?: boolean;
   note: DealNote | ContactNote;
-  isLast: boolean;
+  isCompact?: boolean;
 }) => {
   const [isHover, setHover] = useState(false);
   const [isEditing, setEditing] = useState(false);
@@ -51,13 +52,14 @@ export const Note = ({
     enabled: !isCurrentUser,
   });
 
-  // Detect if content is truncated
+  const isCollapsedCompact = isCompact && !isExpanded;
+
   useEffect(() => {
     const el = contentRef.current;
-    if (el) {
+    if (el && !isExpanded) {
       setTruncated(el.scrollHeight > el.clientHeight);
     }
-  }, [note.text]);
+  }, [note.text, isCompact, isExpanded]);
 
   const [update, { isPending }] = useUpdate();
 
@@ -124,15 +126,18 @@ export const Note = ({
         <span className={`${isHover ? "visible" : "invisible"}`}>
           <TooltipProvider>
             <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleEnterEditMode}
-                  className="p-1 h-auto cursor-pointer"
-                >
-                  <Edit className="w-4 h-4" />
-                </Button>
+              <TooltipTrigger
+                render={
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleEnterEditMode}
+                    className="p-1 h-auto cursor-pointer"
+                    aria-label={translate("resources.notes.action.edit")}
+                  />
+                }
+              >
+                <Edit className="w-4 h-4" />
               </TooltipTrigger>
               <TooltipContent>
                 <p>{translate("resources.notes.action.edit")}</p>
@@ -141,15 +146,18 @@ export const Note = ({
           </TooltipProvider>
           <TooltipProvider>
             <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleDelete}
-                  className="p-1 h-auto cursor-pointer"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
+              <TooltipTrigger
+                render={
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleDelete}
+                    className="p-1 h-auto cursor-pointer"
+                    aria-label={translate("resources.notes.action.delete")}
+                  />
+                }
+              >
+                <Trash2 className="w-4 h-4" />
               </TooltipTrigger>
               <TooltipContent>
                 <p>{translate("resources.notes.action.delete")}</p>
@@ -187,18 +195,20 @@ export const Note = ({
         </Form>
       ) : (
         <div className="pt-2 text-sm max-w-150">
-          {note.text && (
-            <div
-              ref={contentRef}
-              className={cn(
-                "overflow-hidden transition-[max-height] duration-300 ease-in-out",
-                isExpanded ? "max-h-[5000px]" : "max-h-46",
-              )}
-            >
-              <Markdown>{note.text}</Markdown>
-            </div>
-          )}
-          {isTruncated && (
+          {note.text &&
+            (isCollapsedCompact ? (
+              <p ref={contentRef} className="line-clamp-2">
+                {note.text.replace(/\s+/g, " ").trim()}
+              </p>
+            ) : (
+              <div
+                ref={contentRef}
+                className={cn("overflow-hidden", !isExpanded && "max-h-[70vh]")}
+              >
+                <Markdown>{note.text}</Markdown>
+              </div>
+            ))}
+          {(isTruncated || (isCollapsedCompact && note.attachments)) && (
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -212,7 +222,9 @@ export const Note = ({
             </button>
           )}
 
-          {note.attachments && <NoteAttachments note={note} />}
+          {note.attachments && !isCollapsedCompact && (
+            <NoteAttachments note={note} />
+          )}
         </div>
       )}
     </div>

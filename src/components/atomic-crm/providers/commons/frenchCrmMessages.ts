@@ -98,6 +98,10 @@ export const frenchCrmMessages = {
         new: "Nouveau contact",
         show: "Afficher le contact",
       },
+      autocomplete: {
+        create_item: "Créer %{item}",
+        create_label: "Saisissez du texte pour créer un contact",
+      },
       background: {
         last_activity_on: "Dernière activité le %{date}",
         added_on: "Ajouté le %{date}",
@@ -139,7 +143,8 @@ export const frenchCrmMessages = {
         empty:
           "Aucune étiquette pour le moment. Créez-en une pour étiqueter les contacts sélectionnés.",
         error: "Impossible d'ajouter l'étiquette aux contacts",
-        noop: "Les contacts sélectionnés ont déjà cette étiquette",
+        removed:
+          "Étiquette retirée de %{smart_count} contact |||| Étiquette retirée de %{smart_count} contacts",
         success:
           "Étiquette ajoutée à %{smart_count} contact |||| Étiquette ajoutée à %{smart_count} contacts",
         title: "Ajouter une étiquette aux contacts",
@@ -186,7 +191,7 @@ export const frenchCrmMessages = {
         description: "Description",
         company_id: "Entreprise",
         contact_ids: "Contacts",
-        category: "Catégorie",
+        categories: "Catégories",
         amount: "Budget",
         expected_closing_date: "Date de clôture prévue",
         stage: "Étape",
@@ -322,7 +327,7 @@ export const frenchCrmMessages = {
         edit: "Modifier la tâche",
       },
       actions: {
-        postpone_next_week: "Reporté à la semaine prochaine",
+        postpone_next_week: "Reporter à la semaine prochaine",
         postpone_tomorrow: "Reporter à demain",
         title: "Actions de tâche",
       },
@@ -462,6 +467,25 @@ export const frenchCrmMessages = {
     },
     header: {
       import_data: "Importer depuis JSON",
+    },
+    search: {
+      title: "Rechercher",
+      placeholder:
+        "Rechercher un contact, une entreprise, une affaire, une tâche, une note...",
+      hint: "Saisissez au moins %{min} caractères pour lancer la recherche",
+      empty: "Aucun résultat",
+      error:
+        "La recherche est indisponible pour le moment. Veuillez réessayer.",
+      untitled_result: "(sans titre)",
+      show_more: "Afficher plus",
+      groups: {
+        contacts: "Contacts",
+        companies: "Entreprises",
+        deals: "Affaires",
+        tasks: "Tâches",
+        contact_notes: "Notes de contact",
+        deal_notes: "Notes d'affaire",
+      },
     },
     image_editor: {
       change: "Changer",

@@ -67,7 +67,7 @@ create table public.deals (
     name text not null,
     company_id bigint,
     contact_ids bigint[],
-    category text,
+    categories text[],
     stage text not null,
     description text,
     amount bigint,
@@ -117,7 +117,8 @@ create table public.tasks (
     text text,
     due_date timestamp with time zone,
     done_date timestamp with time zone,
-    sales_id bigint
+    sales_id bigint,
+    created_at timestamp with time zone not null default now()
 );
 
 create table public.configuration (

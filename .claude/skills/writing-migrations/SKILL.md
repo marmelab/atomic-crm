@@ -100,8 +100,15 @@ Write to `supabase/migrations/<YYYYMMDDHHMMSS>_<SESSION_SHORT_ID>_migration_<slu
 correct column types matching the TS types, FKs, and RLS for new tables (RLS
 enabled + policies, never `USING (true)`).
 
+Every new table, view and `serial` sequence needs explicit `GRANT`s to `anon`,
+`authenticated` and `service_role` in the same migration, mirroring the
+declarations in `supabase/schemas/06_grants.sql`. Supabase no longer exposes new
+`public` objects to the Data API automatically, and the schema declares no
+default privileges: without the grants the object answers `permission denied`
+(42501) on a fresh or post-2026-10-30 project, even if it works locally.
+
 **Checkpoint:** re-running the migration on an already-migrated database is a
-no-op (every statement is guarded), and every new table has RLS enabled with at least one non-`USING (true)` policy.
+no-op (every statement is guarded), every new table has RLS enabled with at least one non-`USING (true)` policy, and every new table, view and `serial` sequence has its `GRANT`s in the migration and in `06_grants.sql`.
 
 ### 5. View-recreation rule (BLOCKING correctness)
 
@@ -118,12 +125,13 @@ exceptions. The mechanical rule is: positions 1..N of the new view must be
 identical to positions 1..N of the old view; the new column is position N+1.
 
 Why not `DROP VIEW … CASCADE; CREATE VIEW …`? It silently drops dependent
-views/materialized views/rules, loses any explicit `REVOKE`s on the view
-(re-granted by default privileges at the next deploy without warning), and
-reads as a destructive operation in audit. Reserve it for cases `CREATE OR
-REPLACE` genuinely can't handle (column **removal** or **rename**). If you
-use it, enumerate dropped dependents in a SQL comment and re-create them in
-the same migration.
+views/materialized views/rules, drops every grant on the view (nothing
+re-grants it: the rebuilt view answers `permission denied`), and reads as a
+destructive operation in audit. Reserve it for cases `CREATE OR REPLACE`
+genuinely can't handle (column **removal** or **rename**). If you use it,
+re-declare the view's `GRANT`s (from `06_grants.sql`) right after the
+`CREATE VIEW`, enumerate dropped dependents in a SQL comment and re-create them
+(with their grants) in the same migration.
 
 PostgREST queries the view, not the table — a missing update makes the
 column invisible to the app. The view's column order doesn't matter to API

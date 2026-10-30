@@ -49,13 +49,20 @@ export function OAuthConsentPage() {
         return;
       }
 
+      // useLogin sends the user back to this location state after login
+      const redirectToLogin = () =>
+        navigate("/login", {
+          state: {
+            nextPathname: OAuthConsentPage.path,
+            nextSearch: `?authorization_id=${encodeURIComponent(authorizationId)}`,
+          },
+        });
+
       // Check if user is authenticated
       try {
         await authProvider.checkAuth({});
       } catch {
-        navigate(
-          `/login?redirect=/oauth/consent?authorization_id=${authorizationId}`,
-        );
+        redirectToLogin();
         return;
       }
 
@@ -63,8 +70,19 @@ export function OAuthConsentPage() {
       const { data, error } =
         await authProvider.getAuthorizationDetails(authorizationId);
 
+      if (error?.name === "AuthSessionMissingError") {
+        // checkAuth only reads the local session, which the server may have
+        // revoked since: clear it and ask the user to log in again
+        await authProvider.logout({});
+        redirectToLogin();
+        return;
+      }
       if (error) {
         setError(error.message);
+      } else if ("redirect_url" in data) {
+        // The user already consented to this client: skip the consent screen
+        window.location.href = data.redirect_url;
+        return;
       } else {
         setAuthDetails(data as OAuthAuthorizationDetails);
       }
@@ -185,23 +203,12 @@ export function OAuthConsentPage() {
           <CardTitle>{authDetails.client.name}</CardTitle>
           <CardDescription>{authDetails.redirect_uri}</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          {authDetails.scope && authDetails.scope.length > 0 && (
-            <div>
-              <p className="text-sm font-medium text-muted-foreground mb-2">
-                {translate("ra-supabase.oauth.permissions", {
-                  _: "Requested permissions",
-                })}
-              </p>
-              <ul className="list-disc list-inside space-y-1">
-                {authDetails.scope.split(" ").map((scopeItem) => (
-                  <li key={scopeItem} className="text-sm">
-                    {scopeItem}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+        <CardContent>
+          <p className="text-sm">
+            {translate("ra-supabase.oauth.access_scope", {
+              _: "It will be able to read and modify your data, with the same permissions as your account.",
+            })}
+          </p>
         </CardContent>
         <CardFooter className="flex gap-2">
           <Button

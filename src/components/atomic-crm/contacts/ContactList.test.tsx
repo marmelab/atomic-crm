@@ -10,6 +10,10 @@ import {
   BulkTagButton,
   NonAdminAccountManagerFilter,
 } from "./ContactList.stories";
+import {
+  MobileSuccess,
+  MobileWithNameSearch,
+} from "./ContactList.mobile.stories";
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -96,6 +100,37 @@ describe("ContactList", () => {
       .poll(() => screen.getByText("VIP").all().length)
       .toBeGreaterThanOrEqual(2);
     // close the notification
+    await screen.getByRole("button", { name: /close/i }).click();
+  });
+
+  it("removes a tag from selected contacts when they all already have it", async () => {
+    const screen = await render(<BulkTagButton />);
+
+    await expect
+      .poll(() => getSelectionCheckboxes(screen.container).length)
+      .toBe(2);
+
+    const checkboxes = getSelectionCheckboxes(screen.container);
+    await checkboxes[0].click();
+    await checkboxes[1].click();
+    await screen.getByRole("button", { name: /^tag$/i }).click();
+    await screen.getByRole("button", { name: "VIP" }).click();
+    await expect
+      .element(screen.getByText("Tag added to 1 contact"))
+      .toBeInTheDocument();
+    await screen.getByRole("button", { name: /close/i }).click();
+
+    await checkboxes[0].click();
+    await checkboxes[1].click();
+    await screen.getByRole("button", { name: /^tag$/i }).click();
+    await screen.getByRole("button", { name: "VIP" }).click();
+
+    await expect
+      .element(screen.getByText("Tag removed from 2 contacts"))
+      .toBeInTheDocument();
+    await expect
+      .poll(() => screen.getByRole("row").getByText("VIP").all().length)
+      .toBe(0);
     await screen.getByRole("button", { name: /close/i }).click();
   });
 
@@ -201,9 +236,42 @@ describe("ContactList", () => {
     });
   });
 
-  describe("account manager filter on mobile", () => {
+  describe("header on mobile", () => {
     beforeAll(() => {
       page.viewport(375, 667);
+    });
+
+    it("leaves name search to the global search, keeping filters and refresh", async () => {
+      const screen = await render(<MobileSuccess />);
+
+      await expect.element(screen.getByText("Ada Lovelace")).toBeVisible();
+      await expect
+        .element(screen.getByRole("button", { name: "Search", exact: true }))
+        .toBeVisible();
+      await expect
+        .element(screen.getByRole("button", { name: "Add filter" }))
+        .toBeVisible();
+      await expect
+        .element(screen.getByRole("button", { name: "Refresh" }))
+        .toBeVisible();
+      await expect.element(screen.getByRole("textbox")).not.toBeInTheDocument();
+    });
+
+    it("drops a name search it has no search box to show", async () => {
+      const screen = await render(<MobileWithNameSearch />);
+
+      await expect.element(screen.getByText("Ada Lovelace")).toBeVisible();
+      await expect.element(screen.getByText("Grace Hopper")).toBeVisible();
+    });
+  });
+
+  describe("account manager filter on mobile", () => {
+    beforeAll(() => {
+      // Under the `md` breakpoint, so ResponsiveFilters renders its sheet, but
+      // still wide enough for the desktop list itself: production serves
+      // <ContactListMobile> at phone widths, and this desktop list collapses its
+      // name column to 0px there.
+      page.viewport(700, 800);
     });
 
     it("picks an account manager from inside the filter sheet", async () => {

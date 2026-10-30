@@ -2,12 +2,13 @@ import React from "react";
 import { buttonVariants } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import {
+  LinkBase,
   useCreatePath,
   useGetResourceLabel,
   useResourceContext,
   useResourceTranslation,
 } from "ra-core";
-import { Link } from "react-router";
+import { cn } from "@/lib/utils";
 
 export type CreateButtonProps = {
   label?: string;
@@ -55,15 +56,15 @@ export const CreateButton = (props: CreateButtonProps) => {
     userText: labelProp,
   });
   return (
-    <Link
-      className={buttonVariants({ variant: "outline" })}
+    <LinkBase
+      className={cn(buttonVariants({ variant: "outline" }))}
       to={link}
       onClick={stopPropagation}
       aria-label={typeof label === "string" ? label : undefined}
     >
       <Plus />
       {label}
-    </Link>
+    </LinkBase>
   );
 };
 

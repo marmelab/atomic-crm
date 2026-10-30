@@ -13,11 +13,14 @@ import type {
   RAFile,
   Sale,
   SalesFormData,
+  SearchResourceName,
+  SearchResult,
   SignUpData,
 } from "../../types";
 import type { ConfigurationContextValue } from "../../root/ConfigurationContext";
 import { ATTACHMENTS_BUCKET } from "../commons/attachments";
 import { getIsInitialized } from "./authProvider";
+import { searchDealCategories } from "./searchDealCategories";
 import { getSupabaseClient } from "./supabase";
 
 const getBaseDataProvider = () =>
@@ -232,6 +235,22 @@ const getDataProviderWithCustomMethods = () => {
     async isInitialized() {
       return getIsInitialized();
     },
+    async globalSearch(
+      query: string,
+      resources: readonly SearchResourceName[],
+      maxResults: number,
+    ): Promise<SearchResult[]> {
+      const { data, error } = await getSupabaseClient().rpc("global_search", {
+        query,
+        resources,
+        max_results: maxResults,
+      });
+      if (error) {
+        console.error("global_search.error", error);
+        throw new Error("Failed to search");
+      }
+      return data ?? [];
+    },
     async mergeContacts(sourceId: Identifier, targetId: Identifier) {
       const { data, error } = await getSupabaseClient().functions.invoke(
         "merge_contacts",
@@ -375,8 +394,12 @@ const lifeCycleCallbacks: ResourceCallbacks[] = [
   },
   {
     resource: "deals",
-    beforeGetList: async (params) => {
-      return applyFullTextSearch(["name", "category", "description"])(params);
+    beforeGetList: async (params, dataProvider) => {
+      return searchDealCategories(
+        applyFullTextSearch(["name", "description"])(params),
+        params.filter?.q,
+        dataProvider,
+      );
     },
   },
 ];

@@ -50,7 +50,7 @@ export function SalesList() {
       actions={<SalesListActions />}
       sort={{ field: "first_name", order: "ASC" }}
     >
-      <DataTable>
+      <DataTable bulkActionButtons={false}>
         <DataTable.Col source="first_name" />
         <DataTable.Col source="last_name" />
         <DataTable.Col source="email" />
