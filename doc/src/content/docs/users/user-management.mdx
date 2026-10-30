@@ -17,3 +17,5 @@ Note: If the application is connected to the production database, the first user
 Any user with the administrator role can create new users. To do this, click on the avatar in the top right corner and select 'Users'. From this page, you can add new users, edit existing users, and delete users.
 
 ![Adding users](../../images/adding-users.png "Adding users")
+
+Once the first user exists, public sign-up is closed. The Users page is the only way to add users, except for [SAML SSO](../../developers/sso/) users, who are created on their first login. Users added from the Supabase dashboard (_Authentication > Users > Add user_ or _Invite user_), or by a script calling `auth.admin.createUser`, are rejected with a "Database error saving new user" error. To create users from a script, see [Auth API Endpoints](../../developers/atomic-crm-api/#auth-api-endpoints).

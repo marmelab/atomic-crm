@@ -131,6 +131,10 @@ create table public.favicons_excluded_domains (
     domain text not null
 );
 
+create table public.user_invitations (
+    user_id uuid primary key
+);
+
 --
 -- Foreign keys
 --
