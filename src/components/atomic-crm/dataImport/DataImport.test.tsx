@@ -22,6 +22,7 @@ const csv = [
 let createDelay = 200;
 let createdCount = 0;
 let attemptCount = 0;
+let inFlightCount = 0;
 let isRowRejected = (): boolean => false;
 
 const NotifyTrigger = () => {
@@ -51,7 +52,9 @@ const createContact = async (
   _resource: string,
   params: CreateParams,
 ): Promise<CreateResult> => {
+  inFlightCount += 1;
   await new Promise((resolve) => setTimeout(resolve, createDelay));
+  inFlightCount -= 1;
   attemptCount += 1;
   if (isRowRejected()) {
     throw new Error("The backend refused this row");
@@ -138,6 +141,7 @@ beforeEach(() => {
   createDelay = 200;
   createdCount = 0;
   attemptCount = 0;
+  inFlightCount = 0;
   isRowRejected = () => false;
 });
 
@@ -300,6 +304,11 @@ describe("data import", () => {
   });
 
   it("stops the import from the progress snackbar and reports what landed", async () => {
+    // At the default pace the 8 batches land in under 2 seconds, which a busy
+    // CI runner can spend before the stop button is clickable: the import then
+    // completes on its own and the test times out. Slow each batch down so the
+    // import cannot finish first.
+    createDelay = 2000;
     const screen = await render(<ImportHarness />);
 
     await startImport(screen);
@@ -310,6 +319,9 @@ describe("data import", () => {
       .element(screen.getByText(/Import in progress/))
       .not.toBeInTheDocument();
 
+    // Stopping does not cancel the batch already in flight: let it settle so
+    // its rows cannot land between the two counts compared below.
+    await expect.poll(() => inFlightCount).toBe(0);
     const createdWhenStopped = createdCount;
     expect(createdWhenStopped).toBeLessThan(ROW_COUNT);
 
