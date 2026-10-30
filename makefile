@@ -68,6 +68,10 @@ start-supabase-e2e: ## start a separate supabase instance for e2e (fresh DB ever
 	cp -r supabase/migrations .supabase-e2e/supabase/migrations
 	cp -r supabase/schemas .supabase-e2e/supabase/schemas
 	cp -r supabase/functions .supabase-e2e/supabase/functions
+	# Edge functions reject JWTs whose issuer differs from SB_JWT_ISSUER. functions/.env sets it
+	# for the dev instance (port 54321), but e2e JWTs are issued by the e2e API (port 54341, see
+	# config.e2e.toml), so rewrite it to that port. Keep both ports in sync.
+	sed 's|^SB_JWT_ISSUER=.*|SB_JWT_ISSUER=http://127.0.0.1:54341/auth/v1|' supabase/functions/.env > .supabase-e2e/supabase/functions/.env
 	cp -r supabase/templates .supabase-e2e/supabase/templates
 	cp supabase/seed.sql .supabase-e2e/supabase/seed.sql
 	cp supabase/signing_keys.json .supabase-e2e/supabase/signing_keys.json
