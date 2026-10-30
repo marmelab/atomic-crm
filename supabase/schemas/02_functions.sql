@@ -276,15 +276,31 @@ begin
 end;
 $$;
 
+CREATE OR REPLACE FUNCTION "public"."is_active_sale"() RETURNS boolean
+    LANGUAGE "sql" STABLE
+    SET "search_path" TO ''
+    AS $$
+  select exists (
+    select 1 from public.sales where user_id = auth.uid() and disabled = false
+  );
+$$;
+
 CREATE OR REPLACE FUNCTION "public"."is_admin"() RETURNS boolean
-    LANGUAGE "plpgsql" SECURITY DEFINER
+    LANGUAGE "plpgsql"
     SET "search_path" TO ''
     AS $$
 begin
   return exists (
-    select 1 from public.sales where user_id = auth.uid() and administrator = true
+    select 1 from public.sales where user_id = auth.uid() and administrator = true and disabled = false
   );
 end;
+$$;
+
+CREATE OR REPLACE FUNCTION "public"."is_initialized"() RETURNS boolean
+    LANGUAGE "sql" STABLE SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+  select exists (select 1 from public.sales);
 $$;
 
 CREATE OR REPLACE FUNCTION "public"."merge_contacts"("loser_id" bigint, "winner_id" bigint) RETURNS bigint
