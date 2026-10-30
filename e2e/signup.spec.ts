@@ -38,7 +38,7 @@ test("an administrator can still create users", async ({
   await page.getByRole("button", { name: "Sign in" }).click();
   await expect(page.getByRole("link", { name: "Dashboard" })).toBeVisible();
 
-  await page.goto("/sales");
+  await page.goto("/#/sales");
   await page.getByRole("link", { name: "New user" }).click();
   await page.getByLabel("First name").fill("Marie");
   await page.getByLabel("Last name").fill("Curie");
