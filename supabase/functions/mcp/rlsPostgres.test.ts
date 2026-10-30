@@ -18,12 +18,14 @@ interface StubOptions {
   // transaction prelude) runs.
   failUserStatement?: Error;
   failRollback?: boolean;
+  failDiscard?: boolean;
 }
 
 const PRELUDE = new Set([
   "begin",
   "commit",
   "rollback",
+  "discard all",
   "set transaction read only",
 ]);
 
@@ -42,6 +44,9 @@ function stubPool(options: StubOptions = {}) {
     query: async (text, params) => {
       queries.push({ text, params });
       if (text === "rollback" && options.failRollback) {
+        throw new Error("connection lost");
+      }
+      if (text === "discard all" && options.failDiscard) {
         throw new Error("connection lost");
       }
       if (!isPrelude(text) && options.failUserStatement) {
@@ -77,6 +82,7 @@ describe("createRlsPostgres", () => {
       `set local statement_timeout = '${STATEMENT_TIMEOUT}'`,
       "select * from contacts",
       "commit",
+      "discard all",
     ]);
     expect(queries[1].params).toEqual([JSON.stringify(claims)]);
     expect(rows).toEqual([{ ok: true }]);
@@ -117,7 +123,7 @@ describe("createRlsPostgres", () => {
     );
 
     // Assert
-    expect(queries.at(-2)).toEqual({
+    expect(queries.at(-3)).toEqual({
       text: "update tasks set done_date = now() where id = $1",
       params: [42],
     });
@@ -136,9 +142,40 @@ describe("createRlsPostgres", () => {
 
     // Assert
     await expect(run).rejects.toBe(failure);
-    expect(queries.map((q) => q.text)).toContain("rollback");
-    expect(queries.map((q) => q.text)).not.toContain("commit");
+    const texts = queries.map((q) => q.text);
+    expect(texts).toContain("rollback");
+    expect(texts).not.toContain("commit");
+    expect(texts.at(-1)).toBe("discard all");
     expect(releases).toEqual([false]);
+  });
+
+  it("does not try to clean a connection whose rollback failed", async () => {
+    // Arrange
+    const { pool, queries, releases } = stubPool({
+      failUserStatement: new Error("boom"),
+      failRollback: true,
+    });
+    const postgres = createRlsPostgres(pool, claims);
+
+    // Act
+    await expect(postgres.query("select bad")).rejects.toThrow("boom");
+
+    // Assert
+    expect(queries.map((q) => q.text)).not.toContain("discard all");
+    expect(releases).toEqual([true]);
+  });
+
+  it("destroys the connection when the session cleanup fails", async () => {
+    // Arrange
+    const { pool, releases } = stubPool({ failDiscard: true });
+    const postgres = createRlsPostgres(pool, claims);
+
+    // Act
+    const rows = await postgres.query("select 1");
+
+    // Assert
+    expect(rows).toEqual([{ ok: true }]);
+    expect(releases).toEqual([true]);
   });
 
   it("destroys the connection when the rollback itself fails", async () => {

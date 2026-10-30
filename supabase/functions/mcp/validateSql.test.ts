@@ -158,6 +158,22 @@ describe("validateReadOnly", () => {
       "SELECT (SELECT content FROM net._http_response LIMIT 1)",
     ],
     ["extension-schema type in a cast", "SELECT 'x'::extensions.citext"],
+    [
+      "query_to_xml executing SQL from a string (SSRF)",
+      "SELECT query_to_xml('select net.http_get(''http://127.0.0.1/'')', false, true, '')",
+    ],
+    [
+      "table_to_xml reading a blocked schema by name",
+      "SELECT table_to_xml('net._http_response'::regclass, true, false, '')",
+    ],
+    [
+      "schema_to_xml dumping a blocked schema",
+      "SELECT schema_to_xml('net', true, false, '')",
+    ],
+    [
+      "quoted, schema-qualified query_to_xmlschema",
+      "SELECT pg_catalog.\"QUERY_TO_XMLSCHEMA\"('select 1', false, true, '')",
+    ],
   ])("rejects %s", (_label, sql) => {
     expect(validateReadOnly(sql)).not.toBeNull();
   });
@@ -252,6 +268,10 @@ describe("validateWrite", () => {
       "UPDATE net.http_request_queue SET url = 'http://127.0.0.1/' WHERE id = 1",
     ],
     ["DELETE on a pg_net table", "DELETE FROM net._http_response WHERE id = 1"],
+    [
+      "query_to_xml enqueueing a pg_net request from an INSERT (SSRF)",
+      "INSERT INTO tasks (text) SELECT query_to_xml('select net.http_get(''http://127.0.0.1/'')', false, true, '')::text",
+    ],
   ])("rejects %s", (_label, sql) => {
     expect(validateWrite(sql)).not.toBeNull();
   });

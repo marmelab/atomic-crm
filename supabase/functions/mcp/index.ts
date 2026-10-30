@@ -16,10 +16,12 @@
 //
 // 3. SQL validator (validateSql.ts): a single statement per call, SELECT/WITH
 //    for `query`, INSERT/UPDATE/DELETE for `mutate`, no `set_config()` (it
-//    could rewrite the claims or the role mid-statement), and every
-//    schema-qualified reference (table, function, type) restricted to
-//    `public`, `pg_catalog`, `auth` and `information_schema`. It walks the raw
-//    AST so no syntactic position escapes it (DISTINCT ON and OVER once did).
+//    could rewrite the claims or the role mid-statement), none of the
+//    pg_catalog `*_to_xml` functions (they execute SQL or resolve object names
+//    passed as strings, which the AST cannot see), and every schema-qualified
+//    reference (table, function, type) restricted to `public`, `pg_catalog`,
+//    `auth` and `information_schema`. It walks the raw AST so no syntactic
+//    position escapes it (DISTINCT ON and OVER once did).
 //
 // 4. Postgres as the backstop for what the validator cannot know:
 //    - `SET LOCAL search_path = public`: the `http` (extensions schema) and
@@ -34,6 +36,9 @@
 //    - `SET LOCAL statement_timeout`: the connection logs in as `postgres`,
 //      so the `authenticated` role's own timeout does not apply; a
 //      `pg_sleep()` cannot hold a pooled connection for long.
+//    - `DISCARD ALL` after every transaction: session state that outlives a
+//      COMMIT (session-level advisory locks, LISTEN, temp objects) is dropped
+//      before the pooled connection serves the next request.
 //
 // Consequence worth knowing: with `extensions` off the search_path, the
 // `citext` operators are not visible either, so `=` on citext columns

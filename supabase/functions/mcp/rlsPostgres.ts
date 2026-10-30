@@ -122,6 +122,17 @@ export function createRlsPostgres(
         }
         throw error;
       } finally {
+        if (!poisoned) {
+          // The pool is shared by every caller and logs in as `postgres`:
+          // drop whatever session state the statement may have left behind
+          // (session-level advisory locks, LISTEN, temp objects...) so nothing
+          // carries over to the next request.
+          try {
+            await client.query("discard all");
+          } catch {
+            poisoned = true;
+          }
+        }
         client.release(poisoned);
       }
     },
