@@ -52,7 +52,7 @@ test.describe("user preferences", () => {
     const themeSaved = savedPreferences(page);
     if (isMobile) {
       await openLanguageSetting(page, isMobile);
-      await page.getByRole("radio", { name: "Dark" }).click();
+      await page.getByRole("button", { name: "Dark", exact: true }).click();
     } else {
       await page.getByRole("button", { name: "Toggle theme" }).click();
       await page.getByRole("menuitem", { name: "Dark" }).click();
