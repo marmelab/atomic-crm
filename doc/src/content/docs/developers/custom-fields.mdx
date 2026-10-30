@@ -175,7 +175,7 @@ export const ContactAside = ({ link = "edit" }: { link?: "edit" | "show" }) => {
 This will display the "Referred By" information in the contact sidebar when available.
 
 :::caution
-If your custom field stores files (e.g. with a `<FileInput>` or `<ImageInput>` uploaded to the attachments bucket), add its column to the reference list in `supabase/functions/delete_note_attachments/index.ts`. This function regularly deletes the files of the bucket that no column references anymore, so files stored in an unlisted column can be deleted as soon as one hour after their upload.
+If your custom field stores files (e.g. with a `<FileInput>` or `<ImageInput>` uploaded to the attachments bucket), add its column to the reference list in `supabase/functions/delete_note_attachments/index.ts`. When a note attachment is removed or its note is deleted, this function deletes the file unless one of the listed columns still references it, so a file shared with an unlisted column would be deleted.
 :::
 
 ![Contact Sidebar](../../images/contact-sidebar.png)
