@@ -1,4 +1,4 @@
-import { astVisitor, parse, type Statement } from "npm:pgsql-ast-parser@^12";
+import { parse, type Statement } from "npm:pgsql-ast-parser@^12";
 
 const ALLOWED_READ_TYPES = new Set(["select", "with"]);
 const ALLOWED_WRITE_TYPES = new Set(["insert", "update", "delete", "with"]);
@@ -8,18 +8,65 @@ const ALLOWED_WRITE_TYPES = new Set(["insert", "update", "delete", "with"]);
 // either mid-statement and act as another user, so it is never allowed.
 const FORBIDDEN_FUNCTIONS = new Set(["set_config"]);
 
+// Schema-qualified calls may only target these schemas. `extensions` (http
+// extension) and `net` (pg_net) hold functions that make the database issue
+// HTTP requests, which turns the query tool into an SSRF primitive; their
+// EXECUTE grants cannot be revoked from a migration (they are owned by
+// supabase_admin), so the endpoint has to refuse them itself. Unqualified
+// names are left to Postgres: the transaction wrapper sets search_path to
+// `public` (pg_catalog is implicit), so an unqualified `http_get(...)` does not
+// resolve at all. The two layers back each other up.
+const ALLOWED_FUNCTION_SCHEMAS = new Set(["public", "pg_catalog", "auth"]);
+
+interface FunctionCall {
+  schema?: string;
+  name: string;
+}
+
+function isFunctionCallNode(
+  node: unknown,
+): node is { type: "call"; function: FunctionCall } {
+  if (typeof node !== "object" || node === null) return false;
+  const candidate = node as { type?: unknown; function?: unknown };
+  return (
+    candidate.type === "call" &&
+    typeof candidate.function === "object" &&
+    candidate.function !== null &&
+    typeof (candidate.function as FunctionCall).name === "string"
+  );
+}
+
+// Walk the raw AST rather than pgsql-ast-parser's astVisitor: the visitor only
+// reaches the fields its default mapper enumerates, and it skips the
+// expression lists of `DISTINCT ON (...)` and `OVER (...)`, which was enough
+// to smuggle a set_config() call past the previous version of this check.
+// Descending into every object and array reaches a call wherever it sits.
+function collectFunctionCalls(node: unknown, calls: FunctionCall[]): void {
+  if (Array.isArray(node)) {
+    for (const child of node) collectFunctionCalls(child, calls);
+    return;
+  }
+  if (typeof node !== "object" || node === null) return;
+  if (isFunctionCallNode(node)) {
+    calls.push(node.function);
+  }
+  for (const child of Object.values(node)) collectFunctionCalls(child, calls);
+}
+
 function findForbiddenCall(stmts: Statement[]): string | null {
-  let found: string | null = null;
-  const visitor = astVisitor((map) => ({
-    call: (call) => {
-      if (FORBIDDEN_FUNCTIONS.has(call.function.name.toLowerCase())) {
-        found = call.function.name;
-      }
-      map.super().call(call);
-    },
-  }));
-  for (const stmt of stmts) visitor.statement(stmt);
-  return found;
+  const calls: FunctionCall[] = [];
+  collectFunctionCalls(stmts, calls);
+  for (const call of calls) {
+    const name = call.name.toLowerCase();
+    if (FORBIDDEN_FUNCTIONS.has(name)) {
+      return `Function "${call.name}" is not allowed.`;
+    }
+    const schema = call.schema?.toLowerCase();
+    if (schema !== undefined && !ALLOWED_FUNCTION_SCHEMAS.has(schema)) {
+      return `Function "${call.schema}.${call.name}" is not allowed: only functions from the ${[...ALLOWED_FUNCTION_SCHEMAS].join(", ")} schemas can be called.`;
+    }
+  }
+  return null;
 }
 
 // Collect all statement types found in a parsed AST, including inner
@@ -39,7 +86,9 @@ function collectStatementTypes(stmts: Statement[]): Set<string> {
   return types;
 }
 
-export function validateReadOnly(sql: string): string | null {
+function parseSingleStatement(
+  sql: string,
+): { stmts: Statement[] } | { error: string } {
   let stmts: Statement[];
   try {
     stmts = parse(sql);
@@ -48,53 +97,35 @@ export function validateReadOnly(sql: string): string | null {
     // pgsql-ast-parser appends a parse-table dump that is useless to the
     // LLM and consumes many tokens; keep the diagnostic prefix only.
     const message = raw.split("Here is the state of my parse table")[0].trim();
-    return `Failed to parse SQL: ${message}`;
+    return { error: `Failed to parse SQL: ${message}` };
   }
   if (stmts.length === 0) {
-    return "Empty query.";
+    return { error: "Empty query." };
   }
   if (stmts.length > 1) {
-    return "Only a single statement is allowed.";
+    return { error: "Only a single statement is allowed." };
   }
-  const types = collectStatementTypes(stmts);
-  for (const type of types) {
+  return { stmts };
+}
+
+export function validateReadOnly(sql: string): string | null {
+  const parsed = parseSingleStatement(sql);
+  if ("error" in parsed) return parsed.error;
+  for (const type of collectStatementTypes(parsed.stmts)) {
     if (!ALLOWED_READ_TYPES.has(type)) {
       return `Statement type "${type}" is not allowed in read-only queries. Use the mutate tool for data modifications.`;
     }
   }
-  const forbiddenCall = findForbiddenCall(stmts);
-  if (forbiddenCall) {
-    return `Function "${forbiddenCall}" is not allowed.`;
-  }
-  return null;
+  return findForbiddenCall(parsed.stmts);
 }
 
 export function validateWrite(sql: string): string | null {
-  let stmts: Statement[];
-  try {
-    stmts = parse(sql);
-  } catch (err) {
-    const raw = err instanceof Error ? err.message : String(err);
-    // pgsql-ast-parser appends a parse-table dump that is useless to the
-    // LLM and consumes many tokens; keep the diagnostic prefix only.
-    const message = raw.split("Here is the state of my parse table")[0].trim();
-    return `Failed to parse SQL: ${message}`;
-  }
-  if (stmts.length === 0) {
-    return "Empty query.";
-  }
-  if (stmts.length > 1) {
-    return "Only a single statement is allowed.";
-  }
-  const types = collectStatementTypes(stmts);
-  for (const type of types) {
+  const parsed = parseSingleStatement(sql);
+  if ("error" in parsed) return parsed.error;
+  for (const type of collectStatementTypes(parsed.stmts)) {
     if (!ALLOWED_WRITE_TYPES.has(type)) {
       return `Statement type "${type}" is not allowed. Only INSERT, UPDATE, and DELETE statements are supported.`;
     }
   }
-  const forbiddenCall = findForbiddenCall(stmts);
-  if (forbiddenCall) {
-    return `Function "${forbiddenCall}" is not allowed.`;
-  }
-  return null;
+  return findForbiddenCall(parsed.stmts);
 }

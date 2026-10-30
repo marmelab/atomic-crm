@@ -1,3 +1,45 @@
+// Atomic CRM MCP server.
+//
+// Exposes the CRM database to AI assistants over the Model Context Protocol.
+// The `query` and `mutate` tools execute SQL written by the model, so the
+// security of this function rests on constraining what that SQL can do. The
+// enforcement is layered; each layer holds on its own:
+//
+// 1. Authentication: `withSupabase({ auth: "user" })` verifies the caller's
+//    token against the project JWKS. Anonymous callers never reach a tool.
+//
+// 2. Identity and RLS: every statement runs in its own transaction (see
+//    rlsPostgres.ts) that injects the caller's claims and drops to the
+//    `authenticated` role, exactly like PostgREST. Row Level Security and
+//    table grants then apply as they do in the application. No other role is
+//    ever assumed: a token naming another role is refused before any query.
+//
+// 3. SQL validator (validateSql.ts): a single statement per call, SELECT/WITH
+//    for `query`, INSERT/UPDATE/DELETE for `mutate`, no `set_config()` (it
+//    could rewrite the claims or the role mid-statement), and schema-qualified
+//    function calls restricted to `public`, `pg_catalog` and `auth`. It walks
+//    the raw AST so no syntactic position escapes it (DISTINCT ON and OVER
+//    once did).
+//
+// 4. Postgres as the backstop for what the validator cannot know:
+//    - `SET LOCAL search_path = public`: the `http` (extensions schema) and
+//      `pg_net` (net schema) functions let a query make the database issue
+//      HTTP requests, i.e. an SSRF primitive. Their EXECUTE grants cannot be
+//      revoked from a migration (they are owned by supabase_admin), so they
+//      are kept off the search_path instead: an unqualified `http_get(...)`
+//      does not resolve, whatever the validator did.
+//    - `SET TRANSACTION READ ONLY` for `query`: a SELECT that calls a volatile
+//      function (merge_contacts, the pg_net request queue...) cannot write.
+//    - `SET LOCAL statement_timeout`: the connection logs in as `postgres`,
+//      so the `authenticated` role's own timeout does not apply; a
+//      `pg_sleep()` cannot hold a pooled connection for long.
+//
+// Consequence worth knowing: with `extensions` off the search_path, the
+// `citext` operators are not visible either, so `=` on citext columns
+// (companies.website, sales.email) is case-sensitive in this tool. The tool
+// descriptions tell the model to use ILIKE or lower(), and get_schema reports
+// those columns as `citext` rather than `USER-DEFINED`.
+
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import {
   createMcpHandler,
@@ -9,15 +51,10 @@ import {
   withOAuthProtectedResource,
   withSupabase,
 } from "npm:@supabase/server@1.9.1";
-import {
-  withPostgresClient,
-  type PostgresApi,
-} from "npm:@supabase/server@1.9.1/middleware/postgres";
-// pg is an optional peer dependency of @supabase/server, required by
-// withPostgresClient: importing it puts it in the module graph.
 import pg from "npm:pg@8.23.1";
 import { z } from "npm:zod@^4.3.6";
 import { validateReadOnly, validateWrite } from "./validateSql.ts";
+import { createRlsPostgres, type RlsPostgres } from "./rlsPostgres.ts";
 import { TASK_LIST_HTML, TASK_LIST_UI_URI } from "./taskListUi.ts";
 
 const CRM_BASE_URL = (Deno.env.get("CRM_BASE_URL") ?? "").replace(/\/$/, "");
@@ -26,15 +63,36 @@ const CRM_BASE_URL = (Deno.env.get("CRM_BASE_URL") ?? "").replace(/\/$/, "");
 // model can pass ids straight back to the tools that expect integers.
 pg.types.setTypeParser(pg.types.builtins.INT8, Number);
 
+// One pool per isolate, created on first use so a missing SUPABASE_DB_URL is
+// reported as a request error rather than crashing the function at boot.
+let pool: pg.Pool | undefined;
+function getPool(): pg.Pool {
+  if (!pool) {
+    const connectionString = Deno.env.get("SUPABASE_DB_URL");
+    if (!connectionString) {
+      throw new Error("SUPABASE_DB_URL is not set");
+    }
+    pool = new pg.Pool({ connectionString, max: 4 });
+  }
+  return pool;
+}
+
 // --- Database: get_schema ---
 
 interface ColumnRow {
   table_name: string;
   column_name: string;
   data_type: string;
+  udt_name: string;
   is_nullable: string;
   column_default: string | null;
   table_type: string;
+}
+
+// information_schema reports every extension or user type (citext, enums...)
+// as the SQL-standard placeholder "USER-DEFINED"; the actual name is udt_name.
+function columnType(row: ColumnRow): string {
+  return row.data_type === "USER-DEFINED" ? row.udt_name : row.data_type;
 }
 
 interface ForeignKeyRow {
@@ -44,14 +102,16 @@ interface ForeignKeyRow {
   target_column: string;
 }
 
-async function getSchemaData(postgres: PostgresApi): Promise<string> {
+async function getSchemaData(postgres: RlsPostgres): Promise<string> {
   // Runs as the caller's role, so information_schema only lists the
   // columns the caller can actually read.
-  const columns: ColumnRow[] = await postgres.query`
+  const columns = (await postgres.query(
+    `
     SELECT
       c.table_name,
       c.column_name,
       c.data_type,
+      c.udt_name,
       c.is_nullable,
       c.column_default,
       t.table_type
@@ -60,9 +120,13 @@ async function getSchemaData(postgres: PostgresApi): Promise<string> {
       ON c.table_name = t.table_name AND c.table_schema = t.table_schema
     WHERE c.table_schema = 'public'
     ORDER BY c.table_name, c.ordinal_position
-  `;
+  `,
+    undefined,
+    { readOnly: true },
+  )) as ColumnRow[];
 
-  const foreignKeyRows: ForeignKeyRow[] = await postgres.query`
+  const foreignKeyRows = (await postgres.query(
+    `
     SELECT
       src.relname AS source_table,
       src_att.attname AS source_column,
@@ -78,7 +142,10 @@ async function getSchemaData(postgres: PostgresApi): Promise<string> {
       ON tgt_att.attrelid = con.confrelid AND tgt_att.attnum = ANY(con.confkey)
     WHERE con.contype = 'f' AND nsp.nspname = 'public'
     ORDER BY src.relname
-  `;
+  `,
+    undefined,
+    { readOnly: true },
+  )) as ForeignKeyRow[];
 
   // Group columns by table
   const tables = new Map<
@@ -102,7 +169,7 @@ async function getSchemaData(postgres: PostgresApi): Promise<string> {
     }
     tables.get(row.table_name)!.columns.push({
       name: row.column_name,
-      type: row.data_type,
+      type: columnType(row),
       nullable: row.is_nullable === "YES",
       default: row.column_default,
     });
@@ -156,13 +223,14 @@ function errorMessage(error: unknown): string {
 }
 
 async function runValidatedSql(
-  postgres: PostgresApi,
+  postgres: RlsPostgres,
   sql: string,
   validate: (sql: string) => string | null,
+  readOnly: boolean,
 ): Promise<
   { success: true; data: unknown[] } | { success: false; error: string }
 > {
-  // validate() also guarantees a single statement: queryRaw without params
+  // validate() also guarantees a single statement: a query without params
   // uses the simple query protocol, which would otherwise accept a COMMIT
   // that ends the RLS-scoped transaction.
   const validationError = validate(sql);
@@ -170,7 +238,10 @@ async function runValidatedSql(
     return { success: false, error: validationError };
   }
   try {
-    return { success: true, data: await postgres.queryRaw(sql) };
+    return {
+      success: true,
+      data: await postgres.query(sql, undefined, { readOnly }),
+    };
   } catch (error) {
     return { success: false, error: errorMessage(error) };
   }
@@ -198,7 +269,7 @@ function sqlToolResult(
 
 // --- MCP Server Factory ---
 
-function createMcpServer(postgres: PostgresApi, userId: string): McpServer {
+function createMcpServer(postgres: RlsPostgres, userId: string): McpServer {
   const server = new McpServer({
     name: "atomic-crm",
     version: "1.0.0",
@@ -239,7 +310,9 @@ Use the *_summary views (contacts_summary, companies_summary) for queries that n
 
 To filter by the current user, if the table has a sales_id column, add a WHERE sales_id = auth.uid() clause to your query.
 
-This tool only supports SELECT queries. For INSERT, UPDATE, or DELETE operations, use the mutate tool.
+String comparisons are case-sensitive in this tool, including on citext columns (companies.website, sales.email): use ILIKE or lower() for case-insensitive matching.
+
+This tool only supports SELECT queries, executed in a read-only transaction. For INSERT, UPDATE, or DELETE operations, use the mutate tool.
 
 Examples:
 - "SELECT id, first_name, last_name, email_fts FROM contacts_summary WHERE email_fts LIKE '%@company.com%'"
@@ -255,7 +328,7 @@ Examples:
       // eslint-disable-next-line no-console
       console.log(`[MCP query] user=${userId} sql=${sql}`);
       return sqlToolResult(
-        await runValidatedSql(postgres, sql, validateReadOnly),
+        await runValidatedSql(postgres, sql, validateReadOnly, true),
       );
     },
   );
@@ -277,6 +350,8 @@ Row Level Security (RLS) is enforced - mutations only affect data the authentica
 
 IMPORTANT: Never specify sales_id in INSERT or UPDATE statements — it is automatically set to the authenticated user by a database trigger.
 
+String comparisons in WHERE clauses are case-sensitive in this tool, including on citext columns (companies.website, sales.email): use ILIKE or lower() for case-insensitive matching.
+
 For read-only queries, use the query tool instead.
 
 Examples:
@@ -293,7 +368,9 @@ Examples:
     async ({ sql }) => {
       // eslint-disable-next-line no-console
       console.log(`[MCP mutate] user=${userId} sql=${sql}`);
-      return sqlToolResult(await runValidatedSql(postgres, sql, validateWrite));
+      return sqlToolResult(
+        await runValidatedSql(postgres, sql, validateWrite, false),
+      );
     },
   );
 
@@ -418,9 +495,10 @@ Each task should include at least: id (required, used for the mark-as-done actio
       try {
         // RETURNING id distinguishes a successful update from an RLS-blocked
         // or non-existent row (both affect 0 rows without an error).
-        const rows = await postgres.query`
-          UPDATE tasks SET done_date = NOW() WHERE id = ${id} RETURNING id
-        `;
+        const rows = await postgres.query(
+          "UPDATE tasks SET done_date = NOW() WHERE id = $1 RETURNING id",
+          [id],
+        );
         if (rows.length === 0) {
           return {
             content: [
@@ -455,8 +533,9 @@ Each task should include at least: id (required, used for the mark-as-done actio
 
 // withOAuthProtectedResource serves the RFC 9728 metadata and adds the
 // WWW-Authenticate challenge to 401s; withSupabase verifies the user's token
-// against the project JWKS; withPostgresClient runs every query in a
-// transaction scoped to the caller's claims and role, so RLS applies.
+// against the project JWKS; createRlsPostgres runs every query in a
+// transaction scoped to the caller's claims and role (so RLS applies), with a
+// pinned search_path, a statement timeout, and read-only mode for reads.
 Deno.serve(
   pipeline(
     [
@@ -471,10 +550,18 @@ Deno.serve(
       }),
       withOAuthProtectedResource(),
       withSupabase({ auth: "user" }),
-      withPostgresClient(),
     ],
-    (req, { postgres, jwtClaims }) => {
+    (req, { jwtClaims }) => {
       const userId = String(jwtClaims?.sub);
+      let postgres: RlsPostgres;
+      try {
+        postgres = createRlsPostgres(getPool(), jwtClaims ?? {});
+      } catch (error) {
+        console.error(
+          `[MCP] cannot open database access: ${errorMessage(error)}`,
+        );
+        return new Response("Internal Server Error", { status: 500 });
+      }
       // A fresh server per request: Edge Functions are stateless
       const handler = createMcpHandler(() => createMcpServer(postgres, userId));
       return handler.fetch(req);
