@@ -10,9 +10,8 @@ grant usage on schema public to authenticated;
 grant usage on schema public to service_role;
 
 -- Function grants
-grant all on function public.cleanup_note_attachments() to anon;
-grant all on function public.cleanup_note_attachments() to authenticated;
-grant all on function public.cleanup_note_attachments() to service_role;
+revoke all on function public.enqueue_note_attachments_cleanup() from public, anon, authenticated;
+grant all on function public.enqueue_note_attachments_cleanup() to service_role;
 
 grant all on function public.get_avatar_for_email(text) to anon;
 grant all on function public.get_avatar_for_email(text) to authenticated;
@@ -106,6 +105,9 @@ grant all on table public.favicons_excluded_domains to anon;
 grant all on table public.favicons_excluded_domains to authenticated;
 grant all on table public.favicons_excluded_domains to service_role;
 
+revoke all on table public.note_attachments_cleanup_queue from anon, authenticated;
+grant all on table public.note_attachments_cleanup_queue to service_role;
+
 -- View grants
 grant all on table public.activity_log to anon;
 grant all on table public.activity_log to authenticated;
@@ -147,6 +149,9 @@ grant all on sequence public.deals_id_seq to service_role;
 grant all on sequence public.favicons_excluded_domains_id_seq to anon;
 grant all on sequence public.favicons_excluded_domains_id_seq to authenticated;
 grant all on sequence public.favicons_excluded_domains_id_seq to service_role;
+
+revoke all on sequence public.note_attachments_cleanup_queue_id_seq from anon, authenticated;
+grant all on sequence public.note_attachments_cleanup_queue_id_seq to service_role;
 
 grant all on sequence public.sales_id_seq to anon;
 grant all on sequence public.sales_id_seq to authenticated;
