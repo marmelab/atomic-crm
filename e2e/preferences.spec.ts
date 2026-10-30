@@ -18,9 +18,9 @@ const dropClientCachesKeepingSession = (page: Page) =>
 const savedPreferences = (page: Page) =>
   page.waitForResponse(
     (response) =>
-      response.url().includes("/rest/v1/sales") &&
-      response.request().method() === "PATCH" &&
-      response.ok(),
+      response.url().includes("/rest/v1/rpc/update_sales_preferences") &&
+      response.request().method() === "POST" &&
+      response.status() === 200,
   );
 
 const openLanguageSetting = async (page: Page, isMobile: boolean) => {
