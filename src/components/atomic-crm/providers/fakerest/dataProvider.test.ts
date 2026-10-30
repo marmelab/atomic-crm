@@ -116,6 +116,46 @@ describe("fakerest dataProvider", () => {
     ).toHaveLength(10);
   });
 
+  it("lists contacts named like the query before contacts whose background mentions it", async () => {
+    const dataProvider = createDataProvider({
+      db: {
+        companies: [],
+        contacts: [
+          {
+            id: 1,
+            first_name: "Alice",
+            last_name: "Martin",
+            background: "Introduced by John Doe",
+            first_seen: "2025-01-01T00:00:00.000Z",
+          },
+          {
+            id: 2,
+            first_name: "John",
+            last_name: "Doe",
+            first_seen: "2020-01-01T00:00:00.000Z",
+          },
+        ],
+        deals: [],
+        tasks: [],
+        contact_notes: [],
+        deal_notes: [],
+      } as unknown as Db,
+      latency: 0,
+      silent: true,
+    });
+
+    const results = await dataProvider.globalSearch(
+      "john doe",
+      ["contacts"],
+      10,
+    );
+
+    expect(results.map((result) => result.title)).toEqual([
+      "John Doe",
+      "Alice Martin",
+    ]);
+  });
+
   it("finds a deal in the global search by any of its categories", async () => {
     const dataProvider = createDataProvider({
       db: {
