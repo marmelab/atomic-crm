@@ -4,8 +4,10 @@ import {
   useDataProvider,
   type DataProvider,
 } from "ra-core";
+import { useQueryClient } from "@tanstack/react-query";
 import { render } from "vitest-browser-react";
-import { buildContact, StoryWrapper } from "@/test/StoryWrapper";
+import { createDataProvider } from "@/components/atomic-crm/providers/fakerest";
+import { buildContact, createCrmDb, StoryWrapper } from "@/test/StoryWrapper";
 import { ContactAside } from "./ContactAside";
 import { ContactShow } from "./ContactShow";
 import { MobileSuccess } from "./ContactShow.mobile.stories";
@@ -60,6 +62,63 @@ describe("ContactShow", () => {
     await expect
       .element(screen.getByRole("tab", { name: "0 tasks" }))
       .toHaveAttribute("aria-selected", "true");
+  });
+
+  it("shows an error when the contact cannot be loaded", async () => {
+    const screen = await render(
+      <StoryWrapper data={{ contacts: [] }}>
+        {/* An id no other test loads, so no persisted query cache can serve it */}
+        <ContactShow resource="contacts" id={404} />
+      </StoryWrapper>,
+    );
+
+    await expect
+      .element(screen.getByText("Error loading contact"))
+      .toBeVisible();
+  });
+
+  it("keeps showing a loaded contact when refreshing it fails", async () => {
+    const contact = buildContact({ id: 405 });
+    const baseDataProvider = createDataProvider({
+      db: createCrmDb({ contacts: [contact] }),
+      silent: true,
+    });
+    let isOffline = false;
+    let refetchQueries: (() => Promise<void>) | null = null;
+
+    const QueryClientListener = () => {
+      const queryClient = useQueryClient();
+      refetchQueries = () => queryClient.refetchQueries();
+      return null;
+    };
+
+    const screen = await render(
+      <StoryWrapper
+        data={{ contacts: [contact] }}
+        dataProvider={{
+          getOne: (resource, params) =>
+            isOffline && resource === "contacts"
+              ? Promise.reject(new Error("Failed to fetch"))
+              : baseDataProvider.getOne(resource, params),
+        }}
+      >
+        <QueryClientListener />
+        <ContactShow resource="contacts" id={contact.id} />
+      </StoryWrapper>,
+    );
+    await expect
+      .element(screen.getByRole("tab", { name: "0 tasks" }))
+      .toBeVisible();
+
+    isOffline = true;
+    await refetchQueries!();
+
+    await expect
+      .element(screen.getByText("Error loading contact"))
+      .not.toBeInTheDocument();
+    await expect
+      .element(screen.getByRole("tab", { name: "0 tasks" }))
+      .toBeVisible();
   });
 
   it("updates the contact status from the aside", async () => {

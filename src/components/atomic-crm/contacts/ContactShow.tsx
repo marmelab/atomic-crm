@@ -54,6 +54,22 @@ export const ContactShow = (props: ShowBaseProps = {}) => {
   );
 };
 
+const ContactShowErrorMobile = () => {
+  const translate = useTranslate();
+  return (
+    <>
+      <MobileHeader>
+        <MobileBackButton />
+      </MobileHeader>
+      <MobileContent>
+        <div className="p-4 text-center text-muted-foreground">
+          {translate("resources.contacts.show.error_loading")}
+        </div>
+      </MobileContent>
+    </>
+  );
+};
+
 const MOBILE_TABS = ["notes", "tasks", "details"];
 
 const ContactShowContentMobile = () => {
@@ -63,10 +79,13 @@ const ContactShowContentMobile = () => {
   const requestedTab = searchParams.get("tab");
   const initialTab =
     requestedTab && MOBILE_TABS.includes(requestedTab) ? requestedTab : "notes";
-  const { defaultTitle, record, isPending } = useShowContext<Contact>();
+  const { defaultTitle, record, isPending, error } = useShowContext<Contact>();
   const [noteCreateOpen, setNoteCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
-  if (isPending || !record) return null;
+  if (isPending) return null;
+  // The error notification is disabled on mobile, so show the error here,
+  // unless a cached record is still available (e.g. offline refetch failure)
+  if (!record) return error ? <ContactShowErrorMobile /> : null;
 
   const taskCount = record.nb_tasks ?? 0;
 

@@ -130,6 +130,9 @@ export const englishCrmMessages = {
       list: {
         error_loading: "Error loading contacts",
       },
+      show: {
+        error_loading: "Error loading contact",
+      },
       bulk_tag: {
         action: "Tag",
         back: "Back to tags",
