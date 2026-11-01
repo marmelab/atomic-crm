@@ -131,9 +131,9 @@ jobs:
                   git config --global user.email support+actions@github.com
                   git config --global user.name github-actions-bot
 
-            - name: ⚙️ Setup supabase
-              uses: supabase/setup-cli@v1
-
+            # Also provides the Supabase CLI: it is a devDependency, so the
+            # `npx supabase` steps below resolve it from node_modules at the
+            # version the lockfile pins.
             - name: 📥 Download deps
               run: npm ci
 
