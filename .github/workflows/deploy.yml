@@ -124,6 +124,17 @@ jobs:
             # Yields the literal 'true' or '', never the value of the last
             # secret in the chain.
             IS_SUPABASE_CONFIGURED: ${{ (secrets.SUPABASE_ACCESS_TOKEN && secrets.SUPABASE_DB_PASSWORD && secrets.SUPABASE_PROJECT_ID && secrets.SUPABASE_URL && secrets.SB_PUBLISHABLE_KEY) && 'true' || '' }}
+            # Presence flags, not values. The `secrets` context is NOT
+            # available in a step `if:`, so each condition below reads one
+            # of these instead. Each yields the literal 'true' or ''.
+            HAS_SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN && 'true' || '' }}
+            HAS_SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD && 'true' || '' }}
+            HAS_SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID && 'true' || '' }}
+            HAS_SUPABASE_URL: ${{ secrets.SUPABASE_URL && 'true' || '' }}
+            HAS_SB_PUBLISHABLE_KEY: ${{ secrets.SB_PUBLISHABLE_KEY && 'true' || '' }}
+            HAS_POSTMARK_WEBHOOK_USER: ${{ secrets.POSTMARK_WEBHOOK_USER && 'true' || '' }}
+            HAS_POSTMARK_WEBHOOK_PASSWORD: ${{ secrets.POSTMARK_WEBHOOK_PASSWORD && 'true' || '' }}
+            HAS_POSTMARK_WEBHOOK_AUTHORIZED_IPS: ${{ secrets.POSTMARK_WEBHOOK_AUTHORIZED_IPS && 'true' || '' }}
 
         steps:
             - name: 📥 Checkout repo
@@ -163,7 +174,7 @@ jobs:
                   SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
               run: npx supabase db push
 
-            - if: ${{ env.IS_SUPABASE_CONFIGURED && secrets.POSTMARK_WEBHOOK_USER && secrets.POSTMARK_WEBHOOK_PASSWORD && secrets.POSTMARK_WEBHOOK_AUTHORIZED_IPS }}
+            - if: ${{ env.IS_SUPABASE_CONFIGURED && env.HAS_POSTMARK_WEBHOOK_USER && env.HAS_POSTMARK_WEBHOOK_PASSWORD && env.HAS_POSTMARK_WEBHOOK_AUTHORIZED_IPS }}
               name: 📡 Push supabase postmark webhook user secret
               env:
                   SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
@@ -187,35 +198,35 @@ jobs:
                   SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
               run: npx supabase functions deploy
 
-            - if: ${{ !secrets.SUPABASE_ACCESS_TOKEN }}
+            - if: ${{ !env.HAS_SUPABASE_ACCESS_TOKEN }}
               name: Check SUPABASE_ACCESS_TOKEN secret
               run: echo ':warning:SUPABASE_ACCESS_TOKEN secret is missing' >> $GITHUB_STEP_SUMMARY
 
-            - if: ${{ !secrets.SUPABASE_DB_PASSWORD }}
+            - if: ${{ !env.HAS_SUPABASE_DB_PASSWORD }}
               name: Check SUPABASE_DB_PASSWORD secret
               run: echo ':warning:SUPABASE_DB_PASSWORD secret is missing' >> $GITHUB_STEP_SUMMARY
 
-            - if: ${{ !secrets.SUPABASE_PROJECT_ID }}
+            - if: ${{ !env.HAS_SUPABASE_PROJECT_ID }}
               name: Check SUPABASE_PROJECT_ID secret
               run: echo ':warning:SUPABASE_PROJECT_ID secret is missing' >> $GITHUB_STEP_SUMMARY
 
-            - if: ${{ !secrets.SUPABASE_URL }}
+            - if: ${{ !env.HAS_SUPABASE_URL }}
               name: Check SUPABASE_URL secret
               run: echo ':warning:SUPABASE_URL secret is missing' >> $GITHUB_STEP_SUMMARY
 
-            - if: ${{ !secrets.SB_PUBLISHABLE_KEY }}
+            - if: ${{ !env.HAS_SB_PUBLISHABLE_KEY }}
               name: Check SB_PUBLISHABLE_KEY secret
               run: echo ':warning:SB_PUBLISHABLE_KEY secret is missing' >> $GITHUB_STEP_SUMMARY
 
-            - if: ${{ !secrets.POSTMARK_WEBHOOK_USER }}
+            - if: ${{ !env.HAS_POSTMARK_WEBHOOK_USER }}
               name: Check POSTMARK_WEBHOOK_USER secret
               run: echo ':warning:POSTMARK_WEBHOOK_USER secret is missing' >> $GITHUB_STEP_SUMMARY
 
-            - if: ${{ !secrets.POSTMARK_WEBHOOK_PASSWORD }}
+            - if: ${{ !env.HAS_POSTMARK_WEBHOOK_PASSWORD }}
               name: Check POSTMARK_WEBHOOK_PASSWORD secret
               run: echo ':warning:POSTMARK_WEBHOOK_PASSWORD secret is missing' >> $GITHUB_STEP_SUMMARY
 
-            - if: ${{ !secrets.POSTMARK_WEBHOOK_AUTHORIZED_IPS }}
+            - if: ${{ !env.HAS_POSTMARK_WEBHOOK_AUTHORIZED_IPS }}
               name: Check POSTMARK_WEBHOOK_AUTHORIZED_IPS secret
               run: echo ':warning:POSTMARK_WEBHOOK_AUTHORIZED_IPS secret is missing' >> $GITHUB_STEP_SUMMARY
 
