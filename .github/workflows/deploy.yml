@@ -148,10 +148,9 @@ jobs:
                   node-version: 24
                   cache: npm
 
-            - name: ⚙️ Setup supabase
-              # Pinned: `v1` is a mutable branch, not a tag.
-              uses: supabase/setup-cli@1dedf2c611547ede7232d26866dd3c56ab903bbb # v1
-
+            # Also provides the Supabase CLI: it is a devDependency, so the
+            # `npx supabase` steps below resolve it from node_modules at the
+            # version the lockfile pins.
             - name: 📥 Download deps
               run: npm ci
 
