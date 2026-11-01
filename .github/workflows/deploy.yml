@@ -20,14 +20,14 @@ jobs:
 
         steps:
             - name: 📥 Checkout repo
-              uses: actions/checkout@v4
+              uses: actions/checkout@v7
               with:
                   # Keep the job token out of .git/config, where any install
                   # script or build plugin could read it.
                   persist-credentials: false
 
             - name: ⚙️ Setup node
-              uses: actions/setup-node@v4
+              uses: actions/setup-node@v7
               with:
                   node-version: 24
                   cache: npm
@@ -71,12 +71,12 @@ jobs:
 
         steps:
             - name: 📥 Checkout repo
-              uses: actions/checkout@v4
+              uses: actions/checkout@v7
               with:
                   persist-credentials: false
 
             - name: ⚙️ Setup node
-              uses: actions/setup-node@v4
+              uses: actions/setup-node@v7
               with:
                   node-version: 24
                   cache: npm
@@ -138,12 +138,12 @@ jobs:
 
         steps:
             - name: 📥 Checkout repo
-              uses: actions/checkout@v4
+              uses: actions/checkout@v7
               with:
                   persist-credentials: false
 
             - name: ⚙️ Setup node
-              uses: actions/setup-node@v4
+              uses: actions/setup-node@v7
               with:
                   node-version: 24
                   cache: npm
