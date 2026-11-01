@@ -1,8 +1,11 @@
 const MAX_CANDIDATES_PER_CALL = 100;
 
 // The app uploads every file at the root of the bucket, named
+// `${crypto.randomUUID()}${extension}`, e.g.
+// `0b6c4f1e-3d2a-4f5b-9c8d-7e6f5a4b3c2d.pdf`. Older files were named
 // `${Math.random()}${extension}`, e.g. `0.8262106278726917.pdf`.
-const UPLOADED_FILE_NAME = /^0\.[0-9]+(\.[^./]*)?$/;
+const UPLOADED_FILE_NAME =
+  /^(0\.[0-9]+|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})(\.[^./]*)?$/;
 
 type NoteAttachment = {
   path?: string | null;

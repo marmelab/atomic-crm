@@ -18,7 +18,11 @@ import type {
   SignUpData,
 } from "../../types";
 import type { ConfigurationContextValue } from "../../root/ConfigurationContext";
-import { ATTACHMENTS_BUCKET } from "../commons/attachments";
+import {
+  ATTACHMENTS_BUCKET,
+  getSafeContentType,
+  getStorageFileName,
+} from "../commons/attachments";
 import { getIsInitialized } from "./authProvider";
 import { searchDealCategories } from "./searchDealCategories";
 import { getSupabaseClient } from "./supabase";
@@ -482,14 +486,15 @@ const uploadToBucket = async (fi: RAFile) => {
     return fi;
   }
 
-  const file = fi.rawFile;
-  const fileParts = file.name.split(".");
-  const fileExt = fileParts.length > 1 ? `.${file.name.split(".").pop()}` : "";
-  const fileName = `${Math.random()}${fileExt}`;
-  const filePath = `${fileName}`;
+  // Never let the uploaded file pick the type it is served with (e.g. an SVG
+  // running a script): the bucket rejects every type a browser can run.
+  // supabase-js uploads a Blob with its own type and ignores the contentType
+  // option, so the content is wrapped in a Blob of the safe type.
+  const contentType = getSafeContentType(dataContent.type || fi.rawFile?.type);
+  const filePath = getStorageFileName(fi.rawFile?.name ?? fi.title);
   const { error: uploadError } = await getSupabaseClient()
     .storage.from(ATTACHMENTS_BUCKET)
-    .upload(filePath, dataContent);
+    .upload(filePath, new Blob([dataContent], { type: contentType }));
 
   if (uploadError) {
     console.error("uploadError", uploadError);
@@ -503,9 +508,7 @@ const uploadToBucket = async (fi: RAFile) => {
   fi.path = filePath;
   fi.src = data.publicUrl;
 
-  // save MIME type
-  const mimeType = file.type;
-  fi.type = mimeType;
+  fi.type = contentType;
 
   return fi;
 };

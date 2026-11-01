@@ -1,4 +1,8 @@
 import { decode } from "base64-arraybuffer";
+import {
+  getSafeContentType,
+  getStorageFileName,
+} from "../_shared/attachments.ts";
 import { supabaseAdmin } from "../_shared/supabaseAdmin.ts";
 
 export type Attachment = {
@@ -25,8 +29,8 @@ export type Attachment = {
  * [{
  *    title: "test.txt",
  *    type: "text/plain",
- *    "path": "0.8262106278726917.txt",
- *    "src": "http://127.0.0.1:54321/storage/v1/object/public/attachments/0.8262106278726917.txt",
+ *    "path": "0b6c4f1e-3d2a-4f5b-9c8d-7e6f5a4b3c2d.txt",
+ *    "src": "http://127.0.0.1:54321/storage/v1/object/public/attachments/0b6c4f1e-3d2a-4f5b-9c8d-7e6f5a4b3c2d.txt",
  * }]
  *
  */
@@ -57,12 +61,13 @@ export const extractAndUploadAttachments = async (
           return null;
         }
 
-        const fileParts = Name.split(".");
-        const fileExt = fileParts.length > 1 ? `.${Name.split(".").pop()}` : "";
-        const fileName = `${Math.random()}${fileExt}`;
+        // The sender picks ContentType: never serve it as is (e.g. an SVG
+        // running a script).
+        const contentType = getSafeContentType(ContentType);
+        const fileName = getStorageFileName(Name);
         const { error: uploadError } = await supabaseAdmin.storage
           .from("attachments")
-          .upload(fileName, decodedContent);
+          .upload(fileName, decodedContent, { contentType });
 
         if (uploadError) {
           console.error("uploadError", uploadError);
@@ -75,7 +80,7 @@ export const extractAndUploadAttachments = async (
 
         return {
           title: Name,
-          type: ContentType,
+          type: contentType,
           path: fileName,
           src: fixPublicUrl(data.publicUrl),
         };
