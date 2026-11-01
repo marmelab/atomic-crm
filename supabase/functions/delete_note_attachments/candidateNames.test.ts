@@ -25,21 +25,6 @@ describe("getCandidateNames", () => {
     ]);
   });
 
-  it("accepts the UUID names of files uploaded by the app", () => {
-    const uuid = "0b6c4f1e-3d2a-4f5b-9c8d-7e6f5a4b3c2d";
-    const payload = payloadWith([
-      { path: `${uuid}.pdf` },
-      { path: uuid },
-      { src: `${BUCKET_URL}/${uuid.replace("0b", "1b")}.png` },
-    ]);
-
-    expect(getCandidateNames(payload)).toEqual([
-      `${uuid}.pdf`,
-      uuid,
-      `${uuid.replace("0b", "1b")}.png`,
-    ]);
-  });
-
   it("reads the name from the src URL when the path is missing or empty", () => {
     const payload = payloadWith([
       { src: `${BUCKET_URL}/0.11.pdf` },
@@ -62,9 +47,6 @@ describe("getCandidateNames", () => {
       { path: "logo.png" },
       { path: "0.14.tar.gz" },
       { path: "9.5e-7.pdf" },
-      { path: "dir/0b6c4f1e-3d2a-4f5b-9c8d-7e6f5a4b3c2d.pdf" },
-      { path: "0b6c4f1e-3d2a-4f5b-9c8d.pdf" },
-      { path: "0B6C4F1E-3D2A-4F5B-9C8D-7E6F5A4B3C2D.pdf" },
       { src: `${BUCKET_URL}/logo.png` },
       { src: `${BUCKET_URL}/..%2F0.15.txt` },
       { src: "not a url" },

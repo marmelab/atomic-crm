@@ -29,19 +29,19 @@ Then ask your coding agent `migrate accordion to base-ui`, and so on. The [Shadc
 
 ## One-off: Hardening Existing Attachments
 
-The `attachments` bucket is public. Files used to be stored under guessable names and served with the content type the uploader chose, so an uploaded SVG could run a script when opened. New uploads now get a random UUID name and a content type a browser cannot run, and the bucket rejects every other type.
+The `attachments` bucket is public, and files used to be served with the content type the uploader chose, so an uploaded SVG could run a script when opened. New uploads now get a content type a browser cannot run, and the bucket rejects every other type.
 
-Files uploaded before this change keep their old names and types until you rewrite them. The registry does not update your Supabase project, so:
+Files uploaded before this change keep their old types until you retype them. The registry does not update your Supabase project, so:
 
-1. Copy the `supabase/migrations/20261030140000_harden_attachments_bucket.sql` migration and the `supabase/functions` changes (`_shared/attachments.ts`, `postmark`, `delete_note_attachments`) into your fork, then apply the migration (`npx supabase db push`) and deploy the functions (`npx supabase functions deploy`).
-2. Rewrite the existing files with the project's service role key, first as a dry run:
+1. Copy the `supabase/migrations/20261030140000_harden_attachments_bucket.sql` migration and the `supabase/functions` changes (`_shared/attachments.ts`, `postmark`) into your fork, then apply the migration (`npx supabase db push`) and deploy the functions (`npx supabase functions deploy`).
+2. Retype the existing files with the project's service role key, first as a dry run:
 
 ```sh
 SUPABASE_URL=https://<project-ref>.supabase.co SUPABASE_SERVICE_ROLE_KEY=<service-role-key> \
-  node ./scripts/rewrite-attachments.mjs --dry-run
+  node ./scripts/retype-attachments.mjs --dry-run
 ```
 
-Then run it again without `--dry-run`. It renames each file, gives it a safe content type, updates every note, avatar, logo and configuration that points to it, and deletes the old file. Old attachment URLs (in exports, emails, screenshots) stop working. Running it again is safe: rewritten files are skipped. If it stops halfway, run it again; at worst it leaves unused copies in the bucket.
+Then run it again without `--dry-run`. It uploads each file with an unsafe type again under the same name as `application/octet-stream`, and updates the type stored in the notes that hold it. File URLs do not change. Running it again is safe: retyped files are skipped.
 
 ## Refreshing Your Fork
 

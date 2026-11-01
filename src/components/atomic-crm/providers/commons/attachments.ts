@@ -27,15 +27,3 @@ export const getSafeContentType = (type?: string | null): string => {
   const mimeType = (type ?? "").split(";")[0].trim().toLowerCase();
   return ALLOWED_MIME_TYPES.includes(mimeType) ? mimeType : DEFAULT_MIME_TYPE;
 };
-
-/**
- * Returns an unguessable name to store a file under, keeping the extension of
- * its original name when it is a plain one (e.g. `<uuid>.pdf`). The extension
- * is only informative: the stored content type decides how the file is served.
- */
-export const getStorageFileName = (originalName?: string | null): string => {
-  const extension = /\.([a-z0-9]{1,10})$/i.exec(originalName ?? "")?.[1];
-  return extension
-    ? `${crypto.randomUUID()}.${extension.toLowerCase()}`
-    : crypto.randomUUID();
-};
