@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { ChevronDown, Search } from "lucide-react";
+import { ChevronDown, Search, XIcon } from "lucide-react";
 import { useDataProvider, useDebouncedEvent, useTranslate } from "ra-core";
 import { type RefObject, useEffect, useMemo, useRef, useState } from "react";
 import { flushSync } from "react-dom";
@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/command";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogHeader,
@@ -255,12 +256,29 @@ export const GlobalSearchDialog = ({
   const isTooShort = debouncedQuery.length < MIN_SEARCH_LENGTH;
   const terms = useMemo(() => getSearchTerms(debouncedQuery), [debouncedQuery]);
 
+  const searchInput = (
+    <CommandInput
+      ref={inputRef}
+      placeholder={translate("crm.search.placeholder")}
+      value={query}
+      onValueChange={(value) => {
+        setQuery(value);
+        setExpandedGroups(new Set());
+        updateDebouncedQuery(value.trim());
+      }}
+      // on desktop, keep the text clear of the dialog's close button, drawn
+      // over the input's right end
+      className={cn("text-base", !isMobile && "pr-8")}
+    />
+  );
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       {/* Desktop: pinned near the top so the box grows downwards as results
           arrive instead of re-centering on every keystroke. Mobile: the whole
           screen. */}
       <DialogContent
+        showCloseButton={!isMobile}
         className={cn(
           "overflow-hidden p-0",
           isMobile
@@ -280,21 +298,25 @@ export const GlobalSearchDialog = ({
             itself to control the layout and filtering */}
         <Command
           shouldFilter={false}
-          className="[&_[cmdk-group-heading]]:text-muted-foreground **:data-[slot=command-input-wrapper]:h-12 [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group]]:px-2 [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5"
+          className={cn(
+            "[&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group]]:px-2 [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5",
+            !isMobile &&
+              "**:data-[slot=command-input-wrapper]:h-12 [&_[cmdk-input]]:h-12",
+          )}
         >
-          <CommandInput
-            ref={inputRef}
-            placeholder={translate("crm.search.placeholder")}
-            value={query}
-            onValueChange={(value) => {
-              setQuery(value);
-              setExpandedGroups(new Set());
-              updateDebouncedQuery(value.trim());
-            }}
-            // keep the text clear of the dialog's close button, drawn over the
-            // input's right end
-            className="pr-8 text-base"
-          />
+          {/* On a phone, a taller input sits next to the close button rather
+              than under it, both centered on the same row. */}
+          {isMobile ? (
+            <div className="flex items-center gap-1 py-2 pl-2 pr-1 *:data-[slot=command-input-wrapper]:flex-1 *:data-[slot=command-input-wrapper]:p-0 **:data-[slot=input-group]:h-11!">
+              {searchInput}
+              <DialogClose render={<Button variant="ghost" size="icon-lg" />}>
+                <XIcon className="size-5" />
+                <span className="sr-only">Close</span>
+              </DialogClose>
+            </div>
+          ) : (
+            searchInput
+          )}
           <CommandList
             className={cn(
               "overscroll-contain",

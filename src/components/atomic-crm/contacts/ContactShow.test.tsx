@@ -64,6 +64,28 @@ describe("ContactShow", () => {
       .toHaveAttribute("aria-selected", "true");
   });
 
+  it("links phone numbers to the dialer, keeping the extension as a pause", async () => {
+    const screen = await render(
+      <StoryWrapper
+        data={{
+          contacts: [
+            buildContact({
+              id: 1,
+              phone_jsonb: [{ number: "(263) 963-6427 x6649", type: "Work" }],
+            }),
+          ],
+        }}
+        initialEntries={["/?tab=details"]}
+      >
+        <ContactShow resource="contacts" id={1} />
+      </StoryWrapper>,
+    );
+
+    await expect
+      .element(screen.getByRole("link", { name: "(263) 963-6427 x6649" }))
+      .toHaveAttribute("href", "tel:2639636427,6649");
+  });
+
   it("shows an error when the contact cannot be loaded", async () => {
     const screen = await render(
       <StoryWrapper data={{ contacts: [] }}>
