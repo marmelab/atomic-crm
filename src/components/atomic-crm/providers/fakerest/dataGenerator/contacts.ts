@@ -96,6 +96,9 @@ export const generateContacts = (db: Db, size = 500): Required<Contact>[] => {
       sales_id: company.sales_id!,
       nb_tasks: 0,
       linkedin_url: null,
+      whatsapp_number: weightedBoolean(50) ? phone.phoneNumber() : null,
+      // the first contact met at a company is its primary contact
+      is_primary: company.nb_contacts === 1,
     };
   });
 };

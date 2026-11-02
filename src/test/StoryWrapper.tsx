@@ -122,7 +122,7 @@ export const buildDeal = (overrides: Partial<Deal> = {}): Deal => ({
   index: 0,
   name: "Acme deal",
   sales_id: 0,
-  stage: "opportunity",
+  stage: "new",
   updated_at: "2025-01-01T09:00:00.000Z",
   ...overrides,
 });

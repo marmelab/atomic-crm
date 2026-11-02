@@ -92,7 +92,7 @@ const DealMiscInputs = () => {
         choices={dealStages}
         optionText="label"
         optionValue="value"
-        defaultValue="opportunity"
+        defaultValue="new"
         helperText={false}
         validate={required()}
       />

@@ -10,20 +10,26 @@ import {
   defaultEmailJsonb,
   defaultPhoneJsonb,
 } from "./contactModel";
+import { useTypedCompany } from "./useTypedCompany";
 
 export const ContactEdit = ({
   mutationMode,
 }: {
   mutationMode?: MutationMode;
-}) => (
-  <EditBase
-    redirect="show"
-    transform={cleanupContactForEdit}
-    mutationMode={mutationMode}
-  >
-    <ContactEditContent />
-  </EditBase>
-);
+}) => {
+  const withTypedCompany = useTypedCompany();
+  return (
+    <EditBase
+      redirect="show"
+      transform={async (data) =>
+        cleanupContactForEdit(await withTypedCompany(data))
+      }
+      mutationMode={mutationMode}
+    >
+      <ContactEditContent />
+    </EditBase>
+  );
+};
 
 const normalizeContactArrayFields = (record: Contact) => ({
   ...record,

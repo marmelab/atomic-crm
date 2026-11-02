@@ -6,7 +6,7 @@ describe("validateItemsInUse", () => {
   const deals: RaRecord[] = [
     { id: 1, stage: "won", categories: ["ui-design"] },
     { id: 2, stage: "lost", categories: ["copywriting", "ui-design"] },
-    { id: 3, stage: "opportunity", categories: ["ui-design"] },
+    { id: 3, stage: "new", categories: ["ui-design"] },
   ];
 
   it("returns undefined when items is undefined", () => {
@@ -19,7 +19,7 @@ describe("validateItemsInUse", () => {
     const items = [
       { value: "won", label: "Won" },
       { value: "lost", label: "Lost" },
-      { value: "opportunity", label: "Opportunity" },
+      { value: "new", label: "New" },
     ];
     expect(validateItemsInUse(items, deals, "stage", "stages")).toBe(undefined);
   });
@@ -27,7 +27,7 @@ describe("validateItemsInUse", () => {
   it("returns an error when an in-use value is removed", () => {
     const items = [
       { value: "won", label: "Won" },
-      { value: "opportunity", label: "Opportunity" },
+      { value: "new", label: "New" },
     ];
     expect(validateItemsInUse(items, deals, "stage", "stages")).toBe(
       "Cannot remove stages that are still used by deals: lost",
@@ -35,7 +35,7 @@ describe("validateItemsInUse", () => {
   });
 
   it("lists all missing in-use values", () => {
-    const items = [{ value: "opportunity", label: "Opportunity" }];
+    const items = [{ value: "new", label: "New" }];
     const result = validateItemsInUse(items, deals, "stage", "stages");
     expect(result).toContain("won");
     expect(result).toContain("lost");
@@ -46,7 +46,7 @@ describe("validateItemsInUse", () => {
       { value: "won", label: "Won" },
       { value: "won", label: "Won again" },
       { value: "lost", label: "Lost" },
-      { value: "opportunity", label: "Opportunity" },
+      { value: "new", label: "New" },
     ];
     expect(validateItemsInUse(items, deals, "stage", "stages")).toBe(
       "Duplicate stages: won",
@@ -58,7 +58,7 @@ describe("validateItemsInUse", () => {
       { value: "", label: "Won" },
       { value: "won", label: "Already won" },
       { value: "lost", label: "Lost" },
-      { value: "opportunity", label: "Opportunity" },
+      { value: "new", label: "New" },
     ];
     expect(validateItemsInUse(items, deals, "stage", "stages")).toBe(
       "Duplicate stages: won",

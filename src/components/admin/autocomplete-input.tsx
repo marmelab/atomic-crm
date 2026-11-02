@@ -89,9 +89,12 @@ export const AutocompleteInput = (
       placeholder?: string;
       inputText?:
         React.ReactNode | ((option: any | undefined) => React.ReactNode);
+      /** Called with the search text each time the user types or clears it. */
+      onFilterChange?: (filter: string) => void;
     } & Pick<PopoverPrimitive.Root.Props, "modal">,
 ) => {
   const {
+    onFilterChange,
     clearable = false,
     filterToQuery = DefaultFilterToQuery,
     inputText,
@@ -162,6 +165,7 @@ export const AutocompleteInput = (
   const handleReset = useEvent(() => {
     field.onChange("");
     setFilterValue("");
+    onFilterChange?.("");
     if (isFromReference) {
       setFilters(filterToQuery(""));
     }
@@ -269,6 +273,7 @@ export const AutocompleteInput = (
                 value={filterValue}
                 onValueChange={(filter) => {
                   setFilterValue(filter);
+                  onFilterChange?.(filter);
                   requestAnimationFrame(() => {
                     listRef.current?.scrollTo(0, 0);
                   });

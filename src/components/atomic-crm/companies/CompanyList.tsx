@@ -16,7 +16,9 @@ export const CompanyList = () => {
   if (!identity) return null;
   return (
     <List
-      title={false}
+      // Own key so list settings saved before the lead form are dropped: a
+      // remembered "size" filter hid every company, as leads have no size.
+      storeKey="companies.leads"
       perPage={25}
       sort={{ field: "name", order: "ASC" }}
       actions={<CompanyListActions />}

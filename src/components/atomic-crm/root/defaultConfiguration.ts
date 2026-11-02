@@ -13,26 +13,81 @@ export const defaultCurrency = "USD";
 export const defaultTitle = "Atomic CRM";
 
 export const defaultCompanySectors = [
+  // Technology & IT
+  { value: "information-technology", label: "Information Technology" },
+  { value: "software-development", label: "Software Development" },
+  { value: "web-development", label: "Web Development" },
+  { value: "mobile-app-development", label: "Mobile App Development" },
+  { value: "it-services", label: "IT Services" },
+  { value: "saas", label: "SaaS / Software as a Service" },
+  { value: "cloud-computing", label: "Cloud Computing" },
+  { value: "cybersecurity", label: "Cybersecurity" },
+  { value: "artificial-intelligence", label: "Artificial Intelligence" },
+  { value: "data-analytics", label: "Data Analytics" },
+  { value: "technology-consulting", label: "Technology Consulting" },
+  { value: "software-consulting", label: "Software Consulting" },
+  { value: "devops", label: "DevOps & Cloud Engineering" },
+
+  // Digital & Creative Services
+  { value: "digital-agency", label: "Digital Agency" },
+  { value: "digital-marketing", label: "Digital Marketing" },
+  { value: "ui-ux-design", label: "UI/UX Design" },
+  { value: "graphic-design", label: "Graphic Design" },
+  { value: "branding", label: "Branding & Creative Services" },
+  { value: "seo", label: "SEO & Search Marketing" },
+  { value: "content-creation", label: "Content Creation" },
+  { value: "advertising", label: "Advertising" },
+  { value: "web-design", label: "Web Design" },
+  { value: "e-learning", label: "E-learning & EdTech" },
+
+  // Business & Professional Services
+  { value: "business-consulting", label: "Business Consulting" },
+  { value: "professional-services", label: "Professional Services" },
+  { value: "staffing-recruitment", label: "Staffing & Recruitment" },
+  { value: "education", label: "Education & Training" },
+  { value: "financial-services", label: "Financial Services" },
+  { value: "legal-services", label: "Legal Services" },
+  { value: "accounting", label: "Accounting & Tax Services" },
+
+  // Commerce & Retail
+  { value: "e-commerce", label: "E-commerce" },
+  { value: "retail", label: "Retail" },
+  { value: "wholesale-distribution", label: "Wholesale & Distribution" },
+  { value: "manufacturing", label: "Manufacturing" },
+  { value: "consumer-goods", label: "Consumer Goods" },
+
+  // Other Industries
   { value: "communication-services", label: "Communication Services" },
   { value: "consumer-discretionary", label: "Consumer Discretionary" },
   { value: "consumer-staples", label: "Consumer Staples" },
   { value: "energy", label: "Energy" },
-  { value: "financials", label: "Financials" },
-  { value: "health-care", label: "Health Care" },
+  { value: "health-care", label: "Healthcare" },
   { value: "industrials", label: "Industrials" },
-  { value: "information-technology", label: "Information Technology" },
   { value: "materials", label: "Materials" },
   { value: "real-estate", label: "Real Estate" },
   { value: "utilities", label: "Utilities" },
+  { value: "hospitality", label: "Hospitality & Tourism" },
+  { value: "transportation-logistics", label: "Transportation & Logistics" },
+  { value: "agriculture", label: "Agriculture" },
+  { value: "automotive", label: "Automotive" },
+  { value: "construction", label: "Construction" },
+  { value: "food-beverage", label: "Food & Beverage" },
+  { value: "media-entertainment", label: "Media & Entertainment" },
+  { value: "non-profit", label: "Non-profit & NGOs" },
+  { value: "other", label: "Other" },
 ];
 
 export const defaultDealStages = [
-  { value: "opportunity", label: "Opportunity" },
-  { value: "proposal-sent", label: "Proposal Sent" },
-  { value: "in-negociation", label: "In Negotiation" },
+  { value: "new", label: "New" },
+  { value: "contacted", label: "Contacted" },
+  { value: "demo", label: "Demo" },
+  { value: "interested", label: "Interested" },
+  // Not Interested keeps the internal "lost" value so existing closed-lost
+  // reporting logic keeps working.
+  { value: "lost", label: "Not Interested" },
+  { value: "proposal", label: "Proposal" },
+  { value: "follow-up", label: "Follow-up" },
   { value: "won", label: "Won" },
-  { value: "lost", label: "Lost" },
-  { value: "delayed", label: "Delayed" },
 ];
 
 export const defaultDealPipelineStatuses = ["won"];

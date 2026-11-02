@@ -9,11 +9,26 @@ import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal } from "../types";
 
 const multiplier = {
-  opportunity: 0.2,
-  "proposal-sent": 0.5,
-  "in-negociation": 0.8,
-  delayed: 0.3,
-};
+  new: 0.05,
+  contacted: 0.1,
+  demo: 0.25,
+  interested: 0.4,
+  // Not Interested: excluded from the active pipeline forecast, 0% probability
+  lost: 0,
+  proposal: 0.6,
+  "follow-up": 0.75,
+  // Successfully closed, counted at 100%
+  won: 1,
+} satisfies Record<string, number>;
+
+/**
+ * Probability multiplier for any configured stage, so custom stages added
+ * through the settings page do not break the forecast (5% by default until
+ * configured).
+ */
+const getStageMultiplier = (stage: string): number =>
+  // @ts-expect-error - multiplier type issue
+  multiplier[stage] ?? 0.05;
 
 const threeMonthsAgo = new Date(
   new Date().setMonth(new Date().getMonth() - 6),
@@ -63,8 +78,7 @@ export const DealsChart = memo(() => {
         pending: dealsByMonth[month]
           .filter((deal: Deal) => !["won", "lost"].includes(deal.stage))
           .reduce((acc: number, deal: Deal) => {
-            // @ts-expect-error - multiplier type issue
-            acc += deal.amount * multiplier[deal.stage];
+            acc += deal.amount * getStageMultiplier(deal.stage);
             return acc;
           }, 0),
         lost: dealsByMonth[month]

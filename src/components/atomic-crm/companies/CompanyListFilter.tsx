@@ -1,22 +1,17 @@
-import { Building, Truck, Users } from "lucide-react";
+import { Truck, Users } from "lucide-react";
 import { FilterLiveForm, useGetIdentity, useTranslate } from "ra-core";
 import { ToggleFilterButton } from "@/components/admin/toggle-filter-button";
 import { SearchInput } from "@/components/admin/search-input";
 
 import { FilterCategory } from "../filters/FilterCategory";
-import { useConfigurationContext } from "../root/ConfigurationContext";
 import { AccountManagerFilter } from "../sales/AccountManagerInput";
-import { getTranslatedCompanySizeLabel } from "./getTranslatedCompanySizeLabel";
-import { sizes } from "./sizes";
+import { useCompanySectors } from "./useCompanySectors";
 
 export const CompanyListFilter = () => {
   const { identity } = useGetIdentity();
-  const { companySectors } = useConfigurationContext();
+  // the verticals of the company form, shared in the database
+  const { sectors } = useCompanySectors();
   const translate = useTranslate();
-  const translatedSizes = sizes.map((size) => ({
-    ...size,
-    name: getTranslatedCompanySizeLabel(size, translate),
-  }));
   return (
     <div className="w-52 min-w-52 flex flex-col gap-8">
       <FilterLiveForm>
@@ -24,24 +19,10 @@ export const CompanyListFilter = () => {
       </FilterLiveForm>
 
       <FilterCategory
-        icon={<Building className="h-4 w-4" />}
-        label="resources.companies.fields.size"
-      >
-        {translatedSizes.map((size) => (
-          <ToggleFilterButton
-            className="w-full justify-between"
-            label={size.name}
-            key={size.name}
-            value={{ size: size.id }}
-          />
-        ))}
-      </FilterCategory>
-
-      <FilterCategory
         icon={<Truck className="h-4 w-4" />}
         label="resources.companies.fields.sector"
       >
-        {companySectors.map((sector) => (
+        {sectors.map((sector) => (
           <ToggleFilterButton
             className="w-full justify-between"
             label={sector.label}

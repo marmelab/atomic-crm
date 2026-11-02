@@ -4,7 +4,7 @@ import { useDataProvider, useGetIdentity } from "ra-core";
 import { mapSizeToCategory } from "../companies/sizes";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { createEachRow } from "./createEachRow";
-import { toConfiguredValue, toNumber, toText } from "./parseCell";
+import { toConfiguredValue, toIsoDate, toNumber, toText } from "./parseCell";
 import type { ImportCell, ProcessImportBatch } from "./types";
 
 /**
@@ -36,6 +36,8 @@ export function useCompanyImport(): ProcessImportBatch {
               description: toText(row.description),
               revenue: toText(row.revenue),
               tax_identifier: toText(row.tax_identifier),
+              lead_date: toIsoDate(row.lead_date),
+              pitch_point: toText(row.pitch_point),
               sales_id: identity?.id,
               created_at: new Date().toISOString(),
             },

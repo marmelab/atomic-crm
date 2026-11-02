@@ -19,6 +19,11 @@ import type {
 } from "../../types";
 import type { ConfigurationContextValue } from "../../root/ConfigurationContext";
 import { ATTACHMENTS_BUCKET } from "../commons/attachments";
+import {
+  assertValidContactList,
+  hasContactList,
+  type CompanyWithContacts,
+} from "../commons/companyContacts";
 import { getIsInitialized } from "./authProvider";
 import { searchDealCategories } from "./searchDealCategories";
 import { getSupabaseClient } from "./supabase";
@@ -45,6 +50,37 @@ const processCompanyLogo = async (params: any) => {
       logo,
     },
   };
+};
+
+/**
+ * Saves a company and its contact list in one transaction, through the
+ * save_company_with_contacts() Postgres function.
+ */
+const saveCompanyWithContacts = async (
+  companyId: Identifier | null,
+  { contacts, ...company }: CompanyWithContacts,
+): Promise<Identifier> => {
+  assertValidContactList(contacts);
+  const { data, error } = await getSupabaseClient().rpc(
+    "save_company_with_contacts",
+    {
+      p_company_id: companyId,
+      p_company: {
+        name: company.name,
+        sector: company.sector,
+        city: company.city,
+        lead_date: company.lead_date,
+        pitch_point: company.pitch_point,
+        sales_id: company.sales_id,
+      },
+      p_contacts: contacts,
+    },
+  );
+  if (error) {
+    console.error("save_company_with_contacts.error", error);
+    throw new Error(error.message);
+  }
+  return data;
 };
 
 const getDataProviderWithCustomMethods = () => {
@@ -88,6 +124,20 @@ const getDataProviderWithCustomMethods = () => {
       }
 
       return baseDataProvider.getOne(resource, params);
+    },
+    async create(resource: string, params: any) {
+      if (resource === "companies" && hasContactList(params.data)) {
+        const id = await saveCompanyWithContacts(null, params.data);
+        return baseDataProvider.getOne("companies_summary", { id });
+      }
+      return baseDataProvider.create(resource, params);
+    },
+    async update(resource: string, params: any) {
+      if (resource === "companies" && hasContactList(params.data)) {
+        await saveCompanyWithContacts(params.id, params.data);
+        return baseDataProvider.getOne("companies_summary", { id: params.id });
+      }
+      return baseDataProvider.update(resource, params);
     },
 
     async signUp({ email, password, first_name, last_name }: SignUpData) {
@@ -355,6 +405,7 @@ const lifeCycleCallbacks: ResourceCallbacks[] = [
         "title",
         "email",
         "phone",
+        "whatsapp_number",
         "background",
       ])(params);
     },

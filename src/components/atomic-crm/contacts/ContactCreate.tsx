@@ -8,6 +8,7 @@ import {
   defaultEmailJsonb,
   defaultPhoneJsonb,
 } from "./contactModel";
+import { useTypedCompany } from "./useTypedCompany";
 
 export const ContactCreate = ({
   mutationMode,
@@ -15,11 +16,14 @@ export const ContactCreate = ({
   mutationMode?: MutationMode;
 }) => {
   const { identity } = useGetIdentity();
+  const withTypedCompany = useTypedCompany();
 
   return (
     <CreateBase
       redirect="show"
-      transform={cleanupContactForCreate}
+      transform={async (data) =>
+        cleanupContactForCreate(await withTypedCompany(data))
+      }
       mutationMode={mutationMode}
     >
       <div className="mt-2 flex lg:mr-72">

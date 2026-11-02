@@ -98,14 +98,6 @@ double_confirm_changes = true
 # If enabled, users need to confirm their email address before signing in.
 enable_confirmations = false
 
-[auth.email.template.invite]
-subject = "You've been invited to Atomic CRM"
-content_path = "./supabase/templates/invite.html"
-
-[auth.email.template.recovery]
-subject = "Reset your Atomic CRM Password"
-content_path = "./supabase/templates/recovery.html"
-
 [auth.sms]
 # Allow/disallow new user signups via SMS to your project.
 enable_signup = true

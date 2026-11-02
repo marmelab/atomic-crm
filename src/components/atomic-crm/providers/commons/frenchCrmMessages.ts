@@ -6,18 +6,22 @@ export const frenchCrmMessages = {
       name: "Entreprise |||| Entreprises",
       forcedCaseName: "Entreprise",
       fields: {
-        name: "Nom de l'entreprise",
+        existing_contact_ids: "Ajouter un contact existant",
+        pitch_point: "Argumentaire",
+        whatsapp_number: "Numéro WhatsApp",
+        lead_date: "Date",
+        name: "Nom commercial",
         website: "Site web",
         linkedin_url: "LinkedIn",
-        phone_number: "Numéro de téléphone",
+        phone_number: "Mobile",
         created_at: "Date de création",
         nb_contacts: "Nombre de contacts",
         revenue: "Chiffre d'affaires",
-        sector: "Secteur",
+        sector: "Verticale",
         size: "Taille",
         tax_identifier: "Identifiant fiscal",
         address: "Adresse",
-        city: "Ville",
+        city: "Lieu",
         zipcode: "Code postal",
         state_abbr: "État",
         country: "Pays",
@@ -33,6 +37,8 @@ export const frenchCrmMessages = {
         title: "Importer des entreprises",
       },
       field_categories: {
+        lead: "Prospect",
+        contacts: "Contacts",
         contact: "Contact",
         additional_info: "Informations supplémentaires",
         address: "Adresse",
@@ -43,6 +49,25 @@ export const frenchCrmMessages = {
         edit: "Modifier l'entreprise",
         new: "Nouvelle entreprise",
         show: "Afficher l'entreprise",
+      },
+      contacts: {
+        add_new: "Ajouter un nouveau contact",
+        already_added: "Ce contact est déjà dans la liste",
+        duplicate_email: "Un autre contact de cette liste a le même e-mail",
+        empty:
+          "Aucun contact pour l'instant. Recherchez un contact existant ou ajoutez-en un nouveau.",
+        existing: "Contact existant",
+        existing_help:
+          "Les modifications mettent à jour ce contact partout dans le CRM. Le retirer le dissocie seulement de l'entreprise.",
+        fetch_error: "Impossible de charger ce contact",
+        load_error:
+          "Impossible de charger les contacts de cette entreprise. Rechargez la page pour les gérer.",
+        mobile: "Mobile",
+        new: "Nouveau contact",
+        primary: "Contact principal",
+        search: "Rechercher des contacts existants...",
+        search_help:
+          "Choisir un contact d'une autre entreprise le déplace ici.",
       },
       added_on: "Ajoutée le %{date}",
       followed_by: "Suivie par %{name}",
@@ -75,6 +100,7 @@ export const frenchCrmMessages = {
         position: "Poste",
       },
       fields: {
+        whatsapp_number: "Numéro WhatsApp",
         first_name: "Prénom",
         last_name: "Nom",
         last_seen: "Dernière activité",
@@ -198,8 +224,11 @@ export const frenchCrmMessages = {
         amount: "Budget",
         expected_closing_date: "Date de clôture prévue",
         stage: "Étape",
+        created_at: "Créée le",
+        updated_at: "Dernière mise à jour",
       },
       action: {
+        back: "Retour aux affaires",
         back_to_deal: "Retour à l'affaire",
         create: "Créer une affaire",
         new: "Nouvelle affaire",
@@ -236,6 +265,11 @@ export const frenchCrmMessages = {
         title: "Importer des affaires",
       },
       invalid_date: "Date invalide",
+      no_company: "Sans entreprise",
+      pitch: {
+        add: "En ajouter un",
+        empty: "Pas encore d'argumentaire.",
+      },
     },
     notes: {
       name: "Note |||| Notes",
@@ -468,7 +502,11 @@ export const frenchCrmMessages = {
         "Import arrêté. %{importCount} enregistrements importés, %{errorCount} erreurs",
       title: "Importer des données",
     },
+    sidebar: {
+      admin: "Administration",
+    },
     header: {
+      new: "Nouveau",
       import_data: "Importer depuis JSON",
     },
     search: {

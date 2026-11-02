@@ -1,5 +1,6 @@
 import { ReferenceManyField } from "@/components/admin/reference-many-field";
 import { SortButton } from "@/components/admin/sort-button";
+import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -36,10 +37,10 @@ import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Company, Contact, Deal } from "../types";
 import {
   AdditionalInfo,
-  AddressInfo,
   CompanyAside,
   CompanyInfo,
   ContextInfo,
+  PitchInfo,
 } from "./CompanyAside";
 import { CompanyAvatar } from "./CompanyAvatar";
 
@@ -80,9 +81,9 @@ const CompanyShowContentMobile = () => {
             </div>
           </div>
         </div>
-        <CompanyInfo record={record} />
-        <AddressInfo record={record} />
         <ContextInfo record={record} />
+        <CompanyInfo record={record} />
+        <PitchInfo record={record} />
         <AdditionalInfo record={record} />
       </MobileContent>
     </>
@@ -212,8 +213,15 @@ const ContactsIterator = () => {
                 <Avatar />
               </div>
               <div className="flex-1 min-w-0">
-                <div className="font-medium">
-                  {`${contact.first_name} ${contact.last_name}`}
+                <div className="font-medium flex items-center gap-2">
+                  {[contact.first_name, contact.last_name]
+                    .filter(Boolean)
+                    .join(" ")}
+                  {contact.is_primary && (
+                    <Badge variant="secondary">
+                      {translate("resources.companies.contacts.primary")}
+                    </Badge>
+                  )}
                 </div>
                 <div className="text-sm text-muted-foreground">
                   {contact.title}

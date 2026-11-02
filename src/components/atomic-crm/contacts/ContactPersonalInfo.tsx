@@ -4,7 +4,7 @@ import { ArrayField } from "@/components/admin/array-field";
 import { SingleFieldList } from "@/components/admin/single-field-list";
 import { TextField } from "@/components/admin/text-field";
 import { EmailField } from "@/components/admin/email-field";
-import { Mail, Phone, Linkedin, Check } from "lucide-react";
+import { Mail, Phone, Linkedin, Check, MessageCircle } from "lucide-react";
 import type { ReactNode } from "react";
 import {
   contactGender,
@@ -58,6 +58,21 @@ export const ContactPersonalInfo = () => {
           />
         </SingleFieldList>
       </ArrayField>
+      {record.whatsapp_number && (
+        <PersonalInfoRow
+          icon={<MessageCircle className="w-4 h-4 text-muted-foreground" />}
+          primary={
+            <a
+              className="underline hover:no-underline text-sm text-muted-foreground"
+              href={`https://wa.me/${record.whatsapp_number.replace(/\D/g, "")}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {record.whatsapp_number}
+            </a>
+          }
+        />
+      )}
       {contactGender
         .map((genderOption) => {
           if (record.gender === genderOption.value) {

@@ -26,7 +26,7 @@ const OptionsField = (_props: { label?: string | boolean }) => {
       {record.administrator && (
         <Badge
           variant="outline"
-          className="border-blue-300 dark:border-blue-700"
+          className="border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-300"
         >
           {translate("resources.sales.fields.administrator")}
         </Badge>
@@ -34,7 +34,7 @@ const OptionsField = (_props: { label?: string | boolean }) => {
       {record.disabled && (
         <Badge
           variant="outline"
-          className="border-orange-300 dark:border-orange-700"
+          className="border-orange-200 bg-orange-50 text-orange-700 dark:border-orange-800 dark:bg-orange-950 dark:text-orange-300"
         >
           {translate("resources.sales.fields.disabled")}
         </Badge>

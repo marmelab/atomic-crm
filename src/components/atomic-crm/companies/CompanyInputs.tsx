@@ -1,177 +1,182 @@
-import { required, useRecordContext, useTranslate } from "ra-core";
-import { ReferenceInput } from "@/components/admin/reference-input";
+"use client";
+
+import { useState, type FormEvent } from "react";
+import {
+  required,
+  useTranslate,
+  useCreateSuggestionContext,
+  useNotify,
+} from "ra-core";
+
+import { DateInput } from "@/components/admin/date-input";
 import { TextInput } from "@/components/admin/text-input";
 import { SelectInput } from "@/components/admin/select-input";
-import { ArrayInput } from "@/components/admin/array-input";
-import { SimpleFormIterator } from "@/components/admin/simple-form-iterator";
-import { Separator } from "@/components/ui/separator";
-import { useIsMobile } from "@/hooks/use-mobile";
 
-import ImageEditorField from "../misc/ImageEditorField";
-import { isLinkedinUrl } from "../misc/isLinkedInUrl";
-import { useConfigurationContext } from "../root/ConfigurationContext";
-import type { Company, Sale } from "../types";
-import { getTranslatedCompanySizeLabel } from "./getTranslatedCompanySizeLabel";
-import { sizes } from "./sizes";
+import {
+  findSectorByLabel,
+  nextAvailableSectorValue,
+  useCompanySectors,
+  useCreateCompanySector,
+} from "./useCompanySectors";
 
-const isUrl = (url: string) => {
-  if (!url) return;
-  const UrlRegex = new RegExp(
-    /^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([-.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/i,
-  );
-  if (!UrlRegex.test(url)) {
-    return {
-      message: "crm.validation.invalid_url",
-      args: { _: "Must be a valid URL" },
-    };
-  }
-};
+export const CompanyInputs = () => (
+  <div className="flex flex-col gap-4 p-1">
+    <CompanyLeadInputs />
 
-export const CompanyInputs = () => {
-  const isMobile = useIsMobile();
+    <TextInput
+      source="pitch_point"
+      multiline
+      helperText={false}
+      className="[&_textarea]:min-h-32"
+    />
+  </div>
+);
+
+const CompanyLeadInputs = () => {
+  const translate = useTranslate();
+
+  const { sectors, isPending, error } = useCompanySectors();
+
+  const verticalChoices = sectors.map((sector) => ({
+    id: sector.value,
+    name: sector.label,
+  }));
 
   return (
-    <div className="flex flex-col gap-4 p-1">
-      <CompanyDisplayInputs />
-      <div className={`flex gap-6 ${isMobile ? "flex-col" : "flex-row"}`}>
-        <div className="flex flex-col gap-10 flex-1">
-          <CompanyContactInputs />
-          <CompanyContextInputs />
-        </div>
-        <Separator orientation={isMobile ? "horizontal" : "vertical"} />
-        <div className="flex flex-col gap-8 flex-1">
-          <CompanyAddressInputs />
-          <CompanyAdditionalInformationInputs />
-        </div>
+    <div className="flex flex-col gap-4">
+      <h6 className="text-lg font-semibold">
+        {translate("resources.companies.field_categories.lead", {
+          _: "Lead",
+        })}
+      </h6>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <DateInput source="lead_date" helperText={false} />
+
+        <TextInput source="name" validate={required()} helperText={false} />
+
+        <SelectInput
+          source="sector"
+          choices={verticalChoices}
+          optionText="name"
+          optionValue="id"
+          helperText={
+            error ? "Failed to load verticals from the database." : false
+          }
+          isPending={isPending}
+          create={<CreateIndustrySuggestion />}
+          createLabel="Add a new vertical"
+        />
+
+        <TextInput source="city" helperText={false} />
       </div>
     </div>
   );
 };
 
-const CompanyDisplayInputs = () => {
-  const translate = useTranslate();
-  const record = useRecordContext<Company>();
-  return (
-    <div className="flex gap-4 flex-1 flex-row">
-      <ImageEditorField
-        source="logo"
-        type="avatar"
-        width={60}
-        height={60}
-        emptyText={record?.name.charAt(0)}
-        linkPosition="bottom"
-      />
-      <TextInput
-        source="name"
-        className="w-full h-fit"
-        validate={required()}
-        helperText={false}
-        placeholder={translate("resources.companies.fields.name", {
-          _: "Company name",
-        })}
-      />
-    </div>
-  );
-};
+/**
+ * Custom industry creation.
+ * Uses the existing SelectInput create suggestion mechanism, and persists the
+ * new industry in the public.company_sectors table so every user sees it.
+ */
+const CreateIndustrySuggestion = () => {
+  const { onCancel, onCreate } = useCreateSuggestionContext();
+  const notify = useNotify();
 
-const CompanyContactInputs = () => {
-  const translate = useTranslate();
-  return (
-    <div className="flex flex-col gap-4">
-      <h6 className="text-lg font-semibold">
-        {translate("resources.companies.field_categories.contact", {
-          _: "Company info",
-        })}
-      </h6>
-      <TextInput source="website" helperText={false} validate={isUrl} />
-      <TextInput
-        source="linkedin_url"
-        helperText={false}
-        validate={isLinkedinUrl}
-      />
-      <TextInput source="phone_number" helperText={false} />
-    </div>
-  );
-};
+  const { sectors } = useCompanySectors();
+  const { mutateAsync: createSector, isPending: isCreating } =
+    useCreateCompanySector();
 
-const CompanyContextInputs = () => {
-  const translate = useTranslate();
-  const { companySectors } = useConfigurationContext();
-  const translatedSizes = sizes.map((size) => ({
-    ...size,
-    name: getTranslatedCompanySizeLabel(size, translate),
-  }));
-  return (
-    <div className="flex flex-col gap-4">
-      <h6 className="text-lg font-semibold">
-        {translate("resources.companies.field_categories.context", {
-          _: "Context",
-        })}
-      </h6>
-      <SelectInput
-        source="sector"
-        choices={companySectors}
-        optionText="label"
-        optionValue="value"
-        helperText={false}
-      />
-      <SelectInput source="size" choices={translatedSizes} helperText={false} />
-      <TextInput source="revenue" helperText={false} />
-      <TextInput source="tax_identifier" helperText={false} />
-    </div>
-  );
-};
+  const [industryName, setIndustryName] = useState("");
 
-const CompanyAddressInputs = () => {
-  const translate = useTranslate();
-  return (
-    <div className="flex flex-col gap-4">
-      <h6 className="text-lg font-semibold">
-        {translate("resources.companies.field_categories.address", {
-          _: "Address",
-        })}
-      </h6>
-      <TextInput source="address" helperText={false} />
-      <TextInput source="city" helperText={false} />
-      <TextInput source="zipcode" helperText={false} />
-      <TextInput source="state_abbr" helperText={false} />
-      <TextInput source="country" helperText={false} />
-    </div>
-  );
-};
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (isCreating) return;
 
-const CompanyAdditionalInformationInputs = () => {
-  const translate = useTranslate();
+    const label = industryName.trim();
+
+    // Reject empty or whitespace-only names.
+    if (!label) return;
+
+    // Check for an existing industry by its display name (case-insensitive).
+    const existingIndustry = findSectorByLabel(sectors, label);
+
+    // If it already exists, select the existing industry.
+    if (existingIndustry) {
+      onCreate({
+        id: existingIndustry.value,
+        name: existingIndustry.label,
+      });
+      return;
+    }
+
+    // Generate a URL-friendly value free of collisions.
+    const value = nextAvailableSectorValue(sectors, label);
+    if (!value) return;
+
+    try {
+      // Insert into Supabase. On a unique constraint violation (e.g. another
+      // user created the same industry concurrently), the mutation resolves
+      // to the existing record instead of failing.
+      const newIndustry = await createSector({ value, label });
+
+      notify("Industry successfully added", { type: "success" });
+
+      // Select the newly created industry.
+      onCreate({
+        id: newIndustry.value,
+        name: newIndustry.label,
+      });
+    } catch (error) {
+      notify(
+        `Failed to create industry: ${error instanceof Error ? error.message : error}`,
+        {
+          type: "error",
+        },
+      );
+    }
+  };
+
   return (
-    <div className="flex flex-col gap-4">
-      <h6 className="text-lg font-semibold">
-        {translate("resources.companies.field_categories.additional_info", {
-          _: "Additional information",
-        })}
-      </h6>
-      <TextInput source="description" multiline helperText={false} />
-      <ArrayInput source="context_links" helperText={false}>
-        <SimpleFormIterator disableReordering fullWidth getItemLabel={false}>
-          <TextInput
-            source=""
-            label={false}
-            helperText={false}
-            validate={isUrl}
-          />
-        </SimpleFormIterator>
-      </ArrayInput>
-      <ReferenceInput
-        source="sales_id"
-        reference="sales"
-        filter={{
-          "disabled@neq": true,
-        }}
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+      <form
+        onSubmit={handleSubmit}
+        className="w-full max-w-md space-y-4 rounded-lg border bg-background p-5 shadow-xl"
       >
-        <SelectInput helperText={false} optionText={saleOptionRenderer} />
-      </ReferenceInput>
+        <div className="space-y-1">
+          <h3 className="text-lg font-semibold">Add New Industry</h3>
+
+          <p className="text-sm text-muted-foreground">
+            Enter a new industry to make it available in your CRM.
+          </p>
+        </div>
+
+        <input
+          autoFocus
+          value={industryName}
+          onChange={(event) => setIndustryName(event.target.value)}
+          placeholder="e.g. Digital Transformation"
+          className="w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
+        />
+
+        <div className="flex justify-end gap-2">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="rounded-md border px-4 py-2 text-sm hover:bg-accent"
+          >
+            Cancel
+          </button>
+
+          <button
+            type="submit"
+            disabled={!industryName.trim() || isCreating}
+            className="rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {isCreating ? "Adding…" : "Add Industry"}
+          </button>
+        </div>
+      </form>
     </div>
   );
 };
-
-const saleOptionRenderer = (choice: Sale) =>
-  `${choice.first_name} ${choice.last_name}`;

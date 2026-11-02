@@ -106,7 +106,7 @@ export const GlobalSearchButton = ({
           onClick={() => setOpen(true)}
           aria-label={translate("crm.search.title")}
           aria-keyshortcuts="Control+K Meta+K"
-          className="mr-2 w-40 justify-start bg-background px-3 font-normal text-muted-foreground lg:w-64"
+          className="w-56 justify-start bg-muted/50 px-3 font-normal text-muted-foreground shadow-none hover:bg-muted lg:w-96"
         >
           <Search />
           <span className="flex-1 text-left">

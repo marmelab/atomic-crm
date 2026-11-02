@@ -35,7 +35,7 @@ const data = {
       description: "sourdough supply",
       id: 1,
       name: "Live sourdough deal",
-      stage: "opportunity",
+      stage: "new",
     },
     {
       archived_at: "2025-01-20T10:00:00.000Z",
@@ -89,7 +89,7 @@ const zeroIdData = {
       created_at: "2025-01-05T10:00:00.000Z",
       id: 0,
       name: "Deal zero for sourdough",
-      stage: "opportunity",
+      stage: "new",
     },
   ],
 } as any;

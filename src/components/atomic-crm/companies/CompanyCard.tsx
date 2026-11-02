@@ -10,19 +10,19 @@ import { ReferenceManyField } from "@/components/admin/reference-many-field";
 import { Card } from "@/components/ui/card";
 
 import { Avatar as ContactAvatar } from "../contacts/Avatar";
-import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Company } from "../types";
 import { CompanyAvatar } from "./CompanyAvatar";
+import { useCompanySectors } from "./useCompanySectors";
 
 export const CompanyCard = (props: { record?: Company }) => {
   const createPath = useCreatePath();
   const record = useRecordContext<Company>(props);
   const translate = useTranslate();
-  const { companySectors } = useConfigurationContext();
+  const { sectors } = useCompanySectors();
   if (!record) return null;
 
-  const sector = companySectors.find((s) => s.value === record.sector);
-  const sectorLabel = sector?.label;
+  const sectorLabel =
+    sectors.find((s) => s.value === record.sector)?.label ?? record.sector;
 
   return (
     <Link

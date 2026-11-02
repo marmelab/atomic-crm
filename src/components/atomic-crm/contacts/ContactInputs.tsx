@@ -23,6 +23,7 @@ import { StatusSelector } from "../notes";
 import type { Sale, Contact } from "../types";
 import { Avatar } from "./Avatar";
 import { AutocompleteCompanyInput } from "../companies/AutocompleteCompanyInput.tsx";
+import { COMPANY_DRAFT_SOURCE } from "./useTypedCompany";
 import {
   contactGender,
   translateContactGenderLabel,
@@ -87,7 +88,10 @@ const ContactPositionInputs = () => {
       </h6>
       <TextInput source="title" helperText={false} />
       <ReferenceInput source="company_id" reference="companies" perPage={10}>
-        <AutocompleteCompanyInput label="resources.contacts.fields.company_id" />
+        <AutocompleteCompanyInput
+          label="resources.contacts.fields.company_id"
+          draftSource={COMPANY_DRAFT_SOURCE}
+        />
       </ReferenceInput>
     </div>
   );
@@ -195,6 +199,7 @@ const ContactPersonalInformationInputs = () => {
           />
         </SimpleFormIterator>
       </ArrayInput>
+      <TextInput source="whatsapp_number" helperText={false} />
       <TextInput
         source="linkedin_url"
         helperText={false}

@@ -10,7 +10,13 @@ export const getDealsByStage = (
   if (!dealStages) return {};
   const dealsByStage: Record<Deal["stage"], Deal[]> = unorderedDeals.reduce(
     (acc, deal) => {
-      // if deal has a stage that does not exist in configuration, assign it to the first stage
+      // A deal with a stage that is not configured cannot be placed on the
+      // board. After the deal_pipeline_stages migration, legacy values are
+      // remapped in the database and the settings page refuses to remove a
+      // stage that is still used by deals, so this can only happen when a
+      // custom stage list drops a stage externally. Such deals are grouped
+      // under the first pipeline stage ("New") so they stay visible instead
+      // of disappearing from the board.
       const stage = dealStages.find((s) => s.value === deal.stage)
         ? deal.stage
         : dealStages[0].value;

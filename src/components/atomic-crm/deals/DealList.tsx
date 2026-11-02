@@ -4,6 +4,7 @@ import {
   useCanAccess,
   useGetIdentity,
   useListContext,
+  useStore,
   useTranslate,
 } from "ra-core";
 import { matchPath, useLocation } from "react-router";
@@ -25,8 +26,14 @@ import { DealCreate } from "./DealCreate";
 import { DealEdit } from "./DealEdit";
 import { DealEmpty } from "./DealEmpty";
 import { DealListContent } from "./DealListContent";
-import { DealShow } from "./DealShow";
 import { OnlyMineInput } from "./OnlyMineInput";
+import { DealTableView } from "./DealTableView";
+import { DealCompanyView } from "./DealCompanyView";
+import {
+  DealViewToggle,
+  DEAL_VIEW_STORE_KEY,
+  type DealViewMode,
+} from "./DealViewToggle";
 
 const DealList = () => {
   const { identity } = useGetIdentity();
@@ -82,7 +89,6 @@ const DealList = () => {
     <List
       perPage={100}
       filter={{ "archived_at@is": null }}
-      title={false}
       sort={{ field: "index", order: "DESC" }}
       filters={dealFilters}
       actions={<DealActions />}
@@ -96,10 +102,10 @@ const DealList = () => {
 const DealLayout = () => {
   const location = useLocation();
   const matchCreate = matchPath("/deals/create", location.pathname);
-  const matchShow = matchPath("/deals/:id/show", location.pathname);
   const matchEdit = matchPath("/deals/:id", location.pathname);
 
   const { data, isPending, filterValues } = useListContext();
+  const [viewMode] = useStore<DealViewMode>(DEAL_VIEW_STORE_KEY, "kanban");
   const hasFilters = filterValues && Object.keys(filterValues).length > 0;
 
   if (isPending) return null;
@@ -107,7 +113,6 @@ const DealLayout = () => {
     return (
       <>
         <DealEmpty>
-          <DealShow open={!!matchShow} id={matchShow?.params.id} />
           <DealArchivedList />
         </DealEmpty>
       </>
@@ -115,11 +120,16 @@ const DealLayout = () => {
 
   return (
     <div className="w-full">
-      <DealListContent />
+      {viewMode === "list" ? (
+        <DealTableView />
+      ) : viewMode === "company" ? (
+        <DealCompanyView />
+      ) : (
+        <DealListContent />
+      )}
       <DealArchivedList />
       <DealCreate open={!!matchCreate} />
       <DealEdit open={!!matchEdit && !matchCreate} id={matchEdit?.params.id} />
-      <DealShow open={!!matchShow} id={matchShow?.params.id} />
     </div>
   );
 };
@@ -127,6 +137,7 @@ const DealLayout = () => {
 const DealActions = () => (
   <TopToolbar>
     <FilterButton />
+    <DealViewToggle />
     <DataImportButton resource="deals" />
     <ExportButton />
     <CreateButton label="resources.deals.action.new" />

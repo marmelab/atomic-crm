@@ -16,6 +16,7 @@ import {
   defaultEmailJsonb,
   defaultPhoneJsonb,
 } from "./contactModel";
+import { useTypedCompany } from "./useTypedCompany";
 
 export interface ContactEditSheetProps {
   open: boolean;
@@ -28,13 +29,16 @@ export const ContactEditSheet = ({
   onOpenChange,
   contactId,
 }: ContactEditSheetProps) => {
+  const withTypedCompany = useTypedCompany();
   return (
     <EditSheet
       resource="contacts"
       id={contactId}
       open={open}
       onOpenChange={onOpenChange}
-      transform={cleanupContactForEdit}
+      transform={async (data) =>
+        cleanupContactForEdit(await withTypedCompany(data))
+      }
       defaultValues={{
         email_jsonb: defaultEmailJsonb,
         phone_jsonb: defaultPhoneJsonb,

@@ -1,4 +1,5 @@
 import { useCreate, useGetIdentity, useNotify } from "ra-core";
+import { useFormContext } from "react-hook-form";
 import { AutocompleteInput } from "@/components/admin/autocomplete-input";
 import type { InputProps } from "ra-core";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -8,11 +9,19 @@ export const AutocompleteCompanyInput = ({
   validate,
   label,
   modal,
+  draftSource,
 }: Pick<InputProps, "validate" | "label"> &
-  Pick<PopoverPrimitive.Root.Props, "modal">) => {
+  Pick<PopoverPrimitive.Root.Props, "modal"> & {
+    /**
+     * Form field that receives the typed company name, so the form can create
+     * the company on save when the user typed a name but never picked an option.
+     */
+    draftSource?: string;
+  }) => {
   const [create] = useCreate();
   const { identity } = useGetIdentity();
   const notify = useNotify();
+  const { setValue } = useFormContext();
   const handleCreateCompany = async (name?: string) => {
     if (!name) return;
     try {
@@ -45,6 +54,11 @@ export const AutocompleteCompanyInput = ({
       optionText="name"
       helperText={false}
       onCreate={handleCreateCompany}
+      onFilterChange={
+        draftSource
+          ? (filter) => setValue(draftSource, filter, { shouldDirty: true })
+          : undefined
+      }
       createItemLabel="resources.companies.autocomplete.create_item"
       createLabel="resources.companies.autocomplete.create_label"
       validate={validate}

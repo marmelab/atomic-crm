@@ -42,7 +42,6 @@ export const ContactList = () => {
 
   return (
     <List
-      title={false}
       actions={<ContactListActions />}
       perPage={25}
       sort={{ field: "last_seen", order: "DESC" }}

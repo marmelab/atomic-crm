@@ -6,6 +6,7 @@ import {
   defaultEmailJsonb,
   defaultPhoneJsonb,
 } from "./contactModel";
+import { useTypedCompany } from "./useTypedCompany";
 
 export interface ContactCreateSheetProps extends Pick<
   CreateSheetProps,
@@ -25,6 +26,7 @@ export const ContactCreateSheet = ({
 }: ContactCreateSheetProps) => {
   const { identity } = useGetIdentity();
   const translate = useTranslate();
+  const withTypedCompany = useTypedCompany();
   return (
     <CreateSheet
       resource="contacts"
@@ -35,7 +37,9 @@ export const ContactCreateSheet = ({
         phone_jsonb: defaultPhoneJsonb,
         ...defaultValues,
       }}
-      transform={cleanupContactForCreate}
+      transform={async (data) =>
+        cleanupContactForCreate(await withTypedCompany(data))
+      }
       open={open}
       onOpenChange={onOpenChange}
       mutationOptions={mutationOptions}

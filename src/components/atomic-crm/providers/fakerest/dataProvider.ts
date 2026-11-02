@@ -6,6 +6,11 @@ import {
   type ResourceCallbacks,
   type UpdateParams,
 } from "ra-core";
+import {
+  assertValidContactList,
+  hasContactList,
+  syncCompanyContacts,
+} from "../commons/companyContacts";
 import fakeRestDataProvider from "ra-data-fakerest";
 
 import type {
@@ -665,8 +670,39 @@ export const createDataProvider = ({
     ],
   ) as CrmDataProvider;
 
-  return dataProvider;
+  return withCompanyContacts(dataProvider);
 };
+
+/**
+ * Companies saved with their contact list (the company form) also sync the
+ * contacts, like the save_company_with_contacts() function of the Supabase
+ * backend. Not transactional: this is the demo backend.
+ */
+const withCompanyContacts = (
+  dataProvider: CrmDataProvider,
+): CrmDataProvider => ({
+  ...dataProvider,
+  async create(resource, params) {
+    if (resource !== "companies" || !hasContactList(params.data)) {
+      return dataProvider.create(resource, params);
+    }
+    const { contacts, ...data } = params.data;
+    assertValidContactList(contacts);
+    const result = await dataProvider.create(resource, { ...params, data });
+    await syncCompanyContacts(dataProvider, result.data.id, contacts);
+    return dataProvider.getOne(resource, { id: result.data.id });
+  },
+  async update(resource, params) {
+    if (resource !== "companies" || !hasContactList(params.data)) {
+      return dataProvider.update(resource, params);
+    }
+    const { contacts, ...data } = params.data;
+    assertValidContactList(contacts);
+    await dataProvider.update(resource, { ...params, data });
+    await syncCompanyContacts(dataProvider, params.id, contacts);
+    return dataProvider.getOne(resource, { id: params.id });
+  },
+});
 
 export const dataProvider = createDataProvider();
 

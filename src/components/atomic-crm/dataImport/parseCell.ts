@@ -52,7 +52,7 @@ export const toIsoDate = (cell: ImportCell): string | undefined => {
 
 /**
  * Cell content matched against configured options, so a CSV may carry either the
- * stored value ("proposal-sent") or the label users see ("Proposal Sent").
+ * stored value ("proposal") or the label users see ("Proposal").
  * Returns undefined when the cell is empty or matches no option.
  */
 export const toConfiguredValue = (

@@ -10,8 +10,8 @@ import {
 } from "./parseCell";
 
 const stages = [
-  { value: "opportunity", label: "Opportunity" },
-  { value: "proposal-sent", label: "Proposal Sent" },
+  { value: "new", label: "New" },
+  { value: "proposal", label: "Proposal" },
 ];
 
 describe("toText", () => {
@@ -80,12 +80,12 @@ describe("toIsoDate", () => {
 
 describe("toConfiguredValue", () => {
   it("matches a configured value", () => {
-    expect(toConfiguredValue("proposal-sent", stages)).toBe("proposal-sent");
+    expect(toConfiguredValue("proposal", stages)).toBe("proposal");
   });
 
   it("matches a configured label, whatever its case", () => {
-    expect(toConfiguredValue("Proposal Sent", stages)).toBe("proposal-sent");
-    expect(toConfiguredValue("proposal sent", stages)).toBe("proposal-sent");
+    expect(toConfiguredValue("Proposal", stages)).toBe("proposal");
+    expect(toConfiguredValue("proposal", stages)).toBe("proposal");
   });
 
   it("returns undefined when no option matches", () => {
@@ -96,20 +96,18 @@ describe("toConfiguredValue", () => {
 
 describe("toConfiguredValues", () => {
   it("matches each comma or semicolon separated entry", () => {
-    expect(toConfiguredValues("Proposal Sent; opportunity", stages)).toEqual([
-      "proposal-sent",
-      "opportunity",
+    expect(toConfiguredValues("Proposal; new", stages)).toEqual([
+      "proposal",
+      "new",
     ]);
-    expect(toConfiguredValues("opportunity,Proposal Sent", stages)).toEqual([
-      "opportunity",
-      "proposal-sent",
+    expect(toConfiguredValues("new,Proposal", stages)).toEqual([
+      "new",
+      "proposal",
     ]);
   });
 
   it("drops unknown entries and returns [] for an empty cell", () => {
-    expect(toConfiguredValues("opportunity, Archived", stages)).toEqual([
-      "opportunity",
-    ]);
+    expect(toConfiguredValues("new, Archived", stages)).toEqual(["new"]);
     expect(toConfiguredValues(null, stages)).toEqual([]);
   });
 });

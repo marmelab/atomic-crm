@@ -1,14 +1,18 @@
 import { useMutation } from "@tanstack/react-query";
 import { isValid } from "date-fns";
-import { Archive, ArchiveRestore } from "lucide-react";
+import { Archive, ArchiveRestore, ArrowLeft } from "lucide-react";
+import type { ReactNode } from "react";
+import { Link } from "react-router";
 import {
   InfiniteListBase,
   ShowBase,
   useDataProvider,
+  useLocaleState,
   useNotify,
   useRecordContext,
   useRedirect,
   useRefresh,
+  useShowContext,
   useTranslate,
   useUpdate,
 } from "ra-core";
@@ -18,14 +22,20 @@ import { ReferenceArrayField } from "@/components/admin/reference-array-field";
 import { ReferenceField } from "@/components/admin/reference-field";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Separator } from "@/components/ui/separator";
+import { Card, CardContent } from "@/components/ui/card";
 
+import {
+  AdditionalInfo,
+  CompanyInfo,
+  ContextInfo,
+} from "../companies/CompanyAside";
+import { AsideSection } from "../misc/AsideSection";
 import { CompanyAvatar } from "../companies/CompanyAvatar";
+import { formatLocalizedDate } from "../misc/RelativeDate";
 import { NoteCreate } from "../notes/NoteCreate";
 import { NotesIterator } from "../notes/NotesIterator";
 import { useConfigurationContext } from "../root/ConfigurationContext";
-import type { Deal } from "../types";
+import type { Company, Deal } from "../types";
 import { ContactList } from "./ContactList";
 import {
   findDealLabel,
@@ -33,159 +43,221 @@ import {
   formatISODateString,
 } from "./dealUtils";
 
-export const DealShow = ({ open, id }: { open: boolean; id?: string }) => {
-  const redirect = useRedirect();
-  const handleClose = () => {
-    redirect("list", "deals");
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={(open) => !open && handleClose()}>
-      <DialogContent className="lg:max-w-4xl p-4 overflow-y-auto max-h-9/10 top-1/20 translate-y-0">
-        {id ? (
-          <ShowBase id={id}>
-            <DealShowContent />
-          </ShowBase>
-        ) : null}
-      </DialogContent>
-    </Dialog>
-  );
-};
+/** Full page of a deal (lead), with its company details beside it. */
+export const DealShow = () => (
+  <ShowBase>
+    <DealShowContent />
+  </ShowBase>
+);
 
 const DealShowContent = () => {
   const translate = useTranslate();
-  const { dealStages, dealCategories, currency } = useConfigurationContext();
-  const record = useRecordContext<Deal>();
-  if (!record) return null;
+  const { record, isPending } = useShowContext<Deal>();
+  if (isPending || !record) return null;
 
   return (
-    <>
-      <div className="space-y-2">
-        {record.archived_at ? <ArchivedTitle /> : null}
-        <div className="flex-1">
-          <div className="flex justify-between items-start mb-8">
-            <div className="flex items-center gap-4">
-              <ReferenceField
-                source="company_id"
-                reference="companies"
-                link="show"
-              >
-                <CompanyAvatar />
-              </ReferenceField>
-              <h2 className="text-xl font-semibold">{record.name}</h2>
-            </div>
-            <div className={`flex gap-2 ${record.archived_at ? "" : "pr-12"}`}>
-              {record.archived_at ? (
-                <>
-                  <UnarchiveButton record={record} />
-                  <DeleteButton />
-                </>
-              ) : (
-                <>
-                  <ArchiveButton record={record} />
-                  <EditButton />
-                </>
-              )}
-            </div>
-          </div>
-
-          <div className="flex gap-8 m-4">
-            <div className="flex flex-col mr-10">
-              <span className="text-xs text-muted-foreground tracking-wide">
-                {translate("resources.deals.fields.expected_closing_date")}
-              </span>
-              <div className="flex items-center gap-2">
-                <span className="text-sm">
-                  {isValid(new Date(record.expected_closing_date))
-                    ? formatISODateString(record.expected_closing_date)
-                    : translate("resources.deals.invalid_date")}
-                </span>
-                {new Date(record.expected_closing_date) < new Date() ? (
-                  <Badge variant="destructive">
-                    {translate("crm.common.past")}
-                  </Badge>
-                ) : null}
-              </div>
-            </div>
-
-            <div className="flex flex-col mr-10">
-              <span className="text-xs text-muted-foreground tracking-wide">
-                {translate("resources.deals.fields.amount")}
-              </span>
-              <span className="text-sm">
-                {record.amount.toLocaleString("en-US", {
-                  notation: "compact",
-                  style: "currency",
-                  currency,
-                  currencyDisplay: "narrowSymbol",
-                  minimumSignificantDigits: 3,
-                })}
-              </span>
-            </div>
-
-            {!!record.categories?.length && (
-              <div className="flex flex-col mr-10">
-                <span className="text-xs text-muted-foreground tracking-wide">
-                  {translate("resources.deals.fields.categories")}
-                </span>
-                <span className="text-sm">
-                  {formatDealCategories(dealCategories, record.categories)}
-                </span>
-              </div>
-            )}
-
-            <div className="flex flex-col mr-10">
-              <span className="text-xs text-muted-foreground tracking-wide">
-                {translate("resources.deals.fields.stage")}
-              </span>
-              <span className="text-sm">
-                {findDealLabel(dealStages, record.stage)}
-              </span>
-            </div>
-          </div>
-
-          {!!record.contact_ids?.length && (
-            <div className="m-4">
-              <div className="flex flex-col min-h-12 mr-10">
-                <span className="text-xs text-muted-foreground tracking-wide">
-                  {translate("resources.deals.fields.contact_ids")}
-                </span>
-                <ReferenceArrayField
-                  source="contact_ids"
-                  reference="contacts_summary"
+    <div className="mt-2 pb-4 flex flex-col gap-4">
+      <Link
+        to="/deals"
+        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground w-fit"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        {translate("resources.deals.action.back")}
+      </Link>
+      {record.archived_at ? <ArchivedTitle /> : null}
+      <div className="flex flex-col lg:flex-row gap-8">
+        <div className="flex-1 min-w-0 flex flex-col gap-4">
+          <Card>
+            <CardContent className="flex flex-col gap-6">
+              <DealHeader record={record} />
+              <DealDetails record={record} />
+              {!!record.contact_ids?.length && (
+                <DealSection
+                  title={translate("resources.deals.fields.contact_ids")}
                 >
-                  <ContactList />
-                </ReferenceArrayField>
-              </div>
-            </div>
-          )}
+                  <ReferenceArrayField
+                    source="contact_ids"
+                    reference="contacts_summary"
+                  >
+                    <ContactList />
+                  </ReferenceArrayField>
+                </DealSection>
+              )}
+              {record.description && (
+                <DealSection
+                  title={translate("resources.deals.fields.description")}
+                >
+                  <p className="text-sm leading-6 whitespace-pre-line">
+                    {record.description}
+                  </p>
+                </DealSection>
+              )}
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent>
+              <DealSection
+                title={translate("resources.notes.name", { smart_count: 2 })}
+              >
+                <InfiniteListBase
+                  resource="deal_notes"
+                  filter={{ deal_id: record.id }}
+                  sort={{ field: "date", order: "DESC" }}
+                  perPage={25}
+                  disableSyncWithLocation
+                  storeKey={false}
+                  empty={<NoteCreate reference={"deals"} />}
+                >
+                  <NotesIterator reference="deals" />
+                </InfiniteListBase>
+              </DealSection>
+            </CardContent>
+          </Card>
+        </div>
+        {record.company_id != null && (
+          <ReferenceField
+            source="company_id"
+            reference="companies"
+            link={false}
+          >
+            <DealCompanyAside />
+          </ReferenceField>
+        )}
+      </div>
+    </div>
+  );
+};
 
-          {record.description && (
-            <div className="m-4 whitespace-pre-line">
-              <span className="text-xs text-muted-foreground tracking-wide">
-                {translate("resources.deals.fields.description")}
-              </span>
-              <p className="text-sm leading-6">{record.description}</p>
-            </div>
-          )}
-
-          <div className="m-4">
-            <Separator className="mb-4" />
-            <InfiniteListBase
-              resource="deal_notes"
-              filter={{ deal_id: record.id }}
-              sort={{ field: "date", order: "DESC" }}
-              perPage={25}
-              disableSyncWithLocation
-              storeKey={false}
-              empty={<NoteCreate reference={"deals"} />}
-            >
-              <NotesIterator reference="deals" />
-            </InfiniteListBase>
-          </div>
+const DealHeader = ({ record }: { record: Deal }) => {
+  const { dealStages } = useConfigurationContext();
+  return (
+    <div className="flex flex-wrap justify-between items-start gap-4">
+      <div className="flex items-center gap-4">
+        <ReferenceField source="company_id" reference="companies" link="show">
+          <CompanyAvatar />
+        </ReferenceField>
+        <div className="flex flex-col gap-1">
+          <h1 className="text-2xl font-semibold">{record.name}</h1>
+          <Badge variant="secondary" className="w-fit">
+            {findDealLabel(dealStages, record.stage)}
+          </Badge>
         </div>
       </div>
-    </>
+      <div className="flex gap-2">
+        {record.archived_at ? (
+          <>
+            <UnarchiveButton record={record} />
+            <DeleteButton />
+          </>
+        ) : (
+          <>
+            <ArchiveButton record={record} />
+            <EditButton />
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const DealDetails = ({ record }: { record: Deal }) => {
+  const translate = useTranslate();
+  const [locale = "en"] = useLocaleState();
+  const { dealCategories, currency } = useConfigurationContext();
+  const hasValidClosingDate = isValid(new Date(record.expected_closing_date));
+
+  return (
+    <dl className="grid grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-4">
+      <DealField label={translate("resources.deals.fields.amount")}>
+        {record.amount.toLocaleString("en-US", {
+          notation: "compact",
+          style: "currency",
+          currency,
+          currencyDisplay: "narrowSymbol",
+          minimumSignificantDigits: 3,
+        })}
+      </DealField>
+      <DealField
+        label={translate("resources.deals.fields.expected_closing_date")}
+      >
+        <span className="flex items-center gap-2">
+          {hasValidClosingDate
+            ? formatISODateString(record.expected_closing_date)
+            : translate("resources.deals.invalid_date")}
+          {hasValidClosingDate &&
+          new Date(record.expected_closing_date) < new Date() ? (
+            <Badge variant="destructive">{translate("crm.common.past")}</Badge>
+          ) : null}
+        </span>
+      </DealField>
+      {!!record.categories?.length && (
+        <DealField label={translate("resources.deals.fields.categories")}>
+          {formatDealCategories(dealCategories, record.categories)}
+        </DealField>
+      )}
+      {record.created_at && (
+        <DealField label={translate("resources.deals.fields.created_at")}>
+          {formatLocalizedDate(record.created_at, locale)}
+        </DealField>
+      )}
+      {record.updated_at && (
+        <DealField label={translate("resources.deals.fields.updated_at")}>
+          {formatLocalizedDate(record.updated_at, locale)}
+        </DealField>
+      )}
+    </dl>
+  );
+};
+
+const DealField = ({
+  label,
+  children,
+}: {
+  label: string;
+  children: ReactNode;
+}) => (
+  <div className="flex flex-col gap-0.5">
+    <dt className="text-xs text-muted-foreground tracking-wide">{label}</dt>
+    <dd className="text-sm">{children}</dd>
+  </div>
+);
+
+const DealSection = ({
+  title,
+  children,
+}: {
+  title: string;
+  children: ReactNode;
+}) => (
+  <section className="flex flex-col gap-2">
+    <h2 className="text-sm font-medium border-b pb-1">{title}</h2>
+    {children}
+  </section>
+);
+
+/** The lead details of the deal's company: vertical, place, pitch, contacts. */
+const DealCompanyAside = () => {
+  const company = useRecordContext<Company>();
+  if (!company) return null;
+
+  return (
+    <aside className="w-full lg:w-92 lg:min-w-92">
+      <Card>
+        <CardContent>
+          <Link
+            to={`/companies/${company.id}/show`}
+            className="flex items-center gap-3 mb-6 hover:underline"
+          >
+            <CompanyAvatar />
+            <span className="text-lg font-semibold">{company.name}</span>
+          </Link>
+          <ContextInfo record={company} />
+          <CompanyInfo record={company} />
+          <DealPitch company={company} />
+          <AdditionalInfo record={company} />
+        </CardContent>
+      </Card>
+    </aside>
   );
 };
 
@@ -283,5 +355,27 @@ const UnarchiveButton = ({ record }: { record: Deal }) => {
       <ArchiveRestore className="w-4 h-4" />
       {translate("resources.deals.unarchived.action")}
     </Button>
+  );
+};
+
+/** Always visible: the pitch script is what the caller needs on a lead. */
+const DealPitch = ({ company }: { company: Company }) => {
+  const translate = useTranslate();
+  return (
+    <AsideSection title={translate("resources.companies.fields.pitch_point")}>
+      {company.pitch_point ? (
+        <p className="text-sm whitespace-pre-line">{company.pitch_point}</p>
+      ) : (
+        <p className="text-sm text-muted-foreground">
+          {translate("resources.deals.pitch.empty")}{" "}
+          <Link
+            to={`/companies/${company.id}`}
+            className="underline hover:no-underline text-foreground"
+          >
+            {translate("resources.deals.pitch.add")}
+          </Link>
+        </p>
+      )}
+    </AsideSection>
   );
 };

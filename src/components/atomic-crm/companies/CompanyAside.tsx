@@ -1,6 +1,8 @@
-import { Globe, Linkedin, Phone } from "lucide-react";
+import { Globe, Mail, MessageCircle, Phone } from "lucide-react";
+import { Link } from "react-router";
 import {
   useGetIdentity,
+  useGetList,
   useLocaleState,
   useRecordContext,
   useTranslate,
@@ -10,14 +12,11 @@ import { DeleteButton } from "@/components/admin/delete-button";
 import { ShowButton } from "@/components/admin/show-button";
 import { TextField } from "@/components/admin/text-field";
 import { UrlField } from "@/components/admin/url-field";
-import { SelectField } from "@/components/admin/select-field";
 
 import { formatLocalizedDate } from "../misc/RelativeDate";
 import { AsideSection } from "../misc/AsideSection";
-import { useConfigurationContext } from "../root/ConfigurationContext";
-import type { Company } from "../types";
-import { getTranslatedCompanySizeLabel } from "./getTranslatedCompanySizeLabel";
-import { sizes } from "./sizes";
+import type { Company, Contact } from "../types";
+import { useCompanySectors } from "./useCompanySectors";
 import { useGetSalesName } from "../sales/useGetSalesName";
 
 interface CompanyAsideProps {
@@ -39,11 +38,11 @@ export const CompanyAside = ({ link = "edit" }: CompanyAsideProps) => {
         )}
       </div>
 
+      <ContextInfo record={record} />
+
       <CompanyInfo record={record} />
 
-      <AddressInfo record={record} />
-
-      <ContextInfo record={record} />
+      <PitchInfo record={record} />
 
       <AdditionalInfo record={record} />
 
@@ -59,16 +58,68 @@ export const CompanyAside = ({ link = "edit" }: CompanyAsideProps) => {
   );
 };
 
+/** The company's primary contact, managed in the Contacts section of the form. */
 export const CompanyInfo = ({ record }: { record: Company }) => {
   const translate = useTranslate();
-  if (!record.website && !record.linkedin_url && !record.phone_number) {
+  const { data } = useGetList<Contact>("contacts", {
+    filter: { company_id: record.id, is_primary: true },
+    pagination: { page: 1, perPage: 1 },
+    sort: { field: "id", order: "ASC" },
+  });
+  const primary = data?.[0];
+  if (!primary && !record.website) {
     return null;
   }
 
+  const mobile = primary?.phone_jsonb?.[0]?.number;
+  const email = primary?.email_jsonb?.[0]?.email;
+
   return (
     <AsideSection
-      title={translate("resources.companies.field_categories.contact")}
+      title={translate("resources.companies.contacts.primary", {
+        _: "Primary contact",
+      })}
     >
+      {primary && (
+        <Link
+          to={`/contacts/${primary.id}/show`}
+          className="font-medium underline hover:no-underline"
+        >
+          {[primary.first_name, primary.last_name].filter(Boolean).join(" ")}
+        </Link>
+      )}
+      {primary?.title && (
+        <span className="text-sm text-muted-foreground">{primary.title}</span>
+      )}
+      {mobile && (
+        <div className="flex flex-row items-center gap-1 min-h-[24px]">
+          <Phone className="w-4 h-4" />
+          <a className="underline hover:no-underline" href={`tel:${mobile}`}>
+            {mobile}
+          </a>
+        </div>
+      )}
+      {primary?.whatsapp_number && (
+        <div className="flex flex-row items-center gap-1 min-h-[24px]">
+          <MessageCircle className="w-4 h-4" />
+          <a
+            className="underline hover:no-underline"
+            href={`https://wa.me/${primary.whatsapp_number.replace(/\D/g, "")}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {primary.whatsapp_number}
+          </a>
+        </div>
+      )}
+      {email && (
+        <div className="flex flex-row items-center gap-1 min-h-[24px]">
+          <Mail className="w-4 h-4" />
+          <a className="underline hover:no-underline" href={`mailto:${email}`}>
+            {email}
+          </a>
+        </div>
+      )}
       {record.website && (
         <div className="flex flex-row items-center gap-1 min-h-[24px]">
           <Globe className="w-4 h-4" />
@@ -82,96 +133,54 @@ export const CompanyInfo = ({ record }: { record: Company }) => {
           />
         </div>
       )}
-      {record.linkedin_url && (
-        <div className="flex flex-row items-center gap-1 min-h-[24px]">
-          <Linkedin className="w-4 h-4" />
-          <a
-            className="underline hover:no-underline"
-            href={record.linkedin_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            title={record.linkedin_url}
-          >
-            LinkedIn
-          </a>
-        </div>
-      )}
-      {record.phone_number && (
-        <div className="flex flex-row items-center gap-1 min-h-[24px]">
-          <Phone className="w-4 h-4" />
-          <TextField source="phone_number" />
-        </div>
-      )}
     </AsideSection>
   );
 };
 
 export const ContextInfo = ({ record }: { record: Company }) => {
-  const { companySectors } = useConfigurationContext();
+  const { sectors } = useCompanySectors();
   const translate = useTranslate();
-  if (!record.revenue && !record.id) {
+  const [locale = "en"] = useLocaleState();
+  const sectorLabel =
+    sectors.find((s) => s.value === record.sector)?.label ?? record.sector;
+  if (!record.lead_date && !sectorLabel && !record.city) {
     return null;
   }
 
-  const sector = companySectors.find((s) => s.value === record.sector);
-  const sectorLabel = sector?.label;
-  const translatedSizes = sizes.map((size) => ({
-    ...size,
-    name: getTranslatedCompanySizeLabel(size, translate),
-  }));
-
   return (
     <AsideSection
-      title={translate("resources.companies.field_categories.context")}
+      title={translate("resources.companies.field_categories.lead")}
     >
+      {record.lead_date && (
+        <span>
+          {translate("resources.companies.fields.lead_date")}:{" "}
+          {formatLocalizedDate(`${record.lead_date}T00:00:00`, locale)}
+        </span>
+      )}
       {sectorLabel && (
         <span>
           {translate("resources.companies.fields.sector")}: {sectorLabel}
         </span>
       )}
-      {record.size && (
+      {record.city && (
         <span>
-          {translate("resources.companies.fields.size")}:{" "}
-          <SelectField source="size" choices={translatedSizes} />
-        </span>
-      )}
-      {record.revenue && (
-        <span>
-          {translate("resources.companies.fields.revenue")}:{" "}
-          <TextField source="revenue" />
-        </span>
-      )}
-      {record.tax_identifier && (
-        <span>
-          {translate("resources.companies.fields.tax_identifier", {})}
-          : <TextField source="tax_identifier" />
+          {translate("resources.companies.fields.city")}:{" "}
+          <TextField source="city" />
         </span>
       )}
     </AsideSection>
   );
 };
 
-export const AddressInfo = ({ record }: { record: Company }) => {
+export const PitchInfo = ({ record }: { record: Company }) => {
   const translate = useTranslate();
-  if (
-    !record.address &&
-    !record.city &&
-    !record.zipcode &&
-    !record.state_abbr
-  ) {
+  if (!record.pitch_point) {
     return null;
   }
 
   return (
-    <AsideSection
-      title={translate("resources.companies.field_categories.address")}
-      noGap
-    >
-      <TextField source="address" />
-      <TextField source="city" />
-      <TextField source="zipcode" />
-      <TextField source="state_abbr" />
-      <TextField source="country" />
+    <AsideSection title={translate("resources.companies.fields.pitch_point")}>
+      <p className="text-sm whitespace-pre-line">{record.pitch_point}</p>
     </AsideSection>
   );
 };
