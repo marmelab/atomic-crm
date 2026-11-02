@@ -121,6 +121,7 @@ export const NoteMobile = ({
   return (
     <Link
       to={`/contacts/${contactId}/notes/${note.id}`}
+      state={{ _scrollToTop: true }}
       onClick={() => scrollPositions.set(contactId, window.scrollY)}
       className="block active:bg-accent/50 -mx-2 px-2 py-2 rounded-md"
     >
