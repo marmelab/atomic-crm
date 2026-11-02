@@ -3,6 +3,7 @@ on:
     push:
         branches:
             - main
+            - '1.*'
     pull_request:
         types:
             - opened
