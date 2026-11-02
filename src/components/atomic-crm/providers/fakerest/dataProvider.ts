@@ -547,6 +547,10 @@ export const createDataProvider = ({
         afterDelete: async (result, dataProvider) => {
           // update the task count in the related contact
           const { contact_id } = result.data;
+          if (result.data.done_date) {
+            // if the task is done, we don't need to update the contact's nb of active tasks
+            return result;
+          }
           const { data: contact } = await dataProvider.getOne("contacts", {
             id: contact_id,
           });
