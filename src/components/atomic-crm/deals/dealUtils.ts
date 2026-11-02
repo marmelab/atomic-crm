@@ -50,6 +50,10 @@ function ucFirst(str: string): string {
 
 const isoDateStringRegex = /^\d{4}-\d{2}-\d{2}$/;
 
+/** A bare calendar date. Null and timestamps are not. */
+export const isIsoDate = (value: unknown): value is string =>
+  typeof value === "string" && isoDateStringRegex.test(value);
+
 export function formatISODateString(dateString: string) {
   if (!isoDateStringRegex.test(dateString)) {
     throw new Error("Invalid date format. Expected YYYY-MM-DD.");

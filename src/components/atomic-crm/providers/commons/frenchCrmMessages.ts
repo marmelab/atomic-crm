@@ -9,8 +9,9 @@ export const frenchCrmMessages = {
         existing_contact_ids: "Ajouter un contact existant",
         pitch_point: "Argumentaire",
         whatsapp_number: "Numéro WhatsApp",
+        email: "E-mail",
         lead_date: "Date",
-        name: "Nom commercial",
+        name: "Nom",
         website: "Site web",
         linkedin_url: "LinkedIn",
         phone_number: "Mobile",
@@ -271,6 +272,36 @@ export const frenchCrmMessages = {
         empty: "Pas encore d'argumentaire.",
       },
     },
+    brochures: {
+      name: "Brochure |||| Brochures",
+      tabs: {
+        approval: "En attente",
+        all: "Toutes",
+      },
+      fields: {
+        title: "Titre",
+        brochure_url: "Brochure",
+        status: "Statut",
+        company_id: "Entreprise",
+        contact_id: "Contact",
+        deal_id: "Affaire",
+        created_at: "Créée le",
+      },
+      status: {
+        pending: "En attente",
+        approved: "Approuvée",
+        not_approved: "Non approuvée",
+      },
+      action: {
+        open: "Ouvrir",
+      },
+      empty: {
+        title: "Aucune brochure",
+        approval_title: "Rien en attente d'approbation",
+        description:
+          "Les brochures écrites par l'autre application apparaissent ici pour approbation.",
+      },
+    },
     notes: {
       name: "Note |||| Notes",
       forcedCaseName: "Note",
@@ -323,6 +354,7 @@ export const frenchCrmMessages = {
     sales: {
       name: "Utilisateur |||| Utilisateurs",
       fields: {
+        role: "Rôle",
         first_name: "Prénom",
         last_name: "Nom",
         email: "E-mail",
@@ -332,6 +364,12 @@ export const frenchCrmMessages = {
         disabled: "Désactivé",
       },
       create: {
+        roles: {
+          admin: "Admin",
+          manager: "Manager",
+          bde: "Commercial (BDE)",
+          help: "Admin : tout. Manager : tous les prospects, imports, validations et rapports. Commercial : uniquement ses prospects et appels.",
+        },
         error:
           "Une erreur s'est produite lors de la création de l'utilisateur.",
         success:

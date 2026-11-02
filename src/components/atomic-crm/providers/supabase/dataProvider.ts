@@ -25,6 +25,7 @@ import {
   type CompanyWithContacts,
 } from "../commons/companyContacts";
 import { getIsInitialized } from "./authProvider";
+import type { LeadImportResult, LeadImportRow } from "../../leads/leadImport";
 import { searchDealCategories } from "./searchDealCategories";
 import { getSupabaseClient } from "./supabase";
 
@@ -71,6 +72,10 @@ const saveCompanyWithContacts = async (
         city: company.city,
         lead_date: company.lead_date,
         pitch_point: company.pitch_point,
+        website: company.website,
+        phone_number: company.phone_number,
+        email: company.email,
+        whatsapp_number: company.whatsapp_number,
         sales_id: company.sales_id,
       },
       p_contacts: contacts,
@@ -201,6 +206,7 @@ const getDataProviderWithCustomMethods = () => {
         first_name,
         last_name,
         administrator,
+        role,
         avatar,
         disabled,
       } = data;
@@ -217,6 +223,7 @@ const getDataProviderWithCustomMethods = () => {
             first_name,
             last_name,
             administrator,
+            role,
             disabled,
             avatar,
           },
@@ -300,6 +307,20 @@ const getDataProviderWithCustomMethods = () => {
         throw new Error("Failed to search");
       }
       return data ?? [];
+    },
+    async importLeads(
+      fileName: string,
+      rows: LeadImportRow[],
+    ): Promise<LeadImportResult> {
+      const { data, error } = await getSupabaseClient().rpc("import_leads", {
+        p_file_name: fileName,
+        p_rows: rows,
+      });
+      if (error) {
+        console.error("import_leads.error", error);
+        throw new Error(error.message);
+      }
+      return data as LeadImportResult;
     },
     async mergeContacts(sourceId: Identifier, targetId: Identifier) {
       const { data, error } = await getSupabaseClient().functions.invoke(

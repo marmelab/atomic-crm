@@ -78,6 +78,7 @@ export const defaultCompanySectors = [
 ];
 
 export const defaultDealStages = [
+  { value: "cold", label: "Cold" },
   { value: "new", label: "New" },
   { value: "contacted", label: "Contacted" },
   { value: "demo", label: "Demo" },

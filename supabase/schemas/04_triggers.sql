@@ -70,6 +70,11 @@ create or replace trigger on_deal_notes_deleted_delete_note_attachments
     after delete on public.deal_notes
     for each row execute function public.cleanup_note_attachments();
 
+-- Brochure approval may change status only; the other app writes the rest.
+create or replace trigger brochures_protect_columns
+    before update on public.brochures
+    for each row execute function public.protect_brochure_columns();
+
 -- Remove a deleted tag from every contact that references it
 create or replace trigger on_tag_deleted
     after delete on public.tags
@@ -83,3 +88,8 @@ create or replace trigger on_auth_user_created
 create or replace trigger on_auth_user_updated
     after update on auth.users
     for each row execute function public.handle_update_user();
+
+-- Keep sales.role and the legacy sales.administrator flag in sync
+create or replace trigger sync_sales_role
+    before insert or update on public.sales
+    for each row execute function public.sync_sales_role();

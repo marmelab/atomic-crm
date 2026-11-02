@@ -127,11 +127,24 @@ select
     c.name as company_name,
     count(distinct t.id) filter (where t.done_date is null) as nb_tasks,
     co.whatsapp_number,
-    co.is_primary
+    co.is_primary,
+    co.lead_stage,
+    co.retry_count,
+    co.last_attempt_at,
+    co.next_attempt_at,
+    co.last_outcome,
+    co.recycled_at,
+    co.recycle_reason,
+    co.assigned_to,
+    co.assigned_at,
+    co.import_batch_id,
+    co.phone_e164,
+    co.do_not_contact,
+    c.sector as company_sector
 from public.contacts co
     left join public.tasks t on co.id = t.contact_id
     left join public.companies c on co.company_id = c.id
-group by co.id, c.name;
+group by co.id, c.name, c.sector;
 
 create or replace view public.init_state with (security_invoker = off) as
 select count(sub.id) as is_initialized

@@ -1,6 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import {
   Building2,
+  FileText,
   Handshake,
   LayoutDashboard,
   Settings,
@@ -80,6 +81,16 @@ export const CrmSidebar = () => {
                 icon={Handshake}
                 label={translate("resources.deals.name", { smart_count: 2 })}
               />
+              <CanAccess resource="brochures" action="list">
+                <NavItem
+                  to="/brochures"
+                  pattern="/brochures/*"
+                  icon={FileText}
+                  label={translate("resources.brochures.name", {
+                    smart_count: 2,
+                  })}
+                />
+              </CanAccess>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

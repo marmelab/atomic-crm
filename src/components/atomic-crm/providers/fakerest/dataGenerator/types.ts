@@ -1,9 +1,11 @@
 import type {
+  Brochure,
   Company,
   Contact,
   ContactNote,
   Deal,
   DealNote,
+  ImportBatch,
   Sale,
   Tag,
   Task,
@@ -19,5 +21,7 @@ export interface Db {
   sales: Sale[];
   tags: Tag[];
   tasks: Task[];
+  import_batches: ImportBatch[];
+  brochures: Brochure[];
   configuration: Array<{ id: number; config: ConfigurationContextValue }>;
 }

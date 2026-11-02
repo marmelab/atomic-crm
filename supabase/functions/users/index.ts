@@ -9,6 +9,7 @@ import {
   MAX_SECONDARY_EMAILS,
   normalizeSecondaryEmails,
 } from "./secondaryEmails.ts";
+import { resolveRoleUpdate, type SalesRole } from "./roles.ts";
 
 async function updateSaleDisabled(user_id: string, disabled: boolean) {
   return await supabaseAdmin
@@ -17,13 +18,13 @@ async function updateSaleDisabled(user_id: string, disabled: boolean) {
     .eq("user_id", user_id);
 }
 
-async function updateSaleAdministrator(
+async function updateSaleRole(
   user_id: string,
-  administrator: boolean,
+  update: { role?: SalesRole; administrator: boolean },
 ) {
   const { data: sales, error: salesError } = await supabaseAdmin
     .from("sales")
-    .update({ administrator })
+    .update(update)
     .eq("user_id", user_id)
     .select("*");
 
@@ -43,6 +44,7 @@ async function createSale(
     last_name: string;
     disabled: boolean;
     administrator: boolean;
+    role?: SalesRole;
   },
 ) {
   const { data: sales, error: salesError } = await supabaseAdmin
@@ -127,11 +129,24 @@ async function updateSaleAvatar(user_id: string, avatar: string) {
 }
 
 async function inviteUser(req: Request, currentUserSale: any) {
-  const { email, password, first_name, last_name, disabled, administrator } =
-    await req.json();
+  const {
+    email,
+    password,
+    first_name,
+    last_name,
+    disabled,
+    administrator,
+    role,
+  } = await req.json();
 
-  if (!currentUserSale.administrator) {
+  if (!currentUserSale.administrator || currentUserSale.disabled) {
     return createErrorResponse(401, "Not Authorized");
+  }
+  let roleUpdate: ReturnType<typeof resolveRoleUpdate>;
+  try {
+    roleUpdate = resolveRoleUpdate(role, administrator);
+  } catch (error) {
+    return createErrorResponse(400, (error as Error).message);
   }
 
   const takenEmail = await findEmailUsedByAnotherSale(
@@ -202,7 +217,7 @@ async function inviteUser(req: Request, currentUserSale: any) {
         first_name,
         last_name,
         disabled,
-        administrator,
+        ...roleUpdate,
       });
 
       return new Response(
@@ -244,7 +259,7 @@ async function inviteUser(req: Request, currentUserSale: any) {
 
   try {
     await updateSaleDisabled(user.id, disabled);
-    const sale = await updateSaleAdministrator(user.id, administrator);
+    const sale = await updateSaleRole(user.id, roleUpdate);
 
     return new Response(
       JSON.stringify({
@@ -269,6 +284,7 @@ async function patchUser(req: Request, currentUserSale: any) {
     last_name,
     avatar,
     administrator,
+    role,
     disabled,
   } = await req.json();
   const { data: sale } = await supabaseAdmin
@@ -281,6 +297,9 @@ async function patchUser(req: Request, currentUserSale: any) {
     return createErrorResponse(404, "Not Found");
   }
 
+  if (currentUserSale.disabled) {
+    return createErrorResponse(401, "Not Authorized");
+  }
   // Users can only update their own profile unless they are an administrator
   if (!currentUserSale.administrator && currentUserSale.id !== sale.id) {
     return createErrorResponse(401, "Not Authorized");
@@ -399,7 +418,10 @@ async function patchUser(req: Request, currentUserSale: any) {
 
   try {
     await updateSaleDisabled(data.user.id, disabled);
-    const sale = await updateSaleAdministrator(data.user.id, administrator);
+    const sale = await updateSaleRole(
+      data.user.id,
+      resolveRoleUpdate(role, administrator),
+    );
     return new Response(
       JSON.stringify({
         data: sale,
@@ -413,6 +435,10 @@ async function patchUser(req: Request, currentUserSale: any) {
     );
   } catch (e) {
     console.error("Error patching sale:", e);
+    const status = (e as { status?: number }).status;
+    if (status === 400) {
+      return createErrorResponse(400, (e as Error).message);
+    }
     return createErrorResponse(500, "Internal Server Error");
   }
 }

@@ -9,9 +9,12 @@ import {
 import {
   assertValidContactList,
   hasContactList,
+  openColdDeal,
   syncCompanyContacts,
 } from "../commons/companyContacts";
 import fakeRestDataProvider from "ra-data-fakerest";
+import { importLeadsInMemory } from "../../leads/importLeadsInMemory";
+import type { LeadImportResult, LeadImportRow } from "../../leads/leadImport";
 
 import type {
   Company,
@@ -252,6 +255,13 @@ export const createDataProvider = ({
         password,
       };
     },
+    importLeads: async (
+      fileName: string,
+      rows: LeadImportRow[],
+    ): Promise<LeadImportResult> => {
+      const identity = await getIdentity();
+      return importLeadsInMemory(dataProvider, fileName, rows, identity?.id);
+    },
     salesCreate: async ({ ...data }: SalesFormData): Promise<Sale> => {
       const response = await dataProvider.create("sales", {
         data: {
@@ -370,13 +380,25 @@ export const createDataProvider = ({
       {
         resource: "sales",
         beforeCreate: async (params) => {
-          const { data } = params;
-          // If administrator role is not set, we simply set it to false
-          if (data.administrator == null) {
-            data.administrator = false;
-          }
-          return params;
+          // Same rule as the sync_sales_role() trigger: the role wins, and a
+          // new user without one is a bde (an admin when only the flag is set).
+          const role =
+            params.data.role ?? (params.data.administrator ? "admin" : "bde");
+          return {
+            ...params,
+            data: { ...params.data, role, administrator: role === "admin" },
+          };
         },
+        beforeUpdate: async (params) =>
+          params.data.role
+            ? {
+                ...params,
+                data: {
+                  ...params.data,
+                  administrator: params.data.role === "admin",
+                },
+              }
+            : params,
         afterSave: async (data) => {
           // Since the current user is stored in localStorage in fakerest authProvider
           // we need to update it to keep information up to date in the UI
@@ -690,6 +712,23 @@ const withCompanyContacts = (
     assertValidContactList(contacts);
     const result = await dataProvider.create(resource, { ...params, data });
     await syncCompanyContacts(dataProvider, result.data.id, contacts);
+    if (contacts.length > 0) {
+      const { data: linkedContacts } = await dataProvider.getList<Contact>(
+        "contacts",
+        {
+          filter: { company_id: result.data.id },
+          pagination: { page: 1, perPage: 1000 },
+          sort: { field: "id", order: "ASC" },
+        },
+      );
+      await openColdDeal(
+        dataProvider,
+        result.data.id,
+        linkedContacts.map((contact) => contact.id),
+        data.sales_id,
+        data.name ?? result.data.name,
+      );
+    }
     return dataProvider.getOne(resource, { id: result.data.id });
   },
   async update(resource, params) {

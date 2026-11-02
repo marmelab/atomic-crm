@@ -170,6 +170,11 @@ begin
         return new;
     end if;
 
+    -- Bulk lead import sets crm.skip_enrichment so it never waits on HTTP
+    if current_setting('crm.skip_enrichment', true) = 'on' then
+        return new;
+    end if;
+
     company_logo = get_domain_favicon(new.website);
     if company_logo is null then
         return new;
@@ -199,6 +204,11 @@ declare item jsonb;
 
 begin
     if new.avatar is not null then
+        return new;
+    end if;
+
+    -- Bulk lead import sets crm.skip_enrichment so it never waits on HTTP
+    if current_setting('crm.skip_enrichment', true) = 'on' then
         return new;
     end if;
 
@@ -287,7 +297,7 @@ CREATE OR REPLACE FUNCTION "public"."is_admin"() RETURNS boolean
     AS $$
 begin
   return exists (
-    select 1 from public.sales where user_id = auth.uid() and administrator = true
+    select 1 from public.sales where user_id = auth.uid() and administrator = true and not disabled
   );
 end;
 $$;
@@ -467,6 +477,7 @@ CREATE OR REPLACE FUNCTION "public"."save_company_with_contacts"("p_company_id" 
     AS $$
 declare
     v_company_id bigint := p_company_id;
+    v_is_new boolean := p_company_id is null;
     v_contacts jsonb := coalesce(p_contacts, '[]'::jsonb);
     v_contact jsonb;
     v_contact_id bigint;
@@ -493,14 +504,21 @@ begin
     end if;
 
     if v_company_id is null then
-        insert into public.companies (name, sector, city, lead_date, pitch_point, sales_id)
+        insert into public.companies (
+            name, sector, city, lead_date, pitch_point, sales_id,
+            website, phone_number, email, whatsapp_number
+        )
         values (
             trim(p_company->>'name'),
             nullif(p_company->>'sector', ''),
             nullif(p_company->>'city', ''),
             coalesce(nullif(p_company->>'lead_date', '')::date, current_date),
             nullif(p_company->>'pitch_point', ''),
-            (p_company->>'sales_id')::bigint
+            (p_company->>'sales_id')::bigint,
+            nullif(trim(p_company->>'website'), ''),
+            nullif(trim(p_company->>'phone_number'), ''),
+            nullif(trim(p_company->>'email'), ''),
+            nullif(trim(p_company->>'whatsapp_number'), '')
         )
         returning id into v_company_id;
     else
@@ -510,6 +528,10 @@ begin
             city = case when p_company ? 'city' then nullif(p_company->>'city', '') else c.city end,
             lead_date = case when p_company ? 'lead_date' then nullif(p_company->>'lead_date', '')::date else c.lead_date end,
             pitch_point = case when p_company ? 'pitch_point' then nullif(p_company->>'pitch_point', '') else c.pitch_point end,
+            website = case when p_company ? 'website' then nullif(trim(p_company->>'website'), '') else c.website end,
+            phone_number = case when p_company ? 'phone_number' then nullif(trim(p_company->>'phone_number'), '') else c.phone_number end,
+            email = case when p_company ? 'email' then nullif(trim(p_company->>'email'), '') else c.email end,
+            whatsapp_number = case when p_company ? 'whatsapp_number' then nullif(trim(p_company->>'whatsapp_number'), '') else c.whatsapp_number end,
             sales_id = case when p_company ? 'sales_id' then (p_company->>'sales_id')::bigint else c.sales_id end
         where c.id = v_company_id;
 
@@ -591,6 +613,17 @@ begin
     update public.contacts set company_id = null, is_primary = false
     where company_id = v_company_id and id <> all (v_kept_ids);
 
+    -- A new company with at least one contact opens one cold deal.
+    -- A later edit does not open another.
+    if v_is_new and coalesce(array_length(v_kept_ids, 1), 0) > 0 then
+        perform public.open_cold_deal(
+            v_company_id,
+            v_kept_ids,
+            coalesce(nullif(p_company->>'sales_id', '')::bigint, public.current_sales_id()),
+            trim(p_company->>'name')
+        );
+    end if;
+
     return v_company_id;
 end;
 $$;
@@ -606,3 +639,344 @@ BEGIN
   RETURN NEW;
 END;
 $$;
+
+CREATE OR REPLACE FUNCTION "public"."crm_role"() RETURNS "text"
+    LANGUAGE "sql" STABLE SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+  select role from public.sales where user_id = auth.uid() and not disabled;
+$$;
+
+CREATE OR REPLACE FUNCTION "public"."current_sales_id"() RETURNS bigint
+    LANGUAGE "sql" STABLE SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+  select id from public.sales where user_id = auth.uid() and not disabled;
+$$;
+
+CREATE OR REPLACE FUNCTION "public"."is_manager"() RETURNS boolean
+    LANGUAGE "sql" STABLE SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+  select coalesce(public.crm_role() in ('admin', 'manager'), false);
+$$;
+
+CREATE OR REPLACE FUNCTION "public"."can_see_company"("p_company_id" bigint) RETURNS boolean
+    LANGUAGE "sql" STABLE SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+  select public.is_manager()
+    or exists (
+      select 1 from public.companies c
+      where c.id = p_company_id and c.sales_id = public.current_sales_id()
+    )
+    or exists (
+      select 1 from public.contacts co
+      where co.company_id = p_company_id
+        and (co.assigned_to = public.current_sales_id() or co.sales_id = public.current_sales_id())
+    );
+$$;
+
+CREATE OR REPLACE FUNCTION "public"."sync_sales_role"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    SET "search_path" TO ''
+    AS $$
+begin
+    -- The legacy administrator flag and the role always agree.
+    if tg_op = 'INSERT' then
+        if new.administrator then
+            new.role := 'admin';
+        else
+            new.administrator := new.role = 'admin';
+        end if;
+    elsif new.administrator is distinct from old.administrator then
+        new.role := case
+            when new.administrator then 'admin'
+            when new.role = 'admin' then 'manager'
+            else new.role
+        end;
+    elsif new.role is distinct from old.role then
+        new.administrator := new.role = 'admin';
+    end if;
+    return new;
+end;
+$$;
+
+CREATE OR REPLACE FUNCTION "public"."call_engine_settings"() RETURNS "jsonb"
+    LANGUAGE "sql" STABLE SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+  select jsonb_build_object(
+      'dailyCallQuota', 25,
+      'retryWindowWorkingDays', 3,
+      'timezone', 'Asia/Kolkata',
+      'workingDays', jsonb_build_array(1, 2, 3, 4, 5),
+      'holidays', jsonb_build_array(),
+      'recycleCooldownDays', 7,
+      'assignmentTime', '08:30'
+    ) || coalesce((select config -> 'callEngine' from public.configuration where id = 1), '{}'::jsonb);
+$$;
+
+CREATE OR REPLACE FUNCTION "public"."open_cold_deal"("p_company_id" bigint, "p_contact_ids" bigint[], "p_sales_id" bigint, "p_deal_name" "text") RETURNS bigint
+    LANGUAGE "plpgsql"
+    SET "search_path" TO ''
+    AS $$
+declare
+    v_deal_id bigint;
+    v_existing bigint[];
+    v_name text;
+begin
+    if p_company_id is null then
+        return null;
+    end if;
+
+    -- One open deal per company. A second contact is attached to it.
+    select d.id, coalesce(d.contact_ids, '{}'::bigint[])
+      into v_deal_id, v_existing
+    from public.deals d
+    where d.company_id = p_company_id
+      and d.archived_at is null
+    order by d.id
+    limit 1;
+
+    if v_deal_id is not null then
+        update public.deals set
+            contact_ids = (
+                select coalesce(array_agg(distinct cid), '{}'::bigint[])
+                from unnest(v_existing || coalesce(p_contact_ids, '{}'::bigint[])) as cid
+                where cid is not null
+            ),
+            updated_at = now()
+        where id = v_deal_id;
+        return v_deal_id;
+    end if;
+
+    v_name := nullif(trim(p_deal_name), '');
+    if v_name is null then
+        select c.name into v_name from public.companies c where c.id = p_company_id;
+    end if;
+
+    insert into public.deals (
+        name, company_id, contact_ids, categories, stage, amount, sales_id, index, created_at, updated_at
+    )
+    values (
+        coalesce(v_name, 'Deal'),
+        p_company_id,
+        coalesce((
+            select array_agg(distinct cid)
+            from unnest(coalesce(p_contact_ids, '{}'::bigint[])) as cid
+            where cid is not null
+        ), '{}'::bigint[]),
+        '{}'::text[],
+        'cold',
+        0,
+        p_sales_id,
+        0,
+        now(),
+        now()
+    )
+    returning id into v_deal_id;
+
+    return v_deal_id;
+end;
+$$;
+
+CREATE OR REPLACE FUNCTION "public"."protect_brochure_columns"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    SET "search_path" TO ''
+    AS $$
+begin
+    -- The other app (service role) may write the brochure. A signed-in user
+    -- may only change the approval status.
+    if current_user not in ('service_role', 'postgres', 'supabase_admin') then
+        if new.company_id is distinct from old.company_id
+            or new.contact_id is distinct from old.contact_id
+            or new.deal_id is distinct from old.deal_id
+            or new.title is distinct from old.title
+            or new.brochure_url is distinct from old.brochure_url
+            or new.created_at is distinct from old.created_at
+        then
+            raise exception 'Only the brochure status can be changed' using errcode = '42501';
+        end if;
+    end if;
+
+    new.updated_at := now();
+    return new;
+end;
+$$;
+
+CREATE OR REPLACE FUNCTION "public"."import_leads"("p_file_name" "text", "p_rows" "jsonb") RETURNS "jsonb"
+    LANGUAGE "plpgsql"
+    SET "search_path" TO ''
+    AS $_$
+declare
+    v_row jsonb;
+    v_batch_id bigint;
+    v_results jsonb := '[]'::jsonb;
+    v_phone text;
+    v_email text;
+    v_company_name text;
+    v_domain text;
+    v_sector text;
+    v_company_id bigint;
+    v_contact_id bigint;
+    v_seen_phones text[] := '{}';
+    v_seen_emails text[] := '{}';
+    v_created int := 0;
+    v_duplicates int := 0;
+    v_invalid int := 0;
+    v_reason text;
+begin
+    if not public.is_manager() then
+        raise exception 'Only admins and managers can import leads' using errcode = '42501';
+    end if;
+    if jsonb_typeof(p_rows) is distinct from 'array' then
+        raise exception 'p_rows must be an array' using errcode = '22023';
+    end if;
+
+    -- Never wait on favicon / gravatar HTTP calls during a bulk import.
+    perform set_config('crm.skip_enrichment', 'on', true);
+
+    insert into public.import_batches (created_by, file_name, total_rows)
+    values (public.current_sales_id(), p_file_name, jsonb_array_length(p_rows))
+    returning id into v_batch_id;
+
+    for v_row in select * from jsonb_array_elements(p_rows)
+    loop
+        v_phone := nullif(trim(v_row->>'phone'), '');
+        v_email := nullif(lower(trim(v_row->>'email')), '');
+        v_company_name := nullif(trim(v_row->>'company_name'), '');
+        v_domain := nullif(lower(trim(v_row->>'domain')), '');
+        v_reason := null;
+
+        if v_phone is null and v_email is null then
+            v_reason := 'missing phone and email';
+        elsif v_phone is not null and v_phone !~ '^\+[1-9][0-9]{7,14}$' then
+            v_reason := 'invalid phone';
+        elsif v_email is not null and v_email !~ '^[^@\s]+@[^@\s]+\.[^@\s]+$' then
+            v_reason := 'invalid email';
+        elsif v_company_name is null then
+            v_reason := 'missing company name';
+        elsif nullif(trim(coalesce(v_row->>'first_name', '') || coalesce(v_row->>'last_name', '')), '') is null then
+            v_reason := 'missing contact name';
+        end if;
+
+        if v_reason is not null then
+            v_invalid := v_invalid + 1;
+            v_results := v_results || jsonb_build_object('row', v_row->'row', 'status', 'invalid', 'reason', v_reason);
+            continue;
+        end if;
+
+        select co.id into v_contact_id
+        from public.contacts co
+        where (v_phone is not null and co.phone_e164 = v_phone)
+           or (v_email is not null and co.email_jsonb @> jsonb_build_array(jsonb_build_object('email', v_email)))
+        limit 1;
+
+        if v_contact_id is not null
+            or (v_phone is not null and v_phone = any (v_seen_phones))
+            or (v_email is not null and v_email = any (v_seen_emails)) then
+            v_duplicates := v_duplicates + 1;
+            v_results := v_results || jsonb_build_object(
+                'row', v_row->'row', 'status', 'duplicate',
+                'reason', case when v_contact_id is null then 'duplicate in file' else 'matches an existing lead' end,
+                'contact_id', v_contact_id);
+            continue;
+        end if;
+
+        -- Industry: reuse a sector by label or value, or create it.
+        v_sector := null;
+        if nullif(trim(v_row->>'industry'), '') is not null then
+            select s.value into v_sector from public.company_sectors s
+            where lower(s.label) = lower(trim(v_row->>'industry')) or s.value = lower(trim(v_row->>'industry'))
+            limit 1;
+            if v_sector is null then
+                v_sector := trim(both '-' from regexp_replace(lower(trim(v_row->>'industry')), '[^a-z0-9]+', '-', 'g'));
+                insert into public.company_sectors (value, label)
+                values (v_sector, trim(v_row->>'industry'))
+                on conflict do nothing;
+            end if;
+        end if;
+
+        -- Company: same domain or same name is the same company.
+        select c.id into v_company_id from public.companies c
+        where (v_domain is not null and lower(regexp_replace(c.website::text, '^(https?://)?(www\.)?([^/:]+).*$', '\3')) = v_domain)
+           or lower(c.name) = lower(v_company_name)
+        order by c.id
+        limit 1;
+
+        if v_company_id is null then
+            insert into public.companies (name, sector, pitch_point, website, lead_date, created_at)
+            values (
+                v_company_name,
+                v_sector,
+                nullif(trim(v_row->>'pitch'), ''),
+                case when v_domain is not null then 'https://' || v_domain end,
+                current_date,
+                now()
+            )
+            returning id into v_company_id;
+        else
+            update public.companies c set
+                pitch_point = coalesce(c.pitch_point, nullif(trim(v_row->>'pitch'), '')),
+                sector = coalesce(c.sector, v_sector)
+            where c.id = v_company_id;
+        end if;
+
+        insert into public.contacts (
+            first_name, last_name, title, company_id, whatsapp_number, is_primary,
+            email_jsonb, phone_jsonb, phone_e164,
+            lead_stage, import_batch_id, first_seen, last_seen, tags
+        )
+        values (
+            nullif(trim(v_row->>'first_name'), ''),
+            nullif(trim(v_row->>'last_name'), ''),
+            nullif(trim(v_row->>'title'), ''),
+            v_company_id,
+            v_phone,
+            not exists (
+                select 1 from public.contacts existing
+                where existing.company_id = v_company_id and existing.is_primary
+            ),
+            case when v_email is not null then jsonb_build_array(jsonb_build_object('email', v_email, 'type', 'Work')) end,
+            case when v_phone is not null then jsonb_build_array(jsonb_build_object('number', v_phone, 'type', 'Work')) end,
+            v_phone,
+            'new',
+            v_batch_id,
+            now(),
+            now(),
+            '{}'
+        )
+        returning id into v_contact_id;
+
+        perform public.open_cold_deal(
+            v_company_id,
+            array[v_contact_id],
+            coalesce(
+                (select c.sales_id from public.companies c where c.id = v_company_id),
+                public.current_sales_id()
+            ),
+            v_company_name
+        );
+
+        if v_phone is not null then v_seen_phones := v_seen_phones || v_phone; end if;
+        if v_email is not null then v_seen_emails := v_seen_emails || v_email; end if;
+        v_created := v_created + 1;
+        v_results := v_results || jsonb_build_object('row', v_row->'row', 'status', 'created', 'contact_id', v_contact_id);
+    end loop;
+
+    update public.import_batches set
+        created_count = v_created,
+        duplicate_count = v_duplicates,
+        invalid_count = v_invalid
+    where id = v_batch_id;
+
+    return jsonb_build_object(
+        'batch_id', v_batch_id,
+        'created', v_created,
+        'duplicates', v_duplicates,
+        'invalid', v_invalid,
+        'rows', v_results
+    );
+end;
+$_$;

@@ -356,6 +356,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/providers/commons/companyContacts.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/providers/commons/canAccess.ts",
           "type": "registry:component"
         },
@@ -540,6 +544,14 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/leads/leadImport.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/leads/importLeadsInMemory.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/layout/useRefreshData.ts",
           "type": "registry:component"
         },
@@ -549,6 +561,10 @@
         },
         {
           "path": "src/components/atomic-crm/layout/PullToRefresh.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/layout/NewRecordButton.tsx",
           "type": "registry:component"
         },
         {
@@ -584,6 +600,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/layout/CrmSidebar.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/filters/FilterCategory.tsx",
           "type": "registry:component"
         },
@@ -596,11 +616,23 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/deals/groupDealsByCompany.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/deals/dealUtils.ts",
           "type": "registry:component"
         },
         {
           "path": "src/components/atomic-crm/deals/OnlyMineInput.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/deals/DealViewToggle.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/deals/DealTableView.tsx",
           "type": "registry:component"
         },
         {
@@ -629,6 +661,10 @@
         },
         {
           "path": "src/components/atomic-crm/deals/DealCreate.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/deals/DealCompanyView.tsx",
           "type": "registry:component"
         },
         {
@@ -736,6 +772,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/contacts/useTypedCompany.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/contacts/useContactImport.tsx",
           "type": "registry:component"
         },
@@ -832,6 +872,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/companies/useCompanySectors.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/companies/sizes.ts",
           "type": "registry:component"
         },
@@ -841,6 +885,10 @@
         },
         {
           "path": "src/components/atomic-crm/companies/getTranslatedCompanySizeLabel.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/companies/companyForm.ts",
           "type": "registry:component"
         },
         {
@@ -876,6 +924,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/companies/CompanyContactsInputs.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/companies/CompanyCard.tsx",
           "type": "registry:component"
         },
@@ -889,6 +941,14 @@
         },
         {
           "path": "src/components/atomic-crm/companies/AutocompleteCompanyInput.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/brochures/index.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/brochures/BrochureList.tsx",
           "type": "registry:component"
         },
         {

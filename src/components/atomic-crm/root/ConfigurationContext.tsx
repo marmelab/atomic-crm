@@ -77,6 +77,15 @@ export const useConfigurationContext = () => {
       ];
     }
 
+    // Deals opened from a company or a CSV import use stage "cold". A saved
+    // pipeline that predates that stage still needs the column and the selector.
+    if (!mergedConfig.dealStages?.some((stage) => stage.value === "cold")) {
+      mergedConfig.dealStages = [
+        { value: "cold", label: "Cold" },
+        ...(mergedConfig.dealStages ?? []),
+      ];
+    }
+
     return {
       ...mergedConfig,
       companySectors: Array.from(sectors.values()),

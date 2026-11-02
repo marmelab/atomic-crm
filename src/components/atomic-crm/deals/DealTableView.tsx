@@ -50,19 +50,30 @@ export const DealTableView = () => {
     <div className="flex flex-col gap-4">
       <DataTable<Deal> bulkActionButtons={false} rowClick="show">
         <DataTable.Col
-          source="name"
-          label={translate("resources.deals.fields.name", { _: "Name" })}
-        >
-          <DealNameField />
-        </DataTable.Col>
-        <DataTable.Col
           source="company_id"
           label={translate("resources.deals.fields.company_id", {
             _: "Company",
           })}
           className="hidden md:table-cell"
         >
-          <DealCompanyField />
+          <ReferenceField source="company_id" reference="companies" link="show">
+            <DealCompanyField />
+          </ReferenceField>
+        </DataTable.Col>
+        <DataTable.Col
+          label={translate("resources.companies.fields.pitch_point", {
+            _: "Pitch point",
+          })}
+          disableSort
+          className="hidden xl:table-cell max-w-56"
+        >
+          <ReferenceField
+            source="company_id"
+            reference="companies"
+            link={false}
+          >
+            <DealPitchField />
+          </ReferenceField>
         </DataTable.Col>
         <DataTable.Col
           source="contact_ids"
@@ -77,14 +88,6 @@ export const DealTableView = () => {
           >
             <DealContactsField />
           </ReferenceArrayField>
-        </DataTable.Col>
-        <DataTable.Col
-          source="amount"
-          label={translate("resources.deals.fields.amount", { _: "Budget" })}
-          cellClassName="text-right"
-          headerClassName="text-right"
-        >
-          <DealAmountField />
         </DataTable.Col>
         <DataTable.Col
           source="stage"
@@ -138,17 +141,6 @@ export const DealTableView = () => {
   );
 };
 
-/** Truncated deal name with the full name in the tooltip. */
-const DealNameField = () => {
-  const record = useRecordContext<Deal>();
-  if (!record?.name) return null;
-  return (
-    <span title={record.name} className="block max-w-56 truncate font-medium">
-      {record.name}
-    </span>
-  );
-};
-
 const DealCompanyField = () => {
   const record = useRecordContext<RaRecord>();
   if (!record?.name) return null;
@@ -158,6 +150,21 @@ const DealCompanyField = () => {
       className="block max-w-40 truncate text-muted-foreground"
     >
       {record.name}
+    </span>
+  );
+};
+
+const DealPitchField = () => {
+  const record = useRecordContext<{ pitch_point?: string | null }>();
+  if (!record?.pitch_point) {
+    return <span className="text-muted-foreground">—</span>;
+  }
+  return (
+    <span
+      title={record.pitch_point}
+      className="block max-w-56 truncate text-sm"
+    >
+      {record.pitch_point}
     </span>
   );
 };
@@ -204,24 +211,8 @@ const DealContactsField = () => {
   );
 };
 
-const DealAmountField = () => {
-  const record = useRecordContext<Deal>();
-  const { currency } = useConfigurationContext();
-  if (!record) return null;
-  return (
-    <span className="tabular-nums">
-      {record.amount.toLocaleString("en-US", {
-        notation: "compact",
-        style: "currency",
-        currency,
-        currencyDisplay: "narrowSymbol",
-        minimumSignificantDigits: 3,
-      })}
-    </span>
-  );
-};
-
 const STAGE_BADGE_CLASSES: Record<string, string | undefined> = {
+  cold: "border-sky-300 text-sky-700 dark:border-sky-700 dark:text-sky-300",
   // New: neutral (plain outline).
   new: undefined,
   contacted:

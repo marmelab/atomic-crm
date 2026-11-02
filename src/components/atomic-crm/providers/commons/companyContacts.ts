@@ -1,6 +1,6 @@
 import type { DataProvider, Identifier } from "ra-core";
 
-import type { Company, Contact } from "../../types";
+import type { Company, Contact, Deal } from "../../types";
 
 /**
  * A contact as edited in the company form. With an id it is an existing
@@ -149,4 +149,60 @@ export const syncCompanyContacts = async (
       throw new Error(`Contact ${contact.id} not found`);
     }
   }
+};
+
+/**
+ * One open deal per company, stage `cold`. A company that already has an
+ * open deal gets the new contacts attached to it instead of a second deal.
+ * Demo-mode twin of open_cold_deal().
+ */
+export const openColdDeal = async (
+  dataProvider: DataProvider,
+  companyId: Identifier,
+  contactIds: Identifier[],
+  salesId: Identifier | null | undefined,
+  dealName: string,
+) => {
+  const { data: deals } = await dataProvider.getList<Deal>("deals", {
+    filter: { company_id: companyId },
+    pagination: { page: 1, perPage: 100 },
+    sort: { field: "id", order: "ASC" },
+  });
+  const openDeal = deals.find((deal) => !deal.archived_at);
+  const ids = contactIds.filter((id) => id != null);
+
+  if (openDeal) {
+    const existing = openDeal.contact_ids ?? [];
+    const merged = [...existing];
+    for (const contactId of ids) {
+      if (!merged.some((id) => String(id) === String(contactId))) {
+        merged.push(contactId);
+      }
+    }
+    if (merged.length !== existing.length) {
+      await dataProvider.update<Deal>("deals", {
+        id: openDeal.id,
+        data: { contact_ids: merged },
+        previousData: openDeal,
+      });
+    }
+    return openDeal.id;
+  }
+
+  const now = new Date().toISOString();
+  const { data: deal } = await dataProvider.create<Deal>("deals", {
+    data: {
+      name: dealName,
+      company_id: companyId,
+      contact_ids: ids,
+      categories: [],
+      stage: "cold",
+      amount: 0,
+      sales_id: salesId ?? undefined,
+      index: 0,
+      created_at: now,
+      updated_at: now,
+    },
+  });
+  return deal.id;
 };

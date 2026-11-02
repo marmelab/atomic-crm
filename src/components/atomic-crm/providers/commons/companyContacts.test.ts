@@ -2,12 +2,13 @@ import { describe, expect, it } from "vitest";
 
 import type { Db } from "../fakerest/dataGenerator/types";
 import { createDataProvider } from "../fakerest/dataProvider";
-import type { Contact } from "../../types";
+import type { Contact, Deal } from "../../types";
 
 const buildDataProvider = () =>
   createDataProvider({
     db: {
       companies: [{ id: 1, name: "Old Co", nb_contacts: 1 }],
+      deals: [],
       contacts: [
         {
           id: 1,
@@ -45,6 +46,15 @@ const contactsOf = async (dataProvider: TestDataProvider, companyId: number) =>
     })
   ).data;
 
+const dealsOf = async (dataProvider: TestDataProvider, companyId: number) =>
+  (
+    await dataProvider.getList<Deal>("deals", {
+      filter: { company_id: companyId },
+      pagination: { page: 1, perPage: 100 },
+      sort: { field: "id", order: "ASC" },
+    })
+  ).data;
+
 describe("company saved with its contact list", () => {
   it("saves a company without contacts", async () => {
     const dataProvider = buildDataProvider();
@@ -55,6 +65,7 @@ describe("company saved with its contact list", () => {
 
     expect(company.name).toBe("Toy Hub");
     expect(await contactsOf(dataProvider, company.id)).toEqual([]);
+    expect(await dealsOf(dataProvider, company.id)).toEqual([]);
   });
 
   it("creates new contacts and reuses existing ones, linked to the new company", async () => {
@@ -93,6 +104,14 @@ describe("company saved with its contact list", () => {
       sort: { field: "id", order: "ASC" },
     });
     expect(total).toBe(4);
+    const deals = await dealsOf(dataProvider, company.id);
+    expect(deals).toHaveLength(1);
+    expect(deals[0]).toMatchObject({
+      name: "Toy Hub",
+      stage: "cold",
+      company_id: company.id,
+    });
+    expect(deals[0].contact_ids).toEqual(contacts.map((contact) => contact.id));
   });
 
   it("updates an existing contact's first email only, keeping its other emails", async () => {
@@ -122,6 +141,7 @@ describe("company saved with its contact list", () => {
       { email: "ann@new.example", type: "Home" },
       { email: "ann2@old.example", type: "Work" },
     ]);
+    expect(await dealsOf(dataProvider, 1)).toEqual([]);
   });
 
   it("unlinks a removed contact without deleting it, and links it back later", async () => {

@@ -7,8 +7,9 @@ export const englishCrmMessages = {
         existing_contact_ids: "Add an existing contact",
         pitch_point: "Pitch point",
         whatsapp_number: "WhatsApp number",
+        email: "Email",
         lead_date: "Date",
-        name: "Business name",
+        name: "Name",
         website: "Website",
         linkedin_url: "LinkedIn URL",
         phone_number: "Mobile",
@@ -266,6 +267,36 @@ export const englishCrmMessages = {
         empty: "No pitch point yet.",
       },
     },
+    brochures: {
+      name: "Brochure |||| Brochures",
+      tabs: {
+        approval: "Pending",
+        all: "All",
+      },
+      fields: {
+        title: "Title",
+        brochure_url: "Brochure",
+        status: "Status",
+        company_id: "Company",
+        contact_id: "Contact",
+        deal_id: "Deal",
+        created_at: "Created at",
+      },
+      status: {
+        pending: "Pending",
+        approved: "Approved",
+        not_approved: "Not approved",
+      },
+      action: {
+        open: "Open",
+      },
+      empty: {
+        title: "No brochures yet",
+        approval_title: "Nothing waiting for approval",
+        description:
+          "Brochures written by the other app show up here for approval.",
+      },
+    },
     notes: {
       name: "Note |||| Notes",
       forcedCaseName: "Note",
@@ -318,6 +349,7 @@ export const englishCrmMessages = {
     sales: {
       name: "User |||| Users",
       fields: {
+        role: "Role",
         first_name: "First name",
         last_name: "Last name",
         email: "Email",
@@ -327,6 +359,12 @@ export const englishCrmMessages = {
         disabled: "Disabled",
       },
       create: {
+        roles: {
+          admin: "Admin",
+          manager: "Manager",
+          bde: "BDE",
+          help: "Admin: everything. Manager: all leads, imports, approvals and reports. BDE: only their assigned leads and calls.",
+        },
         error: "An error occurred while creating the user.",
         success:
           "User created. They will soon receive an email to set their password.",

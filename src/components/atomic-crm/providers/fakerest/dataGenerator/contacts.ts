@@ -24,6 +24,12 @@ const maxContacts = {
 const getRandomContactDetailsType = () =>
   random.arrayElement(["Work", "Home", "Other"]) as "Work" | "Home" | "Other";
 
+/** +91 followed by a 10-digit mobile number starting with 6-9. */
+const randomIndianMobile = () =>
+  `+91${random.arrayElement(["6", "7", "8", "9"])}${String(
+    random.number({ min: 0, max: 999_999_999 }),
+  ).padStart(9, "0")}`;
+
 export const generateContacts = (db: Db, size = 500): Required<Contact>[] => {
   const nbAvailblePictures = 223;
   let numberOfContacts = 0;
@@ -40,9 +46,12 @@ export const generateContacts = (db: Db, size = 500): Required<Contact>[] => {
         type: getRandomContactDetailsType(),
       },
     ];
+    // most demo contacts are calling leads with an Indian mobile number
+    const isLead = weightedBoolean(70);
+    const phone_e164 = isLead ? randomIndianMobile() : null;
     const phone_jsonb = [
       {
-        number: phone.phoneNumber(),
+        number: phone_e164 ?? phone.phoneNumber(),
         type: getRandomContactDetailsType(),
       },
       {
@@ -99,6 +108,19 @@ export const generateContacts = (db: Db, size = 500): Required<Contact>[] => {
       whatsapp_number: weightedBoolean(50) ? phone.phoneNumber() : null,
       // the first contact met at a company is its primary contact
       is_primary: company.nb_contacts === 1,
+      lead_stage: isLead ? "new" : null,
+      retry_count: 0,
+      last_attempt_at: null,
+      next_attempt_at: null,
+      last_outcome: null,
+      recycled_at: null,
+      recycle_reason: null,
+      assigned_to: null,
+      assigned_at: null,
+      import_batch_id: null,
+      phone_e164,
+      do_not_contact: false,
+      company_sector: company.sector ?? null,
     };
   });
 };

@@ -143,7 +143,14 @@ export const ContextInfo = ({ record }: { record: Company }) => {
   const [locale = "en"] = useLocaleState();
   const sectorLabel =
     sectors.find((s) => s.value === record.sector)?.label ?? record.sector;
-  if (!record.lead_date && !sectorLabel && !record.city) {
+  if (
+    !record.lead_date &&
+    !sectorLabel &&
+    !record.city &&
+    !record.phone_number &&
+    !record.email &&
+    !record.whatsapp_number
+  ) {
     return null;
   }
 
@@ -155,6 +162,23 @@ export const ContextInfo = ({ record }: { record: Company }) => {
         <span>
           {translate("resources.companies.fields.lead_date")}:{" "}
           {formatLocalizedDate(`${record.lead_date}T00:00:00`, locale)}
+        </span>
+      )}
+      {record.phone_number && (
+        <span>
+          {translate("resources.companies.fields.phone_number")}:{" "}
+          {record.phone_number}
+        </span>
+      )}
+      {record.email && (
+        <span>
+          {translate("resources.companies.fields.email")}: {record.email}
+        </span>
+      )}
+      {record.whatsapp_number && (
+        <span>
+          {translate("resources.companies.fields.whatsapp_number")}:{" "}
+          {record.whatsapp_number}
         </span>
       )}
       {sectorLabel && (

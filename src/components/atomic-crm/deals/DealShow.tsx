@@ -1,5 +1,4 @@
 import { useMutation } from "@tanstack/react-query";
-import { isValid } from "date-fns";
 import { Archive, ArchiveRestore, ArrowLeft } from "lucide-react";
 import type { ReactNode } from "react";
 import { Link } from "react-router";
@@ -41,6 +40,7 @@ import {
   findDealLabel,
   formatDealCategories,
   formatISODateString,
+  isIsoDate,
 } from "./dealUtils";
 
 /** Full page of a deal (lead), with its company details beside it. */
@@ -164,18 +164,20 @@ const DealDetails = ({ record }: { record: Deal }) => {
   const translate = useTranslate();
   const [locale = "en"] = useLocaleState();
   const { dealCategories, currency } = useConfigurationContext();
-  const hasValidClosingDate = isValid(new Date(record.expected_closing_date));
+  const hasValidClosingDate = isIsoDate(record.expected_closing_date);
 
   return (
     <dl className="grid grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-4">
       <DealField label={translate("resources.deals.fields.amount")}>
-        {record.amount.toLocaleString("en-US", {
-          notation: "compact",
-          style: "currency",
-          currency,
-          currencyDisplay: "narrowSymbol",
-          minimumSignificantDigits: 3,
-        })}
+        {typeof record.amount === "number"
+          ? record.amount.toLocaleString("en-US", {
+              notation: "compact",
+              style: "currency",
+              currency,
+              currencyDisplay: "narrowSymbol",
+              minimumSignificantDigits: 3,
+            })
+          : "—"}
       </DealField>
       <DealField
         label={translate("resources.deals.fields.expected_closing_date")}

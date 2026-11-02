@@ -52,9 +52,9 @@ const CompanyLeadInputs = () => {
 
       <div className="grid gap-4 md:grid-cols-2">
         <DateInput source="lead_date" helperText={false} />
-
         <TextInput source="name" validate={required()} helperText={false} />
-
+        <TextInput source="website" helperText={false} />
+        <TextInput source="email" helperText={false} />
         <SelectInput
           source="sector"
           choices={verticalChoices}
@@ -67,7 +67,6 @@ const CompanyLeadInputs = () => {
           create={<CreateIndustrySuggestion />}
           createLabel="Add a new vertical"
         />
-
         <TextInput source="city" helperText={false} />
       </div>
     </div>

@@ -24,13 +24,39 @@ export type SalesFormData = {
   first_name: string;
   last_name: string;
   administrator: boolean;
+  role?: SalesRole;
   disabled: boolean;
 };
+
+/** admin: everything; manager: all leads + team tools; bde: own leads only. */
+export type SalesRole = "admin" | "manager" | "bde";
+
+export type LeadStage =
+  | "new"
+  | "queued"
+  | "in_progress"
+  | "interested"
+  | "recycled"
+  | "not_interested";
+
+export type CallOutcome =
+  "interested" | "callback" | "no_answer" | "not_interested";
+
+export type ImportBatch = {
+  created_at: string;
+  created_by?: Identifier | null;
+  file_name?: string | null;
+  total_rows: number;
+  created_count: number;
+  duplicate_count: number;
+  invalid_count: number;
+} & Pick<RaRecord, "id">;
 
 export type Sale = {
   first_name: string;
   last_name: string;
   administrator: boolean;
+  role?: SalesRole;
   avatar?: RAFile;
   disabled?: boolean;
   user_id: string;
@@ -109,6 +135,20 @@ export type Contact = {
   company_name?: string;
   whatsapp_number?: string | null;
   is_primary?: boolean;
+  /** Lead lifecycle; null when the contact is not a calling lead. */
+  lead_stage?: LeadStage | null;
+  retry_count?: number;
+  last_attempt_at?: string | null;
+  next_attempt_at?: string | null;
+  last_outcome?: CallOutcome | null;
+  recycled_at?: string | null;
+  recycle_reason?: string | null;
+  assigned_to?: Identifier | null;
+  assigned_at?: string | null;
+  import_batch_id?: Identifier | null;
+  phone_e164?: string | null;
+  do_not_contact?: boolean;
+  company_sector?: string | null;
 } & Pick<RaRecord, "id">;
 
 export type ContactNote = {
@@ -134,6 +174,19 @@ export type Deal = {
   expected_closing_date: string;
   sales_id: Identifier;
   index: number;
+} & Pick<RaRecord, "id">;
+
+export type BrochureStatus = "pending" | "approved" | "not_approved";
+
+export type Brochure = {
+  company_id?: Identifier | null;
+  contact_id?: Identifier | null;
+  deal_id?: Identifier | null;
+  title?: string | null;
+  brochure_url?: string | null;
+  status: BrochureStatus;
+  created_at: string;
+  updated_at: string;
 } & Pick<RaRecord, "id">;
 
 export type DealNote = {
