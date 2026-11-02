@@ -43,6 +43,7 @@ const TASK_DONE_NOT_CHANGED = "TASK_DONE_NOT_CHANGED";
 
 const processCompanyLogo = async (params: any) => {
   let logo = params.data.logo;
+  if (params.data.logo === undefined) return params;
 
   if (typeof logo !== "object" || logo === null || !logo.src) {
     logo = await getCompanyAvatar(params.data);
@@ -151,6 +152,8 @@ export const createDataProvider = ({
 }: CreateFakeRestDataProviderOptions = {}): CrmDataProvider => {
   const baseDataProvider = fakeRestDataProvider(db, !silent, latency);
   let taskUpdateType = TASK_DONE_NOT_CHANGED;
+  let companiesToUpdate:
+    { increment?: Identifier; decrement?: Identifier } | undefined = undefined;
   const getIdentity = async () =>
     authProvider?.getIdentity?.() ?? defaultAuthProvider.getIdentity?.();
 
@@ -480,7 +483,34 @@ export const createDataProvider = ({
         },
         beforeUpdate: async (params) => {
           const newParams = await processContactAvatar(params);
+          if (params.data.company_id != params.previousData.company_id) {
+            companiesToUpdate = {};
+            if (params.data.company_id != null) {
+              companiesToUpdate.increment = params.data.company_id;
+            }
+            if (params.previousData.company_id != null) {
+              companiesToUpdate.decrement = params.previousData.company_id;
+            }
+          }
+
           return fetchAndUpdateCompanyData(newParams, dataProvider);
+        },
+        afterUpdate: async (result) => {
+          if (companiesToUpdate != null) {
+            if (companiesToUpdate.increment) {
+              await updateCompany(companiesToUpdate.increment, (company) => ({
+                nb_contacts: (company.nb_contacts ?? 0) + 1,
+              }));
+            }
+            if (companiesToUpdate.decrement) {
+              await updateCompany(companiesToUpdate.decrement, (company) => ({
+                nb_contacts: (company.nb_contacts ?? 0) - 1,
+              }));
+            }
+            companiesToUpdate = undefined;
+          }
+
+          return result;
         },
         afterDelete: async (result) => {
           if (result.data.company_id != null) {
