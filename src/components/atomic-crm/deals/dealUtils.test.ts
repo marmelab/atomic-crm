@@ -1,6 +1,6 @@
 import { commands } from "vitest/browser";
 
-import { formatISODateString } from "./dealUtils";
+import { formatISODateString, isPastISODateString } from "./dealUtils";
 
 describe("formatISODateString", () => {
   let originalTimezone: string;
@@ -50,5 +50,49 @@ describe("formatISODateString", () => {
     expect(() => formatISODateString(invalidDate)).toThrow(
       "Invalid date format. Expected YYYY-MM-DD.",
     );
+  });
+});
+
+describe("isPastISODateString", () => {
+  let originalTimezone: string;
+
+  beforeEach(() => {
+    originalTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  });
+
+  afterEach(async () => {
+    vi.useRealTimers();
+    await commands.setTimezone(originalTimezone);
+  });
+
+  it("is false on the day itself and true from the next day", () => {
+    vi.setSystemTime(new Date(2026, 9, 31, 9, 0));
+    expect(isPastISODateString("2026-10-30")).toBe(true);
+    expect(isPastISODateString("2026-10-31")).toBe(false);
+    expect(isPastISODateString("2026-11-01")).toBe(false);
+  });
+
+  it("does not flag the day as past in any timezone", async () => {
+    // A date-only string parsed with new Date() is midnight UTC, which is already
+    // in the past during the whole day east of UTC and the evening before west of it.
+    for (const timezone of [
+      "America/Los_Angeles",
+      "UTC",
+      "Europe/Istanbul",
+      "Pacific/Auckland",
+    ]) {
+      await commands.setTimezone(timezone);
+      vi.setSystemTime(new Date(2026, 9, 31, 0, 1));
+      expect(isPastISODateString("2026-10-31")).toBe(false);
+      vi.setSystemTime(new Date(2026, 9, 31, 23, 59));
+      expect(isPastISODateString("2026-10-31")).toBe(false);
+      vi.setSystemTime(new Date(2026, 10, 1, 0, 1));
+      expect(isPastISODateString("2026-10-31")).toBe(true);
+    }
+  });
+
+  it("is false for an invalid date string", () => {
+    expect(isPastISODateString("")).toBe(false);
+    expect(isPastISODateString("not-a-date")).toBe(false);
   });
 });
