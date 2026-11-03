@@ -73,6 +73,38 @@ revoke all on function public.set_sales_id_default() from public, anon;
 grant all on function public.set_sales_id_default() to authenticated;
 grant all on function public.set_sales_id_default() to service_role;
 
+-- The tables, views and sequences above were created while Supabase's default
+-- privileges still granted anon everything (the alter default privileges at
+-- the end of this file only apply to later objects), so revoke explicitly.
+-- anon keeps public.init_state, read before sign-in.
+revoke all on table
+    public.companies,
+    public.contacts,
+    public.contact_notes,
+    public.deals,
+    public.deal_notes,
+    public.sales,
+    public.tags,
+    public.tasks,
+    public.configuration,
+    public.favicons_excluded_domains,
+    public.activity_log,
+    public.companies_summary,
+    public.contacts_summary
+from anon;
+
+revoke all on sequence
+    public.companies_id_seq,
+    public."contactNotes_id_seq",
+    public.contacts_id_seq,
+    public."dealNotes_id_seq",
+    public.deals_id_seq,
+    public.favicons_excluded_domains_id_seq,
+    public.sales_id_seq,
+    public.tags_id_seq,
+    public.tasks_id_seq
+from anon;
+
 -- Table grants
 grant all on table public.companies to authenticated;
 grant all on table public.companies to service_role;
