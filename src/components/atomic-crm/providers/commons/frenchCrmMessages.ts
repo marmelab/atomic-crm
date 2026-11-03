@@ -440,6 +440,7 @@ export const frenchCrmMessages = {
         "Erreur lors du chargement de la dernière activité",
       latest_notes: "Mes dernières notes",
       latest_notes_added_ago: "ajouté %{timeAgo}",
+      recent_contacts: "Consultés récemment",
       stepper: {
         install: "Installer Atomic CRM",
         progress: "%{step}/3 terminé",

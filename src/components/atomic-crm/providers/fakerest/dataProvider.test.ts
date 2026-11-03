@@ -42,6 +42,20 @@ describe("fakerest dataProvider", () => {
     expect(tags.map((tag) => tag.id)).toEqual([2]);
   });
 
+  it("ignores unknown ids when getting many contacts", async () => {
+    const dataProvider = createDataProvider({
+      db: { contacts: [{ id: 2, first_name: "Ann" }] } as unknown as Db,
+      latency: 0,
+      silent: true,
+    });
+
+    const { data: contacts } = await dataProvider.getMany("contacts", {
+      ids: [1, 2],
+    });
+
+    expect(contacts.map((contact) => contact.id)).toEqual([2]);
+  });
+
   it("lists a task created in the app before older ones in the global search", async () => {
     const dataProvider = createDataProvider({
       db: {

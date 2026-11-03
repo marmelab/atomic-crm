@@ -704,6 +704,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/dashboard/RecentContacts.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/dashboard/MobileDashboard.tsx",
           "type": "registry:component"
         },
@@ -728,11 +732,19 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/dashboard/DashboardContactList.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/dashboard/DashboardActivityLog.tsx",
           "type": "registry:component"
         },
         {
           "path": "src/components/atomic-crm/dashboard/Dashboard.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/contacts/useRecentContacts.ts",
           "type": "registry:component"
         },
         {
