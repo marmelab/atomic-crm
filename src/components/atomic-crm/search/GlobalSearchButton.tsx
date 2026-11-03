@@ -175,7 +175,8 @@ const useGlobalSearch = (
   });
 
   return {
-    results: isEnabled ? (data ?? []) : [],
+    // on an expired session, ra-core logs out and resolves with { data: {} }
+    results: isEnabled && Array.isArray(data) ? data : [],
     isPending: isEnabled && isPending,
     error,
   };
