@@ -9,10 +9,21 @@ CREATE OR REPLACE FUNCTION "public"."cleanup_note_attachments"() RETURNS "trigge
     AS $$
     DECLARE
       payload jsonb;
+      function_url text;
       function_secret text;
     BEGIN
       IF TG_OP = 'DELETE' AND coalesce(cardinality(OLD.attachments), 0) = 0 THEN
         RETURN OLD;
+      END IF;
+
+      function_url := public.get_note_attachments_function_url();
+
+      IF function_url IS NULL THEN
+        IF TG_OP = 'DELETE' THEN
+          RETURN OLD;
+        END IF;
+
+        RETURN NEW;
       END IF;
 
       SELECT decrypted_secret INTO function_secret
@@ -36,7 +47,7 @@ CREATE OR REPLACE FUNCTION "public"."cleanup_note_attachments"() RETURNS "trigge
       );
 
       PERFORM net.http_post(
-        url := public.get_note_attachments_function_url(),
+        url := function_url,
         body := payload,
         params := '{}'::jsonb,
         headers := jsonb_build_object(
@@ -149,7 +160,7 @@ CREATE OR REPLACE FUNCTION "public"."get_note_attachments_function_url"() RETURN
         END IF;
       END IF;
 
-      RETURN 'http://host.docker.internal:54321/functions/v1/delete_note_attachments';
+      RETURN NULL;
     END;
     $$;
 
