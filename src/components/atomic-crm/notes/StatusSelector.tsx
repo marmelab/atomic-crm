@@ -10,7 +10,7 @@ import { ChevronDownIcon } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 import { useConfigurationContext } from "../root/ConfigurationContext";
-import { Translate, useTranslate } from "ra-core";
+import { useTranslate } from "ra-core";
 
 const NONE_VALUE = "__none__";
 
@@ -82,40 +82,49 @@ export const StatusSelector = ({
   }
 
   /**
-   * Radix's Select component doesn't allow empty string as value, so we use a placeholder value and convert it back to empty string on change
-   * @see https://github.com/radix-ui/primitives/issues/2706
+   * "No status" needs a selectable item of its own, and an item cannot carry an empty
+   * value, so it uses a sentinel that is converted back to an empty string on change.
    */
-  const handleValueChange = (value: string) => {
-    setStatus(value === NONE_VALUE ? "" : value);
+  const handleValueChange = (value: string | null) => {
+    setStatus(!value || value === NONE_VALUE ? "" : value);
   };
+
+  // <SelectValue> renders the trigger label from this map; the items render from it too.
+  const items = [
+    { value: NONE_VALUE, label: noneLabel },
+    ...noteStatuses.map((statusOption) => ({
+      value: statusOption.value,
+      label: <StatusOption {...statusOption} />,
+    })),
+  ];
 
   return (
     <Select
       disabled={disabled}
       value={status || NONE_VALUE}
       onValueChange={handleValueChange}
+      items={items}
     >
       <SelectTrigger className={cn("w-32", triggerClassName)}>
         <SelectValue placeholder={noneLabel} />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value={NONE_VALUE}>
-          <Translate i18nKey="resources.contacts.background.status_none">
-            None
-          </Translate>
-        </SelectItem>
-        {noteStatuses.map((statusOption) => (
-          <SelectItem key={statusOption.value} value={statusOption.value}>
-            <div className="flex items-center gap-2">
-              <span
-                className="inline-block w-2.5 h-2.5 rounded-full"
-                style={{ backgroundColor: statusOption.color }}
-              />
-              {statusOption.label}
-            </div>
+        {items.map((item) => (
+          <SelectItem key={item.value} value={item.value}>
+            {item.label}
           </SelectItem>
         ))}
       </SelectContent>
     </Select>
   );
 };
+
+const StatusOption = ({ color, label }: { color: string; label: string }) => (
+  <div className="flex items-center gap-2">
+    <span
+      className="inline-block w-2.5 h-2.5 rounded-full"
+      style={{ backgroundColor: color }}
+    />
+    {label}
+  </div>
+);

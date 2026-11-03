@@ -1,7 +1,8 @@
 import { AlertCircle, CheckCircle } from "lucide-react";
 import { useTranslate } from "ra-core";
 import * as React from "react";
-import { type ComponentType, type MouseEventHandler, useCallback } from "react";
+import type { ComponentType, MouseEventHandler } from "react";
+import { useCallback } from "react";
 
 import { Button } from "@/components/ui/button";
 import {

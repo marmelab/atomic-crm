@@ -15,19 +15,28 @@ export const fetchRecordsWithCache = async function <T>(
   const trimmedNames = [...new Set(names.map((name) => name.trim()))];
   const uncachedRecordNames = trimmedNames.filter((name) => !cache.has(name));
 
-  // check the backend for existing records
-  if (uncachedRecordNames.length > 0) {
+  // check the backend for existing records, across pages since names are not
+  // unique and duplicates of one name can fill a page
+  const perPage = trimmedNames.length;
+  for (let page = 1; uncachedRecordNames.length > 0; page++) {
     const response = await dataProvider.getList(resource, {
       filter: {
         "name@in": `(${uncachedRecordNames
           .map((name) => `"${name}"`)
           .join(",")})`,
       },
-      pagination: { page: 1, perPage: trimmedNames.length },
+      pagination: { page, perPage },
       sort: { field: "id", order: "ASC" },
     });
     for (const record of response.data) {
-      cache.set(record.name.trim(), record);
+      const name = record.name.trim();
+      if (!cache.has(name)) cache.set(name, record);
+    }
+    if (
+      response.data.length < perPage ||
+      uncachedRecordNames.every((name) => cache.has(name))
+    ) {
+      break;
     }
   }
 

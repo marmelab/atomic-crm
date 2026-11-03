@@ -1,13 +1,12 @@
 import type { SortPayload } from "ra-core";
 import {
+  LinkBase,
   useResourceContext,
   useGetList,
   useTimeout,
   useCreatePath,
 } from "ra-core";
 import { CircleX, LoaderCircle } from "lucide-react";
-
-import { Link } from "react-router";
 
 /**
  * Fetches and displays the item count for a resource.
@@ -69,16 +68,16 @@ export const Count = (props: CountProps) => {
   );
 
   return link ? (
-    <Link
+    <LinkBase
       to={{
         pathname: createPath({ resource, type: "list" }),
         search: filter ? `filter=${JSON.stringify(filter)}` : undefined,
       }}
-      onClick={(e) => e.stopPropagation()}
+      onClick={(e: React.MouseEvent<HTMLAnchorElement>) => e.stopPropagation()}
       {...rest}
     >
       {body}
-    </Link>
+    </LinkBase>
   ) : (
     <span {...rest}>{body}</span>
   );

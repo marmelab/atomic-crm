@@ -83,7 +83,7 @@ const ChangePasswordButton = () => {
   return (
     <Button
       variant="outline"
-      className="w-full text-base h-auto"
+      className="w-full h-12 text-base"
       onClick={() => updatePassword()}
     >
       <KeyRound className="size-5 mr-3" />
@@ -120,7 +120,7 @@ export const SettingsPageMobile = () => {
             <ChangePasswordButton />
             <Button
               variant="destructive"
-              className="w-full text-base h-auto"
+              className="w-full h-12 text-base"
               onClick={() => logout()}
             >
               <LogOut className="size-5 mr-3" />
@@ -134,6 +134,14 @@ export const SettingsPageMobile = () => {
 };
 
 SettingsPageMobile.path = "/settings";
+
+// A bordered list of rows split by separators: ItemGroup's own gap and the
+// separators' margin would leave empty space under every row.
+const SettingsGroup = ({ children }: { children: React.ReactNode }) => (
+  <ItemGroup className="gap-0! rounded-lg border overflow-hidden *:data-[slot=item-separator]:my-0">
+    {children}
+  </ItemGroup>
+);
 
 const SectionLabel = ({ children }: { children: React.ReactNode }) => (
   <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide px-1 mb-1.5">
@@ -224,7 +232,7 @@ const ProfileSection = () => {
       <SectionLabel>
         {translate("crm.profile.title", { _: "Profile" })}
       </SectionLabel>
-      <ItemGroup className="rounded-lg border overflow-hidden">
+      <SettingsGroup>
         <Form record={data}>
           <Item size="sm">
             <ItemContent>
@@ -267,7 +275,7 @@ const ProfileSection = () => {
           emails={data.secondary_emails ?? []}
           onSave={(emails) => saveField("secondary_emails", emails)}
         />
-      </ItemGroup>
+      </SettingsGroup>
       <p className="text-xs text-muted-foreground px-1 mt-1.5">
         {translate("crm.profile.secondary_emails_help")}
       </p>
@@ -421,7 +429,7 @@ const InlineEditRow = ({
         </ItemTitle>
       </ItemContent>
       <ItemActions>
-        <span className="text-base">{value}</span>
+        <span className="min-h-6 text-base">{value}</span>
       </ItemActions>
     </Item>
   );
@@ -435,11 +443,11 @@ const PreferencesSection = () => {
       <SectionLabel>
         {translate("crm.settings.preferences", { _: "Preferences" })}
       </SectionLabel>
-      <ItemGroup className="rounded-lg border overflow-hidden">
+      <SettingsGroup>
         <LanguageRow />
         <ItemSeparator />
         <ThemeRow />
-      </ItemGroup>
+      </SettingsGroup>
     </div>
   );
 };
@@ -451,6 +459,11 @@ const LanguageRow = () => {
 
   if (locales.length <= 1) return null;
 
+  const localeItems = locales.map(({ locale, name }) => ({
+    value: locale,
+    label: name,
+  }));
+
   return (
     <Item size="sm">
       <ItemContent>
@@ -459,10 +472,14 @@ const LanguageRow = () => {
         </ItemTitle>
       </ItemContent>
       <ItemActions>
-        <Select value={locale} onValueChange={setLocale}>
+        <Select
+          value={locale}
+          onValueChange={(value) => value && setLocale(value)}
+          items={localeItems}
+        >
           <SelectTrigger
             size="sm"
-            className="w-auto !h-auto py-0 border-none shadow-none"
+            className="w-auto !h-auto py-0 pr-0 border-none shadow-none text-base"
           >
             <SelectValue />
           </SelectTrigger>
@@ -489,13 +506,13 @@ const ThemeRow = () => {
         {translate("crm.theme.label", { _: "Theme" })}
       </ItemTitle>
       <ToggleGroup
-        type="single"
-        value={theme}
-        onValueChange={(value) =>
+        value={theme ? [theme] : []}
+        onValueChange={([value]) =>
           value && setTheme(value as "light" | "dark" | "system")
         }
         size="lg"
         variant="outline"
+        spacing={0}
         className="w-full"
       >
         <ToggleGroupItem
@@ -541,9 +558,9 @@ const InboundEmailSection = () => {
           field: "Cc:",
         })}
       </p>
-      <ItemGroup className="rounded-lg border overflow-hidden">
+      <SettingsGroup>
         <CopyPasteRow value={import.meta.env.VITE_INBOUND_EMAIL} />
-      </ItemGroup>
+      </SettingsGroup>
     </div>
   );
 };
@@ -561,11 +578,11 @@ const McpServerSection = () => {
           _: "Use this URL to connect your AI assistant to your CRM data via the Model Context Protocol (MCP).",
         })}
       </p>
-      <ItemGroup className="rounded-lg border overflow-hidden">
+      <SettingsGroup>
         <CopyPasteRow
           value={`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/mcp`}
         />
-      </ItemGroup>
+      </SettingsGroup>
     </div>
   );
 };
@@ -576,20 +593,22 @@ const AboutSection = () => {
   return (
     <div>
       <SectionLabel>{translate("crm.settings.about")}</SectionLabel>
-      <ItemGroup className="rounded-lg border overflow-hidden">
-        <Item asChild size="sm" className="cursor-pointer">
-          <Link to={ChangelogPage.path}>
-            <ItemContent>
-              <ItemTitle className="font-normal">
-                {translate("crm.changelog.title")}
-              </ItemTitle>
-            </ItemContent>
-            <ItemActions>
-              <ChevronRight className="size-4 text-muted-foreground" />
-            </ItemActions>
-          </Link>
+      <SettingsGroup>
+        <Item
+          size="sm"
+          className="cursor-pointer"
+          render={<Link to={ChangelogPage.path} />}
+        >
+          <ItemContent>
+            <ItemTitle className="font-normal">
+              {translate("crm.changelog.title")}
+            </ItemTitle>
+          </ItemContent>
+          <ItemActions>
+            <ChevronRight className="size-4 text-muted-foreground" />
+          </ItemActions>
         </Item>
-      </ItemGroup>
+      </SettingsGroup>
     </div>
   );
 };
@@ -608,23 +627,25 @@ const CopyPasteRow = ({ value }: { value: string }) => {
   return (
     <TooltipProvider>
       <Tooltip>
-        <TooltipTrigger asChild>
-          <Item
-            size="sm"
-            className="cursor-pointer flex-nowrap"
-            onClick={handleCopy}
-          >
-            <ItemContent className="overflow-hidden">
-              <ItemTitle className="font-normal truncate">{value}</ItemTitle>
-            </ItemContent>
-            <ItemActions className="shrink-0">
-              {copied ? (
-                <Check className="size-4 text-muted-foreground" />
-              ) : (
-                <Copy className="size-4 text-muted-foreground" />
-              )}
-            </ItemActions>
-          </Item>
+        <TooltipTrigger
+          render={
+            <Item
+              size="sm"
+              className="cursor-pointer flex-nowrap"
+              onClick={handleCopy}
+            />
+          }
+        >
+          <ItemContent className="overflow-hidden">
+            <ItemTitle className="font-normal truncate">{value}</ItemTitle>
+          </ItemContent>
+          <ItemActions className="shrink-0">
+            {copied ? (
+              <Check className="size-4 text-muted-foreground" />
+            ) : (
+              <Copy className="size-4 text-muted-foreground" />
+            )}
+          </ItemActions>
         </TooltipTrigger>
         <TooltipContent>
           <p>

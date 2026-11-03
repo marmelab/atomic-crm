@@ -5,6 +5,7 @@ import {
   useTimeout,
   useTranslate,
 } from "ra-core";
+import { useLayoutEffect } from "react";
 import { Link } from "react-router";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -16,6 +17,10 @@ import { Status } from "../misc/Status";
 import { useGetSalesName } from "../sales/useGetSalesName";
 import type { ContactNote } from "../types";
 import { InfinitePagination } from "../misc/InfinitePagination";
+
+// Opening a note leaves the contact page, and coming back renders it anew at
+// the top: remember where the list was so the user lands back on the note.
+const scrollPositions = new Map<Identifier, number>();
 
 export const NotesIteratorMobile = ({
   contactId,
@@ -32,6 +37,14 @@ export const NotesIteratorMobile = ({
   } = useListContext<ContactNote>();
   const translate = useTranslate();
   const oneSecondHasPassed = useTimeout(1000);
+
+  useLayoutEffect(() => {
+    const scrollY = scrollPositions.get(contactId);
+    if (isPending || scrollY == null) return;
+    scrollPositions.delete(contactId);
+    window.scrollTo(0, scrollY);
+  }, [contactId, isPending]);
+
   if (isPending) {
     if (!oneSecondHasPassed) {
       return null;
@@ -108,6 +121,8 @@ export const NoteMobile = ({
   return (
     <Link
       to={`/contacts/${contactId}/notes/${note.id}`}
+      state={{ _scrollToTop: true }}
+      onClick={() => scrollPositions.set(contactId, window.scrollY)}
       className="block active:bg-accent/50 -mx-2 px-2 py-2 rounded-md"
     >
       <div className="flex items-center space-x-2 w-full">

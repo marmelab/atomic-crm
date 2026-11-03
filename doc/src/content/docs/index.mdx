@@ -310,6 +310,8 @@ make supabase-remote-init
 
 The script will ask you for the Supabase instance name, create the database, apply the migrations and deploy the edge functions. Finally, it will create a `.env.production.local` file with your remote Supabase configuration.
 
+If the script logs you into the Supabase CLI, it creates an access token that never expires: see [Supabase Configuration](./developers/supabase-configuration) to revoke it or to use a token that expires.
+
 The frontend of the CRM is a Single-Page App that can be deployed to any CDN. Since you have forked the Atomic CRM repository on GitHub, you can use GitHub Pages to host the frontend.
 
 First, build the frontend bundle with:

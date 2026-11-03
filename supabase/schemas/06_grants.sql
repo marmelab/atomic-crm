@@ -136,6 +136,9 @@ grant all on table public.configuration to service_role;
 grant all on table public.favicons_excluded_domains to authenticated;
 grant all on table public.favicons_excluded_domains to service_role;
 
+revoke all on table public.user_invitations from anon, authenticated;
+grant all on table public.user_invitations to service_role;
+
 -- View grants
 grant all on table public.activity_log to authenticated;
 grant all on table public.activity_log to service_role;

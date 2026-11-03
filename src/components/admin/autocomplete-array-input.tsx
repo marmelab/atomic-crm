@@ -78,8 +78,7 @@ export const AutocompleteArrayInput = (
       translateChoice?: boolean;
       placeholder?: string;
       inputText?:
-        | React.ReactNode
-        | ((option: any | undefined) => React.ReactNode);
+        React.ReactNode | ((option: any | undefined) => React.ReactNode);
     },
 ) => {
   const {
@@ -168,6 +167,12 @@ export const AutocompleteArrayInput = (
       setFilters(filterToQuery(""));
     }
     const value = getChoiceValue(choice);
+    // when onCreate returns nothing, ra-core hands back the create item itself:
+    // storing its sentinel value would add an unrenderable entry to the selection
+    if (value === (createValue ?? "@@ra-create")) {
+      return;
+    }
+    // a newly created choice may already be selected
     if (field.value.includes(value)) {
       return;
     }

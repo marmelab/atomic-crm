@@ -179,7 +179,8 @@ export interface RadioButtonGroupInputProps
     ChoicesProps,
     Omit<
       React.ComponentProps<typeof RadioGroup>,
-      "defaultValue" | "onBlur" | "onChange" | "type"
+      "className" | "defaultValue" | "onBlur" | "onChange" | "type"
     > {
+  className?: string;
   row?: boolean;
 }

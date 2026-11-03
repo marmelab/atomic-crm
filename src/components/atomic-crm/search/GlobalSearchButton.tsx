@@ -1,7 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
-import { ChevronDown, Search } from "lucide-react";
+import { ChevronDown, Search, XIcon } from "lucide-react";
 import { useDataProvider, useDebouncedEvent, useTranslate } from "ra-core";
-import { useEffect, useMemo, useState } from "react";
+import { type RefObject, useEffect, useMemo, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import { useNavigate } from "react-router";
 
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,7 @@ import {
 } from "@/components/ui/command";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogHeader,
@@ -69,6 +71,15 @@ export const GlobalSearchButton = ({
 }) => {
   const translate = useTranslate();
   const [open, setOpen] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // iOS only opens the virtual keyboard for a focus made during the tap
+  // itself, while Base UI focuses the dialog a frame later: render it now and
+  // focus its input before the click handler returns.
+  const openDialog = () => {
+    flushSync(() => setOpen(true));
+    inputRef.current?.focus();
+  };
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -93,7 +104,7 @@ export const GlobalSearchButton = ({
           size="icon"
           // same shape and icon size as its neighbour, MobileRefreshButton
           className="rounded-full"
-          onClick={() => setOpen(true)}
+          onClick={openDialog}
           aria-label={translate("crm.search.title")}
         >
           <Search className="size-5" />
@@ -103,7 +114,7 @@ export const GlobalSearchButton = ({
         // real input lives in the dialog it opens.
         <Button
           variant="outline"
-          onClick={() => setOpen(true)}
+          onClick={openDialog}
           aria-label={translate("crm.search.title")}
           aria-keyshortcuts="Control+K Meta+K"
           className="mr-2 w-40 justify-start bg-background px-3 font-normal text-muted-foreground lg:w-64"
@@ -117,7 +128,11 @@ export const GlobalSearchButton = ({
           </kbd>
         </Button>
       )}
-      <GlobalSearchDialog open={open} onOpenChange={setOpen} />
+      <GlobalSearchDialog
+        open={open}
+        onOpenChange={setOpen}
+        inputRef={inputRef}
+      />
     </>
   );
 };
@@ -160,7 +175,8 @@ const useGlobalSearch = (
   });
 
   return {
-    results: isEnabled ? (data ?? []) : [],
+    // on an expired session, ra-core logs out and resolves with { data: {} }
+    results: isEnabled && Array.isArray(data) ? data : [],
     isPending: isEnabled && isPending,
     error,
   };
@@ -188,9 +204,11 @@ const Highlighted = ({ text, terms }: { text: string; terms: string[] }) =>
 export const GlobalSearchDialog = ({
   open,
   onOpenChange,
+  inputRef,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  inputRef?: RefObject<HTMLInputElement | null>;
 }) => {
   const translate = useTranslate();
   const navigate = useNavigate();
@@ -239,12 +257,29 @@ export const GlobalSearchDialog = ({
   const isTooShort = debouncedQuery.length < MIN_SEARCH_LENGTH;
   const terms = useMemo(() => getSearchTerms(debouncedQuery), [debouncedQuery]);
 
+  const searchInput = (
+    <CommandInput
+      ref={inputRef}
+      placeholder={translate("crm.search.placeholder")}
+      value={query}
+      onValueChange={(value) => {
+        setQuery(value);
+        setExpandedGroups(new Set());
+        updateDebouncedQuery(value.trim());
+      }}
+      // on desktop, keep the text clear of the dialog's close button, drawn
+      // over the input's right end
+      className={cn("text-base", !isMobile && "pr-8")}
+    />
+  );
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       {/* Desktop: pinned near the top so the box grows downwards as results
           arrive instead of re-centering on every keystroke. Mobile: the whole
           screen. */}
       <DialogContent
+        showCloseButton={!isMobile}
         className={cn(
           "overflow-hidden p-0",
           isMobile
@@ -264,20 +299,25 @@ export const GlobalSearchDialog = ({
             itself to control the layout and filtering */}
         <Command
           shouldFilter={false}
-          className="[&_[cmdk-group-heading]]:text-muted-foreground **:data-[slot=command-input-wrapper]:h-12 [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group]]:px-2 [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5"
+          className={cn(
+            "[&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group]]:px-2 [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5",
+            !isMobile &&
+              "**:data-[slot=command-input-wrapper]:h-12 [&_[cmdk-input]]:h-12",
+          )}
         >
-          <CommandInput
-            placeholder={translate("crm.search.placeholder")}
-            value={query}
-            onValueChange={(value) => {
-              setQuery(value);
-              setExpandedGroups(new Set());
-              updateDebouncedQuery(value.trim());
-            }}
-            // keep the text clear of the dialog's close button, drawn over the
-            // input's right end
-            className="pr-8 text-base"
-          />
+          {/* On a phone, a taller input sits next to the close button rather
+              than under it, both centered on the same row. */}
+          {isMobile ? (
+            <div className="flex items-center gap-1 py-2 pl-2 pr-1 *:data-[slot=command-input-wrapper]:flex-1 *:data-[slot=command-input-wrapper]:p-0 **:data-[slot=input-group]:h-11!">
+              {searchInput}
+              <DialogClose render={<Button variant="ghost" size="icon-lg" />}>
+                <XIcon className="size-5" />
+                <span className="sr-only">Close</span>
+              </DialogClose>
+            </div>
+          ) : (
+            searchInput
+          )}
           <CommandList
             className={cn(
               "overscroll-contain",

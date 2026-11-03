@@ -13,7 +13,7 @@ The components in this directory come from [shadcn/ui](https://ui.shadcn.com/). 
 - Tooltips
 - And more...
 
-These components are built on top of [Radix UI](https://www.radix-ui.com/) and styled using [Tailwind CSS](https://tailwindcss.com/).
+These components are built on top of [Base UI](https://base-ui.com/) and styled using [Tailwind CSS](https://tailwindcss.com/).
 
 ## Documentation
 
