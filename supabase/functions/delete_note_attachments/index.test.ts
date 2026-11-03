@@ -82,6 +82,20 @@ describe("delete_note_attachments", () => {
     expect(removeFiles).not.toHaveBeenCalled();
   });
 
+  it("returns 500 and deletes nothing when the secret cannot be checked", async () => {
+    queryDatabase.mockRejectedValueOnce(new Error("permission denied"));
+
+    const response = await handler(
+      deleteRequest({ "x-note-attachments-secret": SECRET }),
+    );
+
+    expect(response.status).toBe(500);
+    expect(await response.json()).toEqual({
+      error: "Failed to check the secret",
+    });
+    expect(removeFiles).not.toHaveBeenCalled();
+  });
+
   it("deletes the unreferenced attachments when the secret is valid", async () => {
     const response = await handler(
       deleteRequest({ "x-note-attachments-secret": SECRET }),
