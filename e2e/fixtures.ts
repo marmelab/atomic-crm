@@ -41,7 +41,17 @@ async function createUser({
   email: string;
   password: string;
 }) {
+  const id = crypto.randomUUID();
+  const { error: invitationError } = await adminSupabase
+    .from("user_invitations")
+    .insert({ user_id: id });
+
+  if (invitationError) {
+    throw new Error(`Failed to create user: ${invitationError.message}`);
+  }
+
   const { data, error } = await adminSupabase.auth.admin.createUser({
+    id,
     email,
     password,
     email_confirm: true,
@@ -67,21 +77,12 @@ async function createSales({
   password: string;
   administrator?: boolean;
 }) {
-  const { data: userData, error: userError } =
-    await adminSupabase.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: true,
-    });
-
-  if (userError) {
-    throw new Error(`Failed to create sales: ${userError.message}`);
-  }
+  const user = await createUser({ email, password });
 
   const { data, error } = await adminSupabase
     .from("sales")
     .update({ first_name, last_name, administrator })
-    .eq("user_id", userData.user?.id)
+    .eq("user_id", user.id)
     .select()
     .single();
 

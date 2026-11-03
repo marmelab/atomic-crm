@@ -111,6 +111,7 @@
     "prettier": "^3.6.2",
     "shadcn": "^4.0.6",
     "storybook": "~10.6.3",
+    "supabase": "^2.122.0",
     "tldts": "^7.0.26",
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.35.1",

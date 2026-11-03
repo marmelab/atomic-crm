@@ -3,6 +3,7 @@ on:
     push:
         branches:
             - main
+            - '1.*'
     pull_request:
         types:
             - opened
@@ -26,10 +27,10 @@ jobs:
         if: ${{ !github.event.pull_request.draft || github.event_name == 'push' }}
         steps:
             - name: 📥 Checkout repo
-              uses: actions/checkout@v4
+              uses: actions/checkout@v7
 
             - name: ⚙️ Setup node
-              uses: actions/setup-node@v4
+              uses: actions/setup-node@v7
               with:
                   node-version: 24
                   cache: npm
@@ -38,7 +39,7 @@ jobs:
               run: npm ci
 
             - name: 🔬 Lint
-              uses: wearerequired/lint-action@v2
+              uses: wearerequired/lint-action@548d8a7c4b04d3553d32ed5b6e91eb171e10e7bb # v2
               with:
                   eslint: true
                   eslint_args: "**/*.{mjs,ts,tsx}"
@@ -53,10 +54,10 @@ jobs:
         if: ${{ !github.event.pull_request.draft || github.event_name == 'push' }}
         steps:
             - name: 📥 Checkout repo
-              uses: actions/checkout@v4
+              uses: actions/checkout@v7
 
             - name: ⚙️ Setup node
-              uses: actions/setup-node@v4
+              uses: actions/setup-node@v7
               with:
                   node-version: 24
                   cache: npm
@@ -74,10 +75,10 @@ jobs:
         if: ${{ !github.event.pull_request.draft || github.event_name == 'push' }}
         steps:
             - name: 📥 Checkout repo
-              uses: actions/checkout@v4
+              uses: actions/checkout@v7
 
             - name: ⚙️ Setup node
-              uses: actions/setup-node@v4
+              uses: actions/setup-node@v7
               with:
                   node-version: 24
                   cache: npm
@@ -98,10 +99,10 @@ jobs:
       runs-on: ubuntu-latest
       steps:
       - name: 📥 Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: ⚙️ Setup node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
             node-version: 24
             cache: npm
@@ -121,10 +122,10 @@ jobs:
         if: ${{ !github.event.pull_request.draft || github.event_name == 'push' }}
         steps:
             - name: 📥 Checkout repo
-              uses: actions/checkout@v4
+              uses: actions/checkout@v7
 
             - name: ⚙️ Setup node
-              uses: actions/setup-node@v4
+              uses: actions/setup-node@v7
               with:
                   node-version: 24
                   cache: npm

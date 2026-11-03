@@ -18,24 +18,19 @@ jobs:
         runs-on: ubuntu-latest
         timeout-minutes: 5
 
-        env:
-          PRODUCTION_REMOTE: https://git:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
-
         steps:
             - name: 📥 Checkout repo
-              uses: actions/checkout@v4
+              uses: actions/checkout@v7
+              with:
+                  # Keep the job token out of .git/config, where any install
+                  # script or build plugin could read it.
+                  persist-credentials: false
 
             - name: ⚙️ Setup node
-              uses: actions/setup-node@v4
+              uses: actions/setup-node@v7
               with:
                   node-version: 24
                   cache: npm
-
-            - name: ⚙️ Setup git
-              run: |
-                git remote set-url origin https://git:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}
-                git config --global user.email support+actions@github.com
-                git config --global user.name github-actions-bot
 
             - name: 📥 Download deps
               run: make doc-install
@@ -45,6 +40,16 @@ jobs:
 
             - name: 🔨 Build Documentation
               run: make doc-build
+
+            # Configured after the builds on purpose: dependency install and
+            # bundling must never run with a token in reach.
+            - name: ⚙️ Setup git
+              env:
+                  ORIGIN_REMOTE: https://git:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+              run: |
+                  git remote set-url origin "$ORIGIN_REMOTE"
+                  git config --global user.email support+actions@github.com
+                  git config --global user.name github-actions-bot
 
             - name: 📡 Deploy Registry
               run: make registry-deploy
@@ -57,35 +62,41 @@ jobs:
         runs-on: ubuntu-latest
         timeout-minutes: 10
 
+        # Public build-time values only. The deploy token is scoped to the
+        # steps that push, below.
         env:
             VITE_IS_DEMO: true
             VITE_INBOUND_EMAIL: ${{ vars.VITE_INBOUND_EMAIL }}
             VITE_ATTACHMENTS_BUCKET: ${{ vars.VITE_ATTACHMENTS_BUCKET || 'attachments' }}
-            PRODUCTION_REMOTE: https://git:${{ secrets.DEPLOY_TOKEN || secrets.GITHUB_TOKEN }}@github.com/${{ vars.DEMO_DEPLOY_REPOSITORY }}
 
         steps:
             - name: 📥 Checkout repo
-              uses: actions/checkout@v4
+              uses: actions/checkout@v7
+              with:
+                  persist-credentials: false
 
             - name: ⚙️ Setup node
-              uses: actions/setup-node@v4
+              uses: actions/setup-node@v7
               with:
                   node-version: 24
                   cache: npm
-
-            - name: ⚙️ Setup git
-              run: |
-                  echo Deploying to pages to ${{ vars.DEMO_DEPLOY_REPOSITORY }}
-                  git remote set-url origin https://git:${{ secrets.DEPLOY_TOKEN || secrets.GITHUB_TOKEN }}@github.com/${{ vars.DEMO_DEPLOY_REPOSITORY }}
-                  git remote add production $PRODUCTION_REMOTE
-                  git config --global user.email support+actions@github.com
-                  git config --global user.name github-actions-bot
 
             - name: 📥 Download deps
               run: npm ci
 
             - name: 🔨 Build
               run: npm run build:demo
+
+            - name: ⚙️ Setup git
+              env:
+                  DEMO_REMOTE: https://git:${{ secrets.DEPLOY_TOKEN || secrets.GITHUB_TOKEN }}@github.com/${{ vars.DEMO_DEPLOY_REPOSITORY }}
+                  DEMO_DEPLOY_REPOSITORY: ${{ vars.DEMO_DEPLOY_REPOSITORY }}
+              run: |
+                  echo "Deploying to pages to $DEMO_DEPLOY_REPOSITORY"
+                  git remote set-url origin "$DEMO_REMOTE"
+                  git remote add production "$DEMO_REMOTE"
+                  git config --global user.email support+actions@github.com
+                  git config --global user.name github-actions-bot
 
             - name: 📡 Deploy GitHub pages
               run: npx gh-pages --remote production -d dist -b ${{ vars.DEPLOY_BRANCH || 'gh-pages' }}
@@ -97,43 +108,49 @@ jobs:
         runs-on: ubuntu-latest
         timeout-minutes: 10
 
+        # Job scope holds only values that are public by design (they are
+        # inlined into the client bundle) plus the configuration flag the
+        # step conditions read. Every platform credential — the Supabase PAT,
+        # the database password, the Postmark webhook secrets, the deploy
+        # token — is declared on the single step that uses it, so that
+        # `npm ci` install scripts and `vite build` plugins never see them.
         env:
-            SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-            SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
-            SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
             VITE_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
             VITE_SB_PUBLISHABLE_KEY: ${{ secrets.SB_PUBLISHABLE_KEY }}
-            IS_SUPABASE_CONFIGURED: ${{ secrets.SUPABASE_ACCESS_TOKEN && secrets.SUPABASE_DB_PASSWORD && secrets.SUPABASE_PROJECT_ID && secrets.SUPABASE_URL && secrets.SB_PUBLISHABLE_KEY }}
             VITE_IS_DEMO: ${{ vars.VITE_IS_DEMO }}
             VITE_INBOUND_EMAIL: ${{ vars.VITE_INBOUND_EMAIL }}
             VITE_ATTACHMENTS_BUCKET: ${{ vars.VITE_ATTACHMENTS_BUCKET || 'attachments' }}
-            PRODUCTION_REMOTE: https://git:${{ secrets.DEPLOY_TOKEN || secrets.GITHUB_TOKEN }}@github.com/${{ vars.DEPLOY_REPOSITORY }}
-            POSTMARK_WEBHOOK_USER: ${{secrets.POSTMARK_WEBHOOK_USER}}
-            POSTMARK_WEBHOOK_PASSWORD: ${{secrets.POSTMARK_WEBHOOK_PASSWORD}}
-            POSTMARK_WEBHOOK_AUTHORIZED_IPS: ${{secrets.POSTMARK_WEBHOOK_AUTHORIZED_IPS}}
-            VITE_GOOGLE_WORKPLACE_DOMAIN: ${{secrets.VITE_GOOGLE_WORKPLACE_DOMAIN}}
+            VITE_GOOGLE_WORKPLACE_DOMAIN: ${{ secrets.VITE_GOOGLE_WORKPLACE_DOMAIN }}
+            # Yields the literal 'true' or '', never the value of the last
+            # secret in the chain.
+            IS_SUPABASE_CONFIGURED: ${{ (secrets.SUPABASE_ACCESS_TOKEN && secrets.SUPABASE_DB_PASSWORD && secrets.SUPABASE_PROJECT_ID && secrets.SUPABASE_URL && secrets.SB_PUBLISHABLE_KEY) && 'true' || '' }}
+            # Presence flags, not values. The `secrets` context is NOT
+            # available in a step `if:`, so each condition below reads one
+            # of these instead. Each yields the literal 'true' or ''.
+            HAS_SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN && 'true' || '' }}
+            HAS_SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD && 'true' || '' }}
+            HAS_SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID && 'true' || '' }}
+            HAS_SUPABASE_URL: ${{ secrets.SUPABASE_URL && 'true' || '' }}
+            HAS_SB_PUBLISHABLE_KEY: ${{ secrets.SB_PUBLISHABLE_KEY && 'true' || '' }}
+            HAS_POSTMARK_WEBHOOK_USER: ${{ secrets.POSTMARK_WEBHOOK_USER && 'true' || '' }}
+            HAS_POSTMARK_WEBHOOK_PASSWORD: ${{ secrets.POSTMARK_WEBHOOK_PASSWORD && 'true' || '' }}
+            HAS_POSTMARK_WEBHOOK_AUTHORIZED_IPS: ${{ secrets.POSTMARK_WEBHOOK_AUTHORIZED_IPS && 'true' || '' }}
 
         steps:
             - name: 📥 Checkout repo
-              uses: actions/checkout@v4
+              uses: actions/checkout@v7
+              with:
+                  persist-credentials: false
 
             - name: ⚙️ Setup node
-              uses: actions/setup-node@v4
+              uses: actions/setup-node@v7
               with:
                   node-version: 24
                   cache: npm
 
-            - name: ⚙️ Setup git
-              run: |
-                  echo Deploying to pages to ${{ vars.DEPLOY_REPOSITORY }}
-                  git remote set-url origin https://git:${{ secrets.DEPLOY_TOKEN || secrets.GITHUB_TOKEN }}@github.com/${{ vars.DEPLOY_REPOSITORY }}
-                  git remote add production $PRODUCTION_REMOTE
-                  git config --global user.email support+actions@github.com
-                  git config --global user.name github-actions-bot
-
-            - name: ⚙️ Setup supabase
-              uses: supabase/setup-cli@v1
-
+            # Also provides the Supabase CLI: it is a devDependency, so the
+            # `npx supabase` steps below resolve it from node_modules at the
+            # version the lockfile pins.
             - name: 📥 Download deps
               run: npm ci
 
@@ -142,60 +159,90 @@ jobs:
 
             - if: ${{ env.IS_SUPABASE_CONFIGURED }}
               name: 🔗 Supabase Link
-              run: npx supabase link --project-ref $SUPABASE_PROJECT_ID
+              env:
+                  SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+                  SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+                  SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+              run: npx supabase link --project-ref "$SUPABASE_PROJECT_ID"
 
             - if: ${{ env.IS_SUPABASE_CONFIGURED }}
               name: 📡 Push supabase migrations
+              env:
+                  SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+                  SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+                  SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
               run: npx supabase db push
 
-            - if: ${{ env.IS_SUPABASE_CONFIGURED && env.POSTMARK_WEBHOOK_USER && env.POSTMARK_WEBHOOK_PASSWORD && env.POSTMARK_WEBHOOK_AUTHORIZED_IPS }}
+            - if: ${{ env.IS_SUPABASE_CONFIGURED && env.HAS_POSTMARK_WEBHOOK_USER && env.HAS_POSTMARK_WEBHOOK_PASSWORD && env.HAS_POSTMARK_WEBHOOK_AUTHORIZED_IPS }}
               name: 📡 Push supabase postmark webhook user secret
+              env:
+                  SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+                  SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+                  POSTMARK_WEBHOOK_USER: ${{ secrets.POSTMARK_WEBHOOK_USER }}
+                  POSTMARK_WEBHOOK_PASSWORD: ${{ secrets.POSTMARK_WEBHOOK_PASSWORD }}
+                  POSTMARK_WEBHOOK_AUTHORIZED_IPS: ${{ secrets.POSTMARK_WEBHOOK_AUTHORIZED_IPS }}
+              # Values are passed through the environment, never interpolated
+              # into the command line by the expression engine.
               run: |
-                  npx supabase secrets set POSTMARK_WEBHOOK_USER=${{ env.POSTMARK_WEBHOOK_USER }}
-                  npx supabase secrets set POSTMARK_WEBHOOK_PASSWORD=${{ env.POSTMARK_WEBHOOK_PASSWORD }}
-                  npx supabase secrets set POSTMARK_WEBHOOK_AUTHORIZED_IPS=${{ env.POSTMARK_WEBHOOK_AUTHORIZED_IPS }}
-                  npx supabase secrets set VITE_INBOUND_EMAIL=${{ env.VITE_INBOUND_EMAIL }}
-                  npx supabase secrets set VITE_ATTACHMENTS_BUCKET=${{ env.VITE_ATTACHMENTS_BUCKET }}
+                  npx supabase secrets set "POSTMARK_WEBHOOK_USER=$POSTMARK_WEBHOOK_USER"
+                  npx supabase secrets set "POSTMARK_WEBHOOK_PASSWORD=$POSTMARK_WEBHOOK_PASSWORD"
+                  npx supabase secrets set "POSTMARK_WEBHOOK_AUTHORIZED_IPS=$POSTMARK_WEBHOOK_AUTHORIZED_IPS"
+                  npx supabase secrets set "VITE_INBOUND_EMAIL=$VITE_INBOUND_EMAIL"
+                  npx supabase secrets set "VITE_ATTACHMENTS_BUCKET=$VITE_ATTACHMENTS_BUCKET"
 
             - if: ${{ env.IS_SUPABASE_CONFIGURED }}
               name: 📡 Deploy supabase functions
+              env:
+                  SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+                  SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
               run: npx supabase functions deploy
 
-            - if: ${{ !env.SUPABASE_ACCESS_TOKEN }}
+            - if: ${{ !env.HAS_SUPABASE_ACCESS_TOKEN }}
               name: Check SUPABASE_ACCESS_TOKEN secret
               run: echo ':warning:SUPABASE_ACCESS_TOKEN secret is missing' >> $GITHUB_STEP_SUMMARY
 
-            - if: ${{ !env.SUPABASE_DB_PASSWORD }}
+            - if: ${{ !env.HAS_SUPABASE_DB_PASSWORD }}
               name: Check SUPABASE_DB_PASSWORD secret
               run: echo ':warning:SUPABASE_DB_PASSWORD secret is missing' >> $GITHUB_STEP_SUMMARY
 
-            - if: ${{ !env.SUPABASE_PROJECT_ID }}
+            - if: ${{ !env.HAS_SUPABASE_PROJECT_ID }}
               name: Check SUPABASE_PROJECT_ID secret
               run: echo ':warning:SUPABASE_PROJECT_ID secret is missing' >> $GITHUB_STEP_SUMMARY
 
-            - if: ${{ !env.VITE_SUPABASE_URL }}
+            - if: ${{ !env.HAS_SUPABASE_URL }}
               name: Check SUPABASE_URL secret
               run: echo ':warning:SUPABASE_URL secret is missing' >> $GITHUB_STEP_SUMMARY
 
-            - if: ${{ !env.VITE_SB_PUBLISHABLE_KEY }}
+            - if: ${{ !env.HAS_SB_PUBLISHABLE_KEY }}
               name: Check SB_PUBLISHABLE_KEY secret
               run: echo ':warning:SB_PUBLISHABLE_KEY secret is missing' >> $GITHUB_STEP_SUMMARY
 
-            - if: ${{ !env.POSTMARK_WEBHOOK_USER }}
+            - if: ${{ !env.HAS_POSTMARK_WEBHOOK_USER }}
               name: Check POSTMARK_WEBHOOK_USER secret
               run: echo ':warning:POSTMARK_WEBHOOK_USER secret is missing' >> $GITHUB_STEP_SUMMARY
 
-            - if: ${{ !env.POSTMARK_WEBHOOK_PASSWORD }}
-              name: Check POSTMARK_WEBHOOK_USER secret
+            - if: ${{ !env.HAS_POSTMARK_WEBHOOK_PASSWORD }}
+              name: Check POSTMARK_WEBHOOK_PASSWORD secret
               run: echo ':warning:POSTMARK_WEBHOOK_PASSWORD secret is missing' >> $GITHUB_STEP_SUMMARY
 
-            - if: ${{ !env.POSTMARK_WEBHOOK_AUTHORIZED_IPS }}
-              name: Check POSTMARK_WEBHOOK_USER secret
+            - if: ${{ !env.HAS_POSTMARK_WEBHOOK_AUTHORIZED_IPS }}
+              name: Check POSTMARK_WEBHOOK_AUTHORIZED_IPS secret
               run: echo ':warning:POSTMARK_WEBHOOK_AUTHORIZED_IPS secret is missing' >> $GITHUB_STEP_SUMMARY
 
             - if: ${{ !env.IS_SUPABASE_CONFIGURED }}
               name: Supabase deployment skipped
               run: echo ':warning:Supabase deployment skipped' >> $GITHUB_STEP_SUMMARY
+
+            - name: ⚙️ Setup git
+              env:
+                  DEPLOY_REMOTE: https://git:${{ secrets.DEPLOY_TOKEN || secrets.GITHUB_TOKEN }}@github.com/${{ vars.DEPLOY_REPOSITORY }}
+                  DEPLOY_REPOSITORY: ${{ vars.DEPLOY_REPOSITORY }}
+              run: |
+                  echo "Deploying to pages to $DEPLOY_REPOSITORY"
+                  git remote set-url origin "$DEPLOY_REMOTE"
+                  git remote add production "$DEPLOY_REMOTE"
+                  git config --global user.email support+actions@github.com
+                  git config --global user.name github-actions-bot
 
             - name: 📡 Deploy GitHub pages
               run: npx gh-pages --remote production -d dist -b ${{ vars.DEPLOY_BRANCH || 'gh-pages' }}

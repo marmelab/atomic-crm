@@ -86,6 +86,11 @@ done
 for f in seed.sql signing_keys.json; do
   [ -f "$SRC/supabase/$f" ] && cp "$SRC/supabase/$f" "$workdir/supabase/$f"
 done
+# Edge functions reject JWTs whose issuer differs from SB_JWT_ISSUER. functions/.env sets it
+# for the dev instance (port 54321), but this slot's JWTs are issued by its own API (port
+# $api_port, offset above), so rewrite it to that port.
+[ -f "$SRC/supabase/functions/.env" ] && sed "s|^SB_JWT_ISSUER=.*|SB_JWT_ISSUER=http://127.0.0.1:$api_port/auth/v1|" \
+  "$SRC/supabase/functions/.env" > "$workdir/supabase/functions/.env"
 
 if [ "$DRY" = "1" ]; then
   echo "DRY-RUN slot=$slot offset=$offset project=$project api_port=$api_port app_port=$app_port workdir=$workdir"

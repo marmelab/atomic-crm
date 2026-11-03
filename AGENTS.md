@@ -166,6 +166,7 @@ When modifying contact or company data structures:
 7. Don't forget to update the related view (`contacts_summary`, `companies_summary`) in `03_views.sql`
 8. Don't forget the export functions
 9. Don't forget the contact merge logic
+10. If the new field stores files uploaded to the attachments bucket, add its column to the reference list in `supabase/functions/delete_note_attachments/index.ts`, otherwise a file it shares with a note gets deleted when that note drops it
 
 ### Running with Test Data
 

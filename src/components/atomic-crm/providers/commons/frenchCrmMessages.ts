@@ -133,6 +133,9 @@ export const frenchCrmMessages = {
       list: {
         error_loading: "Erreur lors du chargement des contacts",
       },
+      show: {
+        error_loading: "Erreur lors du chargement du contact",
+      },
       bulk_tag: {
         action: "Étiqueter",
         back: "Retour aux étiquettes",

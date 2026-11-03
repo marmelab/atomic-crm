@@ -238,6 +238,11 @@ begin
   select count(id) into sales_count
   from public.sales;
 
+  delete from public.user_invitations where user_id = new.id;
+  if sales_count > 0 and not found and not new.is_sso_user then
+    raise exception 'Sign up is not allowed';
+  end if;
+
   insert into public.sales (first_name, last_name, email, user_id, administrator)
   values (
     coalesce(new.raw_user_meta_data ->> 'first_name', new.raw_user_meta_data -> 'custom_claims' ->> 'first_name', 'Pending'),

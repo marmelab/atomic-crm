@@ -65,12 +65,20 @@ You can customize the OpenAPI specification via comments on tables. See the [Pos
 
 Here is a list of the main supabase auth endpoints you are most likely to use for authentication:
 
-- `POST /auth/v1/signup`: to create a new user and get a JWT token.
+- `POST /auth/v1/signup`: to create the first user of a new instance and get a JWT token. Once a user exists, sign-up is closed: administrators create users from the Users page (see [User Management](../../users/user-management/)).
 - `POST /auth/v1/token`: to authenticate a user and get a JWT token. (multiple grant types are supported, check the documentation for more details)
 - `POST /auth/v1/logout`: to log out the authenticated user.
 - `GET /auth/v1/user`: to get the authenticated user information.
 
 See the [Supabase project's API documentation](https://supabase.com/dashboard/project/_/integrations/data_api/docs?page=users-management) for all the possible endpoints.
+
+To create a user from a script, first insert the new user's id into the `user_invitations` table with the service role key, then create the user with that same id. Without the invitation, user creation fails with a "Database error saving new user" error:
+
+```ts
+const id = crypto.randomUUID();
+await supabaseAdmin.from("user_invitations").insert({ user_id: id });
+await supabaseAdmin.auth.admin.createUser({ id, email, password });
+```
 
 ## Data API Endpoints
 
