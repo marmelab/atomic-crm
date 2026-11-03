@@ -3,40 +3,53 @@
 -- This file declares all PL/pgSQL functions in the public schema.
 --
 
-CREATE OR REPLACE FUNCTION "public"."enqueue_note_attachments_cleanup"() RETURNS "trigger"
+CREATE OR REPLACE FUNCTION "public"."cleanup_note_attachments"() RETURNS "trigger"
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO ''
     AS $$
     DECLARE
-      enqueued_count integer;
+      payload jsonb;
+      request_headers jsonb;
+      auth_header text;
     BEGIN
+      request_headers := coalesce(
+        nullif(current_setting('request.headers', true), '')::jsonb,
+        '{}'::jsonb
+      );
+      auth_header := request_headers ->> 'authorization';
+
+      IF auth_header IS NULL OR auth_header = '' THEN
+        IF TG_OP = 'DELETE' THEN
+          RETURN OLD;
+        END IF;
+
+        RETURN NEW;
+      END IF;
+
+      payload := jsonb_build_object(
+        'old_record', OLD,
+        'record', NEW,
+        'type', TG_OP
+      );
+
+      PERFORM net.http_post(
+        url := public.get_note_attachments_function_url(),
+        body := payload,
+        params := '{}'::jsonb,
+        headers := jsonb_build_object(
+          'Content-Type',
+          'application/json',
+          'Authorization',
+          auth_header
+        ),
+        timeout_milliseconds := 10000
+      );
+
       IF TG_OP = 'DELETE' THEN
-        INSERT INTO public.note_attachments_cleanup_queue (attachments)
-        SELECT old_note.attachments
-        FROM old_table AS old_note
-        WHERE cardinality(old_note.attachments) > 0;
-      ELSE
-        INSERT INTO public.note_attachments_cleanup_queue (attachments)
-        SELECT old_note.attachments
-        FROM old_table AS old_note
-        JOIN new_table AS new_note ON new_note.id = old_note.id
-        WHERE old_note.attachments IS DISTINCT FROM new_note.attachments
-          AND cardinality(old_note.attachments) > 0;
+        RETURN OLD;
       END IF;
 
-      GET DIAGNOSTICS enqueued_count = ROW_COUNT;
-
-      IF enqueued_count > 0 THEN
-        PERFORM net.http_post(
-          url := public.get_note_attachments_function_url(),
-          body := '{}'::jsonb,
-          params := '{}'::jsonb,
-          headers := '{"Content-Type": "application/json"}'::jsonb,
-          timeout_milliseconds := 10000
-        );
-      END IF;
-
-      RETURN NULL;
+      RETURN NEW;
     END;
     $$;
 
