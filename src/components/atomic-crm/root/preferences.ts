@@ -4,8 +4,6 @@ import type { UserPreferences } from "../types";
 
 export const PREFERENCES_QUERY_KEY = "preferences";
 
-export const PREFERENCES_STALE_TIME_MS = 5 * 60 * 1000;
-
 const themeSchema = z.enum(["light", "dark", "system"]);
 
 const localeSchema = z

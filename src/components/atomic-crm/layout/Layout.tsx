@@ -6,12 +6,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 import { DataImportProvider } from "../dataImport/DataImportProvider";
 import { useConfigurationLoader } from "../root/useConfigurationLoader";
-import { usePreferencesLoader } from "../root/usePreferencesLoader";
+import { usePreferencesSync } from "../root/usePreferencesSync";
 import Header from "./Header";
 
 export const Layout = ({ children }: { children: ReactNode }) => {
   useConfigurationLoader();
-  usePreferencesLoader();
+  usePreferencesSync();
   return (
     <DataImportProvider>
       <Header />

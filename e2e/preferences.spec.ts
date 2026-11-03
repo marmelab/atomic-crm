@@ -27,8 +27,7 @@ const openLanguageSetting = async (page: Page, isMobile: boolean) => {
   if (isMobile) {
     await page.getByRole("link", { name: /^(Settings|Paramètres)$/ }).click();
   } else {
-    await page.getByRole("button", { name: /^Profil/ }).click();
-    await page.getByRole("menuitem", { name: /^Profil/ }).click();
+    await page.goto("/#/profile");
   }
 };
 
