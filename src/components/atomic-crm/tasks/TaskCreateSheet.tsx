@@ -70,7 +70,7 @@ export const TaskCreateSheet = ({
     <CreateSheet
       resource="tasks"
       title={
-        <span className="text-xl font-semibold truncate pr-10">
+        <span className="text-xl font-semibold truncate">
           {!selectContact
             ? translate("resources.tasks.dialog.create_for", {
                 name: getContactRepresentation(contact!),
