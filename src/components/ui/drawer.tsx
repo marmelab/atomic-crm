@@ -163,6 +163,16 @@ function DrawerContent({
   )
 }
 
+// Atomic CRM addition (not in shadcn's drawer): exposes Base UI's
+// VirtualKeyboardProvider, which keeps full-screen drawers above the iOS
+// keyboard (see misc/FormDrawer.tsx and search/GlobalSearchButton.tsx).
+// Keep it when reinstalling this component from shadcn.
+function DrawerVirtualKeyboardProvider({
+  ...props
+}: DrawerPrimitive.VirtualKeyboardProvider.Props) {
+  return <DrawerPrimitive.VirtualKeyboardProvider {...props} />
+}
+
 function DrawerHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -221,4 +231,6 @@ export {
   DrawerFooter,
   DrawerTitle,
   DrawerDescription,
+  // Atomic CRM addition, see DrawerVirtualKeyboardProvider above
+  DrawerVirtualKeyboardProvider,
 }
