@@ -31,6 +31,7 @@ import { ContactTasksList } from "./ContactTasksList";
 import type { Contact } from "../types";
 import { Avatar } from "./Avatar";
 import { ContactAside } from "./ContactAside";
+import { useTrackRecentContact } from "./useRecentContacts";
 import { MobileBackButton } from "../misc/MobileBackButton";
 
 export const ContactShow = (props: ShowBaseProps = {}) => {
@@ -82,6 +83,7 @@ const ContactShowContentMobile = () => {
   const { defaultTitle, record, isPending, error } = useShowContext<Contact>();
   const [noteCreateOpen, setNoteCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  useTrackRecentContact();
   if (isPending) return null;
   // The error notification is disabled on mobile, so show the error here,
   // unless a cached record is still available (e.g. offline refetch failure)
@@ -264,6 +266,7 @@ const ContactShowContentMobile = () => {
 const ContactShowContent = () => {
   const translate = useTranslate();
   const { record, isPending } = useShowContext<Contact>();
+  useTrackRecentContact();
   if (isPending || !record) return null;
 
   return (
