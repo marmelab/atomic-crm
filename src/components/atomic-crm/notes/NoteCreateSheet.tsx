@@ -60,7 +60,7 @@ export const NoteCreateSheet = ({
         _: "Note added",
       },
     });
-    redirect("show", "contacts", referenceRecordId);
+    redirect(`/contacts/${referenceRecordId}/show?tab=notes`);
     onOpenChange(false);
   };
 
