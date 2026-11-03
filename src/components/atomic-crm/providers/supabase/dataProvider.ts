@@ -1,5 +1,6 @@
 import { supabaseDataProvider } from "ra-supabase-core";
 import {
+  HttpError,
   withLifecycleCallbacks,
   type DataProvider,
   type GetListParams,
@@ -240,14 +241,14 @@ const getDataProviderWithCustomMethods = () => {
       resources: readonly SearchResourceName[],
       maxResults: number,
     ): Promise<SearchResult[]> {
-      const { data, error } = await getSupabaseClient().rpc("global_search", {
-        query,
-        resources,
-        max_results: maxResults,
-      });
+      const { data, error, status } = await getSupabaseClient().rpc(
+        "global_search",
+        { query, resources, max_results: maxResults },
+      );
       if (error) {
         console.error("global_search.error", error);
-        throw new Error("Failed to search");
+        // the status lets authProvider.checkError log out an expired session
+        throw new HttpError("Failed to search", status, error);
       }
       return data ?? [];
     },
