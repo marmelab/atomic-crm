@@ -30,6 +30,8 @@ AS $function$
       function_url := public.get_note_attachments_function_url();
 
       IF function_url IS NULL THEN
+        RAISE WARNING 'Cannot resolve delete_note_attachments function URL, note attachments were not deleted';
+
         IF TG_OP = 'DELETE' THEN
           RETURN OLD;
         END IF;
