@@ -552,10 +552,14 @@ using (true);
 
 -- Use Postgres to create a bucket.
 
-insert into storage.buckets
+INSERT INTO storage.buckets
   (id, name, public)
-values
-  ('attachments', 'attachments', true);
+VALUES
+  ('attachments', 'attachments', true)
+ON CONFLICT (id)
+DO UPDATE SET
+  name = EXCLUDED.name,
+  public = EXCLUDED.public;
 
 CREATE POLICY "Attachments 1mt4rzk_0" ON storage.objects FOR SELECT TO authenticated USING (bucket_id = 'attachments');
 CREATE POLICY "Attachments 1mt4rzk_1" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id = 'attachments');
