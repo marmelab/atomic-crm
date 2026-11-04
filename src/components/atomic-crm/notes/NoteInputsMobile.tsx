@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import { Paperclip } from "lucide-react";
 import {
   required,
@@ -23,31 +23,19 @@ export const NoteInputsMobile = ({
   selectContact?: boolean;
 }) => {
   const translate = useTranslate();
-  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const { field, fieldState } = useInput({
     source: "text",
     validate: validateNoteOrAttachmentRequired,
   });
-
-  useEffect(() => {
-    const node = textareaRef.current;
-    if (!node) return;
-    requestAnimationFrame(() => {
-      node.focus();
-      // move cursor to end of text
-      node.setSelectionRange(node.value.length, node.value.length);
-    });
-  }, []);
 
   return (
     <div className="flex flex-col flex-1 -m-4">
       <div className="flex-1 flex flex-col">
         <textarea
           {...field}
-          ref={(node) => {
-            field.ref(node);
-            textareaRef.current = node;
-          }}
+          // focused by FormDrawer once open: autoFocus would fire while the drawer
+          // still slides in, and iOS would scroll the form out of view
+          data-autofocus
           placeholder={translate("resources.notes.inputs.add_note")}
           className="flex-1 min-h-0 resize-none bg-background p-4 outline-none text-base"
         />

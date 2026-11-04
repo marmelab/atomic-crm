@@ -1,11 +1,5 @@
 import { SaveButton } from "@/components/admin/form";
-import {
-  Sheet,
-  SheetContent,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+import { DrawerTitle } from "@/components/ui/drawer";
 import {
   CreateBase,
   Form,
@@ -18,6 +12,7 @@ import {
 } from "ra-core";
 import { type ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { FormDrawer } from "./FormDrawer";
 
 export interface CreateSheetProps extends CreateBaseProps {
   /**
@@ -52,9 +47,9 @@ export interface CreateSheetProps extends CreateBaseProps {
 }
 
 /**
- * A Sheet component that contains a create form with externally controlled open state.
+ * A full-screen drawer that contains a create form with externally controlled open state.
  *
- * Renders a Sheet containing a CreateBase form. The sheet has a fixed footer with Save and Close buttons.
+ * Renders a FormDrawer containing a CreateBase form. The sheet has a fixed footer with Save and Close buttons.
  * The open state is controlled externally via the open and onOpenChange props. The sheet will automatically
  * close itself on successful submission (if redirect is false) or when the Close button is clicked.
  *
@@ -123,51 +118,43 @@ export const CreateSheet = ({
   };
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent
-        side="bottom"
-        className="data-[side=bottom]:h-dvh flex flex-col"
-        aria-describedby={undefined}
+    <FormDrawer open={open} onOpenChange={onOpenChange}>
+      <CreateBase
+        {...createBaseProps}
+        redirect={redirectTo}
+        mutationOptions={enhancedMutationOptions}
       >
-        <CreateBase
-          {...createBaseProps}
-          redirect={redirectTo}
-          mutationOptions={enhancedMutationOptions}
+        <Form
+          defaultValues={defaultValues}
+          className="min-h-0 flex-1 flex flex-col"
         >
-          <Form
-            defaultValues={defaultValues}
-            className="h-dvh flex-1 flex flex-col"
-          >
-            <SheetHeader className="border-b">
-              <div
-                className={cn(
-                  "flex items-center gap-2",
-                  headerActions && "pr-12",
+          <div className="flex flex-col gap-1.5 p-4 border-b">
+            <div
+              className={cn(
+                "flex items-center gap-2",
+                headerActions ? "pr-12" : "pr-10",
+              )}
+            >
+              <DrawerTitle className="min-w-0 flex-1 truncate">
+                {typeof title === "string" ? (
+                  <span className="text-xl font-semibold">{title}</span>
+                ) : (
+                  title
                 )}
-              >
-                <SheetTitle className="min-w-0 flex-1 truncate">
-                  {typeof title === "string" ? (
-                    <span className="text-xl font-semibold">{title}</span>
-                  ) : (
-                    title
-                  )}
-                </SheetTitle>
-                {headerActions && (
-                  <div className="shrink-0">{headerActions}</div>
-                )}
-              </div>
-            </SheetHeader>
-
-            <div className="flex-1 overflow-y-auto flex flex-col gap-3 p-4">
-              {children}
+              </DrawerTitle>
+              {headerActions && <div className="shrink-0">{headerActions}</div>}
             </div>
+          </div>
 
-            <SheetFooter className="border-t flex flex-row w-full gap-4">
-              <SaveButton className="flex-1 h-12" />
-            </SheetFooter>
-          </Form>
-        </CreateBase>
-      </SheetContent>
-    </Sheet>
+          <div className="flex-1 overflow-y-auto flex flex-col gap-3 p-4">
+            {children}
+          </div>
+
+          <div className="mt-auto border-t flex flex-row w-full gap-4 p-4">
+            <SaveButton className="flex-1 h-12" />
+          </div>
+        </Form>
+      </CreateBase>
+    </FormDrawer>
   );
 };

@@ -5,6 +5,7 @@ import {
   useGetOne,
   useGetRecordRepresentation,
   useNotify,
+  useRedirect,
   useTranslate,
   useUpdate,
 } from "ra-core";
@@ -38,6 +39,7 @@ export const TaskCreateSheet = ({
   const dataProvider = useDataProvider();
   const queryClient = useQueryClient();
   const notify = useNotify();
+  const redirect = useRedirect();
 
   if (!identity) return null;
 
@@ -58,7 +60,9 @@ export const TaskCreateSheet = ({
     });
 
     notify("resources.tasks.added");
-    // No redirect, only close the sheet
+    if (!selectContact) {
+      redirect(`/contacts/${contact_id}/show?tab=tasks`);
+    }
     onOpenChange(false);
   };
 
@@ -66,7 +70,7 @@ export const TaskCreateSheet = ({
     <CreateSheet
       resource="tasks"
       title={
-        <span className="text-xl font-semibold truncate pr-10">
+        <span className="text-xl font-semibold truncate">
           {!selectContact
             ? translate("resources.tasks.dialog.create_for", {
                 name: getContactRepresentation(contact!),

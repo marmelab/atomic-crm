@@ -16,12 +16,19 @@ import {
 } from "@/components/ui/command";
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerTitle,
+  DrawerVirtualKeyboardProvider,
+} from "@/components/ui/drawer";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 
@@ -75,10 +82,12 @@ export const GlobalSearchButton = ({
 
   // iOS only opens the virtual keyboard for a focus made during the tap
   // itself, while Base UI focuses the dialog a frame later: render it now and
-  // focus its input before the click handler returns.
+  // focus its input before the click handler returns. Without preventScroll,
+  // iOS scrolls the mobile drawer, still sliding in from below the screen, to
+  // bring the input into view, pushing it off the top.
   const openDialog = () => {
     flushSync(() => setOpen(true));
-    inputRef.current?.focus();
+    inputRef.current?.focus({ preventScroll: true });
   };
 
   useEffect(() => {
@@ -273,20 +282,189 @@ export const GlobalSearchDialog = ({
     />
   );
 
+  // results come from the server, already filtered; same look as shadcn's
+  // CommandDialog, which this composes from Dialog and Command itself to
+  // control the layout and filtering
+  const command = (
+    <Command
+      shouldFilter={false}
+      className={cn(
+        "[&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group]]:px-2 [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5",
+        !isMobile &&
+          "**:data-[slot=command-input-wrapper]:h-12 [&_[cmdk-input]]:h-12",
+      )}
+    >
+      {/* On a phone, a taller input sits next to the close button rather
+              than under it, both centered on the same row. */}
+      {isMobile ? (
+        <div className="flex items-center gap-1 py-2 pl-2 pr-1 *:data-[slot=command-input-wrapper]:flex-1 *:data-[slot=command-input-wrapper]:p-0 **:data-[slot=input-group]:h-11!">
+          {searchInput}
+          <DrawerClose render={<Button variant="ghost" size="icon-lg" />}>
+            <XIcon className="size-5" />
+            <span className="sr-only">Close</span>
+          </DrawerClose>
+        </div>
+      ) : (
+        searchInput
+      )}
+      <CommandList
+        className={cn(
+          "overscroll-contain",
+          isMobile ? "max-h-none min-h-0 flex-1" : "max-h-[60vh]",
+        )}
+        // As in native iOS search, dragging the results closes the
+        // keyboard, so the whole list shows.
+        onTouchStart={
+          isMobile
+            ? () => (document.activeElement as HTMLElement | null)?.blur()
+            : undefined
+        }
+      >
+        {isTooShort ? (
+          <div className="px-4 py-6 text-center text-sm text-muted-foreground">
+            {translate("crm.search.hint", { min: MIN_SEARCH_LENGTH })}
+          </div>
+        ) : error ? (
+          <div
+            role="alert"
+            className="px-4 py-6 text-center text-sm text-destructive"
+          >
+            {translate("crm.search.error")}
+          </div>
+        ) : isPending ? (
+          <div className="px-4 py-6 text-center text-sm text-muted-foreground">
+            {translate("crm.common.loading")}
+          </div>
+        ) : (
+          <>
+            <CommandEmpty className="px-4 py-6 text-center text-sm">
+              {translate("crm.search.empty")}
+            </CommandEmpty>
+            {SEARCH_RESOURCES.map(({ name, icon: Icon, labelKey }) => {
+              const groupResults = linkedResults.filter(
+                ({ result }) => result.resource === name,
+              );
+              if (groupResults.length === 0) {
+                return null;
+              }
+              const hiddenCount = expandedGroups.has(name)
+                ? 0
+                : Math.max(0, groupResults.length - GROUP_PREVIEW_SIZE);
+              const shownResults = groupResults.slice(
+                0,
+                groupResults.length - hiddenCount,
+              );
+              return (
+                <CommandGroup
+                  key={name}
+                  heading={translate(labelKey)}
+                  className="[&_[cmdk-group-heading]]:text-sm"
+                >
+                  {shownResults.map(({ result, url }) => {
+                    const title =
+                      result.title || translate("crm.search.untitled_result");
+                    // A note's or task's title is the start of its text: when
+                    // the match is further in, show the text around it instead.
+                    const isTitleFromContent =
+                      !!result.content && result.content.startsWith(title);
+                    const snippet = result.content
+                      ? getSnippet(
+                          title,
+                          result.content,
+                          terms,
+                          isTitleFromContent ? TITLE_SNIPPET_RADIUS : undefined,
+                        )
+                      : null;
+                    const displayedTitle =
+                      isTitleFromContent && snippet ? snippet : title;
+                    const secondLine = isTitleFromContent ? null : snippet;
+                    return (
+                      <CommandItem
+                        key={`${result.resource}.${result.record_id}`}
+                        value={`${result.resource}.${result.record_id}`}
+                        onSelect={() => handleSelect(url)}
+                        className="items-start text-base"
+                      >
+                        <Icon className="mt-0.5 shrink-0" />
+                        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                          <div className="flex items-baseline gap-2">
+                            <span
+                              className={
+                                isTitleFromContent ? "line-clamp-2" : "truncate"
+                              }
+                            >
+                              <Highlighted
+                                text={displayedTitle}
+                                terms={terms}
+                              />
+                            </span>
+                            {result.subtitle ? (
+                              <span className="ml-auto shrink-0 text-sm text-muted-foreground">
+                                {result.subtitle}
+                              </span>
+                            ) : null}
+                          </div>
+                          {secondLine ? (
+                            <span className="line-clamp-2 text-sm text-muted-foreground">
+                              <Highlighted text={secondLine} terms={terms} />
+                            </span>
+                          ) : null}
+                        </div>
+                      </CommandItem>
+                    );
+                  })}
+                  {hiddenCount > 0 ? (
+                    <CommandItem
+                      value={`${name}.show_more`}
+                      onSelect={() =>
+                        setExpandedGroups(
+                          (groups) => new Set([...groups, name]),
+                        )
+                      }
+                      className="text-sm text-muted-foreground"
+                    >
+                      <ChevronDown className="shrink-0" />
+                      {translate("crm.search.show_more")}
+                    </CommandItem>
+                  ) : null}
+                </CommandGroup>
+              );
+            })}
+          </>
+        )}
+      </CommandList>
+    </Command>
+  );
+
+  // Mobile: the whole screen. A drawer rather than a dialog, as it keeps the
+  // list above the keyboard and stops drags from scrolling the page behind it.
+  if (isMobile) {
+    return (
+      <Drawer open={open} onOpenChange={handleOpenChange}>
+        <DrawerVirtualKeyboardProvider>
+          <DrawerContent
+            // openDialog focuses the input, during the tap
+            initialFocus={false}
+            className="h-dvh max-h-none data-[swipe-direction=down]:rounded-t-none pb-(--drawer-keyboard-inset)"
+          >
+            <DrawerTitle className="sr-only">
+              {translate("crm.search.title")}
+            </DrawerTitle>
+            <DrawerDescription className="sr-only">
+              {translate("crm.search.placeholder")}
+            </DrawerDescription>
+            {command}
+          </DrawerContent>
+        </DrawerVirtualKeyboardProvider>
+      </Drawer>
+    );
+  }
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      {/* Desktop: pinned near the top so the box grows downwards as results
-          arrive instead of re-centering on every keystroke. Mobile: the whole
-          screen. */}
-      <DialogContent
-        showCloseButton={!isMobile}
-        className={cn(
-          "overflow-hidden p-0",
-          isMobile
-            ? "inset-0 h-dvh max-w-none translate-x-0 translate-y-0 grid-rows-[minmax(0,1fr)] rounded-none border-0 sm:max-w-none"
-            : "top-[12vh] translate-y-0 sm:max-w-xl",
-        )}
-      >
+      {/* Pinned near the top so the box grows downwards as results arrive
+          instead of re-centering on every keystroke. */}
+      <DialogContent className="overflow-hidden p-0 top-[12vh] translate-y-0 sm:max-w-xl">
         {/* inside the content, so nothing renders while the dialog is closed */}
         <DialogHeader className="sr-only">
           <DialogTitle>{translate("crm.search.title")}</DialogTitle>
@@ -294,165 +472,7 @@ export const GlobalSearchDialog = ({
             {translate("crm.search.placeholder")}
           </DialogDescription>
         </DialogHeader>
-        {/* results come from the server, already filtered; same look as
-            shadcn's CommandDialog, which this composes from Dialog and Command
-            itself to control the layout and filtering */}
-        <Command
-          shouldFilter={false}
-          className={cn(
-            "[&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group]]:px-2 [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5",
-            !isMobile &&
-              "**:data-[slot=command-input-wrapper]:h-12 [&_[cmdk-input]]:h-12",
-          )}
-        >
-          {/* On a phone, a taller input sits next to the close button rather
-              than under it, both centered on the same row. */}
-          {isMobile ? (
-            <div className="flex items-center gap-1 py-2 pl-2 pr-1 *:data-[slot=command-input-wrapper]:flex-1 *:data-[slot=command-input-wrapper]:p-0 **:data-[slot=input-group]:h-11!">
-              {searchInput}
-              <DialogClose render={<Button variant="ghost" size="icon-lg" />}>
-                <XIcon className="size-5" />
-                <span className="sr-only">Close</span>
-              </DialogClose>
-            </div>
-          ) : (
-            searchInput
-          )}
-          <CommandList
-            className={cn(
-              "overscroll-contain",
-              isMobile ? "max-h-none min-h-0 flex-1" : "max-h-[60vh]",
-            )}
-            // On a phone the keyboard covers the bottom of the list, and
-            // dragging then pans the page behind the dialog: close it first.
-            onTouchStart={
-              isMobile
-                ? () => (document.activeElement as HTMLElement | null)?.blur()
-                : undefined
-            }
-          >
-            {isTooShort ? (
-              <div className="px-4 py-6 text-center text-sm text-muted-foreground">
-                {translate("crm.search.hint", { min: MIN_SEARCH_LENGTH })}
-              </div>
-            ) : error ? (
-              <div
-                role="alert"
-                className="px-4 py-6 text-center text-sm text-destructive"
-              >
-                {translate("crm.search.error")}
-              </div>
-            ) : isPending ? (
-              <div className="px-4 py-6 text-center text-sm text-muted-foreground">
-                {translate("crm.common.loading")}
-              </div>
-            ) : (
-              <>
-                <CommandEmpty className="px-4 py-6 text-center text-sm">
-                  {translate("crm.search.empty")}
-                </CommandEmpty>
-                {SEARCH_RESOURCES.map(({ name, icon: Icon, labelKey }) => {
-                  const groupResults = linkedResults.filter(
-                    ({ result }) => result.resource === name,
-                  );
-                  if (groupResults.length === 0) {
-                    return null;
-                  }
-                  const hiddenCount = expandedGroups.has(name)
-                    ? 0
-                    : Math.max(0, groupResults.length - GROUP_PREVIEW_SIZE);
-                  const shownResults = groupResults.slice(
-                    0,
-                    groupResults.length - hiddenCount,
-                  );
-                  return (
-                    <CommandGroup
-                      key={name}
-                      heading={translate(labelKey)}
-                      className="[&_[cmdk-group-heading]]:text-sm"
-                    >
-                      {shownResults.map(({ result, url }) => {
-                        const title =
-                          result.title ||
-                          translate("crm.search.untitled_result");
-                        // A note's or task's title is the start of its text: when
-                        // the match is further in, show the text around it instead.
-                        const isTitleFromContent =
-                          !!result.content && result.content.startsWith(title);
-                        const snippet = result.content
-                          ? getSnippet(
-                              title,
-                              result.content,
-                              terms,
-                              isTitleFromContent
-                                ? TITLE_SNIPPET_RADIUS
-                                : undefined,
-                            )
-                          : null;
-                        const displayedTitle =
-                          isTitleFromContent && snippet ? snippet : title;
-                        const secondLine = isTitleFromContent ? null : snippet;
-                        return (
-                          <CommandItem
-                            key={`${result.resource}.${result.record_id}`}
-                            value={`${result.resource}.${result.record_id}`}
-                            onSelect={() => handleSelect(url)}
-                            className="items-start text-base"
-                          >
-                            <Icon className="mt-0.5 shrink-0" />
-                            <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                              <div className="flex items-baseline gap-2">
-                                <span
-                                  className={
-                                    isTitleFromContent
-                                      ? "line-clamp-2"
-                                      : "truncate"
-                                  }
-                                >
-                                  <Highlighted
-                                    text={displayedTitle}
-                                    terms={terms}
-                                  />
-                                </span>
-                                {result.subtitle ? (
-                                  <span className="ml-auto shrink-0 text-sm text-muted-foreground">
-                                    {result.subtitle}
-                                  </span>
-                                ) : null}
-                              </div>
-                              {secondLine ? (
-                                <span className="line-clamp-2 text-sm text-muted-foreground">
-                                  <Highlighted
-                                    text={secondLine}
-                                    terms={terms}
-                                  />
-                                </span>
-                              ) : null}
-                            </div>
-                          </CommandItem>
-                        );
-                      })}
-                      {hiddenCount > 0 ? (
-                        <CommandItem
-                          value={`${name}.show_more`}
-                          onSelect={() =>
-                            setExpandedGroups(
-                              (groups) => new Set([...groups, name]),
-                            )
-                          }
-                          className="text-sm text-muted-foreground"
-                        >
-                          <ChevronDown className="shrink-0" />
-                          {translate("crm.search.show_more")}
-                        </CommandItem>
-                      ) : null}
-                    </CommandGroup>
-                  );
-                })}
-              </>
-            )}
-          </CommandList>
-        </Command>
+        {command}
       </DialogContent>
     </Dialog>
   );

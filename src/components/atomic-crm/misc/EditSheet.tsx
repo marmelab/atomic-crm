@@ -1,11 +1,5 @@
 import { SaveButton } from "@/components/admin/form";
-import {
-  Sheet,
-  SheetContent,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+import { DrawerTitle } from "@/components/ui/drawer";
 import {
   EditBase,
   Form,
@@ -19,6 +13,7 @@ import {
 } from "ra-core";
 import { type ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { FormDrawer } from "./FormDrawer";
 
 export interface EditSheetProps extends EditBaseProps {
   /**
@@ -53,9 +48,9 @@ export interface EditSheetProps extends EditBaseProps {
 }
 
 /**
- * A Sheet component that contains an edit form with externally controlled open state.
+ * A full-screen drawer that contains an edit form with externally controlled open state.
  *
- * Renders a Sheet containing an EditBase form. The sheet has a fixed footer with Save and Delete buttons.
+ * Renders a FormDrawer containing an EditBase form. The sheet has a fixed footer with Save and Delete buttons.
  * The open state is controlled externally via the open and onOpenChange props. The sheet will automatically
  * close itself on successful submission (if redirect is false) or when the Delete/Close actions are triggered.
  *
@@ -126,49 +121,41 @@ export const EditSheet = ({
   };
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent
-        side="bottom"
-        className="data-[side=bottom]:h-dvh flex flex-col"
-        aria-describedby={undefined}
+    <FormDrawer open={open} onOpenChange={onOpenChange}>
+      <EditBase
+        {...editBaseProps}
+        redirect={redirectTo}
+        mutationOptions={enhancedMutationOptions}
+        mutationMode={mutationMode}
       >
-        <EditBase
-          {...editBaseProps}
-          redirect={redirectTo}
-          mutationOptions={enhancedMutationOptions}
-          mutationMode={mutationMode}
+        <Form
+          defaultValues={defaultValues}
+          className="min-h-0 flex-1 flex flex-col"
         >
-          <Form
-            defaultValues={defaultValues}
-            className="h-dvh flex-1 flex flex-col"
-          >
-            <SheetHeader className="border-b">
-              <div
-                className={cn(
-                  "flex items-center gap-2",
-                  headerActions && "pr-12",
-                )}
-              >
-                <SheetTitle className="min-w-0 flex-1 truncate">
-                  <EditSheetTitle title={title} />
-                </SheetTitle>
-                {headerActions && (
-                  <div className="shrink-0">{headerActions}</div>
-                )}
-              </div>
-            </SheetHeader>
-
-            <div className="flex-1 overflow-y-auto flex flex-col gap-3 p-4">
-              {children}
+          <div className="flex flex-col gap-1.5 p-4 border-b">
+            <div
+              className={cn(
+                "flex items-center gap-2",
+                headerActions ? "pr-12" : "pr-10",
+              )}
+            >
+              <DrawerTitle className="min-w-0 flex-1 truncate">
+                <EditSheetTitle title={title} />
+              </DrawerTitle>
+              {headerActions && <div className="shrink-0">{headerActions}</div>}
             </div>
+          </div>
 
-            <SheetFooter className="border-t flex flex-row w-full gap-4">
-              <SaveButton className="flex-1 h-12" />
-            </SheetFooter>
-          </Form>
-        </EditBase>
-      </SheetContent>
-    </Sheet>
+          <div className="flex-1 overflow-y-auto flex flex-col gap-3 p-4">
+            {children}
+          </div>
+
+          <div className="mt-auto border-t flex flex-row w-full gap-4 p-4">
+            <SaveButton className="flex-1 h-12" />
+          </div>
+        </Form>
+      </EditBase>
+    </FormDrawer>
   );
 };
 

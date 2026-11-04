@@ -488,6 +488,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/misc/FormDrawer.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/misc/EditSheet.tsx",
           "type": "registry:component"
         },

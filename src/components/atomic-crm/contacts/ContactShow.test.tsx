@@ -8,6 +8,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { render } from "vitest-browser-react";
 import { createDataProvider } from "@/components/atomic-crm/providers/fakerest";
 import { buildContact, createCrmDb, StoryWrapper } from "@/test/StoryWrapper";
+import { NoteCreateSheet } from "../notes/NoteCreateSheet";
+import { TaskCreateSheet } from "../tasks/TaskCreateSheet";
 import { ContactAside } from "./ContactAside";
 import { ContactShow } from "./ContactShow";
 import { MobileSuccess } from "./ContactShow.mobile.stories";
@@ -62,6 +64,41 @@ describe("ContactShow", () => {
     await expect
       .element(screen.getByRole("tab", { name: "0 tasks" }))
       .toHaveAttribute("aria-selected", "true");
+  });
+
+  it("shows the contact tasks tab after creating a task for the contact", async () => {
+    const screen = await render(
+      <StoryWrapper data={{ contacts: [buildContact({ id: 1 })] }}>
+        <TaskCreateSheet open onOpenChange={() => {}} contact_id={1} />
+      </StoryWrapper>,
+    );
+
+    await screen.getByLabelText(/description/i).fill("Call back");
+    await screen.getByRole("button", { name: /^save$/i }).click();
+
+    await expect
+      .element(screen.getByRole("tab", { name: "1 task" }))
+      .toHaveAttribute("aria-selected", "true");
+    await expect.element(screen.getByText("Call back")).toBeVisible();
+  });
+
+  it("shows the contact notes tab after creating a note, even from another tab", async () => {
+    const screen = await render(
+      <StoryWrapper
+        data={{ contacts: [buildContact({ id: 1 })] }}
+        initialEntries={["/?tab=tasks"]}
+      >
+        <NoteCreateSheet open onOpenChange={() => {}} contact_id={1} />
+      </StoryWrapper>,
+    );
+
+    await screen.getByRole("textbox").first().fill("Met at the fair");
+    await screen.getByRole("button", { name: /^save$/i }).click();
+
+    await expect
+      .element(screen.getByRole("tab", { name: "Notes" }))
+      .toHaveAttribute("aria-selected", "true");
+    await expect.element(screen.getByText("Met at the fair")).toBeVisible();
   });
 
   it("links phone numbers to the dialer, keeping the extension as a pause", async () => {
