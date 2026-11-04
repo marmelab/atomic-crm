@@ -434,7 +434,6 @@ export const englishCrmMessages = {
       latest_activity_error: "Error loading latest activity",
       latest_notes: "My Latest Notes",
       latest_notes_added_ago: "added %{timeAgo}",
-      recent_contacts: "Recently Viewed",
       stepper: {
         install: "Install Atomic CRM",
         progress: "%{step}/3 done",
@@ -469,6 +468,7 @@ export const englishCrmMessages = {
       title: "Search",
       placeholder: "Search contacts, companies, deals, tasks and notes...",
       hint: "Type at least %{min} characters to search",
+      recent_contacts: "Recently viewed",
       empty: "No result found",
       error: "Search is unavailable right now. Please try again.",
       untitled_result: "(no title)",

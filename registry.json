@@ -168,6 +168,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/search/RecentContactsGroup.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/search/GlobalSearchButton.tsx",
           "type": "registry:component"
         },
@@ -708,10 +712,6 @@
           "type": "registry:component"
         },
         {
-          "path": "src/components/atomic-crm/dashboard/RecentContacts.tsx",
-          "type": "registry:component"
-        },
-        {
           "path": "src/components/atomic-crm/dashboard/MobileDashboard.tsx",
           "type": "registry:component"
         },
@@ -733,10 +733,6 @@
         },
         {
           "path": "src/components/atomic-crm/dashboard/DashboardStepper.tsx",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/dashboard/DashboardContactList.tsx",
           "type": "registry:component"
         },
         {

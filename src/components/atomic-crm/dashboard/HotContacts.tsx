@@ -3,6 +3,7 @@ import { useGetIdentity, useGetList, useTranslate } from "ra-core";
 import { Link } from "react-router";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { Card } from "@/components/ui/card";
 import {
   Tooltip,
   TooltipContent,
@@ -10,8 +11,9 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
+import { SimpleList } from "../simple-list/SimpleList";
+import { Avatar } from "../contacts/Avatar";
 import type { Contact } from "../types";
-import { DashboardContactList } from "./DashboardContactList";
 
 export const HotContacts = () => {
   const { identity } = useGetIdentity();
@@ -61,21 +63,40 @@ export const HotContacts = () => {
           </Tooltip>
         </TooltipProvider>
       </div>
-      <DashboardContactList
-        data={contactData}
-        total={contactTotal}
-        isPending={contactsLoading}
-        empty={
-          <div className="p-4">
-            <p className="text-sm mb-4">
-              {translate("resources.contacts.hot.empty_hint")}
-            </p>
-            <p className="text-sm">
-              {translate("resources.contacts.hot.empty_change_status")}
-            </p>
-          </div>
-        }
-      />
+      <Card className="py-0">
+        <SimpleList<Contact>
+          linkType="show"
+          data={contactData}
+          total={contactTotal}
+          isPending={contactsLoading}
+          resource="contacts"
+          className="[&>li:first-child>a]:rounded-t-xl [&>li:last-child>a]:rounded-b-xl"
+          primaryText={(contact) =>
+            `${contact.first_name} ${contact.last_name}`
+          }
+          secondaryText={(contact) => (
+            <>
+              {contact.title && contact.company_name
+                ? translate("resources.contacts.position_at_company", {
+                    title: contact.title,
+                    company: contact.company_name,
+                  })
+                : contact.title || contact.company_name}
+            </>
+          )}
+          leftAvatar={(contact) => <Avatar record={contact} />}
+          empty={
+            <div className="p-4">
+              <p className="text-sm mb-4">
+                {translate("resources.contacts.hot.empty_hint")}
+              </p>
+              <p className="text-sm">
+                {translate("resources.contacts.hot.empty_change_status")}
+              </p>
+            </div>
+          }
+        />
+      </Card>
     </div>
   );
 };

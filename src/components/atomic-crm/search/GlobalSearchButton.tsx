@@ -43,6 +43,7 @@ import {
   getSnippet,
   highlight,
 } from "./searchModel";
+import { RecentContactsGroup } from "./RecentContactsGroup";
 
 // Whether the keyboard shortcut fired while the user is typing in a field, in
 // which case it must not open the dialog. contenteditable covers rich text
@@ -266,6 +267,12 @@ export const GlobalSearchDialog = ({
   const isTooShort = debouncedQuery.length < MIN_SEARCH_LENGTH;
   const terms = useMemo(() => getSearchTerms(debouncedQuery), [debouncedQuery]);
 
+  const hint = (
+    <div className="px-4 py-6 text-center text-sm text-muted-foreground">
+      {translate("crm.search.hint", { min: MIN_SEARCH_LENGTH })}
+    </div>
+  );
+
   const searchInput = (
     <CommandInput
       ref={inputRef}
@@ -320,10 +327,10 @@ export const GlobalSearchDialog = ({
             : undefined
         }
       >
-        {isTooShort ? (
-          <div className="px-4 py-6 text-center text-sm text-muted-foreground">
-            {translate("crm.search.hint", { min: MIN_SEARCH_LENGTH })}
-          </div>
+        {query.trim() === "" ? (
+          <RecentContactsGroup onSelect={handleSelect} fallback={hint} />
+        ) : isTooShort ? (
+          hint
         ) : error ? (
           <div
             role="alert"

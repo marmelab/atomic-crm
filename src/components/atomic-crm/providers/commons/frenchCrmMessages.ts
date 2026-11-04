@@ -440,7 +440,6 @@ export const frenchCrmMessages = {
         "Erreur lors du chargement de la dernière activité",
       latest_notes: "Mes dernières notes",
       latest_notes_added_ago: "ajouté %{timeAgo}",
-      recent_contacts: "Consultés récemment",
       stepper: {
         install: "Installer Atomic CRM",
         progress: "%{step}/3 terminé",
@@ -477,6 +476,7 @@ export const frenchCrmMessages = {
       placeholder:
         "Rechercher un contact, une entreprise, une affaire, une tâche, une note...",
       hint: "Saisissez au moins %{min} caractères pour lancer la recherche",
+      recent_contacts: "Consultés récemment",
       empty: "Aucun résultat",
       error:
         "La recherche est indisponible pour le moment. Veuillez réessayer.",
