@@ -297,8 +297,11 @@ export const GlobalSearchDialog = ({
       shouldFilter={false}
       className={cn(
         "[&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group]]:px-2 [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5",
-        !isMobile &&
-          "**:data-[slot=command-input-wrapper]:h-12 [&_[cmdk-input]]:h-12",
+        isMobile
+          ? // cmdk preselects the first item for the Enter key, which a phone
+            // lacks: highlight an item only while it is touched
+            "[&_[cmdk-item][data-selected=true]]:bg-transparent! [&_[cmdk-item]:active]:bg-muted!"
+          : "**:data-[slot=command-input-wrapper]:h-12 [&_[cmdk-input]]:h-12",
       )}
     >
       {/* On a phone, a taller input sits next to the close button rather
