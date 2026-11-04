@@ -52,6 +52,7 @@ export const generateCompanies = (db: Db, size = 55): Required<Company>[] => {
       email: internet.email(),
       whatsapp_number: phone.phoneNumber(),
       pitch_point: lorem.paragraph(),
+      priority: random.arrayElement(["high", "medium", "low"]),
     };
   });
 };

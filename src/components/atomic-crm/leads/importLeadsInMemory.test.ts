@@ -66,7 +66,7 @@ describe("importLeadsInMemory", () => {
     expect(deals).toHaveLength(1);
     expect(deals[0]).toMatchObject({
       name: "Acme Foods",
-      stage: "cold",
+      stage: "new",
       amount: 0,
     });
     expect(deals[0].contact_ids).toEqual(contacts.map((contact) => contact.id));
@@ -128,6 +128,6 @@ describe("importLeadsInMemory", () => {
     const beta = companies.find((company) => company.name === "Beta Traders");
     const betaDeal = deals.find((deal) => deal.company_id === beta?.id);
     expect(betaDeal?.contact_ids).toHaveLength(2);
-    expect(betaDeal?.stage).toBe("cold");
+    expect(betaDeal?.stage).toBe("new");
   });
 });

@@ -13,7 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { CompanyAvatar } from "../companies/CompanyAvatar";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Company, Deal } from "../types";
-import { findDealLabel, formatISODateString, isIsoDate } from "./dealUtils";
+import { findDealLabel } from "./dealUtils";
 import {
   groupDealsByCompany,
   type DealCompanyGroup,
@@ -115,11 +115,6 @@ const DealRow = ({ deal }: { deal: Deal }) => {
                 currencyDisplay: "narrowSymbol",
               })
             : "—"}
-        </span>
-        <span className="w-28 text-right text-muted-foreground">
-          {isIsoDate(deal.expected_closing_date)
-            ? formatISODateString(deal.expected_closing_date)
-            : ""}
         </span>
       </Link>
     </li>

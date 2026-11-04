@@ -7,8 +7,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { CompanyAvatar } from "../companies/CompanyAvatar";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal } from "../types";
-import { formatDealCategories } from "./dealUtils";
-
 export const DealCard = ({ deal, index }: { deal: Deal; index: number }) => {
   if (!deal) return null;
 
@@ -30,7 +28,7 @@ export const DealCardContent = ({
   snapshot?: any;
   deal: Deal;
 }) => {
-  const { dealCategories, currency } = useConfigurationContext();
+  const { currency } = useConfigurationContext();
   const redirect = useRedirect();
   const handleClick = () => {
     redirect(`/deals/${deal.id}/show`, undefined, undefined, undefined, {
@@ -84,8 +82,6 @@ export const DealCardContent = ({
                   minimumSignificantDigits: 3,
                 }}
               />
-              {deal.categories?.length ? ", " : ""}
-              {formatDealCategories(dealCategories, deal.categories)}
             </p>
           </CardContent>
         </Card>

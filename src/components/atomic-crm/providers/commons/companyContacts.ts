@@ -152,7 +152,7 @@ export const syncCompanyContacts = async (
 };
 
 /**
- * One open deal per company, stage `cold`. A company that already has an
+ * One open deal per company, stage `new`. A company that already has an
  * open deal gets the new contacts attached to it instead of a second deal.
  * Demo-mode twin of open_cold_deal().
  */
@@ -196,7 +196,7 @@ export const openColdDeal = async (
       company_id: companyId,
       contact_ids: ids,
       categories: [],
-      stage: "cold",
+      stage: "new",
       amount: 0,
       sales_id: salesId ?? undefined,
       index: 0,

@@ -506,7 +506,7 @@ begin
     if v_company_id is null then
         insert into public.companies (
             name, sector, city, lead_date, pitch_point, sales_id,
-            website, phone_number, email, whatsapp_number
+            website, phone_number, email, whatsapp_number, priority
         )
         values (
             trim(p_company->>'name'),
@@ -518,7 +518,8 @@ begin
             nullif(trim(p_company->>'website'), ''),
             nullif(trim(p_company->>'phone_number'), ''),
             nullif(trim(p_company->>'email'), ''),
-            nullif(trim(p_company->>'whatsapp_number'), '')
+            nullif(trim(p_company->>'whatsapp_number'), ''),
+            coalesce(nullif(p_company->>'priority', ''), 'medium')
         )
         returning id into v_company_id;
     else
@@ -532,6 +533,7 @@ begin
             phone_number = case when p_company ? 'phone_number' then nullif(trim(p_company->>'phone_number'), '') else c.phone_number end,
             email = case when p_company ? 'email' then nullif(trim(p_company->>'email'), '') else c.email end,
             whatsapp_number = case when p_company ? 'whatsapp_number' then nullif(trim(p_company->>'whatsapp_number'), '') else c.whatsapp_number end,
+            priority = case when p_company ? 'priority' then coalesce(nullif(p_company->>'priority', ''), 'medium') else c.priority end,
             sales_id = case when p_company ? 'sales_id' then (p_company->>'sales_id')::bigint else c.sales_id end
         where c.id = v_company_id;
 
@@ -768,7 +770,7 @@ begin
             where cid is not null
         ), '{}'::bigint[]),
         '{}'::text[],
-        'cold',
+        'new',
         0,
         p_sales_id,
         0,

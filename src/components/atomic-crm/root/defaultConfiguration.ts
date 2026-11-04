@@ -78,20 +78,14 @@ export const defaultCompanySectors = [
 ];
 
 export const defaultDealStages = [
-  { value: "cold", label: "Cold" },
   { value: "new", label: "New" },
-  { value: "contacted", label: "Contacted" },
-  { value: "demo", label: "Demo" },
+  { value: "callback", label: "Callback" },
   { value: "interested", label: "Interested" },
-  // Not Interested keeps the internal "lost" value so existing closed-lost
-  // reporting logic keeps working.
-  { value: "lost", label: "Not Interested" },
-  { value: "proposal", label: "Proposal" },
-  { value: "follow-up", label: "Follow-up" },
-  { value: "won", label: "Won" },
+  { value: "not_interested", label: "Not Interested" },
+  { value: "not_answered", label: "Not Answered" },
 ];
 
-export const defaultDealPipelineStatuses = ["won"];
+export const defaultDealPipelineStatuses: string[] = [];
 
 export const defaultDealCategories = [
   { value: "other", label: "Other" },
@@ -101,11 +95,18 @@ export const defaultDealCategories = [
   { value: "website-design", label: "Website design" },
 ];
 
+export const defaultCompanyPriorities = [
+  { value: "high", label: "High" },
+  { value: "medium", label: "Medium" },
+  { value: "low", label: "Low" },
+];
+
 export const defaultNoteStatuses = [
-  { value: "cold", label: "Cold", color: "#7dbde8" },
-  { value: "warm", label: "Warm", color: "#e8cb7d" },
-  { value: "hot", label: "Hot", color: "#e88b7d" },
-  { value: "in-contract", label: "In Contract", color: "#a4e87d" },
+  { value: "new", label: "New", color: "#7dbde8" },
+  { value: "callback", label: "Callback", color: "#e8cb7d" },
+  { value: "interested", label: "Interested", color: "#a4e87d" },
+  { value: "not_interested", label: "Not Interested", color: "#e88b7d" },
+  { value: "not_answered", label: "Not Answered", color: "#b0b0b0" },
 ];
 
 export const defaultTaskTypes = [

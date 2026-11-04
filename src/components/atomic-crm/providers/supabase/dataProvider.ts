@@ -76,6 +76,7 @@ const saveCompanyWithContacts = async (
         phone_number: company.phone_number,
         email: company.email,
         whatsapp_number: company.whatsapp_number,
+        priority: company.priority,
         sales_id: company.sales_id,
       },
       p_contacts: contacts,

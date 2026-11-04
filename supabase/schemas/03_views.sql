@@ -97,7 +97,8 @@ select
     c.lead_date,
     c.email,
     c.whatsapp_number,
-    c.pitch_point
+    c.pitch_point,
+    c.priority
 from public.companies c
     left join public.deals d on c.id = d.company_id
     left join public.contacts co on c.id = co.company_id

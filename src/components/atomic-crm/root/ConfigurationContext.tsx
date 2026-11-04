@@ -22,11 +22,23 @@ export const LEGACY_DEAL_STAGE_VALUES = [
   "proposal-sent",
   "in-negociation",
   "delayed",
+  "cold",
+  "contacted",
+  "demo",
+  "proposal",
+  "follow-up",
+  "won",
+  "lost",
 ];
 
 const isLegacyDealStageList = (stages?: DealStage[]): boolean =>
   (stages ?? []).some((stage) =>
     LEGACY_DEAL_STAGE_VALUES.includes(stage.value),
+  );
+
+const isLegacyNoteStatusList = (statuses?: NoteStatus[]): boolean =>
+  (statuses ?? []).some((status) =>
+    ["cold", "warm", "hot", "in-contract"].includes(status.value),
   );
 
 export interface ConfigurationContextValue {
@@ -77,12 +89,9 @@ export const useConfigurationContext = () => {
       ];
     }
 
-    // Deals opened from a company or a CSV import use stage "cold". A saved
-    // pipeline that predates that stage still needs the column and the selector.
-    if (!mergedConfig.dealStages?.some((stage) => stage.value === "cold")) {
-      mergedConfig.dealStages = [
-        { value: "cold", label: "Cold" },
-        ...(mergedConfig.dealStages ?? []),
+    if (isLegacyNoteStatusList(mergedConfig.noteStatuses ?? [])) {
+      mergedConfig.noteStatuses = [
+        ...defaultConfiguration.noteStatuses.map((status) => ({ ...status })),
       ];
     }
 

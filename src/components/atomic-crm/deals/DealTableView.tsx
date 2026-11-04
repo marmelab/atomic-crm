@@ -28,11 +28,7 @@ import type { ComponentProps } from "react";
 import { Avatar } from "../contacts/Avatar";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Contact, Deal, Sale } from "../types";
-import {
-  findDealLabel,
-  formatDealCategories,
-  updateDealStage,
-} from "./dealUtils";
+import { findDealLabel, updateDealStage } from "./dealUtils";
 
 /**
  * List (table) view of deals, exposing the very same filtered records as the
@@ -94,15 +90,6 @@ export const DealTableView = () => {
           label={translate("resources.deals.fields.stage", { _: "Stage" })}
         >
           <DealStageSelector />
-        </DataTable.Col>
-        <DataTable.Col
-          source="categories"
-          label={translate("resources.deals.fields.categories", {
-            _: "Categories",
-          })}
-          className="hidden xl:table-cell max-w-44"
-        >
-          <DealCategoriesField />
         </DataTable.Col>
         <DataTable.Col
           source="sales_id"
@@ -212,21 +199,15 @@ const DealContactsField = () => {
 };
 
 const STAGE_BADGE_CLASSES: Record<string, string | undefined> = {
-  cold: "border-sky-300 text-sky-700 dark:border-sky-700 dark:text-sky-300",
-  // New: neutral (plain outline).
-  new: undefined,
-  contacted:
-    "border-blue-300 text-blue-700 dark:border-blue-700 dark:text-blue-300",
-  demo: "border-purple-300 text-purple-700 dark:border-purple-700 dark:text-purple-300",
-  interested:
-    "border-cyan-300 text-cyan-700 dark:border-cyan-700 dark:text-cyan-300",
-  // Not Interested (internal value "lost"): red.
-  lost: "border-red-300 text-red-700 dark:border-red-700 dark:text-red-300",
-  proposal:
-    "border-orange-300 text-orange-700 dark:border-orange-700 dark:text-orange-300",
-  "follow-up":
+  new: "border-sky-300 text-sky-700 dark:border-sky-700 dark:text-sky-300",
+  callback:
     "border-yellow-400 text-yellow-700 dark:border-yellow-700 dark:text-yellow-300",
-  won: "border-green-300 text-green-700 dark:border-green-700 dark:text-green-300",
+  interested:
+    "border-green-300 text-green-700 dark:border-green-700 dark:text-green-300",
+  not_interested:
+    "border-red-300 text-red-700 dark:border-red-700 dark:text-red-300",
+  not_answered:
+    "border-zinc-300 text-zinc-600 dark:border-zinc-600 dark:text-zinc-300",
 };
 
 /**
@@ -304,20 +285,6 @@ const DealStageSelector = () => {
         </SelectContent>
       </Select>
     </div>
-  );
-};
-
-const DealCategoriesField = () => {
-  const { dealCategories } = useConfigurationContext();
-  const record = useRecordContext<Deal>();
-  if (!record?.categories?.length) return null;
-  return (
-    <span
-      title={formatDealCategories(dealCategories, record.categories)}
-      className="block truncate text-sm text-muted-foreground"
-    >
-      {formatDealCategories(dealCategories, record.categories)}
-    </span>
   );
 };
 

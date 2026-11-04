@@ -11,6 +11,7 @@ export const englishCrmMessages = {
         lead_date: "Date",
         name: "Name",
         website: "Website",
+        priority: "Priority",
         linkedin_url: "LinkedIn URL",
         phone_number: "Mobile",
         created_at: "Created at",
@@ -72,7 +73,7 @@ export const englishCrmMessages = {
       followed_by_you: "Followed by you",
       no_contacts: "No contact",
       nb_contacts: "%{smart_count} contact |||| %{smart_count} contacts",
-      nb_deals: "%{smart_count} deal |||| %{smart_count} deals",
+      nb_deals: "%{smart_count} lead |||| %{smart_count} leads",
       sizes: {
         one_employee: "1 employee",
         two_to_nine_employees: "2-9 employees",
@@ -210,7 +211,7 @@ export const englishCrmMessages = {
       },
     },
     deals: {
-      name: "Deal |||| Deals",
+      name: "Lead |||| Leads",
       fields: {
         name: "Name",
         description: "Description",
@@ -224,24 +225,24 @@ export const englishCrmMessages = {
         updated_at: "Last updated",
       },
       action: {
-        back: "Back to deals",
-        back_to_deal: "Back to deal",
-        create: "Create deal",
-        new: "New Deal",
+        back: "Back to leads",
+        back_to_deal: "Back to lead",
+        create: "Create lead",
+        new: "New Lead",
       },
       field_categories: {
         misc: "Misc",
       },
       filters: {
-        only_mine: "Only deals I manage",
+        only_mine: "Only leads I manage",
       },
       archived: {
         action: "Archive",
-        error: "Error: deal not archived",
-        list_title: "Archived Deals",
-        success: "Deal archived",
-        title: "Archived Deal",
-        view: "View archived deals",
+        error: "Error: lead not archived",
+        list_title: "Archived Leads",
+        success: "Lead archived",
+        title: "Archived Lead",
+        view: "View archived leads",
       },
       inputs: {
         linked_to: "Linked to",
@@ -550,10 +551,10 @@ export const englishCrmMessages = {
       groups: {
         contacts: "Contacts",
         companies: "Companies",
-        deals: "Deals",
+        deals: "Leads",
         tasks: "Tasks",
         contact_notes: "Contact notes",
-        deal_notes: "Deal notes",
+        deal_notes: "Lead notes",
       },
     },
     image_editor: {

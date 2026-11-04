@@ -12,6 +12,7 @@ import { DateInput } from "@/components/admin/date-input";
 import { TextInput } from "@/components/admin/text-input";
 import { SelectInput } from "@/components/admin/select-input";
 
+import { defaultCompanyPriorities } from "../root/defaultConfiguration";
 import {
   findSectorByLabel,
   nextAvailableSectorValue,
@@ -42,6 +43,11 @@ const CompanyLeadInputs = () => {
     name: sector.label,
   }));
 
+  const priorityChoices = defaultCompanyPriorities.map((priority) => ({
+    id: priority.value,
+    name: priority.label,
+  }));
+
   return (
     <div className="flex flex-col gap-4">
       <h6 className="text-lg font-semibold">
@@ -68,6 +74,14 @@ const CompanyLeadInputs = () => {
           createLabel="Add a new vertical"
         />
         <TextInput source="city" helperText={false} />
+        <SelectInput
+          source="priority"
+          choices={priorityChoices}
+          optionText="name"
+          optionValue="id"
+          defaultValue="medium"
+          helperText={false}
+        />
       </div>
     </div>
   );

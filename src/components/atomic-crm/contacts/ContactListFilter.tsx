@@ -1,5 +1,5 @@
 import { endOfYesterday, startOfMonth, startOfWeek, subMonths } from "date-fns";
-import { CheckSquare, Clock, Tag, TrendingUp, Users } from "lucide-react";
+import { CheckSquare, Clock, Tag, Users } from "lucide-react";
 import {
   useGetIdentity,
   useGetList,
@@ -10,15 +10,12 @@ import { ToggleFilterButton } from "@/components/admin/toggle-filter-button";
 import { Badge } from "@/components/ui/badge";
 
 import { FilterCategory } from "../filters/FilterCategory";
-import { Status } from "../misc/Status";
-import { useConfigurationContext } from "../root/ConfigurationContext";
 import { ResponsiveFilters } from "../misc/ResponsiveFilters";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ActiveFilterButton } from "../misc/ActiveFilterButton";
 import { AccountManagerFilter } from "../sales/AccountManagerInput";
 
 export const ContactListFilter = () => {
-  const { noteStatuses } = useConfigurationContext();
   const isMobile = useIsMobile();
   const { identity } = useGetIdentity();
   const translate = useTranslate();
@@ -90,25 +87,6 @@ export const ContactListFilter = () => {
         />
       </FilterCategory>
 
-      <FilterCategory
-        label="resources.notes.fields.status"
-        icon={<TrendingUp />}
-      >
-        {noteStatuses.map((status) => (
-          <ToggleFilterButton
-            key={status.value}
-            className="w-auto md:w-full justify-between h-10 md:h-8"
-            label={
-              <span>
-                {status.label} <Status status={status.value} />
-              </span>
-            }
-            value={{ status: status.value }}
-            size={isMobile ? "lg" : undefined}
-          />
-        ))}
-      </FilterCategory>
-
       <FilterCategory label="resources.contacts.filters.tags" icon={<Tag />}>
         {data &&
           data.map((record) => (
@@ -164,7 +142,6 @@ export const ContactListFilter = () => {
 };
 
 export const ContactListFilterSummary = () => {
-  const { noteStatuses } = useConfigurationContext();
   const { identity } = useGetIdentity();
   const { data } = useGetList("tags", {
     pagination: { page: 1, perPage: 10 },
@@ -221,19 +198,6 @@ export const ContactListFilterSummary = () => {
           "last_seen@lte": subMonths(startOfMonth(new Date()), 1).toISOString(),
         }}
       />
-
-      {noteStatuses.map((status) => (
-        <ActiveFilterButton
-          key={status.value}
-          className="w-auto justify-between h-8"
-          label={
-            <span>
-              {status.label} <Status status={status.value} />
-            </span>
-          }
-          value={{ status: status.value }}
-        />
-      ))}
 
       {data &&
         data.map((record) => (

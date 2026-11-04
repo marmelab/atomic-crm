@@ -149,10 +149,20 @@ export const ContextInfo = ({ record }: { record: Company }) => {
     !record.city &&
     !record.phone_number &&
     !record.email &&
-    !record.whatsapp_number
+    !record.whatsapp_number &&
+    !record.priority
   ) {
     return null;
   }
+
+  const priorityLabel =
+    record.priority === "high"
+      ? "High"
+      : record.priority === "low"
+        ? "Low"
+        : record.priority === "medium"
+          ? "Medium"
+          : record.priority;
 
   return (
     <AsideSection
@@ -190,6 +200,11 @@ export const ContextInfo = ({ record }: { record: Company }) => {
         <span>
           {translate("resources.companies.fields.city")}:{" "}
           <TextField source="city" />
+        </span>
+      )}
+      {priorityLabel && (
+        <span>
+          {translate("resources.companies.fields.priority")}: {priorityLabel}
         </span>
       )}
     </AsideSection>

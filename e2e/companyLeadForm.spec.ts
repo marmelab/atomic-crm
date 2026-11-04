@@ -33,6 +33,7 @@ test.describe("company lead form", () => {
     await expect(page.getByLabel("Email")).toBeVisible();
     await expect(page.getByLabel("Vertical")).toBeVisible();
     await expect(page.getByLabel("Place")).toBeVisible();
+    await expect(page.getByLabel("Priority")).toBeVisible();
 
     await expect(page.getByText("Business name")).toHaveCount(0);
     await expect(page.getByText("Existing website URL")).toHaveCount(0);

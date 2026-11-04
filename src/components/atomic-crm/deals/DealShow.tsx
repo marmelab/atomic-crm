@@ -36,12 +36,7 @@ import { NotesIterator } from "../notes/NotesIterator";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Company, Deal } from "../types";
 import { ContactList } from "./ContactList";
-import {
-  findDealLabel,
-  formatDealCategories,
-  formatISODateString,
-  isIsoDate,
-} from "./dealUtils";
+import { findDealLabel } from "./dealUtils";
 
 /** Full page of a deal (lead), with its company details beside it. */
 export const DealShow = () => (
@@ -163,8 +158,7 @@ const DealHeader = ({ record }: { record: Deal }) => {
 const DealDetails = ({ record }: { record: Deal }) => {
   const translate = useTranslate();
   const [locale = "en"] = useLocaleState();
-  const { dealCategories, currency } = useConfigurationContext();
-  const hasValidClosingDate = isIsoDate(record.expected_closing_date);
+  const { currency } = useConfigurationContext();
 
   return (
     <dl className="grid grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-4">
@@ -179,24 +173,6 @@ const DealDetails = ({ record }: { record: Deal }) => {
             })
           : "—"}
       </DealField>
-      <DealField
-        label={translate("resources.deals.fields.expected_closing_date")}
-      >
-        <span className="flex items-center gap-2">
-          {hasValidClosingDate
-            ? formatISODateString(record.expected_closing_date)
-            : translate("resources.deals.invalid_date")}
-          {hasValidClosingDate &&
-          new Date(record.expected_closing_date) < new Date() ? (
-            <Badge variant="destructive">{translate("crm.common.past")}</Badge>
-          ) : null}
-        </span>
-      </DealField>
-      {!!record.categories?.length && (
-        <DealField label={translate("resources.deals.fields.categories")}>
-          {formatDealCategories(dealCategories, record.categories)}
-        </DealField>
-      )}
       {record.created_at && (
         <DealField label={translate("resources.deals.fields.created_at")}>
           {formatLocalizedDate(record.created_at, locale)}

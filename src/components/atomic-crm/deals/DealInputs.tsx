@@ -1,10 +1,8 @@
 import { required, useTranslate } from "ra-core";
-import { AutocompleteArrayInput } from "@/components/admin/autocomplete-array-input";
 import { ReferenceArrayInput } from "@/components/admin/reference-array-input";
 import { ReferenceInput } from "@/components/admin/reference-input";
 import { TextInput } from "@/components/admin/text-input";
 import { NumberInput } from "@/components/admin/number-input";
-import { DateInput } from "@/components/admin/date-input";
 import { SelectInput } from "@/components/admin/select-input";
 import { Separator } from "@/components/ui/separator";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -60,7 +58,7 @@ const DealLinkedToInputs = () => {
 };
 
 const DealMiscInputs = () => {
-  const { dealStages, dealCategories } = useConfigurationContext();
+  const { dealStages } = useConfigurationContext();
   const translate = useTranslate();
   return (
     <div className="flex flex-col gap-4 flex-1">
@@ -68,24 +66,11 @@ const DealMiscInputs = () => {
         {translate("resources.deals.field_categories.misc")}
       </h6>
 
-      <AutocompleteArrayInput
-        source="categories"
-        choices={dealCategories}
-        optionText="label"
-        optionValue="value"
-        helperText={false}
-      />
       <NumberInput
         source="amount"
         defaultValue={0}
         helperText={false}
         validate={required()}
-      />
-      <DateInput
-        validate={required()}
-        source="expected_closing_date"
-        helperText={false}
-        defaultValue={new Date().toISOString().split("T")[0]}
       />
       <SelectInput
         source="stage"

@@ -102,6 +102,7 @@ export type Company = {
   email?: string | null;
   whatsapp_number?: string | null;
   pitch_point?: string | null;
+  priority?: "high" | "medium" | "low" | null;
 } & Pick<RaRecord, "id">;
 
 export type EmailAndType = {

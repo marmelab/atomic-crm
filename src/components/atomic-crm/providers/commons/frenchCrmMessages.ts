@@ -13,6 +13,7 @@ export const frenchCrmMessages = {
         lead_date: "Date",
         name: "Nom",
         website: "Site web",
+        priority: "Priorité",
         linkedin_url: "LinkedIn",
         phone_number: "Mobile",
         created_at: "Date de création",
@@ -75,7 +76,7 @@ export const frenchCrmMessages = {
       followed_by_you: "Suivie par vous",
       no_contacts: "Aucun contact",
       nb_contacts: "%{smart_count} contact |||| %{smart_count} contacts",
-      nb_deals: "%{smart_count} affaire |||| %{smart_count} affaires",
+      nb_deals: "%{smart_count} lead |||| %{smart_count} leads",
       sizes: {
         one_employee: "1 employé",
         two_to_nine_employees: "2-9 employés",
@@ -215,7 +216,7 @@ export const frenchCrmMessages = {
       },
     },
     deals: {
-      name: "Affaire |||| Affaires",
+      name: "Lead |||| Leads",
       fields: {
         name: "Nom",
         description: "Description",
@@ -229,38 +230,38 @@ export const frenchCrmMessages = {
         updated_at: "Dernière mise à jour",
       },
       action: {
-        back: "Retour aux affaires",
-        back_to_deal: "Retour à l'affaire",
-        create: "Créer une affaire",
-        new: "Nouvelle affaire",
+        back: "Retour aux leads",
+        back_to_deal: "Retour au lead",
+        create: "Créer un lead",
+        new: "Nouveau lead",
       },
       field_categories: {
         misc: "Divers",
       },
       filters: {
-        only_mine: "Seulement les affaires que je gère",
+        only_mine: "Seulement les leads que je gère",
       },
       archived: {
         action: "Archiver",
-        error: "Erreur : affaire non archivée",
-        list_title: "Affaires archivées",
-        success: "Affaire archivée",
-        title: "Affaire archivée",
-        view: "Afficher les affaires archivées",
+        error: "Erreur : lead non archivé",
+        list_title: "Leads archivés",
+        success: "Lead archivé",
+        title: "Lead archivé",
+        view: "Afficher les leads archivés",
       },
       inputs: {
         linked_to: "Lié à",
       },
       unarchived: {
         action: "Renvoyer au tableau",
-        error: "Erreur : affaire non désarchivée",
-        success: "Affaire désarchivée",
+        error: "Erreur : lead non désarchivé",
+        success: "Lead désarchivé",
       },
-      updated: "Affaire mise à jour",
+      updated: "Lead mis à jour",
       empty: {
-        before_create: "avant de créer une affaire.",
-        description: "Il semble que votre liste d'affaires soit vide.",
-        title: "Aucune affaire trouvée",
+        before_create: "avant de créer un lead.",
+        description: "Il semble que votre liste de leads soit vide.",
+        title: "Aucun lead trouvé",
       },
       import: {
         title: "Importer des affaires",
@@ -560,10 +561,10 @@ export const frenchCrmMessages = {
       groups: {
         contacts: "Contacts",
         companies: "Entreprises",
-        deals: "Affaires",
+        deals: "Leads",
         tasks: "Tâches",
         contact_notes: "Notes de contact",
-        deal_notes: "Notes d'affaire",
+        deal_notes: "Notes de lead",
       },
     },
     image_editor: {

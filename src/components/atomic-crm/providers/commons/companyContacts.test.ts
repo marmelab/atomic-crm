@@ -108,7 +108,7 @@ describe("company saved with its contact list", () => {
     expect(deals).toHaveLength(1);
     expect(deals[0]).toMatchObject({
       name: "Toy Hub",
-      stage: "cold",
+      stage: "new",
       company_id: company.id,
     });
     expect(deals[0].contact_ids).toEqual(contacts.map((contact) => contact.id));

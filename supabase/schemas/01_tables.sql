@@ -35,7 +35,9 @@ create table public.companies (
     lead_date date default current_date,
     email text,
     whatsapp_number text,
-    pitch_point text
+    pitch_point text,
+    priority text default 'medium'
+        check (priority is null or priority in ('high', 'medium', 'low'))
 );
 
 create table public.contacts (
