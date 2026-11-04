@@ -146,7 +146,12 @@ export const EditSheet = ({
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto flex flex-col gap-3 p-4">
+          {/* pb-4! overrides the bottom padding Base UI's VirtualKeyboardProvider
+              adds to the focused field's scroller: measured while the drawer slides
+              in, it grows the scroller and pushes the footer under the keyboard.
+              FormDrawer already keeps the whole form above the keyboard.
+              FIXME: remove once Base UI fixes https://github.com/mui/base-ui/issues/6025 */}
+          <div className="flex-1 overflow-y-auto flex flex-col gap-3 p-4 pb-4!">
             {children}
           </div>
 
