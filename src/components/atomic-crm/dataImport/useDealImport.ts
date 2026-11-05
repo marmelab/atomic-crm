@@ -22,7 +22,7 @@ type DealRow = {
 
 /**
  * Creates a deal per CSV row. Unknown columns are ignored, missing ones are
- * left empty — except `name`, which the database requires. The `company` column
+ * left empty — except `name` and `expected_closing_date`, which the database requires. The `company` column
  * holds a company name: matching companies are reused, unknown ones are created.
  */
 export function useDealImport(): ProcessImportBatch {
