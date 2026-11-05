@@ -12,7 +12,6 @@ import {
   type FormProps,
 } from "ra-core";
 import { type ReactNode } from "react";
-import { cn } from "@/lib/utils";
 import { FormDrawer } from "./FormDrawer";
 
 export interface EditSheetProps extends EditBaseProps {
@@ -132,18 +131,11 @@ export const EditSheet = ({
           defaultValues={defaultValues}
           className="min-h-0 flex-1 flex flex-col"
         >
-          <div className="flex flex-col gap-1.5 p-4 border-b">
-            <div
-              className={cn(
-                "flex items-center gap-2",
-                headerActions ? "pr-12" : "pr-10",
-              )}
-            >
-              <DrawerTitle className="min-w-0 flex-1 truncate">
-                <EditSheetTitle title={title} />
-              </DrawerTitle>
-              {headerActions && <div className="shrink-0">{headerActions}</div>}
-            </div>
+          <div className="box-content h-14 shrink-0 flex items-center pl-4 pr-13 border-b">
+            <DrawerTitle className="min-w-0 flex-1 truncate">
+              <EditSheetTitle title={title} />
+            </DrawerTitle>
+            {headerActions && <div className="shrink-0">{headerActions}</div>}
           </div>
 
           {/* pb-4! overrides the bottom padding Base UI's VirtualKeyboardProvider

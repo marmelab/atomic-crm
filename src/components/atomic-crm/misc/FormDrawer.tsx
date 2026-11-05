@@ -56,12 +56,12 @@ export const FormDrawer = ({
             render={
               <Button
                 variant="ghost"
-                size="icon-sm"
-                className="absolute top-4 right-4"
+                size="icon"
+                className="absolute top-2.5 right-4 rounded-full"
               />
             }
           >
-            <XIcon className="size-6 md:size-4" />
+            <XIcon className="size-5" />
             <span className="sr-only">Close</span>
           </DrawerClose>
         </DrawerContent>
