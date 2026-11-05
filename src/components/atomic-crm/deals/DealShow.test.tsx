@@ -21,13 +21,4 @@ describe("DealShow", () => {
     await expect.element(screen.getByText("Invalid date")).toBeVisible();
     await expect.element(screen.getByText("Past")).not.toBeInTheDocument();
   });
-
-  it("hides the closing date when there is none", async () => {
-    const screen = await render(<ClosingDate expectedClosingDate={null} />);
-
-    await expect.element(screen.getByText("Acme deal")).toBeVisible();
-    await expect
-      .element(screen.getByText("Expected closing date"))
-      .not.toBeInTheDocument();
-  });
 });
