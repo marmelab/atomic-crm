@@ -74,11 +74,12 @@ export const authProvider: AuthProvider = {
   },
   getIdentity: () => {
     const userItem = localStorage.getItem(USER_STORAGE_KEY);
-    const user = userItem ? (JSON.parse(userItem) as Sale) : null;
+    if (!userItem) return Promise.reject(new Error("Not authenticated"));
+    const user = JSON.parse(userItem) as Sale;
     return Promise.resolve({
-      id: user?.id ?? 0,
-      fullName: user ? `${user.first_name} ${user.last_name}` : "Jane Doe",
-      avatar: user?.avatar?.src,
+      id: user.id,
+      fullName: `${user.first_name} ${user.last_name}`,
+      avatar: user.avatar?.src,
     });
   },
   async getAuthorizationDetails() {

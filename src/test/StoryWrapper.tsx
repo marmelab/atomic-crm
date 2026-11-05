@@ -1,5 +1,10 @@
 /* eslint-disable react-refresh/only-export-components */
-import { memoryStore, type AuthProvider } from "ra-core";
+import {
+  memoryStore,
+  type AuthProvider,
+  type I18nProvider,
+  type LayoutComponent,
+} from "ra-core";
 import { useEffect, useMemo, type ReactNode } from "react";
 import { MemoryRouter } from "react-router";
 import cloneDeep from "lodash/cloneDeep";
@@ -132,14 +137,18 @@ export const StoryWrapper = ({
   children,
   data,
   dataProvider: dataProviderOverrides,
+  i18nProvider = testI18nProvider,
   initialEntries,
+  layout,
   silent = import.meta.env.MODE === "test",
 }: {
   authProvider?: Partial<AuthProvider>;
   children: ReactNode;
   data?: Partial<Db>;
   dataProvider?: Partial<ReturnType<typeof createDataProvider>>;
+  i18nProvider?: I18nProvider;
   initialEntries?: string[];
+  layout?: LayoutComponent;
   silent?: boolean;
 }) => {
   const authProvider = useMemo(
@@ -149,7 +158,11 @@ export const StoryWrapper = ({
   );
   const dataProvider = useMemo(
     () => ({
-      ...createDataProvider({ db: createCrmDb(cloneDeep(data)), silent }),
+      ...createDataProvider({
+        db: createCrmDb(cloneDeep(data)),
+        silent,
+        authProvider,
+      }),
       ...dataProviderOverrides,
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -172,16 +185,19 @@ export const StoryWrapper = ({
       <CRM
         authProvider={authProvider}
         dataProvider={dataProvider}
-        i18nProvider={testI18nProvider}
+        i18nProvider={i18nProvider}
         dashboard={() => <>{children}</>}
         store={store}
         disableTelemetry
-        layout={({ children }) => (
-          <DataImportProvider>
-            {children}
-            <Notification />
-          </DataImportProvider>
-        )}
+        layout={
+          layout ??
+          (({ children }) => (
+            <DataImportProvider>
+              {children}
+              <Notification />
+            </DataImportProvider>
+          ))
+        }
       />
     </MemoryRouter>
   );
