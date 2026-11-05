@@ -21,4 +21,14 @@ describe("DealShow", () => {
     await expect.element(screen.getByText("Invalid date")).toBeVisible();
     await expect.element(screen.getByText("Past")).not.toBeInTheDocument();
   });
+
+  it("does not flag a malformed past closing date as past", async () => {
+    // a timestamp, not a YYYY-MM-DD date: new Date() parses it as a past date
+    const screen = await render(
+      <ClosingDate expectedClosingDate="2020-01-15T09:00:00.000Z" />,
+    );
+
+    await expect.element(screen.getByText("Invalid date")).toBeVisible();
+    await expect.element(screen.getByText("Past")).not.toBeInTheDocument();
+  });
 });
