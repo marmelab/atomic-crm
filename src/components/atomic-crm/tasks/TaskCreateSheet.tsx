@@ -13,6 +13,7 @@ import { CreateSheet } from "../misc/CreateSheet";
 import { foreignKeyMapping } from "../notes/foreignKeyMapping";
 import { TaskFormContent } from "./TaskFormContent";
 import { useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 
 export interface TaskCreateSheetProps {
   open: boolean;
@@ -40,6 +41,14 @@ export const TaskCreateSheet = ({
   const queryClient = useQueryClient();
   const notify = useNotify();
   const redirect = useRedirect();
+  // Set once per opening: a new due_date on each render would make ra-core
+  // reset the form, wiping what the user already typed.
+  const [dueDate, setDueDate] = useState(() => new Date().toISOString());
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
+    if (open) setDueDate(new Date().toISOString());
+  }
 
   if (!identity) return null;
 
@@ -82,7 +91,7 @@ export const TaskCreateSheet = ({
       record={{
         type: "none",
         contact_id,
-        due_date: new Date().toISOString(),
+        due_date: dueDate,
         sales_id: identity.id,
       }}
       mutationOptions={{
