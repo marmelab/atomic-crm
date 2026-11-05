@@ -12,6 +12,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { AutocompleteCompanyInput } from "../companies/AutocompleteCompanyInput.tsx";
 import { AutocompleteContactInput } from "../contacts/AutocompleteContactInput.tsx";
+import { validateClosingDate } from "./dealUtils";
 
 export const DealInputs = () => {
   const isMobile = useIsMobile();
@@ -82,7 +83,7 @@ const DealMiscInputs = () => {
         validate={required()}
       />
       <DateInput
-        validate={required()}
+        validate={[required(), validateClosingDate]}
         source="expected_closing_date"
         helperText={false}
         defaultValue={new Date().toISOString().split("T")[0]}

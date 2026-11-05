@@ -52,6 +52,22 @@ const isoDateStringRegex = /^\d{4}-\d{2}-\d{2}$/;
 export const isISODateString = (value: unknown): value is string =>
   typeof value === "string" && isoDateStringRegex.test(value);
 
+// Keep in sync with the deals_expected_closing_date_range check in supabase/schemas/01_tables.sql
+const MIN_CLOSING_DATE = "1900-01-01";
+const MAX_CLOSING_DATE = "2900-12-31";
+
+/**
+ * Form validator for the expected closing date. An empty value is left to `required()`.
+ * YYYY-MM-DD strings with a 4-digit year sort like dates, so string comparison is enough.
+ */
+export const validateClosingDate = (value: unknown): string | undefined =>
+  !value ||
+  (isISODateString(value) &&
+    value >= MIN_CLOSING_DATE &&
+    value <= MAX_CLOSING_DATE)
+    ? undefined
+    : "resources.deals.invalid_date";
+
 export function formatISODateString(dateString: string) {
   if (!isISODateString(dateString)) {
     throw new Error("Invalid date format. Expected YYYY-MM-DD.");
