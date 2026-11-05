@@ -74,9 +74,11 @@ create table public.deals (
     created_at timestamp with time zone not null default now(),
     updated_at timestamp with time zone not null default now(),
     archived_at timestamp with time zone,
-    expected_closing_date date,
+    expected_closing_date date not null,
     sales_id bigint,
-    index smallint
+    index smallint,
+    -- The date type also accepts 5-digit years, BC dates and infinity, which the UI cannot display
+    constraint deals_expected_closing_date_year check (extract(year from expected_closing_date) between 1900 and 2099)
 );
 
 create table public.deal_notes (
