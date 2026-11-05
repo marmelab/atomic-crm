@@ -50,17 +50,17 @@ export const usePreferencesSync = () => {
   const { mutate } = useMutation({
     mutationFn: (patch: Partial<UserPreferences>) =>
       dataProvider.updatePreferences(patch),
-    onSuccess: (preferences) => queryClient.setQueryData(queryKey, preferences),
-    onError: (_error, patch) => {
+    onMutate: (patch) =>
       queryClient.setQueryData<UserPreferences>(queryKey, (previous) => ({
         ...previous,
         ...patch,
-      }));
+      })),
+    onSuccess: (preferences) => queryClient.setQueryData(queryKey, preferences),
+    onError: () =>
       notify("crm.preferences.update_error", {
         type: "error",
         messageArgs: { _: "Could not save your preferences" },
-      });
-    },
+      }),
   });
 
   useEffect(() => {

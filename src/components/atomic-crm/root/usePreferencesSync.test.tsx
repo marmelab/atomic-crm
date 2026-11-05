@@ -30,6 +30,7 @@ const createFakeServer = (
   let writes = 0;
   return {
     read: () => ({ ...stored }),
+    writes: () => writes,
     getPreferences: async () => ({ ...stored }),
     updatePreferences: async (patch: Partial<UserPreferences>) => {
       writes += 1;
@@ -118,6 +119,38 @@ describe("usePreferencesSync", () => {
 
     await expect.element(screen.getByText("locale: fr")).toBeVisible();
     await vi.waitFor(() => expect(server.read().locale).toBe("fr"));
+  });
+
+  it("saves a locale change only once", async () => {
+    const server = createFakeServer(
+      { theme: "dark", locale: "en" },
+      { firstWriteLatency: 300 },
+    );
+    const screen = await renderWithServer(server);
+    await expect.element(screen.getByText("theme: dark")).toBeVisible();
+
+    await screen.getByRole("button", { name: "set french locale" }).click();
+
+    await vi.waitFor(() => expect(server.read().locale).toBe("fr"), {
+      timeout: 2000,
+    });
+    expect(server.writes()).toBe(1);
+  });
+
+  it("saves a theme change only once", async () => {
+    const server = createFakeServer(
+      { theme: "dark", locale: "en" },
+      { firstWriteLatency: 300 },
+    );
+    const screen = await renderWithServer(server);
+    await expect.element(screen.getByText("theme: dark")).toBeVisible();
+
+    await pickTheme(screen, "Light");
+
+    await vi.waitFor(() => expect(server.read().theme).toBe("light"), {
+      timeout: 2000,
+    });
+    expect(server.writes()).toBe(1);
   });
 
   it("stores the last of two changes when the first save is the slowest", async () => {
