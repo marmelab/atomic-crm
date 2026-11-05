@@ -117,7 +117,7 @@ export const buildDeal = (overrides: Partial<Deal> = {}): Deal => ({
   contact_ids: [],
   created_at: "2025-01-01T09:00:00.000Z",
   description: "",
-  expected_closing_date: "2025-02-01T09:00:00.000Z",
+  expected_closing_date: "2025-02-01",
   id: 1,
   index: 0,
   name: "Acme deal",

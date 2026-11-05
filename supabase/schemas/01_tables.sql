@@ -77,8 +77,8 @@ create table public.deals (
     expected_closing_date date,
     sales_id bigint,
     index smallint,
-    -- The date type also accepts 5-digit years, BC dates and infinity, which the UI cannot display
-    constraint deals_expected_closing_date_range check (expected_closing_date between '1000-01-01' and '9999-12-31')
+    -- Rejects implausible dates, e.g. typos such as 5-digit years, plus BC dates and infinity, which the UI cannot display
+    constraint deals_expected_closing_date_range check (expected_closing_date between '1900-01-01' and '2900-12-31')
 );
 
 create table public.deal_notes (
