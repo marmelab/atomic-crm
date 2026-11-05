@@ -1,29 +1,6 @@
 import { commands } from "vitest/browser";
 
-import {
-  formatISODateString,
-  isISODateString,
-  validateClosingDate,
-} from "./dealUtils";
-
-describe("validateClosingDate", () => {
-  it.each(["1900-01-01", "2026-09-30", "2099-12-31", ""])(
-    "accepts %j",
-    (value) => {
-      expect(validateClosingDate(value)).toBeUndefined();
-    },
-  );
-
-  it.each(["1899-12-31", "2100-01-01", "20250-12-31"])(
-    "rejects %s, which the database check refuses",
-    (value) => {
-      expect(validateClosingDate(value)).toEqual({
-        message: "resources.deals.validation.closing_date_range",
-        args: { min: 1900, max: 2099 },
-      });
-    },
-  );
-});
+import { formatISODateString, isISODateString } from "./dealUtils";
 
 describe("isISODateString", () => {
   it("accepts a YYYY-MM-DD date", () => {
