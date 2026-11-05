@@ -1,6 +1,42 @@
 import { commands } from "vitest/browser";
 
-import { formatISODateString } from "./dealUtils";
+import {
+  formatISODateString,
+  isISODateString,
+  validateClosingDate,
+} from "./dealUtils";
+
+describe("validateClosingDate", () => {
+  it.each(["1900-01-01", "2026-09-30", "2900-12-31", ""])(
+    "accepts %j",
+    (value) => {
+      expect(validateClosingDate(value)).toBeUndefined();
+    },
+  );
+
+  it.each(["1899-12-31", "2901-01-01", "20250-12-31"])(
+    "rejects %s, which the database check refuses",
+    (value) => {
+      expect(validateClosingDate(value)).toBe("resources.deals.invalid_date");
+    },
+  );
+});
+
+describe("isISODateString", () => {
+  it("accepts a YYYY-MM-DD date", () => {
+    expect(isISODateString("2024-06-15")).toBe(true);
+  });
+
+  it.each([
+    ["a 5-digit year Postgres accepts", "20250-12-31"],
+    ["a BC date", "2025-12-31 BC"],
+    ["infinity", "infinity"],
+    ["null", null],
+    ["undefined", undefined],
+  ])("rejects %s, which formatISODateString would throw on", (_, value) => {
+    expect(isISODateString(value)).toBe(false);
+  });
+});
 
 describe("formatISODateString", () => {
   let originalTimezone: string;

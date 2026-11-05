@@ -43,6 +43,15 @@ describe("DealInputs", () => {
     await expect.element(screen.getByText("Grace Hopper")).toBeInTheDocument();
   });
 
+  it("rejects a closing date the database would refuse", async () => {
+    const screen = await render(<CreateForm />);
+
+    await screen.getByLabelText(/expected closing date/i).fill("20250-12-31");
+    await screen.getByRole("button", { name: /^save$/i }).click();
+
+    await expect.element(screen.getByText("Invalid date")).toBeVisible();
+  });
+
   it("does not offer to create a contact before anything is typed", async () => {
     const screen = await render(<CreateForm />);
 
