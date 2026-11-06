@@ -33,7 +33,7 @@ export const frenchCrmMessages = {
         title: "Importer des entreprises",
       },
       field_categories: {
-        contact: "Contact",
+        contact: "Coordonnées",
         additional_info: "Informations supplémentaires",
         address: "Adresse",
         context: "Contexte",

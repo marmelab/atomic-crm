@@ -884,6 +884,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/companies/CompanyContactsMobile.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/companies/CompanyCard.tsx",
           "type": "registry:component"
         },

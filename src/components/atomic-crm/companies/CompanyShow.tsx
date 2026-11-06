@@ -7,6 +7,7 @@ import { UserPlus } from "lucide-react";
 import {
   RecordContextProvider,
   ShowBase,
+  type ShowBaseProps,
   useListContext,
   useLocaleState,
   useRecordContext,
@@ -42,12 +43,13 @@ import {
   ContextInfo,
 } from "./CompanyAside";
 import { CompanyAvatar } from "./CompanyAvatar";
+import { CompanyContactsMobile } from "./CompanyContactsMobile";
 
-export const CompanyShow = () => {
+export const CompanyShow = (props: ShowBaseProps = {}) => {
   const isMobile = useIsMobile();
 
   return (
-    <ShowBase>
+    <ShowBase {...props}>
       {isMobile ? <CompanyShowContentMobile /> : <CompanyShowContent />}
     </ShowBase>
   );
@@ -81,6 +83,7 @@ const CompanyShowContentMobile = () => {
           </div>
         </div>
         <CompanyInfo record={record} />
+        <CompanyContactsMobile record={record} />
         <AddressInfo record={record} />
         <ContextInfo record={record} />
         <AdditionalInfo record={record} />

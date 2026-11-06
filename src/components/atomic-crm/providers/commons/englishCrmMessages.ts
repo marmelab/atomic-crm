@@ -31,7 +31,7 @@ export const englishCrmMessages = {
         title: "Import companies",
       },
       field_categories: {
-        contact: "Contact",
+        contact: "Contact details",
         additional_info: "Additional information",
         address: "Address",
         context: "Context",
