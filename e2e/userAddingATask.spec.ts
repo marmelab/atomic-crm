@@ -67,7 +67,10 @@ test.describe("user adding a task", () => {
 
     await page.getByRole("button", { name: "Save" }).click();
 
-    await dismissToast("Task added");
+    // Mobile shows no success snackbar
+    if (!isMobile) {
+      await dismissToast("Task added");
+    }
 
     if (isMobile) {
       await expect(page.getByText("1 task")).toBeVisible();

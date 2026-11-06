@@ -63,7 +63,10 @@ test("user onboarding", async ({ page, isMobile, menu, dismissToast }) => {
 
   await page.getByRole("button", { name: "Save" }).click();
 
-  await dismissToast("Element created");
+  // Mobile shows no success snackbar
+  if (!isMobile) {
+    await dismissToast("Element created");
+  }
 
   await expect(page.locator(isMobile ? "h2" : "h5")).toHaveText("Jane Smith");
   await expect(page.getByText("CEO at Smith Corp")).toBeVisible();
@@ -84,7 +87,10 @@ test("user onboarding", async ({ page, isMobile, menu, dismissToast }) => {
     .getByRole("button", { name: isMobile ? "Save" : "Add this note" })
     .click();
 
-  await dismissToast("Note added");
+  // Mobile shows no success snackbar
+  if (!isMobile) {
+    await dismissToast("Note added");
+  }
 
   await expect(
     page.getByText(isMobile ? "Me" : "You added a note", { exact: false }),
