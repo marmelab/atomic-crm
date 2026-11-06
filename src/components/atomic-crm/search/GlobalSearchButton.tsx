@@ -112,7 +112,6 @@ export const GlobalSearchButton = ({
         <Button
           variant="ghost"
           size="icon"
-          // same shape and icon size as its neighbour, MobileRefreshButton
           className="rounded-full"
           onClick={openDialog}
           aria-label={translate("crm.search.title")}
