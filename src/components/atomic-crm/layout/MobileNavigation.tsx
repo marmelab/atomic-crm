@@ -6,7 +6,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import { Home, ListTodo, Plus, Settings, Users } from "lucide-react";
+import {
+  Home,
+  ListTodo,
+  Plus,
+  Settings,
+  StickyNote,
+  UserPlus,
+  Users,
+} from "lucide-react";
 import { useTranslate } from "ra-core";
 import { Link, matchPath, useLocation, useMatch } from "react-router";
 import { ContactCreateSheet } from "../contacts/ContactCreateSheet";
@@ -144,27 +152,30 @@ const CreateButton = () => {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="center">
           <DropdownMenuItem
-            className="h-12 px-4 text-base"
+            className="h-12 gap-3 px-4 text-base"
             onClick={() => {
               setContactCreateOpen(true);
             }}
           >
+            <UserPlus className="size-5" />
             {translate("resources.contacts.forcedCaseName")}
           </DropdownMenuItem>
           <DropdownMenuItem
-            className="h-12 px-4 text-base"
+            className="h-12 gap-3 px-4 text-base"
             onClick={() => {
               setNoteCreateOpen(true);
             }}
           >
+            <StickyNote className="size-5" />
             {translate("resources.notes.forcedCaseName")}
           </DropdownMenuItem>
           <DropdownMenuItem
-            className="h-12 px-4 text-base"
+            className="h-12 gap-3 px-4 text-base"
             onClick={() => {
               setTaskCreateOpen(true);
             }}
           >
+            <ListTodo className="size-5" />
             {translate("resources.tasks.forcedCaseName")}
           </DropdownMenuItem>
         </DropdownMenuContent>
