@@ -20,7 +20,7 @@ import type {
 } from "../../types";
 import type { ConfigurationContextValue } from "../../root/ConfigurationContext";
 import { ATTACHMENTS_BUCKET } from "../commons/attachments";
-import { getIsInitialized } from "./authProvider";
+import { clearCache, getIsInitialized } from "./authProvider";
 import { searchDealCategories } from "./searchDealCategories";
 import { getSupabaseClient } from "./supabase";
 
@@ -190,6 +190,7 @@ const getDataProviderWithCustomMethods = () => {
         );
       }
 
+      clearCache();
       return updatedData.data;
     },
     async updatePassword(id: Identifier) {
