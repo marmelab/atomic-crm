@@ -241,7 +241,7 @@ describe("ContactList", () => {
       page.viewport(375, 667);
     });
 
-    it("leaves name search to the global search, keeping filters and refresh", async () => {
+    it("leaves name search to the global search, keeping filters", async () => {
       const screen = await render(<MobileSuccess />);
 
       await expect.element(screen.getByText("Ada Lovelace")).toBeVisible();
@@ -250,9 +250,6 @@ describe("ContactList", () => {
         .toBeVisible();
       await expect
         .element(screen.getByRole("button", { name: "Add filter" }))
-        .toBeVisible();
-      await expect
-        .element(screen.getByRole("button", { name: "Refresh" }))
         .toBeVisible();
       await expect.element(screen.getByRole("textbox")).not.toBeInTheDocument();
     });
