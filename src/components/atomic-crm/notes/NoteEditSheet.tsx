@@ -61,7 +61,7 @@ export const NoteEditSheet = ({
           )}
         />
       }
-      redirect={(_resource, _id, record) => getRedirectTo(record)}
+      redirect={false}
       open={open}
       onOpenChange={onOpenChange}
       headerActions={

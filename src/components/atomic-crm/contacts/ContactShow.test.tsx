@@ -11,6 +11,7 @@ import { buildContact, createCrmDb, StoryWrapper } from "@/test/StoryWrapper";
 import { NoteCreateSheet } from "../notes/NoteCreateSheet";
 import { TaskCreateSheet } from "../tasks/TaskCreateSheet";
 import { ContactAside } from "./ContactAside";
+import { ContactEditSheet } from "./ContactEditSheet";
 import { ContactShow } from "./ContactShow";
 import { MobileSuccess } from "./ContactShow.mobile.stories";
 
@@ -82,11 +83,43 @@ describe("ContactShow", () => {
     await expect.element(screen.getByText("Call back")).toBeVisible();
   });
 
-  it("shows the contact notes tab after creating a note, even from another tab", async () => {
+  it("saves a contact edit right away, without a success snackbar", async () => {
+    let dataProvider: DataProvider | null = null;
+    const DataProviderListener = () => {
+      dataProvider = useDataProvider();
+      return null;
+    };
+
     const screen = await render(
       <StoryWrapper
-        data={{ contacts: [buildContact({ id: 1 })] }}
-        initialEntries={["/?tab=tasks"]}
+        data={{ contacts: [buildContact({ id: 1, first_name: "Ada" })] }}
+      >
+        <DataProviderListener />
+        <ContactEditSheet open onOpenChange={() => {}} contactId={1} />
+      </StoryWrapper>,
+    );
+
+    await screen.getByLabelText(/first name/i).fill("Grace");
+    await screen.getByRole("button", { name: /^save$/i }).click();
+
+    await expect
+      .poll(async () => {
+        const { data } = await dataProvider!.getOne("contacts", { id: 1 });
+        return data.first_name;
+      })
+      .toBe("Grace");
+    expect(screen.getByText("Element updated").query()).toBeNull();
+    expect(screen.getByRole("button", { name: /undo/i }).query()).toBeNull();
+  });
+
+  it("shows the new note after creating it", async () => {
+    const screen = await render(
+      <StoryWrapper
+        data={{
+          contacts: [
+            buildContact({ id: 1, first_name: "Ada", last_name: "Lovelace" }),
+          ],
+        }}
       >
         <NoteCreateSheet open onOpenChange={() => {}} contact_id={1} />
       </StoryWrapper>,
@@ -96,9 +129,48 @@ describe("ContactShow", () => {
     await screen.getByRole("button", { name: /^save$/i }).click();
 
     await expect
-      .element(screen.getByRole("tab", { name: "Notes" }))
-      .toHaveAttribute("aria-selected", "true");
+      .element(screen.getByRole("heading", { name: "Note for Ada Lovelace" }))
+      .toBeVisible();
     await expect.element(screen.getByText("Met at the fair")).toBeVisible();
+    expect(screen.getByRole("tab", { name: "Notes" }).query()).toBeNull();
+  });
+
+  it("stays on the note after editing it", async () => {
+    const screen = await render(
+      <StoryWrapper
+        data={{
+          contacts: [
+            buildContact({ id: 1, first_name: "Ada", last_name: "Lovelace" }),
+          ],
+          contact_notes: [
+            {
+              id: 1,
+              contact_id: 1,
+              text: "Met at the fair",
+              date: "2025-01-01T10:00:00.000Z",
+              sales_id: 0,
+              status: "warm",
+              attachments: [],
+            },
+          ],
+        }}
+        initialEntries={["/contacts/1/notes/1"]}
+      >
+        {null}
+      </StoryWrapper>,
+    );
+
+    await screen.getByRole("button", { name: "Edit note" }).click();
+    await screen.getByRole("textbox").first().fill("Met at the conference");
+    await screen.getByRole("button", { name: /^save$/i }).click();
+
+    await expect
+      .element(screen.getByText("Met at the conference"))
+      .toBeVisible();
+    await expect
+      .element(screen.getByRole("heading", { name: "Note for Ada Lovelace" }))
+      .toBeVisible();
+    expect(screen.getByRole("tab", { name: "Notes" }).query()).toBeNull();
   });
 
   it("links phone numbers to the dialer, keeping the extension as a pause", async () => {
