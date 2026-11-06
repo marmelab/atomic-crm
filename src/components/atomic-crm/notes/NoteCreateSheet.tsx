@@ -4,7 +4,6 @@ import {
   useGetIdentity,
   useGetOne,
   useGetRecordRepresentation,
-  useNotify,
   useRedirect,
   useTranslate,
   useUpdate,
@@ -35,7 +34,6 @@ export const NoteCreateSheet = ({
   );
   const [update] = useUpdate();
   const dataProvider = useDataProvider();
-  const notify = useNotify();
   const redirect = useRedirect();
   const translate = useTranslate();
   const getContactRepresentation = useGetRecordRepresentation("contacts");
@@ -55,12 +53,7 @@ export const NoteCreateSheet = ({
       data: { last_seen: new Date().toISOString(), status: data.status },
       previousData: contact,
     });
-    notify("resources.notes.added", {
-      messageArgs: {
-        _: "Note added",
-      },
-    });
-    redirect(`/contacts/${referenceRecordId}/show?tab=notes`);
+    redirect(`/contacts/${referenceRecordId}/notes/${data.id}`);
     onOpenChange(false);
   };
 

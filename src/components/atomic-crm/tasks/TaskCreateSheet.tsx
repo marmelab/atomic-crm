@@ -4,7 +4,6 @@ import {
   useGetIdentity,
   useGetOne,
   useGetRecordRepresentation,
-  useNotify,
   useRedirect,
   useTranslate,
   useUpdate,
@@ -39,7 +38,6 @@ export const TaskCreateSheet = ({
   const [update] = useUpdate();
   const dataProvider = useDataProvider();
   const queryClient = useQueryClient();
-  const notify = useNotify();
   const redirect = useRedirect();
   // Set once per opening: a new due_date on each render would make ra-core
   // reset the form, wiping what the user already typed.
@@ -68,7 +66,6 @@ export const TaskCreateSheet = ({
       queryKey: ["contacts", "getOne"],
     });
 
-    notify("resources.tasks.added");
     if (!selectContact) {
       redirect(`/contacts/${contact_id}/show?tab=tasks`);
     }

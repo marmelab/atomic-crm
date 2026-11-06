@@ -4,10 +4,8 @@ import {
   EditBase,
   Form,
   useEditContext,
-  useNotify,
   useRedirect,
   useResourceContext,
-  useTranslate,
   type EditBaseProps,
   type FormProps,
 } from "ra-core";
@@ -82,14 +80,12 @@ export const EditSheet = ({
   title,
   redirect: redirectTo = "show",
   mutationOptions,
-  mutationMode = "undoable",
+  mutationMode = "optimistic",
   defaultValues,
   headerActions,
   ...editBaseProps
 }: EditSheetProps) => {
   const resource = useResourceContext(editBaseProps);
-  const translate = useTranslate();
-  const notify = useNotify();
   const redirect = useRedirect();
 
   // Handle success - close sheet in addition to default behavior
@@ -100,16 +96,6 @@ export const EditSheet = ({
       );
     }
     const [data] = args;
-    notify(`resources.${resource}.notifications.updated`, {
-      type: "info",
-      messageArgs: {
-        smart_count: 1,
-        _: translate(`ra.notification.updated`, {
-          smart_count: 1,
-        }),
-      },
-      undoable: mutationMode === "undoable",
-    });
     redirect(redirectTo, resource, data.id, data);
     onOpenChange(false);
   };

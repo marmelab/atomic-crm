@@ -181,9 +181,6 @@ const ProfileSection = () => {
         } as SalesFormData);
         refetchIdentity();
         refetchUser();
-        notify("crm.profile.updated", {
-          messageArgs: { _: "Your profile has been updated" },
-        });
       } catch (error) {
         await refetchUser();
         refetchIdentity();
@@ -212,9 +209,6 @@ const ProfileSection = () => {
         await dataProvider.salesUpdate(data.id, values);
         refetchIdentity();
         refetchUser();
-        notify("crm.profile.updated", {
-          messageArgs: { _: "Your profile has been updated" },
-        });
       } catch {
         notify("crm.profile.update_error", {
           type: "error",

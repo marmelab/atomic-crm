@@ -3,10 +3,8 @@ import { DrawerTitle } from "@/components/ui/drawer";
 import {
   CreateBase,
   Form,
-  useNotify,
   useRedirect,
   useResourceContext,
-  useTranslate,
   type CreateBaseProps,
   type FormProps,
 } from "ra-core";
@@ -85,8 +83,6 @@ export const CreateSheet = ({
   ...createBaseProps
 }: CreateSheetProps) => {
   const resource = useResourceContext(createBaseProps);
-  const translate = useTranslate();
-  const notify = useNotify();
   const redirect = useRedirect();
 
   // Handle success - close sheet in addition to default behavior
@@ -97,16 +93,6 @@ export const CreateSheet = ({
       );
     }
     const [data] = args;
-    notify(`resources.${resource}.notifications.created`, {
-      type: "info",
-      messageArgs: {
-        smart_count: 1,
-        _: translate(`ra.notification.created`, {
-          smart_count: 1,
-        }),
-      },
-      undoable: createBaseProps.mutationMode === "undoable",
-    });
     redirect(redirectTo, resource, data.id, data);
     onOpenChange(false);
   };
