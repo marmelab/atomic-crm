@@ -134,7 +134,7 @@ const ContactListLayoutMobile = () => {
 
   return (
     <div>
-      <MobileHeader showRefresh>
+      <MobileHeader>
         {/* No name search here: the header's global search finds contacts */}
         <div className="flex flex-1 items-center justify-between">
           <h1 className="text-xl font-semibold">

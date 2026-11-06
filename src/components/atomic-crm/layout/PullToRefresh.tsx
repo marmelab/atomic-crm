@@ -37,8 +37,7 @@ const isScrollGesture = (target: EventTarget | null) => {
 /**
  * Mobile pull-to-refresh: pulling down from the top of the page reveals an indicator
  * that follows the finger, and releasing it past the trigger distance refetches every
- * active query. The indicator is decorative — the gesture's accessible counterpart is
- * the <MobileRefreshButton> in the header.
+ * active query.
  *
  * Mounted once by <MobileLayout>: it listens on the document, so it covers every mobile
  * page without each of them having to opt in. Native overscroll (Chrome for Android's

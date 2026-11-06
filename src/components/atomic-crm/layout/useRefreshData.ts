@@ -5,8 +5,8 @@ import { useCallback, useRef, useState } from "react";
 const MIN_SPINNER_MS = 400;
 
 /**
- * Refetches every active query, and reports whether that is in flight — shared by the
- * two mobile refresh affordances, <MobileRefreshButton> and <PullToRefresh>.
+ * Refetches every active query, and reports whether that is in flight — used by
+ * <PullToRefresh>.
  *
  * Same effect as ra-core's useRefresh, but awaitable, so a spinner can stop when the
  * data has actually come back rather than after a guessed delay.
