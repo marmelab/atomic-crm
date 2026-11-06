@@ -82,7 +82,7 @@ const getSale = async () => {
   return dataSale;
 };
 
-function clearCache() {
+export function clearCache() {
   const storage = getLocalStorage();
   storage?.removeItem(IS_INITIALIZED_CACHE_KEY);
   storage?.removeItem(CURRENT_SALE_CACHE_KEY);
