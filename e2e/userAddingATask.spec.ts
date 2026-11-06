@@ -73,6 +73,7 @@ test.describe("user adding a task", () => {
     }
 
     if (isMobile) {
+      await expect(page.getByLabel("Description *")).toBeHidden();
       await expect(page.getByText("1 task")).toBeVisible();
       await page.getByText("1 task").click();
 
