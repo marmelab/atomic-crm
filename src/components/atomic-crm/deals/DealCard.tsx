@@ -62,7 +62,7 @@ export const DealCardContent = ({
                   reference="companies"
                   link={false}
                 />
-                {" - "}
+                {deal.company_id != null && " - "}
                 {deal.name}
               </p>
               <ReferenceField
@@ -84,7 +84,7 @@ export const DealCardContent = ({
                   minimumSignificantDigits: 3,
                 }}
               />
-              {deal.categories?.length ? ", " : ""}
+              {deal.amount != null && deal.categories?.length ? ", " : ""}
               {formatDealCategories(dealCategories, deal.categories)}
             </p>
           </CardContent>
