@@ -1,10 +1,13 @@
-// Writes the config.js of a built app from the VITE_* environment variables:
+// Renders the app's config.js from the VITE_* environment variables. The Vite
+// plugin below serves it in dev and writes it in builds; deployments overwrite
+// it with:
 //
 //   node scripts/renderRuntimeConfig.ts dist/config.js
 //
 // See src/components/atomic-crm/root/config.ts for how the app reads it.
 
 import { writeFileSync } from "node:fs";
+import type { Plugin } from "vite";
 
 type Env = Record<string, string | undefined>;
 
@@ -33,6 +36,25 @@ export const renderRuntimeConfig = (env: Env): string => {
       ]),
   );
   return `window._atomicCrmConfig = ${JSON.stringify(config, null, 2)};\n`;
+};
+
+export const runtimeConfig = (): Plugin => {
+  let script = "";
+  return {
+    name: "runtime-config",
+    configResolved: (config) => {
+      script = renderRuntimeConfig(config.env);
+    },
+    configureServer: (server) => {
+      server.middlewares.use("/config.js", (_req, res) => {
+        res.setHeader("Content-Type", "text/javascript");
+        res.end(script);
+      });
+    },
+    generateBundle() {
+      this.emitFile({ type: "asset", fileName: "config.js", source: script });
+    },
+  };
 };
 
 if (import.meta.main) {

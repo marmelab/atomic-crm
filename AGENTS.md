@@ -120,7 +120,7 @@ The `src/App.tsx` file renders the `<CRM>` component, which accepts props for do
 
 #### Runtime Configuration
 
-Deployment settings (Supabase URL and key, inbound email, etc.) are not inlined in the bundle, so one build can be deployed to any environment. The app reads them from `config` (`src/components/atomic-crm/root/config.ts`) from `window._atomicCrmConfig`, set by the `config.js` that `index.html` loads first. Deployments write that file with `node scripts/renderRuntimeConfig.ts dist/config.js`, from the `VITE_*` variables. Elsewhere (dev, local builds, tests), `public/config.js` is an empty placeholder and the app falls back to the `VITE_*` variables. To add a setting, add it to both files; don't read `import.meta.env.VITE_*` directly.
+Deployment settings (Supabase URL and key, inbound email, etc.) are not inlined in the bundle, so one build can be deployed to any environment. The app reads them from `config` (`src/components/atomic-crm/root/config.ts`) from `window._atomicCrmConfig`, set by the `config.js` that `index.html` loads first. `scripts/renderRuntimeConfig.ts` renders that file from the `VITE_*` variables: its Vite plugin serves it in dev and writes it in builds, and deployments overwrite it with `node scripts/renderRuntimeConfig.ts dist/config.js`. Unit tests set `window._atomicCrmConfig` directly. To add a setting, add it to `RuntimeConfig` and to `ENV_KEYS` in that script; don't read `import.meta.env.VITE_*` directly.
 
 #### Database Views
 

@@ -8,10 +8,12 @@ vi.mock("./supabase", () => ({
   getSupabaseClient: () => ({ rpc }),
 }));
 
-// Hoisted: config reads the env once, when the imports above load.
+// Hoisted: config is read once, when the imports above load.
 vi.hoisted(() => {
-  vi.stubEnv("VITE_SUPABASE_URL", "http://localhost:54321");
-  vi.stubEnv("VITE_SB_PUBLISHABLE_KEY", "test-key");
+  window._atomicCrmConfig = {
+    supabaseUrl: "http://localhost:54321",
+    supabasePublishableKey: "test-key",
+  };
 });
 
 describe("globalSearch", () => {

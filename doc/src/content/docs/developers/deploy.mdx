@@ -51,7 +51,7 @@ The CRM will be available at `https://<username>.github.io/atomic-crm/`.
 
 The built bundle contains no environment-specific setting. It reads them from a `config.js` file, which `index.html` loads before the app. This means you can build the frontend once, and deploy the same `dist` directory to several environments (staging, production, one instance per customer...), each with its own `config.js`.
 
-`make build` ships an empty `config.js`, so the app uses the `VITE_*` variables available at build time (e.g. in `.env.production.local`). To point a build to an environment, write its `config.js` from environment variables (requires Node.js 22.18 or later). It replaces the build-time values as a whole: once `config.js` sets any setting, the app ignores all the `VITE_*` variables it was built with, so list every setting you need:
+`make build` writes a `config.js` from the `VITE_*` variables available at build time (e.g. in `.env.production.local`), the same way the dev server serves one from your `.env` files. To point a build to another environment, overwrite its `config.js` from environment variables (requires Node.js 22.18 or later):
 
 ```sh
 VITE_SUPABASE_URL=https://xxxxxxxx.supabase.co \
