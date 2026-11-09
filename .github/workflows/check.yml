@@ -97,8 +97,6 @@ jobs:
     e2e-test:
       timeout-minutes: 10
       runs-on: ubuntu-latest
-      # Tests the environment-agnostic bundle the way it is deployed: the
-      # makefile points it at the e2e Supabase instance by writing its dist/config.js.
       needs: build
       steps:
       - name: 📥 Checkout repo
@@ -145,9 +143,6 @@ jobs:
             - name: 🔨 Build (demo)
               run: npm run build:demo -- --outDir dist-demo
 
-            # No VITE_* variable here: the bundle is environment-agnostic. The e2e
-            # job and each deploy job write their own dist/config.js
-            # (see scripts/renderRuntimeConfig.ts).
             - name: 🔨 Build
               run: npm run build
 

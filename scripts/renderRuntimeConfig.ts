@@ -1,19 +1,14 @@
-// Writes the config.js of a built app, at deploy time:
+// Writes the config.js of a built app from the VITE_* environment variables:
 //
 //   node scripts/renderRuntimeConfig.ts dist/config.js
 //
-// The bundle is environment-agnostic: it reads its deployment settings from
-// window._atomicCrmConfig, set by the config.js that index.html loads before
-// the bundle (see src/components/atomic-crm/root/config.ts). This script
-// renders that file from environment variables, so one build can be deployed
-// anywhere. It has no dependency, so it runs without node_modules.
+// See src/components/atomic-crm/root/config.ts for how the app reads it.
 
 import { writeFileSync } from "node:fs";
 
 type Env = Record<string, string | undefined>;
 
-// Runtime config key -> environment variable it is read from. Only these are
-// written to config.js, which is public: never add a secret here.
+// Written to config.js, which is public: never add a secret here.
 const ENV_KEYS = {
   supabaseUrl: "VITE_SUPABASE_URL",
   supabasePublishableKey: "VITE_SB_PUBLISHABLE_KEY",

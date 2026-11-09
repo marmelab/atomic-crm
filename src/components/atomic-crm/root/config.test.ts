@@ -2,8 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { config } from "./config";
 
-// Hoisted: config is read once, when the import above loads. The
-// fallback to the VITE_* variables is covered by the data provider tests.
+// Hoisted: config is read once, when the import above loads.
 vi.hoisted(() => {
   vi.stubEnv("VITE_SUPABASE_URL", "http://127.0.0.1:54321");
   vi.stubEnv("VITE_INBOUND_EMAIL", "dev@inbound.example.com");

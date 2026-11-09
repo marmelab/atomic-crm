@@ -33,7 +33,6 @@ export default defineConfig({
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff,woff2}"],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MiB
         // config.js is rewritten at deploy time: a precached copy would go stale.
-        // Fetch it from the network, with the cache as an offline fallback.
         globIgnores: ["**/node_modules/**/*", "config.js"],
         runtimeCaching: [
           { urlPattern: /\/config\.js$/, handler: "NetworkFirst" },

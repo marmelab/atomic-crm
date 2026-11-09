@@ -1,7 +1,6 @@
 name: 🚀 Deploy
 on:
-    # Runs once Check is done on main, and deploys the builds it tested (each job
-    # skips unless Check passed). Must match the name of check.yml.
+    # Must match the name of check.yml.
     workflow_run:
         workflows: ["✅ Check"]
         types: [completed]
@@ -10,7 +9,7 @@ on:
 concurrency:
     group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
     # Never cancel a running deploy: it could interrupt a migration or leave the
-    # database and frontend out of sync. A newer push waits for it instead.
+    # database and frontend out of sync.
     cancel-in-progress: false
 
 permissions:
@@ -24,14 +23,12 @@ jobs:
         name: 🚀 Deploy (doc)
         runs-on: ubuntu-latest
         timeout-minutes: 5
-        # Only after a passing Check of a push to main, never of a pull request.
         if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' }}
 
         steps:
             - name: 📥 Checkout repo
               uses: actions/checkout@v7
               with:
-                  # The commit Check tested, not the latest one on main.
                   ref: ${{ github.event.workflow_run.head_sha }}
                   # Keep the job token out of .git/config, where any install
                   # script or build plugin could read it.
@@ -72,7 +69,6 @@ jobs:
         name: 🚀 Deploy (demo)
         runs-on: ubuntu-latest
         timeout-minutes: 10
-        # Only after a passing Check of a push to main, never of a pull request.
         if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' }}
 
         # Public runtime-config values only. The deploy token is scoped to the
@@ -90,7 +86,6 @@ jobs:
             - name: 📥 Checkout repo
               uses: actions/checkout@v7
               with:
-                  # The commit Check tested, not the latest one on main.
                   ref: ${{ github.event.workflow_run.head_sha }}
                   persist-credentials: false
 
@@ -134,7 +129,6 @@ jobs:
         name: 🚀 Deploy (supabase)
         runs-on: ubuntu-latest
         timeout-minutes: 10
-        # Only after a passing Check of a push to main, never of a pull request.
         if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' }}
 
         # Job scope holds only values that are public by design (they are
@@ -169,7 +163,6 @@ jobs:
             - name: 📥 Checkout repo
               uses: actions/checkout@v7
               with:
-                  # The commit Check tested, not the latest one on main.
                   ref: ${{ github.event.workflow_run.head_sha }}
                   persist-credentials: false
 
