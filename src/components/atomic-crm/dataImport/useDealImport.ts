@@ -17,10 +17,12 @@ import { validateClosingDate } from "../deals/dealUtils";
 /**
  * The database refuses closing dates outside the range the deal form allows, so
  * an out-of-range date is dropped rather than failing the whole deal.
+ * Kept as a plain YYYY-MM-DD date: FakeRest stores the value as is, and the deal
+ * page only displays that format.
  */
 const toClosingDate = (cell: ImportCell): string | undefined => {
-  const date = toIsoDate(cell);
-  return date && !validateClosingDate(date.slice(0, 10)) ? date : undefined;
+  const date = toIsoDate(cell)?.slice(0, 10);
+  return date && !validateClosingDate(date) ? date : undefined;
 };
 
 /** One CSV row, with the values needed before its deal can be created. */

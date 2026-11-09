@@ -222,7 +222,7 @@ describe("DataImportButton", () => {
       name: "New website",
       stage: "proposal-sent",
     });
-    expect(deals[0].expected_closing_date).toBe("2026-09-30T00:00:00.000Z");
+    expect(deals[0].expected_closing_date).toBe("2026-09-30");
     // Both rows name the same company, which is created once and shared
     expect(deals[1].company_id).toBe(companies[0].id);
     // stage is required, so an empty cell falls back to the first stage
@@ -314,7 +314,7 @@ describe("DataImportButton", () => {
       sales_id: DEFAULT_USER.id,
       stage: "proposal-sent",
     });
-    expect(deals[0].expected_closing_date).toBe("2026-09-30T00:00:00.000Z");
+    expect(deals[0].expected_closing_date).toBe("2026-09-30");
   });
 
   it("keeps the leading zero of the text columns of a company CSV", async () => {
