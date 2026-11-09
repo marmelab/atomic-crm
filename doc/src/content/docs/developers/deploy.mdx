@@ -113,4 +113,4 @@ VITE_ATTACHMENTS_BUCKET: The name of the bucket used to store attachments. Optio
 
 > **Note:** The `POSTMARK_*` and `VITE_INBOUND_EMAIL` variables are required for Atomic CRM's inbound email features. Have a look at the the [inbound email configuration](../inbound-email-configuration) to learn more about their usage and setup.
 
-On every push to the `main` branch, the GitHub actions build the frontend once and run the tests against that build. Once all checks pass, they update the Supabase instance and deploy that same build to GitHub Pages, with a `config.js` generated from the secrets above (see [Runtime Configuration](#runtime-configuration)).
+On every push to the `main` branch, the check GitHub action builds the frontend once and runs the tests against that build. Once all checks pass, the deploy action updates the Supabase instance and deploys that same build to GitHub Pages, with a `config.js` generated from the secrets above (see [Runtime Configuration](#runtime-configuration)).
