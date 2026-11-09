@@ -13,7 +13,9 @@ on:
 
 concurrency:
     group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-    cancel-in-progress: true
+    # Only PR runs are cancelled: a push to main may be deploying, and cancelling
+    # it could interrupt a migration or leave the database and frontend out of sync.
+    cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
     contents: write
