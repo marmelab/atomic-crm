@@ -60,6 +60,10 @@ If you need debug the backend, you can access the following services:
 - Attachments storage: [http://localhost:54323/project/default/storage/buckets/attachments](http://localhost:54323/project/default/storage/buckets/attachments)
 - Inbucket email testing service: [http://localhost:54324/](http://localhost:54324/)
 
+## One-Click Deploy
+
+[![Deploy on RepoCloud](https://d16t0pc4846x52.cloudfront.net/deploylobe.svg)](https://repocloud.io/details/Atomic%20CRM/)
+
 ## Documentation
 
 The user and developer documentation for this project is available [in the `doc/` directory](./doc/). You can also read it online at [https://marmelab.com/atomic-crm/doc/](https://marmelab.com/atomic-crm/doc/).
