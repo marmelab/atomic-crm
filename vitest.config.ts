@@ -4,13 +4,14 @@ import { playwright } from "@vitest/browser-playwright";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 
-// Three test projects (https://vitest.dev/guide/projects.html):
+// Four test projects (https://vitest.dev/guide/projects.html):
 //   - "app":       React/DOM unit tests, run in a real browser (Playwright/Chromium).
 //   - "claude":    agent-harness hook tests, plain Node integration tests that spawn
 //                  the .claude/hooks/*.mjs hooks as subprocesses. No DOM, no browser.
 //   - "functions": Supabase Edge Function tests. Written for Deno with JSR imports;
 //                  Node-only here, with the jsr:/npm: specifiers aliased to their
 //                  installed npm equivalents. Aliases are scoped to this project.
+//   - "scripts":   tests of the Node build/deploy scripts in scripts/.
 // Run everything with `npm run test:unit:app`, or a single suite with
 // `npm run test:unit:claude` / `npm run test:unit:functions` (neither boots a browser).
 export default defineConfig({
@@ -77,6 +78,8 @@ export default defineConfig({
             // Harness hook tests are Node-only (they import node:fs / node:path
             // and spawn subprocesses); they run under the "claude" project below.
             ".claude/**",
+            // Node scripts (they import node:fs); they run under "scripts" below.
+            "scripts/**",
           ],
           server: {
             deps: {
@@ -117,6 +120,13 @@ export default defineConfig({
           environment: "node",
           include: ["supabase/functions/**/*.test.ts"],
           exclude: ["**/node_modules/**", ".supabase-e2e/**"],
+        },
+      },
+      {
+        test: {
+          name: "scripts",
+          environment: "node",
+          include: ["scripts/**/*.test.ts"],
         },
       },
     ],

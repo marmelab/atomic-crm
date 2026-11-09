@@ -8,6 +8,8 @@
 // renders that file from environment variables, so one build can be deployed
 // anywhere. It has no dependency, so it runs without node_modules.
 
+import { writeFileSync } from "node:fs";
+
 type Env = Record<string, string | undefined>;
 
 // Runtime config key -> environment variable it is read from. Only these are
@@ -40,9 +42,7 @@ export const renderRuntimeConfig = (env: Env): string => {
 
 if (import.meta.main) {
   const [outFile = "dist/config.js"] = process.argv.slice(2);
-  process
-    .getBuiltinModule("node:fs")
-    .writeFileSync(outFile, renderRuntimeConfig(process.env));
+  writeFileSync(outFile, renderRuntimeConfig(process.env));
   // eslint-disable-next-line no-console
   console.log(`Wrote ${outFile}`);
 }
