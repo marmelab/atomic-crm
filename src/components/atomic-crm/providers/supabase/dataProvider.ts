@@ -407,6 +407,11 @@ const lifeCycleCallbacks: ResourceCallbacks[] = [
 ];
 
 export const getDataProvider = () => {
+  if (!window._atomicCrmConfig) {
+    throw new Error(
+      "config.js is not loaded: index.html must load it before the app. See https://marmelab.com/atomic-crm/doc/developers/getting-updates/",
+    );
+  }
   if (!config.supabaseUrl) {
     throw new Error(
       "Please set the VITE_SUPABASE_URL environment variable (or supabaseUrl in config.js)",

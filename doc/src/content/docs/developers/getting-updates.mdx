@@ -27,6 +27,48 @@ pnpm dlx skills add shadcn/ui
 
 Then ask your coding agent `migrate accordion to base-ui`, and so on. The [Shadcn Admin Kit migration guide](https://marmelab.com/shadcn-admin-kit/docs/migrate) covers the details.
 
+## One-off: Loading the Runtime Configuration
+
+Atomic CRM now reads its deployment settings (Supabase URL and key, inbound email...) from a `config.js` file at runtime instead of inlining the `VITE_*` variables in the bundle (see [Runtime Configuration](../deploy#runtime-configuration)). The registry updates the code that reads this file, but not the files that produce and load it. Before pulling this release into an older fork, copy them from upstream, otherwise the app fails on startup with "config.js is not loaded":
+
+1. Copy [`scripts/renderRuntimeConfig.ts`](https://github.com/marmelab/atomic-crm/blob/main/scripts/renderRuntimeConfig.ts) into your `scripts/` directory.
+2. Add its plugin to `vite.config.ts` (and `vite.demo.config.ts`, if you have it), and remove the `define` block that inlined the `VITE_*` variables:
+
+   ```ts title="vite.config.ts"
+   import { runtimeConfig } from "./scripts/renderRuntimeConfig.ts";
+
+   export default defineConfig({
+     plugins: [
+       // ...
+       runtimeConfig(),
+     ],
+   });
+   ```
+
+3. If you use `VitePWA`, keep `config.js` out of the precache, so that a rewritten file isn't served stale:
+
+   ```ts title="vite.config.ts"
+   workbox: {
+     // ...
+     globIgnores: ["**/node_modules/**/*", "config.js"],
+     runtimeCaching: [
+       {
+         urlPattern: /\/config\.js$/,
+         handler: "NetworkFirst",
+         options: { networkTimeoutSeconds: 3 },
+       },
+     ],
+   },
+   ```
+
+4. Load the file in `index.html`, before the app's script:
+
+   ```html title="index.html"
+   <script vite-ignore src="./config.js"></script>
+   ```
+
+Your `.env` files and deployment variables keep working unchanged: the dev server serves `config.js` from them, and `vite build` writes it from them. If your own unit tests stub `VITE_*` variables with `vi.stubEnv()`, set `window._atomicCrmConfig` in a `vi.hoisted()` block instead, since the configuration is read once, on import.
+
 ## Refreshing Your Fork
 
 Commit or stash any pending work first, this command overwrites files, and you'll want a clean diff to review the changes:
