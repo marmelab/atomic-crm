@@ -73,14 +73,9 @@ jobs:
         timeout-minutes: 10
         if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' }}
 
-        # Public runtime-config values only. The deploy token is scoped to the
-        # steps that push, below.
+        # Public runtime-config values only, on top of .env.demo. The deploy
+        # token is scoped to the steps that push, below.
         env:
-            VITE_IS_DEMO: true
-            # The demo runs on FakeRest: these only fill the Supabase-dependent
-            # UI (e.g. the MCP server URL), as the demo build does.
-            VITE_SUPABASE_URL: https://demo.example.org
-            VITE_SB_PUBLISHABLE_KEY: https://demo.example.org
             VITE_INBOUND_EMAIL: ${{ vars.VITE_INBOUND_EMAIL }}
             VITE_ATTACHMENTS_BUCKET: ${{ vars.VITE_ATTACHMENTS_BUCKET || 'attachments' }}
 
@@ -108,8 +103,9 @@ jobs:
                   run-id: ${{ github.event.workflow_run.id }}
                   github-token: ${{ github.token }}
 
+            # The variables above take precedence over .env.demo.
             - name: ⚙️ Configure app
-              run: node scripts/renderRuntimeConfig.ts dist/config.js
+              run: node --env-file=.env.demo scripts/renderRuntimeConfig.ts dist/config.js
 
             - name: ⚙️ Setup git
               env:
