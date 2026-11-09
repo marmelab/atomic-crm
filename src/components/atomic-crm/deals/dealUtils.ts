@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import { format, startOfToday } from "date-fns";
 
 import type { DealStage, LabeledValue } from "../types";
 
@@ -49,14 +49,27 @@ function ucFirst(str: string): string {
 
 const isoDateStringRegex = /^\d{4}-\d{2}-\d{2}$/;
 
+// Some browsers will consider a date in the format YYYY-MM-DD as UTC, which can cause off-by-one-day issues depending on the user's timezone.
+// To avoid this, we can parse the date components manually and create a date object in the local timezone.
+const parseISODateString = (dateString: string) => {
+  const [year, month, day] = dateString.split("-").map(Number);
+  return new Date(year, month - 1, day);
+};
+
 export function formatISODateString(dateString: string) {
   if (!isoDateStringRegex.test(dateString)) {
     throw new Error("Invalid date format. Expected YYYY-MM-DD.");
   }
-  // Some browsers will consider a date in the format YYYY-MM-DD as UTC, which can cause off-by-one-day issues depending on the user's timezone.
-  // To avoid this, we can parse the date components manually and create a date object in the local timezone.
-  const [year, month, day] = dateString.split("-").map(Number);
-  const date = new Date(year, month - 1, day);
+  return format(parseISODateString(dateString), "PP");
+}
 
-  return format(date, "PP");
+/**
+ * Whether a YYYY-MM-DD date is before today in the user's timezone.
+ * The day itself is not past, and invalid strings never are.
+ */
+export function isPastISODateString(dateString: string) {
+  if (!isoDateStringRegex.test(dateString)) {
+    return false;
+  }
+  return parseISODateString(dateString) < startOfToday();
 }
