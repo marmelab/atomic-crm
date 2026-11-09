@@ -68,9 +68,10 @@ export const validateClosingDate = (value: unknown): string | undefined =>
     ? undefined
     : "resources.deals.invalid_date";
 
-export function formatISODateString(dateString: string) {
+/** Returns null for anything but a YYYY-MM-DD date, which the caller shows as invalid. */
+export function formatISODateString(dateString: string): string | null {
   if (!isISODateString(dateString)) {
-    throw new Error("Invalid date format. Expected YYYY-MM-DD.");
+    return null;
   }
   // Some browsers will consider a date in the format YYYY-MM-DD as UTC, which can cause off-by-one-day issues depending on the user's timezone.
   // To avoid this, we can parse the date components manually and create a date object in the local timezone.
