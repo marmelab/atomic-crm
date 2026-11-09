@@ -83,10 +83,9 @@ const DealMiscInputs = () => {
         validate={required()}
       />
       <DateInput
-        validate={[required(), validateClosingDate]}
+        validate={validateClosingDate}
         source="expected_closing_date"
         helperText={false}
-        defaultValue={new Date().toISOString().split("T")[0]}
       />
       <SelectInput
         source="stage"

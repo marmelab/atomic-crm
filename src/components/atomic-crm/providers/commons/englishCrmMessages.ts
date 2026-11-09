@@ -232,6 +232,7 @@ export const englishCrmMessages = {
         title: "Import deals",
       },
       invalid_date: "Invalid date",
+      no_closing_date: "No closing date",
     },
     notes: {
       name: "Note |||| Notes",

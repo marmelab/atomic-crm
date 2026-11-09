@@ -57,7 +57,7 @@ const MIN_CLOSING_DATE = "1900-01-01";
 const MAX_CLOSING_DATE = "2900-12-31";
 
 /**
- * Form validator for the expected closing date. An empty value is left to `required()`.
+ * Form validator for the expected closing date, which is optional: an empty value is valid.
  * YYYY-MM-DD strings with a 4-digit year sort like dates, so string comparison is enough.
  */
 export const validateClosingDate = (value: unknown): string | undefined =>

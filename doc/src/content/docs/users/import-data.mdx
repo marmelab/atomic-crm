@@ -46,7 +46,7 @@ New website,Acme,"Website design, UI Design",Opportunity,12000,2026-09-30,Redesi
 Print campaign,Globex,Print project,Proposal Sent,4500,2026-10-15,
 ```
 
-The `name` and `expected_closing_date` columns are required. The `company` column holds a company name: an existing company is reused, an unknown one is created. `categories` and `stage` are matched against the deal categories and stages configured in your CRM, by stored value or displayed label. A deal can have several categories: separate them with commas (quote the cell) or semicolons; unrecognized ones are skipped. Since a deal always belongs to a stage, an empty or unrecognized `stage` falls back to the first stage of your pipeline.
+The `name` column is required. The `company` column holds a company name: an existing company is reused, an unknown one is created. `categories` and `stage` are matched against the deal categories and stages configured in your CRM, by stored value or displayed label. A deal can have several categories: separate them with commas (quote the cell) or semicolons; unrecognized ones are skipped. Since a deal always belongs to a stage, an empty or unrecognized `stage` falls back to the first stage of your pipeline.
 
 ## Export Contacts To CSV
 

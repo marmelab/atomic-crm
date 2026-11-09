@@ -69,7 +69,7 @@ interface DealsTable {
   created_at: Date;
   updated_at: Date;
   archived_at: Date | null;
-  expected_closing_date: Date;
+  expected_closing_date: Date | null;
   sales_id: number | null;
   index: number | null;
 }

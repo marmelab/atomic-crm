@@ -17,7 +17,7 @@ export default meta;
 export const ClosingDate = ({
   expectedClosingDate = "2020-01-15",
 }: {
-  expectedClosingDate?: string;
+  expectedClosingDate?: string | null;
 }) => (
   <StoryWrapper
     data={{

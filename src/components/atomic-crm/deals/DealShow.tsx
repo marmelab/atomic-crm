@@ -57,7 +57,8 @@ const DealShowContent = () => {
   const { dealStages, dealCategories, currency } = useConfigurationContext();
   const record = useRecordContext<Deal>();
   if (!record) return null;
-  const hasValidClosingDate = isISODateString(record.expected_closing_date);
+  const closingDate = record.expected_closing_date;
+  const hasValidClosingDate = isISODateString(closingDate);
 
   return (
     <>
@@ -97,12 +98,13 @@ const DealShowContent = () => {
               </span>
               <div className="flex items-center gap-2">
                 <span className="text-sm">
-                  {hasValidClosingDate
-                    ? formatISODateString(record.expected_closing_date)
-                    : translate("resources.deals.invalid_date")}
+                  {closingDate == null
+                    ? translate("resources.deals.no_closing_date")
+                    : hasValidClosingDate
+                      ? formatISODateString(closingDate)
+                      : translate("resources.deals.invalid_date")}
                 </span>
-                {hasValidClosingDate &&
-                new Date(record.expected_closing_date) < new Date() ? (
+                {hasValidClosingDate && new Date(closingDate) < new Date() ? (
                   <Badge variant="destructive">
                     {translate("crm.common.past")}
                   </Badge>

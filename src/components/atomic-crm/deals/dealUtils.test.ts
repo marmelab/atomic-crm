@@ -7,7 +7,7 @@ import {
 } from "./dealUtils";
 
 describe("validateClosingDate", () => {
-  it.each(["1900-01-01", "2026-09-30", "2900-12-31", ""])(
+  it.each(["1900-01-01", "2026-09-30", "2900-12-31", "", null])(
     "accepts %j",
     (value) => {
       expect(validateClosingDate(value)).toBeUndefined();

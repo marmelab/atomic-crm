@@ -125,7 +125,7 @@ export type Deal = {
   created_at: string;
   updated_at: string;
   archived_at?: string;
-  expected_closing_date: string;
+  expected_closing_date: string | null;
   sales_id: Identifier;
   index: number;
 } & Pick<RaRecord, "id">;
