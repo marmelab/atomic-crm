@@ -31,7 +31,7 @@ export default defineConfig({
         test: {
           name: "app",
           globals: true,
-          setupFiles: ["./src/index.css"],
+          setupFiles: ["./src/index.css", "./src/test/setup.ts"],
           // These are browser integration tests: a click can run a mutation, close a
           // sheet and wait for a toast. The 1s default budget of expect.poll (and of
           // expect.element, which is built on it) holds on an idle machine but not on

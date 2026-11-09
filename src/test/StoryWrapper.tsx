@@ -158,8 +158,6 @@ export const StoryWrapper = ({
   const store = useMemo(() => memoryStore(), []);
 
   useEffect(() => {
-    // Clear localStorage on mount to prevent data pollution from previous story / test, since we persist react-query cache in localStorage.
-    localStorage.clear();
     // Sonner replays still-active toasts to every new <Toaster>, so dismiss ours on
     // unmount or they reappear in the next story / test.
     return () => {
