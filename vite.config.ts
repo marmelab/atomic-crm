@@ -36,8 +36,14 @@ export default defineConfig({
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MiB
         // config.js is rewritten at deploy time: a precached copy would go stale.
         globIgnores: ["**/node_modules/**/*", "config.js"],
+        // It blocks the app's startup: on a stalled network, fall back to the
+        // cached copy instead of waiting for the request to fail.
         runtimeCaching: [
-          { urlPattern: /\/config\.js$/, handler: "NetworkFirst" },
+          {
+            urlPattern: /\/config\.js$/,
+            handler: "NetworkFirst",
+            options: { networkTimeoutSeconds: 3 },
+          },
         ],
       },
       manifest: false, // Use existing manifest.json from public/
