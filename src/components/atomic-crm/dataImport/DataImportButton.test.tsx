@@ -229,6 +229,20 @@ describe("DataImportButton", () => {
     expect(deals[1].stage).toBe("opportunity");
   });
 
+  it("imports a deal whose closing date the database would refuse, without that date", async () => {
+    const { dataProvider, screen } = await renderImport(useDealImport, [
+      { name: "Typo", expected_closing_date: "0226-09-30" },
+    ]);
+
+    await screen.getByRole("button", { name: "run import" }).click();
+    await expect.element(screen.getByText("imported")).toBeVisible();
+
+    const { data: deals } = await listAll(dataProvider, "deals");
+    expect(deals).toHaveLength(1);
+    expect(deals[0].name).toBe("Typo");
+    expect(deals[0].expected_closing_date).toBeUndefined();
+  });
+
   it("appends imported deals below the deals already in their stage", async () => {
     const { dataProvider, screen } = await renderImport(
       useDealImport,

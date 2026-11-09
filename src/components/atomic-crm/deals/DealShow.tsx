@@ -30,6 +30,7 @@ import {
   findDealLabel,
   formatDealCategories,
   formatISODateString,
+  isISODateString,
 } from "./dealUtils";
 
 export const DealShow = ({ open, id }: { open: boolean; id?: string }) => {
@@ -101,7 +102,8 @@ const DealShowContent = () => {
                     : (formatISODateString(closingDate) ??
                       translate("resources.deals.invalid_date"))}
                 </span>
-                {closingDate && new Date(closingDate) < new Date() ? (
+                {isISODateString(closingDate) &&
+                new Date(closingDate) < new Date() ? (
                   <Badge variant="destructive">
                     {translate("crm.common.past")}
                   </Badge>
