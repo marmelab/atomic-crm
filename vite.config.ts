@@ -32,30 +32,16 @@ export default defineConfig({
       workbox: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff,woff2}"],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MiB
+        // config.js is rewritten at deploy time: a precached copy would go stale.
+        // Fetch it from the network, with the cache as an offline fallback.
+        globIgnores: ["**/node_modules/**/*", "config.js"],
+        runtimeCaching: [
+          { urlPattern: /\/config\.js$/, handler: "NetworkFirst" },
+        ],
       },
       manifest: false, // Use existing manifest.json from public/
     }),
   ],
-  define:
-    process.env.NODE_ENV === "production" && process.env.VITE_SUPABASE_URL
-      ? {
-          "import.meta.env.VITE_IS_DEMO": JSON.stringify(
-            process.env.VITE_IS_DEMO,
-          ),
-          "import.meta.env.VITE_SUPABASE_URL": JSON.stringify(
-            process.env.VITE_SUPABASE_URL,
-          ),
-          "import.meta.env.VITE_SB_PUBLISHABLE_KEY": JSON.stringify(
-            process.env.VITE_SB_PUBLISHABLE_KEY,
-          ),
-          "import.meta.env.VITE_INBOUND_EMAIL": JSON.stringify(
-            process.env.VITE_INBOUND_EMAIL,
-          ),
-          "import.meta.env.VITE_ATTACHMENTS_BUCKET": JSON.stringify(
-            process.env.VITE_ATTACHMENTS_BUCKET,
-          ),
-        }
-      : undefined,
   base: "./",
   build: {
     rolldownOptions: {

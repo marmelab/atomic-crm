@@ -118,6 +118,10 @@ The `src/App.tsx` file renders the `<CRM>` component, which accepts props for do
 - `lightTheme`, `darkTheme`: Theme customization
 - `disableTelemetry`: Opt-out of anonymous usage tracking
 
+#### Runtime Configuration
+
+Deployment settings (Supabase URL and key, inbound email, etc.) are not inlined in the bundle, so one build can be deployed to any environment. The app reads them from `config` (`src/components/atomic-crm/root/config.ts`) from `window._atomicCrmConfig`, set by the `config.js` that `index.html` loads first. Deployments write that file with `node scripts/renderRuntimeConfig.ts dist/config.js`, from the `VITE_*` variables. Elsewhere (dev, local builds, tests), `public/config.js` is an empty placeholder and the app falls back to the `VITE_*` variables. To add a setting, add it to both files; don't read `import.meta.env.VITE_*` directly.
+
 #### Database Views
 
 Complex queries are handled via database views to simplify frontend code and reduce HTTP overhead. For example, `contacts_summary` provides aggregated contact data including task counts.

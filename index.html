@@ -29,6 +29,9 @@
     <link rel="apple-touch-icon" sizes="192x192" href="./appIcon/192.png" />
     <link rel="apple-touch-icon" sizes="1024x1024" href="./appIcon/1024.png" />
     <title>Atomic CRM</title>
+    <!-- Deployment settings (window._atomicCrmConfig), kept out of the bundle
+         so one build runs anywhere. See scripts/renderRuntimeConfig.ts -->
+    <script vite-ignore src="./config.js"></script>
 
     <style>
       body {
