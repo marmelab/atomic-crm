@@ -344,6 +344,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/providers/commons/getFaviconUrl.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/providers/commons/getContactAvatar.ts",
           "type": "registry:component"
         },
