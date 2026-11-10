@@ -174,7 +174,7 @@ Import `test-data/contacts.csv` via the Contacts page → Import button.
 
 ### Git Hooks
 
-- Pre-commit: Automatically runs `make registry-gen` to update `registry.json`
+- Pre-commit: Automatically runs `make registry-gen` to update `registry.json`, then lints and formats the staged files (`eslint --fix`, `prettier --write`). The commit is rejected if ESLint reports errors or warnings.
 
 ### Accessing Local Services During Development
 
