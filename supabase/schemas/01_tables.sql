@@ -76,7 +76,9 @@ create table public.deals (
     archived_at timestamp with time zone,
     expected_closing_date date,
     sales_id bigint,
-    index smallint
+    index smallint,
+    -- Rejects implausible dates, e.g. typos such as 5-digit years, plus BC dates and infinity, which the UI cannot display
+    constraint deals_expected_closing_date_range check (expected_closing_date between '1900-01-01' and '2900-12-31')
 );
 
 create table public.deal_notes (

@@ -236,6 +236,7 @@ export const frenchCrmMessages = {
         title: "Importer des affaires",
       },
       invalid_date: "Date invalide",
+      no_closing_date: "Aucune date de clôture",
     },
     notes: {
       name: "Note |||| Notes",

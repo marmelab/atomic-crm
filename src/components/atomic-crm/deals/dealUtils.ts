@@ -49,9 +49,29 @@ function ucFirst(str: string): string {
 
 const isoDateStringRegex = /^\d{4}-\d{2}-\d{2}$/;
 
-export function formatISODateString(dateString: string) {
-  if (!isoDateStringRegex.test(dateString)) {
-    throw new Error("Invalid date format. Expected YYYY-MM-DD.");
+export const isISODateString = (value: unknown): value is string =>
+  typeof value === "string" && isoDateStringRegex.test(value);
+
+// Keep in sync with the deals_expected_closing_date_range check in supabase/schemas/01_tables.sql
+const MIN_CLOSING_DATE = "1900-01-01";
+const MAX_CLOSING_DATE = "2900-12-31";
+
+/**
+ * Form validator for the expected closing date, which is optional: an empty value is valid.
+ * YYYY-MM-DD strings with a 4-digit year sort like dates, so string comparison is enough.
+ */
+export const validateClosingDate = (value: unknown): string | undefined =>
+  !value ||
+  (isISODateString(value) &&
+    value >= MIN_CLOSING_DATE &&
+    value <= MAX_CLOSING_DATE)
+    ? undefined
+    : "resources.deals.invalid_date";
+
+/** Returns null for anything but a YYYY-MM-DD date, which the caller shows as invalid. */
+export function formatISODateString(dateString: string): string | null {
+  if (!isISODateString(dateString)) {
+    return null;
   }
   // Some browsers will consider a date in the format YYYY-MM-DD as UTC, which can cause off-by-one-day issues depending on the user's timezone.
   // To avoid this, we can parse the date components manually and create a date object in the local timezone.
