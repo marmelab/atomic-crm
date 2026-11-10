@@ -89,6 +89,9 @@ stop-e2e: stop-supabase-e2e stop-app-e2e ## stop the stack in e2e mode
 build: ## build the app
 	npm run build
 
+build-config: ## write dist/config.js from the VITE_* environment variables, or from a file with ENV_FILE=<file>
+	node $(if $(ENV_FILE),--env-file=$(ENV_FILE)) scripts/renderRuntimeConfig.ts dist/config.js
+
 build-e2e: build config-e2e ## build the app and point it to the e2e supabase instance
 
 config-e2e: ## point the built app (dist/config.js) to the e2e supabase instance

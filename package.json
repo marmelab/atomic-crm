@@ -10,6 +10,7 @@
     "dev:demo": "vite --config vite.demo.config --force",
     "build": "tsc && vite build",
     "build:demo": "tsc && vite build --config vite.demo.config",
+    "build:config": "node scripts/renderRuntimeConfig.ts",
     "typecheck": "tsc --noEmit --project tsconfig.app.json",
     "preview": "vite preview",
     "lint:apply": "eslint **/*.{mjs,ts,tsx} --fix",
