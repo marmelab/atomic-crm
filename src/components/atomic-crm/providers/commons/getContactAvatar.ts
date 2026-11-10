@@ -1,6 +1,6 @@
-import { fetchWithTimeout } from "../../misc/fetchWithTimeout";
 import { DOMAINS_NOT_SUPPORTING_FAVICON } from "../../misc/unsupportedDomains.const";
 import type { Contact } from "../../types";
+import { getFaviconUrl } from "./getFaviconUrl";
 
 export async function hash(string: string) {
   const utf8 = new TextEncoder().encode(string);
@@ -16,24 +16,6 @@ export async function hash(string: string) {
 async function getGravatarUrl(email: string): Promise<string> {
   const hashEmail = await hash(email);
   return `https://www.gravatar.com/avatar/${hashEmail}?d=404`;
-}
-
-// Helper function to get the favicon URL
-async function getFaviconUrl(domain: string): Promise<string | null> {
-  if (DOMAINS_NOT_SUPPORTING_FAVICON.includes(domain)) {
-    return null;
-  }
-
-  try {
-    const faviconUrl = `https://${domain}/favicon.ico`;
-    const response = await fetchWithTimeout(faviconUrl);
-    if (response.ok) {
-      return faviconUrl;
-    }
-  } catch {
-    return null;
-  }
-  return null;
 }
 
 // Main function to get the avatar URL
@@ -59,9 +41,8 @@ export async function getContactAvatar(
 
     // Step 2: Try to get favicon from email domain
     const domain = email.split("@")[1];
-    const faviconUrl = await getFaviconUrl(domain);
-    if (faviconUrl) {
-      return faviconUrl;
+    if (domain && !DOMAINS_NOT_SUPPORTING_FAVICON.includes(domain)) {
+      return getFaviconUrl(domain);
     }
 
     // TODO: Step 3: Try to get image from LinkedIn.

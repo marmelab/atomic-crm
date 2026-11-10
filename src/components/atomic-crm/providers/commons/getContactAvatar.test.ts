@@ -59,7 +59,7 @@ describe("getContactAvatar", () => {
     expect(avatarUrl).toBeNull();
   });
 
-  it("should return null if email has no gravatar or validate domain", async () => {
+  it("should fall back to favicon.show if email has no gravatar and its domain has no favicon.ico", async () => {
     vi.mocked(fetchWithTimeout).mockResolvedValue({ ok: false } as Response);
     const email: EmailAndType[] = [
       { email: "anthony@fake-domain-marmelab.com", type: "Work" },
@@ -67,12 +67,12 @@ describe("getContactAvatar", () => {
     const record: Partial<Contact> = { email_jsonb: email };
 
     const avatarUrl = await getContactAvatar(record);
-    expect(avatarUrl).toBeNull();
+    expect(avatarUrl).toBe("https://favicon.show/fake-domain-marmelab.com");
   });
 
   it("should return gravatar URL for 2nd email if 1st email has no gravatar nor valid domain", async () => {
     const email: EmailAndType[] = [
-      { email: "anthony@fake-domain-marmelab.com", type: "Work" },
+      { email: "no-gravatar@gmail.com", type: "Work" },
       { email: "anthony@marmelab.com", type: "Work" },
     ];
     const record: Partial<Contact> = { email_jsonb: email };

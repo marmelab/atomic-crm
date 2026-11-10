@@ -1,4 +1,5 @@
 import type { Company } from "../../types";
+import { getFaviconUrl } from "./getFaviconUrl";
 
 // Main function to get the avatar URL
 export async function getCompanyAvatar(record: Partial<Company>): Promise<{
@@ -7,17 +8,15 @@ export async function getCompanyAvatar(record: Partial<Company>): Promise<{
 } | null> {
   // TODO: Step 1: Try to get image from LinkedIn.
 
-  // Step 2: Fallback to the favicon from website domain.
-  // FakeRest runs in the browser, so favicon.show works around CORS here;
-  // the Supabase trigger (get_domain_favicon) fetches /favicon.ico directly.
-  if (!record.website) {
+  // Step 2: Fallback to the favicon from website domain
+  const websiteDomain = record.website
+    ?.replace(/^https?:\/\//, "")
+    .split("/")[0];
+  if (!websiteDomain) {
     return null;
   }
-  const websiteUrlWithoutScheme = record.website
-    .replace(/^https?:\/\//, "")
-    .replace(/\/$/, "");
   return {
-    src: `https://favicon.show/${websiteUrlWithoutScheme}`,
+    src: await getFaviconUrl(websiteDomain),
     title: "Company favicon",
   };
 }
