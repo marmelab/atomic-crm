@@ -7,7 +7,9 @@ export async function getCompanyAvatar(record: Partial<Company>): Promise<{
 } | null> {
   // TODO: Step 1: Try to get image from LinkedIn.
 
-  // Step 2: Fallback to the favicon from website domain
+  // Step 2: Fallback to the favicon from website domain.
+  // FakeRest runs in the browser, so favicon.show works around CORS here;
+  // the Supabase trigger (get_domain_favicon) fetches /favicon.ico directly.
   if (!record.website) {
     return null;
   }
