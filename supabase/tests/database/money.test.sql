@@ -25,6 +25,7 @@ select is(public.currency_minor_digits('PLN'), 2, 'zloty has 2 minor digits (gro
 select is(public.currency_minor_digits('JPY'), 0, 'yen has no minor unit');
 
 select pg_temp.act_as('aaaaaaaa-0000-4000-8000-000000000001');
+select public.create_business('No country yet');
 
 select is(
   (select row(currency, timezone)::text from public.businesses where id = public.current_business_id()),

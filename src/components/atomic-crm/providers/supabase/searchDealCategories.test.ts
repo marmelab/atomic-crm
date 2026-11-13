@@ -5,7 +5,7 @@ import { searchDealCategories } from "./searchDealCategories";
 
 const dataProviderWithConfig = (config: object) =>
   ({
-    getOne: async () => ({ data: { id: 1, config } }),
+    getList: async () => ({ data: [{ id: "business-1", config }], total: 1 }),
   }) as unknown as DataProvider;
 
 const searchParams: GetListParams = {

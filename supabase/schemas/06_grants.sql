@@ -103,9 +103,9 @@ grant all on function public.check_same_business_references() to service_role;
 grant all on function public.protect_last_owner() to authenticated;
 grant all on function public.protect_last_owner() to service_role;
 
-revoke all on function public.create_business(text, text) from public, anon;
-grant all on function public.create_business(text, text) to authenticated;
-grant all on function public.create_business(text, text) to service_role;
+revoke all on function public.create_business(text, text, text, jsonb) from public, anon;
+grant all on function public.create_business(text, text, text, jsonb) to authenticated;
+grant all on function public.create_business(text, text, text, jsonb) to service_role;
 
 revoke all on function public.switch_business(uuid) from public, anon;
 grant all on function public.switch_business(uuid) to authenticated;

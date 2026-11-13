@@ -589,7 +589,7 @@ begin
 end;
 $$;
 
-CREATE OR REPLACE FUNCTION "public"."create_business"("p_name" "text", "p_country_code" "text" DEFAULT NULL::"text") RETURNS "uuid"
+CREATE OR REPLACE FUNCTION "public"."create_business"("p_name" "text", "p_country_code" "text" DEFAULT NULL::"text", "p_business_type" "text" DEFAULT NULL::"text", "p_requisites" "jsonb" DEFAULT '{}'::"jsonb") RETURNS "uuid"
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO ''
     AS $$
@@ -600,8 +600,8 @@ begin
     raise exception 'Not authenticated' using errcode = '42501';
   end if;
 
-  insert into public.businesses (name, country_code, created_by)
-  values (btrim(p_name), p_country_code, auth.uid())
+  insert into public.businesses (name, country_code, business_type, requisites, created_by)
+  values (btrim(p_name), p_country_code, p_business_type, coalesce(p_requisites, '{}'::jsonb), auth.uid())
   returning id into new_business_id;
 
   insert into public.members (business_id, user_id, role)
@@ -663,7 +663,6 @@ declare
   invited_business_id uuid;
   invited_role public.business_role;
   demo_business_id uuid;
-  new_business_id uuid;
 begin
   insert into public.sales (first_name, last_name, email, user_id)
   values (
@@ -682,12 +681,6 @@ begin
     update public.sales set current_business_id = invited_business_id where user_id = new.id;
     return new;
   end if;
-
-  -- Until the setup wizard exists, every new user gets a business of their own.
-  insert into public.businesses (name, created_by) values ('My business', new.id)
-  returning id into new_business_id;
-  insert into public.members (business_id, user_id, role) values (new_business_id, new.id, 'owner');
-  insert into public.configuration (id) values (new_business_id);
 
   -- Local development: the first user adopts the seeded demo business and starts there.
   select b.id into demo_business_id
@@ -712,9 +705,8 @@ begin
     where business_id = demo_business_id and sales_id is null;
     update public.tasks set sales_id = (select id from public.sales where user_id = new.id)
     where business_id = demo_business_id and sales_id is null;
+    update public.sales set current_business_id = demo_business_id where user_id = new.id;
   end if;
-
-  update public.sales set current_business_id = coalesce(demo_business_id, new_business_id) where user_id = new.id;
 
   return new;
 end;

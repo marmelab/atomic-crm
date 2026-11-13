@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
-import { Building2, Check } from "lucide-react";
+import { Building2, Check, Plus, SlidersHorizontal } from "lucide-react";
 import {
+  CanAccess,
   useDataProvider,
   useNotify,
   useStoreContext,
@@ -14,6 +15,11 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 
+import { Link } from "react-router";
+
+import { BusinessSettingsPage } from "../business/BusinessSettingsPage";
+import { SetupPage } from "../business/SetupPage";
+import { reloadApp } from "../business/reloadApp";
 import type { CrmDataProvider } from "../providers/types";
 import { CONFIGURATION_STORE_KEY } from "../root/ConfigurationContext";
 
@@ -50,7 +56,7 @@ export const BusinessMenu = () => {
     try {
       await dataProvider.switchBusiness(businessId);
       store.removeItem(CONFIGURATION_STORE_KEY);
-      window.location.assign(window.location.pathname);
+      reloadApp();
     } catch {
       notify("crm.business.switch_error", {
         type: "error",
@@ -82,6 +88,29 @@ export const BusinessMenu = () => {
             ) : null}
           </DropdownMenuItem>
         ))}
+        <CanAccess resource="configuration" action="edit">
+          <DropdownMenuItem
+            onClick={userMenuContext?.onClose}
+            render={
+              <Link
+                to={BusinessSettingsPage.path}
+                className="flex items-center gap-2"
+              />
+            }
+          >
+            <SlidersHorizontal />
+            {translate("crm.business_settings.title", { _: "Business" })}
+          </DropdownMenuItem>
+        </CanAccess>
+        <DropdownMenuItem
+          onClick={userMenuContext?.onClose}
+          render={
+            <Link to={SetupPage.path} className="flex items-center gap-2" />
+          }
+        >
+          <Plus />
+          {translate("crm.setup.title_another", { _: "Add a business" })}
+        </DropdownMenuItem>
       </DropdownMenuGroup>
       <DropdownMenuSeparator />
     </>

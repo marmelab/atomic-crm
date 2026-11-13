@@ -1,3 +1,12 @@
+import type {
+  Business,
+  BusinessMember,
+  BusinessRole,
+  CountryPack,
+  NewBusiness,
+  Requisites,
+  RequisiteField,
+} from "../../business/types";
 import {
   withLifecycleCallbacks,
   type CreateParams,
@@ -286,6 +295,26 @@ export const createDataProvider = ({
       { business_id: "demo", role: "owner", name: "Demo" },
     ],
     switchBusiness: async (_businessId: string): Promise<void> => {},
+    getCountryPacks: async (): Promise<CountryPack[]> => [],
+    getRequisiteFields: async (
+      _country: string,
+    ): Promise<RequisiteField[]> => [],
+    getMissingRequisites: async (_country: string, _requisites: Requisites) =>
+      [] as string[],
+    createBusiness: async (_business: NewBusiness): Promise<string> => "demo",
+    getCurrentBusiness: async (): Promise<Business | null> => null,
+    updateBusiness: async (
+      _id: string,
+      _changes: Partial<
+        Pick<Business, "name" | "business_type" | "requisites">
+      >,
+    ): Promise<void> => {},
+    getBusinessMembers: async (_id: string): Promise<BusinessMember[]> => [],
+    setMember: async (
+      _userId: string,
+      _changes: { role?: BusinessRole; disabled?: boolean },
+    ): Promise<void> => {},
+    deleteBusiness: async (_id: string, _name: string): Promise<void> => {},
     isInitialized: async (): Promise<boolean> => {
       const sales = await dataProvider.getList<Sale>("sales", {
         filter: {},

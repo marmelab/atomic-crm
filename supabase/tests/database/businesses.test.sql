@@ -9,7 +9,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path to public, extensions;
 
-select plan(69);
+select plan(75);
 
 -- Keep the seeded demo business out of the way: new users would adopt it.
 update public.businesses set is_demo = false;
@@ -20,11 +20,23 @@ create function pg_temp.act_as(p_user_id uuid) returns void language sql as $$
   select set_config('role', 'authenticated', true);
 $$;
 
--- Users (handle_new_user gives each one a business of their own)
+-- Users: without an invitation they start with no business
 insert into auth.users (id, email, raw_user_meta_data, aud, role) values
   ('aaaaaaaa-0000-4000-8000-000000000001', 'alice@test.local', '{"first_name":"Alice","last_name":"A"}', 'authenticated', 'authenticated'),
   ('bbbbbbbb-0000-4000-8000-000000000002', 'bob@test.local', '{"first_name":"Bob","last_name":"B"}', 'authenticated', 'authenticated'),
   ('cccccccc-0000-4000-8000-000000000003', 'carol@test.local', '{"first_name":"Carol","last_name":"C"}', 'authenticated', 'authenticated');
+
+select is(
+  (select current_business_id from public.sales where user_id = 'aaaaaaaa-0000-4000-8000-000000000001'),
+  null, 'a new user without an invitation has no business until the setup wizard');
+
+-- Alice and Bob create their businesses (as the setup wizard does)
+select pg_temp.act_as('aaaaaaaa-0000-4000-8000-000000000001');
+select public.create_business('My business', 'UA', 'services');
+reset role;
+select pg_temp.act_as('bbbbbbbb-0000-4000-8000-000000000002');
+select public.create_business('My business', 'PL', 'retail', '{"nip": "7740001454"}');
+reset role;
 
 create temporary table ids as
 select
@@ -32,7 +44,7 @@ select
   (select current_business_id from public.sales where user_id = 'bbbbbbbb-0000-4000-8000-000000000002') as business_b;
 grant select on ids to authenticated;
 
-select isnt((select business_a from ids), (select business_b from ids), 'each new user gets a business of their own');
+select isnt((select business_a from ids), (select business_b from ids), 'each owner has a business of their own');
 select is(
   (select role::text from public.members where user_id = 'aaaaaaaa-0000-4000-8000-000000000001' and business_id = (select business_a from ids)),
   'owner', 'the new user owns their business');
@@ -190,7 +202,14 @@ select throws_ok(
   format($$ update public.members set disabled = true where user_id = %L and business_id = %L $$, 'aaaaaaaa-0000-4000-8000-000000000001', (select business_a from ids)),
   'P0001', null, 'the last owner cannot be disabled');
 
+select pg_temp.act_as('cccccccc-0000-4000-8000-000000000003');
+select throws_ok(format($$ select public.set_member(%L, 'owner') $$, 'cccccccc-0000-4000-8000-000000000003'), '42501', null, 'only an owner manages members');
+reset role;
 select pg_temp.act_as('aaaaaaaa-0000-4000-8000-000000000001');
+select lives_ok(format($$ select public.set_member(%L, 'manager') $$, 'cccccccc-0000-4000-8000-000000000003'), 'the owner changes the role of a member');
+select is((select role::text from public.members where user_id = 'cccccccc-0000-4000-8000-000000000003'), 'manager', 'the role is changed');
+select throws_ok(format($$ select public.set_member(%L, p_disabled => true) $$, 'aaaaaaaa-0000-4000-8000-000000000001'), 'P0001', null, 'the last owner cannot disable themselves');
+select throws_ok(format($$ select public.set_member(%L, 'manager') $$, 'bbbbbbbb-0000-4000-8000-000000000002'), 'P0002', null, 'an owner cannot change people outside the business');
 select throws_ok(format('select public.delete_business(%L, %L)', (select business_a from ids), 'wrong name'), '22023', null, 'deleting needs the exact business name');
 select lives_ok(format('select public.delete_business(%L, %L)', (select business_a from ids), 'My business'), 'the owner deletes business A');
 reset role;

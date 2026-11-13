@@ -26,6 +26,7 @@ import {
   getIsInitialized,
 } from "./authProvider";
 import { searchDealCategories } from "./searchDealCategories";
+import { businessMethods } from "./businessMethods";
 import { getSupabaseClient } from "./supabase";
 
 const getBaseDataProvider = () =>
@@ -304,7 +305,13 @@ const getDataProviderWithCustomMethods = () => {
     // Money is shown in the base currency and with the formats of the
     // business country (TZ section 9), whatever the configuration says.
     async getConfiguration(): Promise<ConfigurationContextValue> {
-      const businessId = await getCurrentBusinessId();
+      let businessId: string;
+      try {
+        businessId = await getCurrentBusinessId();
+      } catch {
+        // No business yet: the setup wizard comes first
+        return {} as ConfigurationContextValue;
+      }
       const [configResult, businessResult] = await Promise.all([
         getSupabaseClient()
           .from("configuration")
@@ -377,6 +384,7 @@ const getDataProviderWithCustomMethods = () => {
       }
       clearCache();
     },
+    ...businessMethods,
   } satisfies DataProvider;
 };
 

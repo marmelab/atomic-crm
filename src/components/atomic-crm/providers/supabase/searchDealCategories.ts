@@ -14,9 +14,14 @@ export const searchDealCategories = async (
   dataProvider: DataProvider,
 ): Promise<GetListParams> => {
   if (!q) return params;
-  const { data } = await dataProvider.getOne("configuration", { id: 1 });
+  // One configuration per business; RLS returns the current business one
+  const { data } = await dataProvider.getList("configuration", {
+    pagination: { page: 1, perPage: 1 },
+    sort: { field: "id", order: "ASC" },
+    filter: {},
+  });
   const categories: LabeledValue[] =
-    data?.config?.dealCategories ?? defaultDealCategories;
+    data?.[0]?.config?.dealCategories ?? defaultDealCategories;
   const words = q.toLowerCase().trim().split(/\s+/);
   const matches = categories.filter(({ value, label }) =>
     words.some(

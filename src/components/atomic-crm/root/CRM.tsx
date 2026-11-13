@@ -21,6 +21,8 @@ import { Dashboard } from "../dashboard/Dashboard";
 import { MobileDashboard } from "../dashboard/MobileDashboard";
 import deals from "../deals";
 import { Layout } from "../layout/Layout";
+import { SetupPage } from "../business/SetupPage";
+import { BusinessSettingsPage } from "../business/BusinessSettingsPage";
 import { MobileLayout } from "../layout/MobileLayout";
 import { SignupPage } from "../login/SignupPage";
 import { ConfirmationRequired } from "../login/ConfirmationRequired";
@@ -245,6 +247,7 @@ const DesktopAdmin = (
     >
       <CustomRoutes noLayout>
         <Route path={SignupPage.path} element={<SignupPage />} />
+        <Route path={SetupPage.path} element={<SetupPage />} />
         <Route
           path={ConfirmationRequired.path}
           element={<ConfirmationRequired />}
@@ -260,6 +263,10 @@ const DesktopAdmin = (
       <CustomRoutes>
         <Route path={ProfilePage.path} element={<ProfilePage />} />
         <Route path={SettingsPage.path} element={<SettingsPage />} />
+        <Route
+          path={BusinessSettingsPage.path}
+          element={<BusinessSettingsPage />}
+        />
         <Route path={ImportPage.path} element={<ImportPage />} />
         <Route path={ChangelogPage.path} element={<ChangelogPage />} />
       </CustomRoutes>
@@ -320,6 +327,7 @@ const MobileAdmin = (
       >
         <CustomRoutes noLayout>
           <Route path={SignupPage.path} element={<SignupPage />} />
+          <Route path={SetupPage.path} element={<SetupPage />} />
           <Route
             path={ConfirmationRequired.path}
             element={<ConfirmationRequired />}
@@ -337,6 +345,10 @@ const MobileAdmin = (
             element={<SettingsPageMobile />}
           />
           <Route path={ChangelogPage.path} element={<ChangelogPage />} />
+          <Route
+            path={BusinessSettingsPage.path}
+            element={<BusinessSettingsPage />}
+          />
         </CustomRoutes>
         <Resource
           name="contacts"
