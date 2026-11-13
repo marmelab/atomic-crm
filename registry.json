@@ -208,7 +208,15 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/root/usePreferencesSync.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/root/useConfigurationLoader.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/root/preferences.ts",
           "type": "registry:component"
         },
         {
