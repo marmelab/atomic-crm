@@ -9,16 +9,42 @@ CREATE OR REPLACE FUNCTION "public"."cleanup_note_attachments"() RETURNS "trigge
     AS $$
     DECLARE
       payload jsonb;
-      request_headers jsonb;
-      auth_header text;
+      function_url text;
+      function_secret text;
     BEGIN
-      request_headers := coalesce(
-        nullif(current_setting('request.headers', true), '')::jsonb,
-        '{}'::jsonb
-      );
-      auth_header := request_headers ->> 'authorization';
+      IF TG_OP = 'DELETE' AND coalesce(cardinality(OLD.attachments), 0) = 0 THEN
+        RETURN OLD;
+      END IF;
 
-      IF auth_header IS NULL OR auth_header = '' THEN
+      function_url := public.get_note_attachments_function_url();
+
+      IF function_url IS NULL THEN
+        RAISE WARNING 'Cannot resolve delete_note_attachments function URL, note attachments were not deleted';
+
+        IF TG_OP = 'DELETE' THEN
+          RETURN OLD;
+        END IF;
+
+        RETURN NEW;
+      END IF;
+
+      BEGIN
+        SELECT decrypted_secret INTO function_secret
+        FROM vault.decrypted_secrets
+        WHERE name = 'delete_note_attachments_secret';
+      EXCEPTION WHEN OTHERS THEN
+        RAISE WARNING 'Cannot read Vault secret delete_note_attachments_secret: %', SQLERRM;
+
+        IF TG_OP = 'DELETE' THEN
+          RETURN OLD;
+        END IF;
+
+        RETURN NEW;
+      END;
+
+      IF function_secret IS NULL THEN
+        RAISE WARNING 'Vault secret delete_note_attachments_secret is missing, note attachments were not deleted';
+
         IF TG_OP = 'DELETE' THEN
           RETURN OLD;
         END IF;
@@ -33,14 +59,14 @@ CREATE OR REPLACE FUNCTION "public"."cleanup_note_attachments"() RETURNS "trigge
       );
 
       PERFORM net.http_post(
-        url := public.get_note_attachments_function_url(),
+        url := function_url,
         body := payload,
         params := '{}'::jsonb,
         headers := jsonb_build_object(
           'Content-Type',
           'application/json',
-          'Authorization',
-          auth_header
+          'x-note-attachments-secret',
+          function_secret
         ),
         timeout_milliseconds := 10000
       );
@@ -146,7 +172,7 @@ CREATE OR REPLACE FUNCTION "public"."get_note_attachments_function_url"() RETURN
         END IF;
       END IF;
 
-      RETURN 'http://host.docker.internal:54321/functions/v1/delete_note_attachments';
+      RETURN NULL;
     END;
     $$;
 
