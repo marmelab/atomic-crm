@@ -78,7 +78,14 @@ function getPool(): pg.Pool {
     if (!connectionString) {
       throw new Error("SUPABASE_DB_URL is not set");
     }
-    pool = new pg.Pool({ connectionString, max: 4 });
+    // Local Supabase names the database host supabase_db_<project>, which the
+    // node:dns resolver used by pg rejects (underscores are not valid in DNS
+    // labels). The same container also answers to `db`.
+    const url = new URL(connectionString);
+    if (url.hostname.includes("_")) {
+      url.hostname = "db";
+    }
+    pool = new pg.Pool({ connectionString: url.toString(), max: 4 });
   }
   return pool;
 }
