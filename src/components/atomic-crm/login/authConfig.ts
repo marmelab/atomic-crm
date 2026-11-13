@@ -1,5 +1,7 @@
-export const disableEmailPasswordAuthentication =
-  import.meta.env.VITE_DISABLE_EMAIL_PASSWORD_AUTHENTICATION === "true";
+import { config } from "../root/config";
 
-export const googleWorkplaceDomain: string | undefined = import.meta.env
-  .VITE_GOOGLE_WORKPLACE_DOMAIN;
+export const disableEmailPasswordAuthentication =
+  config.disableEmailPasswordAuthentication === true;
+
+export const googleWorkplaceDomain: string | undefined =
+  config.googleWorkplaceDomain;

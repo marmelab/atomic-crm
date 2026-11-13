@@ -20,14 +20,15 @@ import type {
 } from "../../types";
 import type { ConfigurationContextValue } from "../../root/ConfigurationContext";
 import { ATTACHMENTS_BUCKET } from "../commons/attachments";
+import { config } from "../../root/config";
 import { getIsInitialized } from "./authProvider";
 import { searchDealCategories } from "./searchDealCategories";
 import { getSupabaseClient } from "./supabase";
 
 const getBaseDataProvider = () =>
   supabaseDataProvider({
-    instanceUrl: import.meta.env.VITE_SUPABASE_URL,
-    apiKey: import.meta.env.VITE_SB_PUBLISHABLE_KEY,
+    instanceUrl: config.supabaseUrl!,
+    apiKey: config.supabasePublishableKey!,
     supabaseClient: getSupabaseClient(),
     sortOrder: "asc,desc.nullslast" as any,
   });
@@ -406,12 +407,19 @@ const lifeCycleCallbacks: ResourceCallbacks[] = [
 ];
 
 export const getDataProvider = () => {
-  if (import.meta.env.VITE_SUPABASE_URL === undefined) {
-    throw new Error("Please set the VITE_SUPABASE_URL environment variable");
-  }
-  if (import.meta.env.VITE_SB_PUBLISHABLE_KEY === undefined) {
+  if (!window._atomicCrmConfig) {
     throw new Error(
-      "Please set the VITE_SB_PUBLISHABLE_KEY environment variable",
+      "config.js is not loaded: index.html must load it before the app. See https://marmelab.com/atomic-crm/doc/developers/getting-updates/",
+    );
+  }
+  if (!config.supabaseUrl) {
+    throw new Error(
+      "Please set the VITE_SUPABASE_URL environment variable (or supabaseUrl in config.js)",
+    );
+  }
+  if (!config.supabasePublishableKey) {
+    throw new Error(
+      "Please set the VITE_SB_PUBLISHABLE_KEY environment variable (or supabasePublishableKey in config.js)",
     );
   }
   return withLifecycleCallbacks(

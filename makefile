@@ -47,7 +47,7 @@ start-app-e2e: ## start the app pointing to the e2e supabase instance
 stop-app-e2e:
 	kill $$(lsof -t -i:5175)
 
-start-app-e2e-ci: build-e2e ## start the app pointing to the e2e supabase instance in CI mode (no open, no watch)
+start-app-e2e-ci: config-e2e ## serve the built app (dist/, from `make build` or the CI artifact) pointing to the e2e supabase instance
 	npx serve -l 5175 -L -s dist &
 
 start: start-supabase start-app ## start the stack locally
@@ -89,8 +89,13 @@ stop-e2e: stop-supabase-e2e stop-app-e2e ## stop the stack in e2e mode
 build: ## build the app
 	npm run build
 
-build-e2e: ## build the app in e2e mode (with the e2e supabase config)
-	@$(call run-silent,npm run build:e2e,build-e2e)
+build-config: ## write dist/config.js from the VITE_* environment variables, or from a file with ENV_FILE=<file>
+	node $(if $(ENV_FILE),--env-file=$(ENV_FILE)) scripts/renderRuntimeConfig.ts dist/config.js
+
+build-e2e: build config-e2e ## build the app and point it to the e2e supabase instance
+
+config-e2e: ## point the built app (dist/config.js) to the e2e supabase instance
+	node --env-file=.env.e2e scripts/renderRuntimeConfig.ts dist/config.js
 
 build-demo: ## build the app in demo mode
 	npm run build:demo

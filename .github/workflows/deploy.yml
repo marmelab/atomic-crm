@@ -1,27 +1,37 @@
 name: 🚀 Deploy
 on:
-    push:
-        branches:
-            - main
+    # Must match the name of check.yml.
+    workflow_run:
+        workflows: ["✅ Check"]
+        types: [completed]
+        branches: [main]
 
 concurrency:
-    group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-    cancel-in-progress: true
+    # Only real deploys share the group: the run of a failed or cancelled Check
+    # skips every job, and would otherwise replace a pending deploy.
+    group: ${{ github.workflow }}-${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && 'deploy' || github.run_id }}
+    # Never cancel a running deploy: it could interrupt a migration or leave the
+    # database and frontend out of sync.
+    cancel-in-progress: false
 
 permissions:
     pages: write
     contents: write
+    # To download the builds of the Check run.
+    actions: read
 
 jobs:
     deploy-doc:
         name: 🚀 Deploy (doc)
         runs-on: ubuntu-latest
         timeout-minutes: 5
+        if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' }}
 
         steps:
             - name: 📥 Checkout repo
               uses: actions/checkout@v7
               with:
+                  ref: ${{ github.event.workflow_run.head_sha }}
                   # Keep the job token out of .git/config, where any install
                   # script or build plugin could read it.
                   persist-credentials: false
@@ -61,11 +71,11 @@ jobs:
         name: 🚀 Deploy (demo)
         runs-on: ubuntu-latest
         timeout-minutes: 10
+        if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' }}
 
-        # Public build-time values only. The deploy token is scoped to the
-        # steps that push, below.
+        # Public runtime-config values only, on top of .env.demo. The deploy
+        # token is scoped to the steps that push, below.
         env:
-            VITE_IS_DEMO: true
             VITE_INBOUND_EMAIL: ${{ vars.VITE_INBOUND_EMAIL }}
             VITE_ATTACHMENTS_BUCKET: ${{ vars.VITE_ATTACHMENTS_BUCKET || 'attachments' }}
 
@@ -73,6 +83,7 @@ jobs:
             - name: 📥 Checkout repo
               uses: actions/checkout@v7
               with:
+                  ref: ${{ github.event.workflow_run.head_sha }}
                   persist-credentials: false
 
             - name: ⚙️ Setup node
@@ -84,8 +95,17 @@ jobs:
             - name: 📥 Download deps
               run: npm ci
 
-            - name: 🔨 Build
-              run: npm run build:demo
+            - name: 📥 Download demo build
+              uses: actions/download-artifact@v8
+              with:
+                  name: demo-dist
+                  path: dist
+                  run-id: ${{ github.event.workflow_run.id }}
+                  github-token: ${{ github.token }}
+
+            # The variables above take precedence over .env.demo.
+            - name: ⚙️ Configure app
+              run: node --env-file=.env.demo scripts/renderRuntimeConfig.ts dist/config.js
 
             - name: ⚙️ Setup git
               env:
@@ -107,13 +127,14 @@ jobs:
         name: 🚀 Deploy (supabase)
         runs-on: ubuntu-latest
         timeout-minutes: 10
+        if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' }}
 
         # Job scope holds only values that are public by design (they are
-        # inlined into the client bundle) plus the configuration flag the
+        # written to the client's config.js) plus the configuration flag the
         # step conditions read. Every platform credential — the Supabase PAT,
         # the database password, the Postmark webhook secrets, the deploy
         # token — is declared on the single step that uses it, so that
-        # `npm ci` install scripts and `vite build` plugins never see them.
+        # `npm ci` install scripts never see them.
         env:
             VITE_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
             VITE_SB_PUBLISHABLE_KEY: ${{ secrets.SB_PUBLISHABLE_KEY }}
@@ -140,6 +161,7 @@ jobs:
             - name: 📥 Checkout repo
               uses: actions/checkout@v7
               with:
+                  ref: ${{ github.event.workflow_run.head_sha }}
                   persist-credentials: false
 
             - name: ⚙️ Setup node
@@ -154,8 +176,16 @@ jobs:
             - name: 📥 Download deps
               run: npm ci
 
-            - name: 🔨 Build
-              run: npm run build
+            - name: 📥 Download app build
+              uses: actions/download-artifact@v8
+              with:
+                  name: app-dist
+                  path: dist
+                  run-id: ${{ github.event.workflow_run.id }}
+                  github-token: ${{ github.token }}
+
+            - name: ⚙️ Configure app
+              run: node scripts/renderRuntimeConfig.ts dist/config.js
 
             - if: ${{ env.IS_SUPABASE_CONFIGURED }}
               name: 🔗 Supabase Link

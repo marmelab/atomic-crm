@@ -8,8 +8,13 @@ vi.mock("./supabase", () => ({
   getSupabaseClient: () => ({ rpc }),
 }));
 
-vi.stubEnv("VITE_SUPABASE_URL", "http://localhost:54321");
-vi.stubEnv("VITE_SB_PUBLISHABLE_KEY", "test-key");
+// Hoisted: config is read once, when the imports above load.
+vi.hoisted(() => {
+  window._atomicCrmConfig = {
+    supabaseUrl: "http://localhost:54321",
+    supabasePublishableKey: "test-key",
+  };
+});
 
 describe("globalSearch", () => {
   it("rejects with the HTTP status so an expired session logs out", async () => {

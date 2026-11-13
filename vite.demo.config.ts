@@ -4,9 +4,12 @@ import path from "node:path";
 import { visualizer } from "rollup-plugin-visualizer";
 import { defineConfig } from "vite";
 import createHtmlPlugin from "vite-plugin-simple-html";
+import { runtimeConfig } from "./scripts/renderRuntimeConfig.ts";
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  // Reads .env.demo
+  mode: "demo",
   server: {
     port: 5174,
     host: true,
@@ -14,6 +17,7 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
+    runtimeConfig(),
     visualizer({
       open: process.env.NODE_ENV !== "CI",
       filename: "./dist/stats.html",
@@ -27,15 +31,6 @@ export default defineConfig({
       },
     }),
   ],
-  define: {
-    "import.meta.env.VITE_IS_DEMO": JSON.stringify("true"),
-    "import.meta.env.VITE_SUPABASE_URL": JSON.stringify(
-      process.env.VITE_SUPABASE_URL ?? "https://demo.example.org",
-    ),
-    "import.meta.env.VITE_SB_PUBLISHABLE_KEY": JSON.stringify(
-      process.env.VITE_SB_PUBLISHABLE_KEY ?? "https://demo.example.org",
-    ),
-  },
   base: "./",
   build: {
     rolldownOptions: {

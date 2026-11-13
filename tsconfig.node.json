@@ -23,5 +23,10 @@
 
     "types": ["vitest/globals", "faker"]
   },
-  "include": ["vite.config.ts", "vite.demo.config.ts"]
+  "include": [
+    "vite.config.ts",
+    "vite.demo.config.ts",
+    "scripts/renderRuntimeConfig.ts",
+    "scripts/renderRuntimeConfig.test.ts"
+  ]
 }
