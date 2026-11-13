@@ -19,19 +19,15 @@ const secondaryLookupResult = (
   rows: unknown[],
   error: { message: string } | null = null,
 ) => ({
-  neq: () => ({
-    order: () => ({
-      limit: () => Promise.resolve({ data: error ? null : rows, error }),
-    }),
+  order: () => ({
+    limit: () => Promise.resolve({ data: error ? null : rows, error }),
   }),
 });
 
 const primaryLookupMiss = {
   select: () => ({
     eq: () => ({
-      neq: () => ({
-        maybeSingle: () => Promise.resolve({ data: null, error: null }),
-      }),
+      maybeSingle: () => Promise.resolve({ data: null, error: null }),
     }),
   }),
 };
@@ -53,14 +49,17 @@ describe("addNoteToContact", () => {
       };
       mockFrom.mockReturnValue({
         select: () => ({
-          or: () => ({
-            maybeSingle: () =>
-              Promise.resolve({ data: existingCompany, error: null }),
+          eq: () => ({
+            or: () => ({
+              maybeSingle: () =>
+                Promise.resolve({ data: existingCompany, error: null }),
+            }),
           }),
         }),
       });
 
       const result = await getOrCreateCompanyFromDomain({
+        businessId: "b1",
         domain: "acme.com",
         salesId: 42,
         companyName: "Acme",
@@ -74,15 +73,18 @@ describe("addNoteToContact", () => {
     it("throws when fetching the company fails", async () => {
       mockFrom.mockReturnValue({
         select: () => ({
-          or: () => ({
-            maybeSingle: () =>
-              Promise.resolve({ data: null, error: { message: "DB error" } }),
+          eq: () => ({
+            or: () => ({
+              maybeSingle: () =>
+                Promise.resolve({ data: null, error: { message: "DB error" } }),
+            }),
           }),
         }),
       });
 
       await expect(
         getOrCreateCompanyFromDomain({
+          businessId: "b1",
           domain: "acme.com",
           salesId: 42,
           companyName: "Acme",
@@ -95,6 +97,7 @@ describe("addNoteToContact", () => {
 
     it("returns null for a known mail provider domain without creating a company", async () => {
       const result = await getOrCreateCompanyFromDomain({
+        businessId: "b1",
         domain: "gmail.com",
         salesId: 42,
         companyName: "Gmail",
@@ -117,8 +120,10 @@ describe("addNoteToContact", () => {
         .mockReturnValueOnce({
           // first call: fetch
           select: () => ({
-            or: () => ({
-              maybeSingle: () => Promise.resolve({ data: null, error: null }),
+            eq: () => ({
+              or: () => ({
+                maybeSingle: () => Promise.resolve({ data: null, error: null }),
+              }),
             }),
           }),
         })
@@ -130,6 +135,7 @@ describe("addNoteToContact", () => {
         });
 
       const result = await getOrCreateCompanyFromDomain({
+        businessId: "b1",
         domain: "acme.com",
         salesId: 42,
         companyName: "Acme",
@@ -145,8 +151,10 @@ describe("addNoteToContact", () => {
       mockFrom
         .mockReturnValueOnce({
           select: () => ({
-            or: () => ({
-              maybeSingle: () => Promise.resolve({ data: null, error: null }),
+            eq: () => ({
+              or: () => ({
+                maybeSingle: () => Promise.resolve({ data: null, error: null }),
+              }),
             }),
           }),
         })
@@ -162,6 +170,7 @@ describe("addNoteToContact", () => {
 
       await expect(
         getOrCreateCompanyFromDomain({
+          businessId: "b1",
           domain: "acme.com",
           salesId: 42,
           companyName: "Acme",
@@ -175,6 +184,7 @@ describe("addNoteToContact", () => {
 
   describe("getOrCreateContactFromEmailInfo", () => {
     const contactParams = {
+      businessId: "b1",
       email: "alice@acme.com",
       firstName: "Alice",
       lastName: "Smith",
@@ -192,9 +202,11 @@ describe("addNoteToContact", () => {
       };
       mockFrom.mockReturnValue({
         select: () => ({
-          contains: () => ({
-            maybeSingle: () =>
-              Promise.resolve({ data: existingContact, error: null }),
+          eq: () => ({
+            contains: () => ({
+              maybeSingle: () =>
+                Promise.resolve({ data: existingContact, error: null }),
+            }),
           }),
         }),
       });
@@ -208,9 +220,11 @@ describe("addNoteToContact", () => {
     it("throws when fetching the contact fails", async () => {
       mockFrom.mockReturnValue({
         select: () => ({
-          contains: () => ({
-            maybeSingle: () =>
-              Promise.resolve({ data: null, error: { message: "DB error" } }),
+          eq: () => ({
+            contains: () => ({
+              maybeSingle: () =>
+                Promise.resolve({ data: null, error: { message: "DB error" } }),
+            }),
           }),
         }),
       });
@@ -240,17 +254,21 @@ describe("addNoteToContact", () => {
         .mockReturnValueOnce({
           // 1st call: fetch contact → not found
           select: () => ({
-            contains: () => ({
-              maybeSingle: () => Promise.resolve({ data: null, error: null }),
+            eq: () => ({
+              contains: () => ({
+                maybeSingle: () => Promise.resolve({ data: null, error: null }),
+              }),
             }),
           }),
         })
         .mockReturnValueOnce({
           // 2nd call: fetch company → found
           select: () => ({
-            or: () => ({
-              maybeSingle: () =>
-                Promise.resolve({ data: existingCompany, error: null }),
+            eq: () => ({
+              or: () => ({
+                maybeSingle: () =>
+                  Promise.resolve({ data: existingCompany, error: null }),
+              }),
             }),
           }),
         })
@@ -279,8 +297,10 @@ describe("addNoteToContact", () => {
         .mockReturnValueOnce({
           // 1st call: fetch contact → not found
           select: () => ({
-            contains: () => ({
-              maybeSingle: () => Promise.resolve({ data: null, error: null }),
+            eq: () => ({
+              contains: () => ({
+                maybeSingle: () => Promise.resolve({ data: null, error: null }),
+              }),
             }),
           }),
         })
@@ -315,16 +335,20 @@ describe("addNoteToContact", () => {
       mockFrom
         .mockReturnValueOnce({
           select: () => ({
-            contains: () => ({
-              maybeSingle: () => Promise.resolve({ data: null, error: null }),
+            eq: () => ({
+              contains: () => ({
+                maybeSingle: () => Promise.resolve({ data: null, error: null }),
+              }),
             }),
           }),
         })
         .mockReturnValueOnce({
           select: () => ({
-            or: () => ({
-              maybeSingle: () =>
-                Promise.resolve({ data: existingCompany, error: null }),
+            eq: () => ({
+              or: () => ({
+                maybeSingle: () =>
+                  Promise.resolve({ data: existingCompany, error: null }),
+              }),
             }),
           }),
         })
@@ -352,10 +376,8 @@ describe("addNoteToContact", () => {
       mockFrom.mockReturnValueOnce({
         select: () => ({
           eq: () => ({
-            neq: () => ({
-              maybeSingle: () =>
-                Promise.resolve({ data: salesRecord, error: null }),
-            }),
+            maybeSingle: () =>
+              Promise.resolve({ data: salesRecord, error: null }),
           }),
         }),
       });
@@ -380,9 +402,7 @@ describe("addNoteToContact", () => {
         .mockReturnValueOnce({
           select: () => ({
             eq: () => ({
-              neq: () => ({
-                maybeSingle: () => Promise.resolve({ data: null, error: null }),
-              }),
+              maybeSingle: () => Promise.resolve({ data: null, error: null }),
             }),
           }),
         })
@@ -463,9 +483,7 @@ describe("addNoteToContact", () => {
         .mockReturnValueOnce({
           select: () => ({
             eq: () => ({
-              neq: () => ({
-                maybeSingle: () => Promise.resolve({ data: null, error: null }),
-              }),
+              maybeSingle: () => Promise.resolve({ data: null, error: null }),
             }),
           }),
         })
@@ -486,9 +504,7 @@ describe("addNoteToContact", () => {
         secondary_emails: ["perso@gmail.com"],
       };
       const eq = vi.fn().mockReturnValue({
-        neq: () => ({
-          maybeSingle: () => Promise.resolve({ data: null, error: null }),
-        }),
+        maybeSingle: () => Promise.resolve({ data: null, error: null }),
       });
       const contains = vi
         .fn()
@@ -512,10 +528,8 @@ describe("addNoteToContact", () => {
       mockFrom.mockReturnValueOnce({
         select: () => ({
           eq: () => ({
-            neq: () => ({
-              maybeSingle: () =>
-                Promise.resolve({ data: null, error: { message: "DB error" } }),
-            }),
+            maybeSingle: () =>
+              Promise.resolve({ data: null, error: { message: "DB error" } }),
           }),
         }),
       });
@@ -530,6 +544,7 @@ describe("addNoteToContact", () => {
   describe("addNoteToContact", () => {
     const sales = { id: 1 };
     const baseParams = {
+      businessId: "b1",
       sales,
       salesEmail: "sales@company.com",
       email: "alice@acme.com",
@@ -544,8 +559,10 @@ describe("addNoteToContact", () => {
 
     const contactFound = (contact: unknown) => ({
       select: () => ({
-        contains: () => ({
-          maybeSingle: () => Promise.resolve({ data: contact, error: null }),
+        eq: () => ({
+          contains: () => ({
+            maybeSingle: () => Promise.resolve({ data: contact, error: null }),
+          }),
         }),
       }),
     });
@@ -576,7 +593,7 @@ describe("addNoteToContact", () => {
       expect(mockFrom).toHaveBeenNthCalledWith(3, "contacts");
     });
 
-    it("files the note under the sale it was given, without looking one up", async () => {
+    it("files the note under the sale and business it was given, without looking one up", async () => {
       const insertNote = vi.fn().mockResolvedValue({ error: null });
 
       mockFrom
@@ -595,7 +612,11 @@ describe("addNoteToContact", () => {
 
       expect(result).toBeUndefined();
       expect(insertNote).toHaveBeenCalledWith(
-        expect.objectContaining({ sales_id: 7, contact_id: 10 }),
+        expect.objectContaining({
+          sales_id: 7,
+          contact_id: 10,
+          business_id: "b1",
+        }),
       );
       expect(mockFrom).not.toHaveBeenCalledWith("sales");
     });
@@ -625,9 +646,11 @@ describe("addNoteToContact", () => {
 
       mockFrom.mockReturnValueOnce({
         select: () => ({
-          contains: () => ({
-            maybeSingle: () =>
-              Promise.resolve({ data: null, error: { message: "DB error" } }),
+          eq: () => ({
+            contains: () => ({
+              maybeSingle: () =>
+                Promise.resolve({ data: null, error: { message: "DB error" } }),
+            }),
           }),
         }),
       });

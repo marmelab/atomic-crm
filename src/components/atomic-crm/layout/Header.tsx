@@ -10,6 +10,7 @@ import { useConfigurationContext } from "../root/ConfigurationContext";
 import { ImportPage } from "../misc/ImportPage";
 import { ChangelogPage } from "../misc/ChangelogPage";
 import { GlobalSearchButton } from "../search/GlobalSearchButton";
+import { BusinessMenu } from "./BusinessMenu";
 
 const Header = () => {
   const { darkModeLogo, lightModeLogo, title } = useConfigurationContext();
@@ -86,6 +87,7 @@ const Header = () => {
                 <ThemeModeToggle />
                 <RefreshButton />
                 <UserMenu>
+                  <BusinessMenu />
                   <ProfileMenu />
                   <CanAccess resource="sales" action="list">
                     <UsersMenu />

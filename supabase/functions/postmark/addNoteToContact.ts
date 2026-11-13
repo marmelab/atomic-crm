@@ -3,11 +3,13 @@ import type { Attachment } from "./extractAndUploadAttachments.ts";
 import { MAIL_PROVIDERS } from "./mailProvider.const.ts";
 
 export const getOrCreateCompanyFromDomain = async ({
+  businessId,
   domain,
   salesId,
   companyName,
   website,
 }: {
+  businessId: string;
   domain: string;
   salesId: number;
   companyName: string;
@@ -23,6 +25,7 @@ export const getOrCreateCompanyFromDomain = async ({
     await supabaseAdmin
       .from("companies")
       .select("*")
+      .eq("business_id", businessId)
       .or(`website.eq.${website},name.eq.${companyName},name.eq.${domain}`)
       .maybeSingle();
   if (fetchCompanyError) {
@@ -37,7 +40,12 @@ export const getOrCreateCompanyFromDomain = async ({
 
   const { data: newCompanies, error: createCompanyError } = await supabaseAdmin
     .from("companies")
-    .insert({ name: companyName, sales_id: salesId, website })
+    .insert({
+      name: companyName,
+      sales_id: salesId,
+      website,
+      business_id: businessId,
+    })
     .select();
   if (createCompanyError) {
     throw new Error(
@@ -48,6 +56,7 @@ export const getOrCreateCompanyFromDomain = async ({
 };
 
 export const getOrCreateContactFromEmailInfo = async ({
+  businessId,
   email,
   firstName,
   lastName,
@@ -56,6 +65,7 @@ export const getOrCreateContactFromEmailInfo = async ({
   companyName,
   website,
 }: {
+  businessId: string;
   email: string;
   firstName: string;
   lastName: string;
@@ -69,6 +79,7 @@ export const getOrCreateContactFromEmailInfo = async ({
     await supabaseAdmin
       .from("contacts")
       .select("*")
+      .eq("business_id", businessId)
       .contains("email_jsonb", JSON.stringify([{ email }]))
       .maybeSingle();
   if (fetchContactError) {
@@ -82,6 +93,7 @@ export const getOrCreateContactFromEmailInfo = async ({
   }
 
   const company = await getOrCreateCompanyFromDomain({
+    businessId,
     domain,
     salesId,
     companyName,
@@ -100,6 +112,7 @@ export const getOrCreateContactFromEmailInfo = async ({
       first_seen: new Date(),
       last_seen: new Date(),
       tags: [],
+      business_id: businessId,
     })
     .select();
   if (createContactError || !newContacts[0]) {
@@ -117,7 +130,6 @@ export const findActiveSaleByEmail = async (salesEmail: string) => {
     .from("sales")
     .select("*")
     .eq("email", normalizedEmail)
-    .neq("disabled", true)
     .maybeSingle();
 
   if (byPrimaryEmail.error || byPrimaryEmail.data) {
@@ -128,7 +140,6 @@ export const findActiveSaleByEmail = async (salesEmail: string) => {
     .from("sales")
     .select("*")
     .contains("secondary_emails", JSON.stringify([normalizedEmail]))
-    .neq("disabled", true)
     .order("id", { ascending: true })
     .limit(2);
 
@@ -151,6 +162,7 @@ export const findActiveSaleByEmail = async (salesEmail: string) => {
 };
 
 export const addNoteToContact = async ({
+  businessId,
   sales,
   salesEmail,
   email,
@@ -162,6 +174,7 @@ export const addNoteToContact = async ({
   companyName,
   website,
 }: {
+  businessId: string;
   sales: { id: number };
   salesEmail: string;
   email: string;
@@ -174,6 +187,7 @@ export const addNoteToContact = async ({
   website: string;
 }) => {
   const { contact, error } = await getOrCreateContactFromEmailInfo({
+    businessId,
     email,
     firstName,
     lastName,
@@ -214,6 +228,7 @@ export const addNoteToContact = async ({
       text: noteContent,
       sales_id: sales.id,
       attachments,
+      business_id: businessId,
     });
   if (createNoteError) {
     return new Response(

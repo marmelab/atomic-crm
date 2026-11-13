@@ -4,6 +4,8 @@
 --
 
 -- Enable RLS on all tables
+alter table public.businesses enable row level security;
+alter table public.members enable row level security;
 alter table public.companies enable row level security;
 alter table public.contacts enable row level security;
 alter table public.contact_notes enable row level security;
@@ -16,55 +18,27 @@ alter table public.configuration enable row level security;
 alter table public.favicons_excluded_domains enable row level security;
 alter table public.user_invitations enable row level security;
 
--- Companies
-create policy "Enable read access for authenticated users" on public.companies for select to authenticated using (true);
-create policy "Enable insert for authenticated users only" on public.companies for insert to authenticated with check (true);
-create policy "Enable update for authenticated users only" on public.companies for update to authenticated using (true) with check (true);
-create policy "Company Delete Policy" on public.companies for delete to authenticated using (true);
+-- Business data tables (companies, contacts, notes, deals, tags, tasks):
+-- policies in 09_businesses.sql, after their business_id columns.
 
--- Contacts
-create policy "Enable read access for authenticated users" on public.contacts for select to authenticated using (true);
-create policy "Enable insert for authenticated users only" on public.contacts for insert to authenticated with check (true);
-create policy "Enable update for authenticated users only" on public.contacts for update to authenticated using (true) with check (true);
-create policy "Contact Delete Policy" on public.contacts for delete to authenticated using (true);
+-- Configuration (one row per business, id = business id): members read, owners write
+create policy "Business read" on public.configuration for select to authenticated using (id = (select public.current_business_id()));
+create policy "Owner insert" on public.configuration for insert to authenticated with check (id = (select public.current_business_id()) and (select public.is_admin()));
+create policy "Owner update" on public.configuration for update to authenticated using (id = (select public.current_business_id()) and (select public.is_admin())) with check (id = (select public.current_business_id()));
 
--- Contact Notes
-create policy "Enable read access for authenticated users" on public.contact_notes for select to authenticated using (true);
-create policy "Enable insert for authenticated users only" on public.contact_notes for insert to authenticated with check (true);
-create policy "Contact Notes Update policy" on public.contact_notes for update to authenticated using (true);
-create policy "Contact Notes Delete Policy" on public.contact_notes for delete to authenticated using (true);
+-- Sales (user profiles): yourself and the members of your current business
+create policy "Visible users" on public.sales for select to authenticated using (((select auth.uid()) = user_id) or public.is_visible_user(user_id));
 
--- Deals
-create policy "Enable read access for authenticated users" on public.deals for select to authenticated using (true);
-create policy "Enable insert for authenticated users only" on public.deals for insert to authenticated with check (true);
-create policy "Enable update for authenticated users only" on public.deals for update to authenticated using (true) with check (true);
-create policy "Deals Delete Policy" on public.deals for delete to authenticated using (true);
+-- Businesses: those you are an active member of; owners rename the current one.
+-- Created and deleted through create_business() and delete_business().
+create policy "Member read" on public.businesses for select to authenticated using (
+    exists (select 1 from public.members m where m.business_id = businesses.id and m.user_id = (select auth.uid()) and not m.disabled)
+);
+create policy "Owner update" on public.businesses for update to authenticated using (id = (select public.current_business_id()) and (select public.is_admin())) with check (id = (select public.current_business_id()));
 
--- Deal Notes
-create policy "Enable read access for authenticated users" on public.deal_notes for select to authenticated using (true);
-create policy "Enable insert for authenticated users only" on public.deal_notes for insert to authenticated with check (true);
-create policy "Deal Notes Update Policy" on public.deal_notes for update to authenticated using (true);
-create policy "Deal Notes Delete Policy" on public.deal_notes for delete to authenticated using (true);
-
--- Sales
-create policy "Enable read access for authenticated users" on public.sales for select to authenticated using (true);
-
--- Tags
-create policy "Enable read access for authenticated users" on public.tags for select to authenticated using (true);
-create policy "Enable insert for authenticated users only" on public.tags for insert to authenticated with check (true);
-create policy "Enable update for authenticated users only" on public.tags for update to authenticated using (true);
-create policy "Enable delete for authenticated users only" on public.tags for delete to authenticated using (true);
-
--- Tasks
-create policy "Enable read access for authenticated users" on public.tasks for select to authenticated using (true);
-create policy "Enable insert for authenticated users only" on public.tasks for insert to authenticated with check (true);
-create policy "Task Update Policy" on public.tasks for update to authenticated using (true);
-create policy "Task Delete Policy" on public.tasks for delete to authenticated using (true);
-
--- Configuration (admin-only for writes)
-create policy "Enable read for authenticated" on public.configuration for select to authenticated using (true);
-create policy "Enable insert for admins" on public.configuration for insert to authenticated with check (public.is_admin());
-create policy "Enable update for admins" on public.configuration for update to authenticated using (public.is_admin()) with check (public.is_admin());
+-- Members: your own memberships and the members of your current business.
+-- Changed through functions and the users edge function.
+create policy "Member read" on public.members for select to authenticated using ((user_id = (select auth.uid())) or (business_id = (select public.current_business_id())));
 
 -- Favicons excluded domains
 create policy "Enable access for authenticated users only" on public.favicons_excluded_domains to authenticated using (true) with check (true);

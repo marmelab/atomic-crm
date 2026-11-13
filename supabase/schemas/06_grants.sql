@@ -65,6 +65,56 @@ grant all on function public.set_sales_id_default() to anon;
 grant all on function public.set_sales_id_default() to authenticated;
 grant all on function public.set_sales_id_default() to service_role;
 
+-- Businesses
+revoke all on function public.business_context_for_user(uuid) from public, anon, authenticated;
+grant all on function public.business_context_for_user(uuid) to service_role;
+
+revoke all on function public.current_business_id() from public, anon;
+grant all on function public.current_business_id() to authenticated;
+grant all on function public.current_business_id() to service_role;
+
+revoke all on function public.current_business_role() from public, anon;
+grant all on function public.current_business_role() to authenticated;
+grant all on function public.current_business_role() to service_role;
+
+revoke all on function public.can_write_current_business() from public, anon;
+grant all on function public.can_write_current_business() to authenticated;
+grant all on function public.can_write_current_business() to service_role;
+
+revoke all on function public.is_visible_user(uuid) from public, anon;
+grant all on function public.is_visible_user(uuid) to authenticated;
+grant all on function public.is_visible_user(uuid) to service_role;
+
+-- anon may evaluate the sales computed fields (always false without a
+-- business): requests sent while signing in must not fail on them.
+revoke all on function public.administrator(public.sales) from public;
+grant all on function public.administrator(public.sales) to anon;
+grant all on function public.administrator(public.sales) to authenticated;
+grant all on function public.administrator(public.sales) to service_role;
+
+revoke all on function public.disabled(public.sales) from public;
+grant all on function public.disabled(public.sales) to anon;
+grant all on function public.disabled(public.sales) to authenticated;
+grant all on function public.disabled(public.sales) to service_role;
+
+grant all on function public.check_same_business_references() to authenticated;
+grant all on function public.check_same_business_references() to service_role;
+
+grant all on function public.protect_last_owner() to authenticated;
+grant all on function public.protect_last_owner() to service_role;
+
+revoke all on function public.create_business(text, text) from public, anon;
+grant all on function public.create_business(text, text) to authenticated;
+grant all on function public.create_business(text, text) to service_role;
+
+revoke all on function public.switch_business(uuid) from public, anon;
+grant all on function public.switch_business(uuid) to authenticated;
+grant all on function public.switch_business(uuid) to service_role;
+
+revoke all on function public.delete_business(uuid, text) from public, anon;
+grant all on function public.delete_business(uuid, text) to authenticated;
+grant all on function public.delete_business(uuid, text) to service_role;
+
 -- Table grants
 grant all on table public.companies to anon;
 grant all on table public.companies to authenticated;
@@ -108,6 +158,12 @@ grant all on table public.favicons_excluded_domains to service_role;
 
 revoke all on table public.user_invitations from anon, authenticated;
 grant all on table public.user_invitations to service_role;
+
+grant select, update on table public.businesses to authenticated;
+grant all on table public.businesses to service_role;
+
+grant select on table public.members to authenticated;
+grant all on table public.members to service_role;
 
 -- View grants
 grant all on table public.activity_log to anon;

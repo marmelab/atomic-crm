@@ -280,6 +280,12 @@ export const createDataProvider = ({
       });
       return { ...sale, user_id: sale.id.toString() };
     },
+    // The in-browser demo has a single business (FakeRest mode is not maintained).
+    getCurrentBusinessId: async (): Promise<string> => "demo",
+    getMyBusinesses: async () => [
+      { business_id: "demo", role: "owner", name: "Demo" },
+    ],
+    switchBusiness: async (_businessId: string): Promise<void> => {},
     isInitialized: async (): Promise<boolean> => {
       const sales = await dataProvider.getList<Sale>("sales", {
         filter: {},

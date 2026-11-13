@@ -20,7 +20,11 @@ import type {
 } from "../../types";
 import type { ConfigurationContextValue } from "../../root/ConfigurationContext";
 import { ATTACHMENTS_BUCKET } from "../commons/attachments";
-import { getIsInitialized } from "./authProvider";
+import {
+  clearCache,
+  getCurrentBusinessId,
+  getIsInitialized,
+} from "./authProvider";
 import { searchDealCategories } from "./searchDealCategories";
 import { getSupabaseClient } from "./supabase";
 
@@ -47,6 +51,20 @@ const processCompanyLogo = async (params: any) => {
     },
   };
 };
+
+// sales.administrator and sales.disabled are computed fields (they depend on
+// the current business): PostgREST only returns them when asked for.
+const SALES_COLUMNS = ["*", "administrator", "disabled"];
+const withSalesColumns = <P extends { meta?: any }>(params: P): P => ({
+  ...params,
+  meta: { ...params.meta, columns: SALES_COLUMNS },
+});
+
+export interface BusinessMembership {
+  business_id: string;
+  role: string;
+  name: string;
+}
 
 const getDataProviderWithCustomMethods = () => {
   const baseDataProvider = getBaseDataProvider();
@@ -78,6 +96,10 @@ const getDataProviderWithCustomMethods = () => {
         };
       }
 
+      if (resource === "sales") {
+        return baseDataProvider.getList(resource, withSalesColumns(params));
+      }
+
       return baseDataProvider.getList(resource, params);
     },
     async getOne(resource: string, params: any) {
@@ -87,8 +109,17 @@ const getDataProviderWithCustomMethods = () => {
       if (resource === "contacts") {
         return baseDataProvider.getOne("contacts_summary", params);
       }
+      if (resource === "sales") {
+        return baseDataProvider.getOne(resource, withSalesColumns(params));
+      }
 
       return baseDataProvider.getOne(resource, params);
+    },
+    async getMany(resource: string, params: any) {
+      if (resource === "sales") {
+        return baseDataProvider.getMany(resource, withSalesColumns(params));
+      }
+      return baseDataProvider.getMany(resource, params);
     },
 
     async signUp({ email, password, first_name, last_name }: SignUpData) {
@@ -268,21 +299,60 @@ const getDataProviderWithCustomMethods = () => {
 
       return data;
     },
+    // One configuration per business (id = business id); RLS only returns
+    // the one of the current business.
     async getConfiguration(): Promise<ConfigurationContextValue> {
-      const { data } = await baseDataProvider.getOne("configuration", {
-        id: 1,
-      });
+      const { data, error } = await getSupabaseClient()
+        .from("configuration")
+        .select("config")
+        .maybeSingle();
+      if (error) {
+        throw new HttpError("Failed to load the configuration", 500, error);
+      }
       return (data?.config as ConfigurationContextValue) ?? {};
     },
     async updateConfiguration(
       config: ConfigurationContextValue,
     ): Promise<ConfigurationContextValue> {
+      const businessId = await getCurrentBusinessId();
       const { data } = await baseDataProvider.update("configuration", {
-        id: 1,
+        id: businessId,
         data: { config },
-        previousData: { id: 1 },
+        previousData: { id: businessId },
       });
       return data.config as ConfigurationContextValue;
+    },
+    getCurrentBusinessId(): Promise<string> {
+      return getCurrentBusinessId();
+    },
+    async getMyBusinesses(): Promise<BusinessMembership[]> {
+      const { data: session } = await getSupabaseClient().auth.getSession();
+      const userId = session?.session?.user.id;
+      if (!userId) return [];
+      const { data, error } = await getSupabaseClient()
+        .from("members")
+        .select("business_id, role, businesses(name)")
+        .eq("user_id", userId)
+        .eq("disabled", false);
+      if (error) {
+        throw new HttpError("Failed to load businesses", 500, error);
+      }
+      return (data ?? [])
+        .map((row: any) => ({
+          business_id: row.business_id,
+          role: row.role,
+          name: row.businesses?.name ?? "",
+        }))
+        .sort((a, b) => a.name.localeCompare(b.name));
+    },
+    async switchBusiness(businessId: string): Promise<void> {
+      const { error } = await getSupabaseClient().rpc("switch_business", {
+        p_business_id: businessId,
+      });
+      if (error) {
+        throw new HttpError("Failed to switch business", 500, error);
+      }
+      clearCache();
     },
   } satisfies DataProvider;
 };

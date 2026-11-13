@@ -360,6 +360,7 @@ Use this tool for data modifications such as:
 Row Level Security (RLS) is enforced - mutations only affect data the authenticated user has permission to modify.
 
 IMPORTANT: Never specify sales_id in INSERT or UPDATE statements — it is automatically set to the authenticated user by a database trigger.
+IMPORTANT: Never specify business_id in INSERT or UPDATE statements — it defaults to the user's current business, and rows of other businesses are neither visible nor writable.
 
 String comparisons in WHERE clauses are case-sensitive in this tool, including on citext columns (companies.website, sales.email): use ILIKE or lower() for case-insensitive matching.
 

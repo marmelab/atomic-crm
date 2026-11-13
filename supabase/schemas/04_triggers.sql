@@ -83,3 +83,8 @@ create or replace trigger on_auth_user_created
 create or replace trigger on_auth_user_updated
     after update on auth.users
     for each row execute function public.handle_update_user();
+
+-- A business always keeps at least one active owner
+create or replace trigger protect_last_owner
+    before update or delete on public.members
+    for each row execute function public.protect_last_owner();

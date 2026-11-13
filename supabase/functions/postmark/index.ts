@@ -5,6 +5,7 @@
 // Setup type definitions for built-in Supabase Runtime APIs
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { addNoteToContact, findActiveSaleByEmail } from "./addNoteToContact.ts";
+import { getBusinessContext } from "../_shared/businessContext.ts";
 import {
   getForwardedMailContent,
   stripSubjectForwardingPrefix,
@@ -125,7 +126,13 @@ Deno.serve(async (req) => {
     );
   }
 
-  if (!sales) {
+  // The note goes to the business the sender currently works in. A sender
+  // without an active membership (disabled everywhere) is not a known sales.
+  const businessContext = sales
+    ? await getBusinessContext(sales.user_id)
+    : null;
+
+  if (!sales || !businessContext) {
     // Return a 403 to let Postmark know that it's no use to retry this request
     // https://postmarkapp.com/developer/webhooks/inbound-webhook#errors-and-retries
     return new Response(
@@ -155,6 +162,7 @@ Deno.serve(async (req) => {
     }
 
     const errorResponse = await addNoteToContact({
+      businessId: businessContext.business_id,
       sales,
       salesEmail,
       email,

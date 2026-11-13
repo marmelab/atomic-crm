@@ -1,7 +1,7 @@
 import type { AuthProvider } from "ra-core";
 import { supabaseAuthProvider } from "ra-supabase-core";
 
-import { canAccess } from "../commons/canAccess";
+import { canAccess, type CrmRole } from "../commons/canAccess";
 import { getSupabaseClient } from "./supabase";
 
 const getBaseAuthProvider = () =>
@@ -67,22 +67,59 @@ const getSale = async () => {
     return undefined;
   }
 
-  const { data: dataSale, error: errorSale } = await getSupabaseClient()
-    .from("sales")
-    .select("id, first_name, last_name, avatar, administrator")
-    .match({ user_id: dataSession?.session?.user.id })
-    .single();
+  const [saleResult, businessResult, roleResult] = await Promise.all([
+    getSupabaseClient()
+      .from("sales")
+      // administrator is computed for the current business
+      .select("id, first_name, last_name, avatar, administrator")
+      .match({ user_id: dataSession?.session?.user.id })
+      .single(),
+    getSupabaseClient().rpc("current_business_id"),
+    getSupabaseClient().rpc("current_business_role"),
+  ]);
 
   // Shouldn't happen either as all users are sales but just in case
-  if (dataSale == null || errorSale) {
+  if (saleResult.data == null || saleResult.error) {
     return undefined;
   }
 
-  storage?.setItem(CURRENT_SALE_CACHE_KEY, JSON.stringify(dataSale));
-  return dataSale;
+  const sale: CurrentSale = {
+    ...saleResult.data,
+    business_id: businessResult.data ?? null,
+    business_role: roleResult.data ?? null,
+  };
+
+  storage?.setItem(CURRENT_SALE_CACHE_KEY, JSON.stringify(sale));
+  return sale;
 };
 
-function clearCache() {
+interface CurrentSale {
+  id: number;
+  first_name: string;
+  last_name: string;
+  avatar?: { src?: string };
+  administrator: boolean;
+  business_id: string | null;
+  business_role: string | null;
+}
+
+/** The business the current user works in (cached until logout or switch). */
+export const getCurrentBusinessId = async (): Promise<string> => {
+  const sale = await getSale();
+  if (!sale?.business_id) {
+    throw new Error("No current business");
+  }
+  return sale.business_id;
+};
+
+const getCrmRole = (sale: CurrentSale): CrmRole => {
+  if (sale.business_role === "owner") return "admin";
+  if (sale.business_role === "accountant") return "accountant";
+  return "user";
+};
+
+/** Forget everything tied to the current user or business. */
+export function clearCache() {
   const storage = getLocalStorage();
   storage?.removeItem(IS_INITIALIZED_CACHE_KEY);
   storage?.removeItem(CURRENT_SALE_CACHE_KEY);
@@ -151,9 +188,8 @@ export const getAuthProvider = (): AuthProvider => {
       const sale = await getSale();
       if (sale == null) return false;
 
-      // Compute access rights from the sale role
-      const role = sale.administrator ? "admin" : "user";
-      return canAccess(role, params);
+      // Compute access rights from the role in the current business
+      return canAccess(getCrmRole(sale), params);
     },
     getAuthorizationDetails(authorizationId: string) {
       return getSupabaseClient().auth.oauth.getAuthorizationDetails(

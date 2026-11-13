@@ -1,8 +1,8 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import { useDataProvider, useLogin, useNotify, useTranslate } from "ra-core";
 import { useForm, type SubmitHandler } from "react-hook-form";
-import { Navigate, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,7 +10,6 @@ import { Label } from "@/components/ui/label";
 import type { CrmDataProvider } from "../providers/types";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { SignUpData } from "../types";
-import { LoginSkeleton } from "./LoginSkeleton";
 import { Notification } from "@/components/admin/notification";
 import { ConfirmationRequired } from "./ConfirmationRequired";
 import { SSOAuthButton } from "./SSOAuthButton";
@@ -22,13 +21,6 @@ export const SignupPage = () => {
   const { darkModeLogo: logo, title } = useConfigurationContext();
   const navigate = useNavigate();
   const translate = useTranslate();
-  const { data: isInitialized, isPending } = useQuery({
-    queryKey: ["init"],
-    queryFn: async () => {
-      return dataProvider.isInitialized();
-    },
-  });
-
   const { isPending: isSignUpPending, mutate } = useMutation({
     mutationKey: ["signup"],
     mutationFn: async (data: SignUpData) => {
@@ -82,14 +74,8 @@ export const SignupPage = () => {
     mode: "onChange",
   });
 
-  if (isPending) {
-    return <LoginSkeleton />;
-  }
-
-  // For the moment, we only allow one user to sign up. Other users must be created by the administrator.
-  if (isInitialized) {
-    return <Navigate to="/login" />;
-  }
+  // Anyone can sign up: each new account starts with a business of its own
+  // (people invited by an owner join the inviting business instead).
 
   const onSubmit: SubmitHandler<SignUpData> = async (data) => {
     mutate(data);

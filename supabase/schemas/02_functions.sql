@@ -247,33 +247,6 @@ begin
     return new;
 end;$$;
 
-CREATE OR REPLACE FUNCTION "public"."handle_new_user"() RETURNS "trigger"
-    LANGUAGE "plpgsql" SECURITY DEFINER
-    SET "search_path" TO ''
-    AS $$
-declare
-  sales_count int;
-begin
-  select count(id) into sales_count
-  from public.sales;
-
-  delete from public.user_invitations where user_id = new.id;
-  if sales_count > 0 and not found and not new.is_sso_user then
-    raise exception 'Sign up is not allowed';
-  end if;
-
-  insert into public.sales (first_name, last_name, email, user_id, administrator)
-  values (
-    coalesce(new.raw_user_meta_data ->> 'first_name', new.raw_user_meta_data -> 'custom_claims' ->> 'first_name', 'Pending'),
-    coalesce(new.raw_user_meta_data ->> 'last_name', new.raw_user_meta_data -> 'custom_claims' ->> 'last_name', 'Pending'),
-    new.email,
-    new.id,
-    case when sales_count > 0 then FALSE else TRUE end
-  );
-  return new;
-end;
-$$;
-
 CREATE OR REPLACE FUNCTION "public"."handle_tag_deleted"() RETURNS "trigger"
     LANGUAGE "plpgsql"
     SET "search_path" TO ''
@@ -297,17 +270,6 @@ begin
   where user_id = new.id;
 
   return new;
-end;
-$$;
-
-CREATE OR REPLACE FUNCTION "public"."is_admin"() RETURNS boolean
-    LANGUAGE "plpgsql" SECURITY DEFINER
-    SET "search_path" TO ''
-    AS $$
-begin
-  return exists (
-    select 1 from public.sales where user_id = auth.uid() and administrator = true
-  );
 end;
 $$;
 
@@ -490,4 +452,270 @@ BEGIN
   END IF;
   RETURN NEW;
 END;
+$$;
+
+--
+-- Businesses: current business, roles, lifecycle, sign up
+-- (see migration 20261113120000_businesses.sql). Ordered so that each SQL
+-- function is declared after the functions it calls.
+--
+
+CREATE OR REPLACE FUNCTION "public"."business_context_for_user"("p_user_id" "uuid") RETURNS TABLE("business_id" "uuid", "role" "public"."business_role")
+    LANGUAGE "sql" STABLE SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+    select m.business_id, m.role
+    from public.members m
+    left join public.sales s on s.user_id = m.user_id
+    where m.user_id = p_user_id and not m.disabled
+    order by (m.business_id = s.current_business_id) desc nulls last, m.created_at, m.business_id
+    limit 1
+$$;
+
+CREATE OR REPLACE FUNCTION "public"."current_business_id"() RETURNS "uuid"
+    LANGUAGE "sql" STABLE SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$ select business_id from public.business_context_for_user(auth.uid()) $$;
+
+CREATE OR REPLACE FUNCTION "public"."current_business_role"() RETURNS "public"."business_role"
+    LANGUAGE "sql" STABLE SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$ select role from public.business_context_for_user(auth.uid()) $$;
+
+CREATE OR REPLACE FUNCTION "public"."can_write_current_business"() RETURNS boolean
+    LANGUAGE "sql" STABLE SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$ select coalesce(public.current_business_role() <> 'accountant', false) $$;
+
+CREATE OR REPLACE FUNCTION "public"."is_admin"() RETURNS boolean
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+begin
+  return coalesce(public.current_business_role() = 'owner', false);
+end;
+$$;
+
+CREATE OR REPLACE FUNCTION "public"."is_visible_user"("p_user_id" "uuid") RETURNS boolean
+    LANGUAGE "sql" STABLE SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+    select p_user_id = auth.uid() or exists (
+        select 1 from public.members m
+        where m.user_id = p_user_id and m.business_id = public.current_business_id()
+    )
+$$;
+
+CREATE OR REPLACE FUNCTION "public"."administrator"("sale" "public"."sales") RETURNS boolean
+    LANGUAGE "sql" STABLE SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+    select exists (
+        select 1 from public.members m
+        where m.user_id = sale.user_id
+          and m.business_id = public.current_business_id()
+          and m.role = 'owner'
+    )
+$$;
+
+CREATE OR REPLACE FUNCTION "public"."disabled"("sale" "public"."sales") RETURNS boolean
+    LANGUAGE "sql" STABLE SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+    select coalesce((
+        select m.disabled from public.members m
+        where m.user_id = sale.user_id
+          and m.business_id = public.current_business_id()
+    ), true)
+$$;
+
+CREATE OR REPLACE FUNCTION "public"."check_same_business_references"() RETURNS "trigger"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+begin
+  -- Nested ifs: plpgsql resolves new.<field> when the expression runs, and
+  -- contacts has no contact_ids (deals no tags).
+  if tg_table_name = 'contacts' then
+    if new.tags is not null and exists (
+      select 1 from unnest(new.tags) as tag_id
+      where not exists (
+        select 1 from public.tags t where t.id = tag_id and t.business_id = new.business_id
+      )
+    ) then
+      raise exception 'Tag belongs to another business' using errcode = '23503';
+    end if;
+  end if;
+
+  if tg_table_name = 'deals' then
+    if new.contact_ids is not null and exists (
+      select 1 from unnest(new.contact_ids) as contact_id
+      where not exists (
+        select 1 from public.contacts c where c.id = contact_id and c.business_id = new.business_id
+      )
+    ) then
+      raise exception 'Contact belongs to another business' using errcode = '23503';
+    end if;
+  end if;
+
+  return new;
+end;
+$$;
+
+CREATE OR REPLACE FUNCTION "public"."protect_last_owner"() RETURNS "trigger"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+begin
+  -- The whole business is being deleted: nothing to protect.
+  if not exists (select 1 from public.businesses b where b.id = old.business_id) then
+    return coalesce(new, old);
+  end if;
+
+  if old.role = 'owner' and not old.disabled
+    and (tg_op = 'DELETE' or new.role <> 'owner' or new.disabled)
+    and not exists (
+      select 1 from public.members m
+      where m.business_id = old.business_id
+        and m.user_id <> old.user_id
+        and m.role = 'owner'
+        and not m.disabled
+    )
+  then
+    raise exception 'A business must keep at least one active owner' using errcode = 'P0001';
+  end if;
+
+  return coalesce(new, old);
+end;
+$$;
+
+CREATE OR REPLACE FUNCTION "public"."create_business"("p_name" "text", "p_country_code" "text" DEFAULT NULL::"text") RETURNS "uuid"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+declare
+  new_business_id uuid;
+begin
+  if auth.uid() is null then
+    raise exception 'Not authenticated' using errcode = '42501';
+  end if;
+
+  insert into public.businesses (name, country_code, created_by)
+  values (btrim(p_name), p_country_code, auth.uid())
+  returning id into new_business_id;
+
+  insert into public.members (business_id, user_id, role)
+  values (new_business_id, auth.uid(), 'owner');
+
+  insert into public.configuration (id) values (new_business_id);
+
+  update public.sales set current_business_id = new_business_id where user_id = auth.uid();
+
+  return new_business_id;
+end;
+$$;
+
+CREATE OR REPLACE FUNCTION "public"."switch_business"("p_business_id" "uuid") RETURNS "void"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+begin
+  if not exists (
+    select 1 from public.members m
+    where m.business_id = p_business_id and m.user_id = auth.uid() and not m.disabled
+  ) then
+    raise exception 'Not a member of this business' using errcode = '42501';
+  end if;
+
+  update public.sales set current_business_id = p_business_id where user_id = auth.uid();
+end;
+$$;
+
+CREATE OR REPLACE FUNCTION "public"."delete_business"("p_business_id" "uuid", "p_confirm_name" "text") RETURNS "void"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+declare
+  business_name text;
+begin
+  if not exists (
+    select 1 from public.members m
+    where m.business_id = p_business_id and m.user_id = auth.uid()
+      and m.role = 'owner' and not m.disabled
+  ) then
+    raise exception 'Only an owner can delete a business' using errcode = '42501';
+  end if;
+
+  select name into business_name from public.businesses where id = p_business_id;
+  if p_confirm_name is distinct from business_name then
+    raise exception 'The confirmation does not match the business name' using errcode = '22023';
+  end if;
+
+  delete from public.businesses where id = p_business_id;
+end;
+$$;
+
+CREATE OR REPLACE FUNCTION "public"."handle_new_user"() RETURNS "trigger"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+declare
+  invited_business_id uuid;
+  invited_role public.business_role;
+  demo_business_id uuid;
+  new_business_id uuid;
+begin
+  insert into public.sales (first_name, last_name, email, user_id)
+  values (
+    coalesce(new.raw_user_meta_data ->> 'first_name', new.raw_user_meta_data -> 'custom_claims' ->> 'first_name', 'Pending'),
+    coalesce(new.raw_user_meta_data ->> 'last_name', new.raw_user_meta_data -> 'custom_claims' ->> 'last_name', 'Pending'),
+    new.email,
+    new.id
+  );
+
+  delete from public.user_invitations where user_id = new.id
+  returning business_id, role into invited_business_id, invited_role;
+
+  if invited_business_id is not null then
+    insert into public.members (business_id, user_id, role)
+    values (invited_business_id, new.id, coalesce(invited_role, 'manager'));
+    update public.sales set current_business_id = invited_business_id where user_id = new.id;
+    return new;
+  end if;
+
+  -- Until the setup wizard exists, every new user gets a business of their own.
+  insert into public.businesses (name, created_by) values ('My business', new.id)
+  returning id into new_business_id;
+  insert into public.members (business_id, user_id, role) values (new_business_id, new.id, 'owner');
+  insert into public.configuration (id) values (new_business_id);
+
+  -- Local development: the first user adopts the seeded demo business and starts there.
+  select b.id into demo_business_id
+  from public.businesses b
+  where b.is_demo
+    and not exists (select 1 from public.members m where m.business_id = b.id)
+  order by b.created_at
+  limit 1;
+
+  if demo_business_id is not null then
+    insert into public.members (business_id, user_id, role) values (demo_business_id, new.id, 'owner');
+    -- The adopter manages the demo records, so the dashboard widgets that
+    -- show "my" contacts and tasks are not empty. Companies are left out:
+    -- updating them fetches favicons over the network.
+    update public.contacts set sales_id = (select id from public.sales where user_id = new.id)
+    where business_id = demo_business_id and sales_id is null;
+    update public.contact_notes set sales_id = (select id from public.sales where user_id = new.id)
+    where business_id = demo_business_id and sales_id is null;
+    update public.deals set sales_id = (select id from public.sales where user_id = new.id)
+    where business_id = demo_business_id and sales_id is null;
+    update public.deal_notes set sales_id = (select id from public.sales where user_id = new.id)
+    where business_id = demo_business_id and sales_id is null;
+    update public.tasks set sales_id = (select id from public.sales where user_id = new.id)
+    where business_id = demo_business_id and sales_id is null;
+  end if;
+
+  update public.sales set current_business_id = coalesce(demo_business_id, new_business_id) where user_id = new.id;
+
+  return new;
+end;
 $$;

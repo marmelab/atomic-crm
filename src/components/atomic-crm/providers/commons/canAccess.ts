@@ -7,6 +7,17 @@ type CanAccessParams<
   record?: RecordType;
 };
 
+/**
+ * Roles of the frontend, derived from the role in the current business:
+ * - admin: owner of the business
+ * - accountant: reads and exports, changes nothing
+ * - user: every other role
+ * The database enforces the same rules (RLS); this only hides what would fail.
+ */
+export type CrmRole = "admin" | "accountant" | "user";
+
+const READ_ONLY_ACTIONS = ["list", "show", "export"];
+
 export const canAccess = <
   RecordType extends Record<string, any> = Record<string, any>,
 >(
@@ -25,6 +36,10 @@ export const canAccess = <
   // Non admins can't access the configuration resource
   if (params.resource === "configuration") {
     return false;
+  }
+
+  if (role === "accountant") {
+    return READ_ONLY_ACTIONS.includes(params.action);
   }
 
   return true;
