@@ -58,3 +58,5 @@ node_modules/
 
 *.lock
  
+# Vitest browser failure screenshots
+.vitest/

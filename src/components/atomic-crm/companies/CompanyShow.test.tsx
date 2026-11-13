@@ -1,15 +1,16 @@
+import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { buildCompany, buildContact, StoryWrapper } from "@/test/StoryWrapper";
 import { CompanyShow } from "./CompanyShow";
 
-const mockIsMobile = vi.hoisted(() => vi.fn(() => true));
-vi.mock("@/hooks/use-mobile", () => ({
-  useIsMobile: mockIsMobile,
-}));
+// The mobile layout follows the window width (useIsMobile), so tests set the
+// viewport instead of mocking the hook: a module mock is not reliably applied
+// when another test file of the same browser session loaded the hook first.
+const MOBILE = [375, 667] as const;
 
 describe("CompanyShow on mobile", () => {
-  beforeEach(() => {
-    mockIsMobile.mockReturnValue(true);
+  beforeEach(async () => {
+    await page.viewport(...MOBILE);
   });
 
   it("lists the company contacts, each linking to its contact page", async () => {

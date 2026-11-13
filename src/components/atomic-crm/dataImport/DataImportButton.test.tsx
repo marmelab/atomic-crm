@@ -1,4 +1,5 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
+import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { useState } from "react";
 
@@ -14,8 +15,11 @@ import type { ImportRow, ProcessImportBatch } from "./types";
 import { useCompanyImport } from "./useCompanyImport";
 import { useDealImport } from "./useDealImport";
 
-const mockIsMobile = vi.hoisted(() => vi.fn(() => false));
-vi.mock("@/hooks/use-mobile", () => ({ useIsMobile: mockIsMobile }));
+// The mobile layout follows the window width (useIsMobile), so tests set the
+// viewport instead of mocking the hook: a module mock is not reliably applied
+// when another test file of the same browser session loaded the hook first.
+const MOBILE = [375, 667] as const;
+const DESKTOP = [1280, 800] as const;
 
 const listAll = (dataProvider: DataProvider, resource: string) =>
   dataProvider.getList(resource, {
@@ -76,8 +80,8 @@ const csvFile = (name: string, lines: string[]) =>
   new File([lines.join("\n")], name, { type: "text/csv" });
 
 describe("DataImportButton", () => {
-  beforeEach(() => {
-    mockIsMobile.mockReturnValue(false);
+  beforeEach(async () => {
+    await page.viewport(...DESKTOP);
   });
 
   it("offers every importable resource in the dialog", async () => {
@@ -173,7 +177,7 @@ describe("DataImportButton", () => {
   it("hides a resource the running app does not register", async () => {
     // The mobile app has no deals screens, so importing deals would create
     // records the user could never see.
-    mockIsMobile.mockReturnValue(true);
+    await page.viewport(...MOBILE);
     const screen = await render(<AllResources />);
 
     await screen.getByRole("button", { name: "Import data" }).click();
@@ -185,7 +189,7 @@ describe("DataImportButton", () => {
   });
 
   it("renders nothing for a resource the running app does not register", async () => {
-    mockIsMobile.mockReturnValue(true);
+    await page.viewport(...MOBILE);
     const screen = await render(<SingleResource resource="deals" />);
 
     await expect

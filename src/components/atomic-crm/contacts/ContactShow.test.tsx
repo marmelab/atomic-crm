@@ -5,6 +5,7 @@ import {
   type DataProvider,
 } from "ra-core";
 import { useQueryClient } from "@tanstack/react-query";
+import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { createDataProvider } from "@/components/atomic-crm/providers/fakerest";
 import { buildContact, createCrmDb, StoryWrapper } from "@/test/StoryWrapper";
@@ -15,14 +16,15 @@ import { ContactEditSheet } from "./ContactEditSheet";
 import { ContactShow } from "./ContactShow";
 import { MobileSuccess } from "./ContactShow.mobile.stories";
 
-const mockIsMobile = vi.hoisted(() => vi.fn(() => true));
-vi.mock("@/hooks/use-mobile", () => ({
-  useIsMobile: mockIsMobile,
-}));
+// The mobile layout follows the window width (useIsMobile), so tests set the
+// viewport instead of mocking the hook: a module mock is not reliably applied
+// when another test file of the same browser session loaded the hook first.
+const MOBILE = [375, 667] as const;
+const DESKTOP = [1280, 800] as const;
 
 describe("ContactShow", () => {
-  beforeEach(() => {
-    mockIsMobile.mockReturnValue(true);
+  beforeEach(async () => {
+    await page.viewport(...MOBILE);
   });
 
   it("renders a safe zero-task label before nb_tasks is available", async () => {
@@ -99,6 +101,10 @@ describe("ContactShow", () => {
       </StoryWrapper>,
     );
 
+    // Type only once the form holds the loaded contact: loading it resets the form
+    await expect
+      .element(screen.getByLabelText(/first name/i))
+      .toHaveValue("Ada");
     await screen.getByLabelText(/first name/i).fill("Grace");
     await screen.getByRole("button", { name: /^save$/i }).click();
 
@@ -253,7 +259,7 @@ describe("ContactShow", () => {
   });
 
   it("updates the contact status from the aside", async () => {
-    mockIsMobile.mockReturnValue(false);
+    await page.viewport(...DESKTOP);
 
     let dataProvider: DataProvider | null = null;
     const contact = buildContact({ status: "warm" });

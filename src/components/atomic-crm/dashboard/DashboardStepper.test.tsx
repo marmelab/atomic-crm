@@ -1,16 +1,20 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
+import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 
 import { FirstStep } from "./DashboardStepper.stories";
 
 // The test viewport is narrower than the mobile breakpoint, so the desktop
 // branch of the stepper is only reachable by driving the hook itself.
-const mockIsMobile = vi.hoisted(() => vi.fn(() => false));
-vi.mock("@/hooks/use-mobile", () => ({ useIsMobile: mockIsMobile }));
+// The mobile layout follows the window width (useIsMobile), so tests set the
+// viewport instead of mocking the hook: a module mock is not reliably applied
+// when another test file of the same browser session loaded the hook first.
+const MOBILE = [375, 667] as const;
+const DESKTOP = [1280, 800] as const;
 
 describe("DashboardStepper", () => {
-  beforeEach(() => {
-    mockIsMobile.mockReturnValue(false);
+  beforeEach(async () => {
+    await page.viewport(...DESKTOP);
   });
 
   it("opens the data import dialog from the onboarding header", async () => {
@@ -50,7 +54,7 @@ describe("DashboardStepper", () => {
   });
 
   it("opens the contact creation sheet on mobile", async () => {
-    mockIsMobile.mockReturnValue(true);
+    await page.viewport(...MOBILE);
     const screen = await render(<FirstStep />);
 
     await screen.getByRole("button", { name: "Add contact" }).click();
