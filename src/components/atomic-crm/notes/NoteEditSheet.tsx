@@ -8,6 +8,7 @@ import {
   useTranslate,
 } from "ra-core";
 import { ReferenceField } from "@/components/admin";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -60,7 +61,7 @@ export const NoteEditSheet = ({
           )}
         />
       }
-      redirect={(_resource, _id, record) => getRedirectTo(record)}
+      redirect={false}
       open={open}
       onOpenChange={onOpenChange}
       headerActions={
@@ -99,14 +100,9 @@ const NoteEditMenuButton = ({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        render={
-          <button
-            type="button"
-            className="opacity-70 transition-opacity hover:opacity-100 rounded-xs"
-          />
-        }
+        render={<Button variant="ghost" size="icon" className="rounded-full" />}
       >
-        <EllipsisVertical className="size-6" />
+        <EllipsisVertical className="size-5" />
         <span className="sr-only">
           {translate("ra.action.open_menu", { _: "More" })}
         </span>

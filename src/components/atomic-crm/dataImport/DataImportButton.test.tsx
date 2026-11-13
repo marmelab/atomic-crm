@@ -222,11 +222,25 @@ describe("DataImportButton", () => {
       name: "New website",
       stage: "proposal-sent",
     });
-    expect(deals[0].expected_closing_date).toBe("2026-09-30T00:00:00.000Z");
+    expect(deals[0].expected_closing_date).toBe("2026-09-30");
     // Both rows name the same company, which is created once and shared
     expect(deals[1].company_id).toBe(companies[0].id);
     // stage is required, so an empty cell falls back to the first stage
     expect(deals[1].stage).toBe("opportunity");
+  });
+
+  it("imports a deal whose closing date the database would refuse, without that date", async () => {
+    const { dataProvider, screen } = await renderImport(useDealImport, [
+      { name: "Typo", expected_closing_date: "0226-09-30" },
+    ]);
+
+    await screen.getByRole("button", { name: "run import" }).click();
+    await expect.element(screen.getByText("imported")).toBeVisible();
+
+    const { data: deals } = await listAll(dataProvider, "deals");
+    expect(deals).toHaveLength(1);
+    expect(deals[0].name).toBe("Typo");
+    expect(deals[0].expected_closing_date).toBeUndefined();
   });
 
   it("appends imported deals below the deals already in their stage", async () => {
@@ -300,7 +314,7 @@ describe("DataImportButton", () => {
       sales_id: DEFAULT_USER.id,
       stage: "proposal-sent",
     });
-    expect(deals[0].expected_closing_date).toBe("2026-09-30T00:00:00.000Z");
+    expect(deals[0].expected_closing_date).toBe("2026-09-30");
   });
 
   it("keeps the leading zero of the text columns of a company CSV", async () => {

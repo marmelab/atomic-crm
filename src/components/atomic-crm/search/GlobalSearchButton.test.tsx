@@ -1,11 +1,18 @@
 import { page, userEvent } from "vitest/browser";
-import type { ComponentProps } from "react";
+import { type ComponentProps, useEffect } from "react";
+import { useStore } from "ra-core";
 import { beforeEach, describe, expect, it } from "vitest";
 import { render } from "vitest-browser-react";
 import { onlineManager } from "@tanstack/react-query";
 
 import { StoryWrapper, buildContact } from "@/test/StoryWrapper";
 
+import { ContactShow } from "../contacts/ContactShow";
+import {
+  RECENT_CONTACTS_STORE_KEY,
+  RECENT_PERIOD,
+  type RecentContactView,
+} from "../contacts/useRecentContacts";
 import { GlobalSearchDialog } from "./GlobalSearchButton";
 
 const PLACEHOLDER = "Search contacts, companies, deals, tasks and notes...";
@@ -446,5 +453,121 @@ describe("GlobalSearchDialog on mobile", () => {
           .getByText("Chase the sourdough quote"),
       )
       .toBeVisible();
+  });
+});
+
+describe("GlobalSearchDialog recently viewed contacts", () => {
+  const SeedViews = ({ views }: { views: RecentContactView[] }) => {
+    const [, setViews] = useStore<RecentContactView[]>(
+      RECENT_CONTACTS_STORE_KEY,
+    );
+    useEffect(() => setViews(views), [views, setViews]);
+    return null;
+  };
+
+  const twoContacts = {
+    contacts: [
+      buildContact({ id: 1, first_name: "Ada", last_name: "Lovelace" }),
+      buildContact({ id: 2, first_name: "Alan", last_name: "Turing" }),
+    ],
+  };
+
+  const RECENT_GROUP = { name: "Recently viewed" };
+
+  beforeEach(async () => {
+    await page.viewport(1600, 900);
+  });
+
+  it("lists the contacts viewed on this device before typing, latest first", async () => {
+    const screen = await render(
+      <StoryWrapper data={twoContacts}>
+        <ContactShow resource="contacts" id={1} />
+        <ContactShow resource="contacts" id={2} />
+        <GlobalSearchDialog open onOpenChange={() => {}} />
+      </StoryWrapper>,
+    );
+
+    const group = screen.getByRole("group", RECENT_GROUP);
+    await expect.element(group.getByText("Alan Turing")).toBeVisible();
+    expect(
+      group
+        .getByRole("option")
+        .elements()
+        .map((option) => option.textContent),
+    ).toEqual([
+      expect.stringContaining("Alan Turing"),
+      expect.stringContaining("Ada Lovelace"),
+    ]);
+  });
+
+  it("replaces them with search results once the user types", async () => {
+    const screen = await render(
+      <StoryWrapper data={twoContacts}>
+        <SeedViews views={[{ id: 2, viewedAt: Date.now() }]} />
+        <GlobalSearchDialog open onOpenChange={() => {}} />
+      </StoryWrapper>,
+    );
+    await expect.element(screen.getByRole("group", RECENT_GROUP)).toBeVisible();
+
+    await screen.getByPlaceholder(PLACEHOLDER).fill("Ada");
+
+    await expect
+      .element(screen.getByRole("group", { name: "Contacts" }))
+      .toBeVisible();
+    await expect
+      .element(screen.getByRole("group", RECENT_GROUP))
+      .not.toBeInTheDocument();
+  });
+
+  it("ignores contacts deleted since they were viewed", async () => {
+    const screen = await render(
+      <StoryWrapper data={twoContacts}>
+        <SeedViews
+          views={[
+            { id: 3, viewedAt: Date.now() },
+            { id: 1, viewedAt: Date.now() },
+          ]}
+        />
+        <GlobalSearchDialog open onOpenChange={() => {}} />
+      </StoryWrapper>,
+    );
+
+    const group = screen.getByRole("group", RECENT_GROUP);
+    await expect.element(group.getByText("Ada Lovelace")).toBeVisible();
+    expect(group.getByRole("option").elements()).toHaveLength(1);
+  });
+
+  it("shows the search hint when every viewed contact was deleted", async () => {
+    const screen = await render(
+      <StoryWrapper data={twoContacts}>
+        <SeedViews views={[{ id: 3, viewedAt: Date.now() }]} />
+        <GlobalSearchDialog open onOpenChange={() => {}} />
+      </StoryWrapper>,
+    );
+
+    await expect
+      .element(screen.getByText("Type at least 2 characters to search"))
+      .toBeVisible();
+    await expect
+      .element(screen.getByRole("group", RECENT_GROUP))
+      .not.toBeInTheDocument();
+  });
+
+  it("forgets contacts viewed more than 24 hours ago", async () => {
+    const screen = await render(
+      <StoryWrapper data={twoContacts}>
+        <SeedViews
+          views={[{ id: 1, viewedAt: Date.now() - RECENT_PERIOD - 1000 }]}
+        />
+        <GlobalSearchDialog open onOpenChange={() => {}} />
+      </StoryWrapper>,
+    );
+
+    await expect
+      .element(screen.getByText("Type at least 2 characters to search"))
+      .toBeVisible();
+    await expect
+      .element(screen.getByRole("group", RECENT_GROUP))
+      .not.toBeInTheDocument();
   });
 });

@@ -1,6 +1,42 @@
 import { commands } from "vitest/browser";
 
-import { formatISODateString } from "./dealUtils";
+import {
+  formatISODateString,
+  isISODateString,
+  validateClosingDate,
+} from "./dealUtils";
+
+describe("validateClosingDate", () => {
+  it.each(["1900-01-01", "2026-09-30", "2900-12-31", "", null])(
+    "accepts %j",
+    (value) => {
+      expect(validateClosingDate(value)).toBeUndefined();
+    },
+  );
+
+  it.each(["1899-12-31", "2901-01-01", "20250-12-31"])(
+    "rejects %s, which the database check refuses",
+    (value) => {
+      expect(validateClosingDate(value)).toBe("resources.deals.invalid_date");
+    },
+  );
+});
+
+describe("isISODateString", () => {
+  it("accepts a YYYY-MM-DD date", () => {
+    expect(isISODateString("2024-06-15")).toBe(true);
+  });
+
+  it.each([
+    ["a 5-digit year Postgres accepts", "20250-12-31"],
+    ["a BC date", "2025-12-31 BC"],
+    ["infinity", "infinity"],
+    ["null", null],
+    ["undefined", undefined],
+  ])("rejects %s", (_, value) => {
+    expect(isISODateString(value)).toBe(false);
+  });
+});
 
 describe("formatISODateString", () => {
   let originalTimezone: string;
@@ -38,17 +74,10 @@ describe("formatISODateString", () => {
     expect(formatISODateString(isoDate)).toBe("Jun 15, 2024");
   });
 
-  it("throw for an invalid date string", () => {
-    const invalidDate = "invalid-date";
-    expect(() => formatISODateString(invalidDate)).toThrow(
-      "Invalid date format. Expected YYYY-MM-DD.",
-    );
-  });
-
-  it("throw for a date string with wrong format", () => {
-    const invalidDate = "15-06-2024";
-    expect(() => formatISODateString(invalidDate)).toThrow(
-      "Invalid date format. Expected YYYY-MM-DD.",
-    );
-  });
+  it.each(["invalid-date", "15-06-2024", "20250-12-31"])(
+    "returns null for %s, which is not a YYYY-MM-DD date",
+    (value) => {
+      expect(formatISODateString(value)).toBeNull();
+    },
+  );
 });

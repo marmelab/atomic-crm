@@ -33,7 +33,7 @@ export const frenchCrmMessages = {
         title: "Importer des entreprises",
       },
       field_categories: {
-        contact: "Contact",
+        contact: "Coordonnées",
         additional_info: "Informations supplémentaires",
         address: "Adresse",
         context: "Contexte",
@@ -236,6 +236,7 @@ export const frenchCrmMessages = {
         title: "Importer des affaires",
       },
       invalid_date: "Date invalide",
+      no_closing_date: "Aucune date de clôture",
     },
     notes: {
       name: "Note |||| Notes",
@@ -476,6 +477,7 @@ export const frenchCrmMessages = {
       placeholder:
         "Rechercher un contact, une entreprise, une affaire, une tâche, une note...",
       hint: "Saisissez au moins %{min} caractères pour lancer la recherche",
+      recent_contacts: "Consultés récemment",
       empty: "Aucun résultat",
       error:
         "La recherche est indisponible pour le moment. Veuillez réessayer.",

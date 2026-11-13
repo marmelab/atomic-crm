@@ -4,7 +4,7 @@ import type { HtmlHTMLAttributes, ReactNode } from "react";
 import { useCallback, useEffect, useState, isValidElement } from "react";
 import get from "lodash/get";
 import isEqual from "lodash/isEqual";
-import queryString from "query-string";
+import queryString from "@marmelab/query-string";
 import type { SavedQuery } from "ra-core";
 import {
   extractValidSavedQueries,

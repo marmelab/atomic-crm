@@ -107,7 +107,7 @@ export const SettingsPageMobile = () => {
         </h1>
       </MobileHeader>
       <MobileContent>
-        <div className="flex flex-col min-h-[calc(100dvh-3.5rem-4.5rem)]">
+        <div className="flex flex-col min-h-[calc(100dvh-4.5rem-6rem)]">
           <div className="space-y-6">
             <ProfileSection />
             <PreferencesSection />
@@ -116,7 +116,7 @@ export const SettingsPageMobile = () => {
             <AboutSection />
           </div>
 
-          <div className="mt-auto pt-6 space-y-3 mb-4">
+          <div className="mt-auto pt-6 space-y-3">
             <ChangePasswordButton />
             <Button
               variant="destructive"
@@ -181,9 +181,6 @@ const ProfileSection = () => {
         } as SalesFormData);
         refetchIdentity();
         refetchUser();
-        notify("crm.profile.updated", {
-          messageArgs: { _: "Your profile has been updated" },
-        });
       } catch (error) {
         await refetchUser();
         refetchIdentity();
@@ -212,9 +209,6 @@ const ProfileSection = () => {
         await dataProvider.salesUpdate(data.id, values);
         refetchIdentity();
         refetchUser();
-        notify("crm.profile.updated", {
-          messageArgs: { _: "Your profile has been updated" },
-        });
       } catch {
         notify("crm.profile.update_error", {
           type: "error",

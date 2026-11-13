@@ -31,6 +31,7 @@ import { ContactTasksList } from "./ContactTasksList";
 import type { Contact } from "../types";
 import { Avatar } from "./Avatar";
 import { ContactAside } from "./ContactAside";
+import { useTrackRecentContact } from "./useRecentContacts";
 import { MobileBackButton } from "../misc/MobileBackButton";
 
 export const ContactShow = (props: ShowBaseProps = {}) => {
@@ -75,13 +76,14 @@ const MOBILE_TABS = ["notes", "tasks", "details"];
 const ContactShowContentMobile = () => {
   const translate = useTranslate();
   // `?tab=tasks` opens a tab directly, e.g. from a global search result
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const requestedTab = searchParams.get("tab");
-  const initialTab =
+  const activeTab =
     requestedTab && MOBILE_TABS.includes(requestedTab) ? requestedTab : "notes";
   const { defaultTitle, record, isPending, error } = useShowContext<Contact>();
   const [noteCreateOpen, setNoteCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  useTrackRecentContact();
   if (isPending) return null;
   // The error notification is disabled on mobile, so show the error here,
   // unless a cached record is still available (e.g. offline refetch failure)
@@ -159,7 +161,11 @@ const ContactShowContentMobile = () => {
           </div>
         </div>
 
-        <Tabs key={initialTab} defaultValue={initialTab} className="w-full">
+        <Tabs
+          value={activeTab}
+          onValueChange={(tab) => setSearchParams({ tab }, { replace: true })}
+          className="w-full"
+        >
           <TabsList className="grid w-full grid-cols-3 h-10">
             <TabsTrigger value="notes">
               {translate("resources.notes.name", { smart_count: 2 })}
@@ -264,6 +270,7 @@ const ContactShowContentMobile = () => {
 const ContactShowContent = () => {
   const translate = useTranslate();
   const { record, isPending } = useShowContext<Contact>();
+  useTrackRecentContact();
   if (isPending || !record) return null;
 
   return (

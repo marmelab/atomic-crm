@@ -43,7 +43,11 @@ export const AddTask = ({
   const translate = useTranslate();
   const contact = useRecordContext();
   const [open, setOpen] = useState(false);
+  // Set once per opening: a new due_date on each render would make ra-core
+  // reset the form, wiping what the user already typed.
+  const [dueDate, setDueDate] = useState<string>();
   const handleOpen = () => {
+    setDueDate(new Date().toISOString());
     setOpen(true);
   };
   const getContactRepresentation = useGetRecordRepresentation("contacts");
@@ -108,7 +112,7 @@ export const AddTask = ({
         record={{
           type: "none",
           contact_id: contact?.id,
-          due_date: new Date().toISOString(),
+          due_date: dueDate,
           sales_id: identity.id,
         }}
         mutationOptions={{ onSuccess: handleSuccess }}

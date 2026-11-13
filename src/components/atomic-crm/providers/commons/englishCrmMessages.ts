@@ -31,7 +31,7 @@ export const englishCrmMessages = {
         title: "Import companies",
       },
       field_categories: {
-        contact: "Contact",
+        contact: "Contact details",
         additional_info: "Additional information",
         address: "Address",
         context: "Context",
@@ -232,6 +232,7 @@ export const englishCrmMessages = {
         title: "Import deals",
       },
       invalid_date: "Invalid date",
+      no_closing_date: "No closing date",
     },
     notes: {
       name: "Note |||| Notes",
@@ -468,6 +469,7 @@ export const englishCrmMessages = {
       title: "Search",
       placeholder: "Search contacts, companies, deals, tasks and notes...",
       hint: "Type at least %{min} characters to search",
+      recent_contacts: "Recently viewed",
       empty: "No result found",
       error: "Search is unavailable right now. Please try again.",
       untitled_result: "(no title)",

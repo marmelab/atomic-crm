@@ -1,23 +1,15 @@
 import { SaveButton } from "@/components/admin/form";
-import {
-  Sheet,
-  SheetContent,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+import { DrawerTitle } from "@/components/ui/drawer";
 import {
   CreateBase,
   Form,
-  useNotify,
   useRedirect,
   useResourceContext,
-  useTranslate,
   type CreateBaseProps,
   type FormProps,
 } from "ra-core";
 import { type ReactNode } from "react";
-import { cn } from "@/lib/utils";
+import { FormDrawer } from "./FormDrawer";
 
 export interface CreateSheetProps extends CreateBaseProps {
   /**
@@ -52,9 +44,9 @@ export interface CreateSheetProps extends CreateBaseProps {
 }
 
 /**
- * A Sheet component that contains a create form with externally controlled open state.
+ * A full-screen drawer that contains a create form with externally controlled open state.
  *
- * Renders a Sheet containing a CreateBase form. The sheet has a fixed footer with Save and Close buttons.
+ * Renders a FormDrawer containing a CreateBase form. The sheet has a fixed footer with Save and Close buttons.
  * The open state is controlled externally via the open and onOpenChange props. The sheet will automatically
  * close itself on successful submission (if redirect is false) or when the Close button is clicked.
  *
@@ -91,8 +83,6 @@ export const CreateSheet = ({
   ...createBaseProps
 }: CreateSheetProps) => {
   const resource = useResourceContext(createBaseProps);
-  const translate = useTranslate();
-  const notify = useNotify();
   const redirect = useRedirect();
 
   // Handle success - close sheet in addition to default behavior
@@ -103,16 +93,6 @@ export const CreateSheet = ({
       );
     }
     const [data] = args;
-    notify(`resources.${resource}.notifications.created`, {
-      type: "info",
-      messageArgs: {
-        smart_count: 1,
-        _: translate(`ra.notification.created`, {
-          smart_count: 1,
-        }),
-      },
-      undoable: createBaseProps.mutationMode === "undoable",
-    });
     redirect(redirectTo, resource, data.id, data);
     onOpenChange(false);
   };
@@ -123,51 +103,41 @@ export const CreateSheet = ({
   };
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent
-        side="bottom"
-        className="data-[side=bottom]:h-dvh flex flex-col"
-        aria-describedby={undefined}
+    <FormDrawer open={open} onOpenChange={onOpenChange}>
+      <CreateBase
+        {...createBaseProps}
+        redirect={redirectTo}
+        mutationOptions={enhancedMutationOptions}
       >
-        <CreateBase
-          {...createBaseProps}
-          redirect={redirectTo}
-          mutationOptions={enhancedMutationOptions}
+        <Form
+          defaultValues={defaultValues}
+          className="min-h-0 flex-1 flex flex-col"
         >
-          <Form
-            defaultValues={defaultValues}
-            className="h-dvh flex-1 flex flex-col"
-          >
-            <SheetHeader className="border-b">
-              <div
-                className={cn(
-                  "flex items-center gap-2",
-                  headerActions && "pr-12",
-                )}
-              >
-                <SheetTitle className="min-w-0 flex-1 truncate">
-                  {typeof title === "string" ? (
-                    <span className="text-xl font-semibold">{title}</span>
-                  ) : (
-                    title
-                  )}
-                </SheetTitle>
-                {headerActions && (
-                  <div className="shrink-0">{headerActions}</div>
-                )}
-              </div>
-            </SheetHeader>
+          <div className="box-content h-14 shrink-0 flex items-center pl-4 pr-13 border-b">
+            <DrawerTitle className="min-w-0 flex-1 truncate">
+              {typeof title === "string" ? (
+                <span className="text-xl font-semibold">{title}</span>
+              ) : (
+                title
+              )}
+            </DrawerTitle>
+            {headerActions && <div className="shrink-0">{headerActions}</div>}
+          </div>
 
-            <div className="flex-1 overflow-y-auto flex flex-col gap-3 p-4">
-              {children}
-            </div>
+          {/* pb-4! overrides the bottom padding Base UI's VirtualKeyboardProvider
+              adds to the focused field's scroller: measured while the drawer slides
+              in, it grows the scroller and pushes the footer under the keyboard.
+              FormDrawer already keeps the whole form above the keyboard.
+              FIXME: remove once Base UI fixes https://github.com/mui/base-ui/issues/6025 */}
+          <div className="flex-1 overflow-y-auto flex flex-col gap-3 p-4 pb-4!">
+            {children}
+          </div>
 
-            <SheetFooter className="border-t flex flex-row w-full gap-4">
-              <SaveButton className="flex-1 h-12" />
-            </SheetFooter>
-          </Form>
-        </CreateBase>
-      </SheetContent>
-    </Sheet>
+          <div className="mt-auto border-t flex flex-row w-full gap-4 p-4">
+            <SaveButton className="flex-1 h-12" />
+          </div>
+        </Form>
+      </CreateBase>
+    </FormDrawer>
   );
 };

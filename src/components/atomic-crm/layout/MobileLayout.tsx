@@ -3,6 +3,7 @@ import { Notification } from "@/components/admin/notification";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Suspense, type ReactNode } from "react";
 import { ErrorBoundary } from "react-error-boundary";
+import { ScrollRestoration } from "react-router";
 
 import { DataImportProvider } from "../dataImport/DataImportProvider";
 import { useConfigurationLoader } from "../root/useConfigurationLoader";
@@ -13,6 +14,7 @@ export const MobileLayout = ({ children }: { children: ReactNode }) => {
   useConfigurationLoader();
   return (
     <DataImportProvider>
+      <ScrollRestoration />
       <PullToRefresh />
       <ErrorBoundary FallbackComponent={Error}>
         <Suspense fallback={<Skeleton className="h-12 w-12 rounded-full" />}>

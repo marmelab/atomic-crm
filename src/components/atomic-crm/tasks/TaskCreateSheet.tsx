@@ -4,7 +4,7 @@ import {
   useGetIdentity,
   useGetOne,
   useGetRecordRepresentation,
-  useNotify,
+  useRedirect,
   useTranslate,
   useUpdate,
 } from "ra-core";
@@ -12,6 +12,7 @@ import { CreateSheet } from "../misc/CreateSheet";
 import { foreignKeyMapping } from "../notes/foreignKeyMapping";
 import { TaskFormContent } from "./TaskFormContent";
 import { useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 
 export interface TaskCreateSheetProps {
   open: boolean;
@@ -37,7 +38,15 @@ export const TaskCreateSheet = ({
   const [update] = useUpdate();
   const dataProvider = useDataProvider();
   const queryClient = useQueryClient();
-  const notify = useNotify();
+  const redirect = useRedirect();
+  // Set once per opening: a new due_date on each render would make ra-core
+  // reset the form, wiping what the user already typed.
+  const [dueDate, setDueDate] = useState(() => new Date().toISOString());
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
+    if (open) setDueDate(new Date().toISOString());
+  }
 
   if (!identity) return null;
 
@@ -57,8 +66,9 @@ export const TaskCreateSheet = ({
       queryKey: ["contacts", "getOne"],
     });
 
-    notify("resources.tasks.added");
-    // No redirect, only close the sheet
+    if (!selectContact) {
+      redirect(`/contacts/${contact_id}/show?tab=tasks`);
+    }
     onOpenChange(false);
   };
 
@@ -66,7 +76,7 @@ export const TaskCreateSheet = ({
     <CreateSheet
       resource="tasks"
       title={
-        <span className="text-xl font-semibold truncate pr-10">
+        <span className="text-xl font-semibold truncate">
           {!selectContact
             ? translate("resources.tasks.dialog.create_for", {
                 name: getContactRepresentation(contact!),
@@ -78,7 +88,7 @@ export const TaskCreateSheet = ({
       record={{
         type: "none",
         contact_id,
-        due_date: new Date().toISOString(),
+        due_date: dueDate,
         sales_id: identity.id,
       }}
       mutationOptions={{

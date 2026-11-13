@@ -17,7 +17,9 @@ export const TaskFormContent = ({
   return (
     <div className="flex flex-col gap-4">
       <TextInput
-        autoFocus
+        // focused by FormDrawer once open: autoFocus would fire while the drawer
+        // still slides in, and iOS would scroll the form out of view
+        data-autofocus
         source="text"
         validate={required()}
         multiline

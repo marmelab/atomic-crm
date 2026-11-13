@@ -168,6 +168,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/search/RecentContactsGroup.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/search/GlobalSearchButton.tsx",
           "type": "registry:component"
         },
@@ -488,6 +492,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/misc/FormDrawer.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/misc/EditSheet.tsx",
           "type": "registry:component"
         },
@@ -549,10 +557,6 @@
         },
         {
           "path": "src/components/atomic-crm/layout/PullToRefresh.tsx",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/layout/MobileRefreshButton.tsx",
           "type": "registry:component"
         },
         {
@@ -736,6 +740,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/contacts/useRecentContacts.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/contacts/useContactImport.tsx",
           "type": "registry:component"
         },
@@ -873,6 +881,10 @@
         },
         {
           "path": "src/components/atomic-crm/companies/CompanyCreate.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/companies/CompanyContactsMobile.tsx",
           "type": "registry:component"
         },
         {

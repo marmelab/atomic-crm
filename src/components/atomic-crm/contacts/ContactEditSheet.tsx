@@ -67,8 +67,10 @@ const ContactEditMenuButton = ({
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger render={<Button variant="ghost" size="icon" />}>
-        <EllipsisVertical />
+      <DropdownMenuTrigger
+        render={<Button variant="ghost" size="icon" className="rounded-full" />}
+      >
+        <EllipsisVertical className="size-5" />
         <span className="sr-only">
           {translate("ra.action.open_menu", { _: "More" })}
         </span>

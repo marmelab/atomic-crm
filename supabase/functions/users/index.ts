@@ -355,7 +355,9 @@ async function patchUser(req: Request, currentUserSale: any) {
   const { data, error: userError } =
     await supabaseAdmin.auth.admin.updateUserById(sale.user_id, {
       email,
-      ban_duration: disabled ? "87600h" : "none",
+      ...(currentUserSale.administrator && {
+        ban_duration: disabled ? "87600h" : "none",
+      }),
       user_metadata: { first_name, last_name },
     });
 
