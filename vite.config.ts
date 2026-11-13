@@ -32,6 +32,12 @@ export default defineConfig({
       workbox: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff,woff2}"],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MiB
+        // When the Supabase API is served from the app origin (reverse proxy),
+        // navigations to it (e.g. /auth/v1/authorize during SSO/OAuth logins)
+        // must reach the server instead of the cached app shell.
+        navigateFallbackDenylist: [
+          /^\/(auth|rest|storage|functions|realtime|graphql)\/v1\//,
+        ],
       },
       manifest: false, // Use existing manifest.json from public/
     }),
