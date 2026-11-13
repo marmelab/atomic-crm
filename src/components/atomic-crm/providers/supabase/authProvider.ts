@@ -104,9 +104,15 @@ export const getAuthProvider = (): AuthProvider => {
       }
       return baseAuthProvider.login(params);
     },
-    logout: async (params) => {
+    logout: async () => {
       clearCache();
-      return baseAuthProvider.logout(params);
+      // Preserve independent MCP OAuth and other browser sessions.
+      const { error } = await getSupabaseClient().auth.signOut({
+        scope: "local",
+      });
+      if (error) {
+        throw error;
+      }
     },
     checkAuth: async (params) => {
       // Users are on the set-password page, nothing to do
@@ -134,7 +140,7 @@ export const getAuthProvider = (): AuthProvider => {
       const isInitialized = await getIsInitialized();
 
       if (!isInitialized) {
-        await getSupabaseClient().auth.signOut();
+        await getSupabaseClient().auth.signOut({ scope: "local" });
         throw {
           redirectTo: "/sign-up",
           message: false,
