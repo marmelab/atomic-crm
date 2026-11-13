@@ -236,9 +236,7 @@ async function runValidatedSql(
 ): Promise<
   { success: true; data: unknown[] } | { success: false; error: string }
 > {
-  // validate() also guarantees a single statement: a query without params
-  // uses the simple query protocol, which would otherwise accept a COMMIT
-  // that ends the RLS-scoped transaction.
+  // validate() only accepts a single statement of an allowed type.
   const validationError = validate(sql);
   if (validationError) {
     return { success: false, error: validationError };

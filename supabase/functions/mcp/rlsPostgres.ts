@@ -13,8 +13,17 @@ export interface SqlQueryResult {
   rows: unknown[];
 }
 
+export interface SqlQueryConfig {
+  text: string;
+  values?: unknown[];
+  queryMode: "extended";
+}
+
 export interface SqlClient {
-  query(text: string, params?: unknown[]): Promise<SqlQueryResult>;
+  query(
+    textOrConfig: string | SqlQueryConfig,
+    params?: unknown[],
+  ): Promise<SqlQueryResult>;
   release(destroy?: boolean): void;
 }
 
@@ -84,7 +93,12 @@ async function runInTransaction(
   if (options.readOnly) {
     await client.query("set transaction read only");
   }
-  const result = await client.query(text, params);
+  // The extended query protocol runs the text as a single statement.
+  const result = await client.query({
+    text,
+    values: params,
+    queryMode: "extended",
+  });
   await client.query("commit");
   return result.rows;
 }

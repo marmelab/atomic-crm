@@ -11,6 +11,7 @@ import {
 interface RecordedQuery {
   text: string;
   params?: unknown[];
+  queryMode?: "extended";
 }
 
 interface StubOptions {
@@ -41,8 +42,17 @@ function stubPool(options: StubOptions = {}) {
   const queries: RecordedQuery[] = [];
   const releases: (boolean | undefined)[] = [];
   const client: SqlClient = {
-    query: async (text, params) => {
-      queries.push({ text, params });
+    query: async (textOrConfig, params) => {
+      const recorded: RecordedQuery =
+        typeof textOrConfig === "string"
+          ? { text: textOrConfig, params }
+          : {
+              text: textOrConfig.text,
+              params: textOrConfig.values,
+              queryMode: textOrConfig.queryMode,
+            };
+      const { text } = recorded;
+      queries.push(recorded);
       if (text === "rollback" && options.failRollback) {
         throw new Error("connection lost");
       }
@@ -126,8 +136,29 @@ describe("createRlsPostgres", () => {
     expect(queries.at(-3)).toEqual({
       text: "update tasks set done_date = now() where id = $1",
       params: [42],
+      queryMode: "extended",
     });
   });
+
+  it.each([
+    ["without bind parameters", undefined],
+    ["with bind parameters", [1]],
+  ])(
+    "sends the caller's statement over the extended protocol %s",
+    async (_label, params) => {
+      // Arrange
+      const { pool, queries } = stubPool();
+      const postgres = createRlsPostgres(pool, claims);
+      const sql = "select * from contacts";
+
+      // Act
+      await postgres.query(sql, params, { readOnly: true });
+
+      // Assert
+      const statement = queries.find((q) => q.text === sql);
+      expect(statement?.queryMode).toBe("extended");
+    },
+  );
 
   it("rolls back, releases the connection and rethrows when the statement fails", async () => {
     // Arrange
