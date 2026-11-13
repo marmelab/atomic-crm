@@ -112,8 +112,13 @@ INSERT INTO favicons_excluded_domains (domain) VALUES
 -- the network for every row. The rows below are consistent by construction.
 set session_replication_role = replica;
 
-insert into public.businesses (id, name, is_demo)
-values ('00000000-0000-4000-8000-000000000001', 'Demo', true);
+-- A Ukrainian business with sample requisites (valid check digits; the IBAN
+-- is the National Bank of Ukraine documentation example).
+insert into public.businesses (id, name, is_demo, country_code, requisites)
+values (
+    '00000000-0000-4000-8000-000000000001', 'Demo', true, 'UA',
+    '{"edrpou": "40000006", "iban": "UA213223130000026007233566001"}'
+);
 
 insert into public.configuration (id) values ('00000000-0000-4000-8000-000000000001');
 
