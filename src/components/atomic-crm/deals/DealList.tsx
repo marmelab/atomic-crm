@@ -22,6 +22,7 @@ import { TopToolbar } from "../layout/TopToolbar";
 import { AccountManagerInput } from "../sales/AccountManagerInput";
 import { DealArchivedList } from "./DealArchivedList";
 import { DealCreate } from "./DealCreate";
+import { dealExporter } from "./dealExporter";
 import { DealEdit } from "./DealEdit";
 import { DealEmpty } from "./DealEmpty";
 import { DealListContent } from "./DealListContent";
@@ -87,6 +88,7 @@ const DealList = () => {
       filters={dealFilters}
       actions={<DealActions />}
       pagination={null}
+      exporter={dealExporter}
     >
       <DealLayout />
     </List>

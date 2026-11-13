@@ -114,9 +114,9 @@ set session_replication_role = replica;
 
 -- A Ukrainian business with sample requisites (valid check digits; the IBAN
 -- is the National Bank of Ukraine documentation example).
-insert into public.businesses (id, name, is_demo, country_code, requisites)
+insert into public.businesses (id, name, is_demo, country_code, currency, timezone, requisites)
 values (
-    '00000000-0000-4000-8000-000000000001', 'Demo', true, 'UA',
+    '00000000-0000-4000-8000-000000000001', 'Demo', true, 'UA', 'UAH', 'Europe/Kyiv',
     '{"edrpou": "40000006", "iban": "UA213223130000026007233566001"}'
 );
 
@@ -174,12 +174,13 @@ from (values
     ('Roman', 'Karpenko', 'male', 'Production lead', 'cold', 'Vinnytsia Print House', '+380 67 000 00 16', 65, null)
 ) as p(first_name, last_name, gender, title, status, company, phone, days_ago, tag);
 
-insert into public.deals (name, company_id, contact_ids, categories, stage, description, amount, created_at, updated_at, expected_closing_date, index, business_id)
+-- Amounts in the table below are whole hryvnias, stored in kopecks
+insert into public.deals (name, company_id, contact_ids, categories, stage, description, amount, currency, created_at, updated_at, expected_closing_date, index, business_id)
 select
     d.name,
     co.id,
     array(select c.id from public.contacts c where c.company_id = co.id order by c.id limit 1),
-    array[d.category], d.stage, d.description, d.amount,
+    array[d.category], d.stage, d.description, d.amount * 100, 'UAH',
     now() - make_interval(days => d.days_ago),
     now() - make_interval(days => d.days_ago / 2),
     (now() + make_interval(days => 30 - d.days_ago))::date,

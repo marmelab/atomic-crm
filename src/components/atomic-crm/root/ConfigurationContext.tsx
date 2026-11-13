@@ -8,7 +8,10 @@ export const CONFIGURATION_STORE_KEY = "app.configuration";
 
 export interface ConfigurationContextValue {
   companySectors: LabeledValue[];
+  /** Base currency of the current business (ISO 4217) */
   currency: string;
+  /** Formats of dates, numbers and money of the current business, e.g. uk-UA */
+  locale: string;
   dealCategories: LabeledValue[];
   dealPipelineStatuses: string[];
   dealStages: DealStage[];

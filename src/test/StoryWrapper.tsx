@@ -111,6 +111,7 @@ export const buildContact = (overrides: Partial<Contact> = {}): Contact => ({
 
 export const buildDeal = (overrides: Partial<Deal> = {}): Deal => ({
   amount: 1000,
+  currency: "USD",
   archived_at: undefined,
   categories: ["other"],
   company_id: 1,

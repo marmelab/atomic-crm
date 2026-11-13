@@ -7,12 +7,21 @@ import { createEachRow } from "./createEachRow";
 import {
   toConfiguredValue,
   toConfiguredValues,
-  toInteger,
+  toNumber,
   toIsoDate,
   toText,
 } from "./parseCell";
 import type { ImportCell, ImportRow, ProcessImportBatch } from "./types";
 import { validateClosingDate } from "../deals/dealUtils";
+import { toMinor } from "../money/money";
+
+const toMinorAmount = (
+  cell: ImportCell,
+  currency: string,
+): number | undefined => {
+  const value = toNumber(cell);
+  return value === undefined ? undefined : toMinor(value, currency);
+};
 
 /**
  * The database refuses closing dates outside the range the deal form allows, so
@@ -38,7 +47,7 @@ type DealRow = {
  * holds a company name: matching companies are reused, unknown ones are created.
  */
 export function useDealImport(): ProcessImportBatch {
-  const { dealCategories, dealStages } = useConfigurationContext();
+  const { dealCategories, dealStages, currency } = useConfigurationContext();
   const { identity } = useGetIdentity();
   const dataProvider = useDataProvider();
   const getCompanies = useCompanyResolver();
@@ -76,8 +85,10 @@ export function useDealImport(): ProcessImportBatch {
               categories: toConfiguredValues(row.categories, dealCategories),
               stage,
               description: toText(row.description),
-              // amount lands in a bigint column, which rejects "4500.50"
-              amount: toInteger(row.amount),
+              // The file has whole currency units ("4500.50"); the database
+              // stores minor units of the business currency (450050)
+              amount: toMinorAmount(row.amount, currency),
+              currency,
               expected_closing_date: toClosingDate(row.expected_closing_date),
               sales_id: identity?.id,
               index: indexes.get(row) ?? 0,
@@ -88,7 +99,14 @@ export function useDealImport(): ProcessImportBatch {
         ),
       );
     },
-    [dataProvider, dealCategories, dealStages, getCompanies, identity?.id],
+    [
+      currency,
+      dataProvider,
+      dealCategories,
+      dealStages,
+      getCompanies,
+      identity?.id,
+    ],
   );
 }
 

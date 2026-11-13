@@ -216,7 +216,8 @@ describe("DataImportButton", () => {
     const { data: deals } = await listAll(dataProvider, "deals");
     expect(deals).toHaveLength(2);
     expect(deals[0]).toMatchObject({
-      amount: 12000,
+      // whole units in the file, minor units (cents) in the database
+      amount: 1200000,
       categories: ["website-design", "copywriting"],
       company_id: companies[0].id,
       name: "New website",
@@ -309,8 +310,8 @@ describe("DataImportButton", () => {
     // wiring this feature adds is covered too — the owner in particular, which
     // the dialog is the only thing to bring in
     expect(deals[0]).toMatchObject({
-      // A fractional amount would make the bigint column reject the row
-      amount: 4501,
+      // A fractional amount is kept to the cent, as an integer
+      amount: 450050,
       sales_id: DEFAULT_USER.id,
       stage: "proposal-sent",
     });

@@ -32,6 +32,7 @@ import {
   formatISODateString,
   isISODateString,
 } from "./dealUtils";
+import { formatMoney } from "../money/money";
 
 export const DealShow = ({ open, id }: { open: boolean; id?: string }) => {
   const redirect = useRedirect();
@@ -54,7 +55,7 @@ export const DealShow = ({ open, id }: { open: boolean; id?: string }) => {
 
 const DealShowContent = () => {
   const translate = useTranslate();
-  const { dealStages, dealCategories, currency } = useConfigurationContext();
+  const { dealStages, dealCategories, locale } = useConfigurationContext();
   const record = useRecordContext<Deal>();
   if (!record) return null;
   const closingDate = record.expected_closing_date;
@@ -116,12 +117,8 @@ const DealShowContent = () => {
                 {translate("resources.deals.fields.amount")}
               </span>
               <span className="text-sm">
-                {record.amount.toLocaleString("en-US", {
-                  notation: "compact",
-                  style: "currency",
-                  currency,
-                  currencyDisplay: "narrowSymbol",
-                  minimumSignificantDigits: 3,
+                {formatMoney(record.amount, record.currency, locale, {
+                  compact: true,
                 })}
               </span>
             </div>

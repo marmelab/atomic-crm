@@ -4,11 +4,13 @@ import type { RaRecord } from "ra-core";
 import {
   EditBase,
   Form,
+  useDataProvider,
   useGetList,
   useInput,
   useNotify,
   useTranslate,
 } from "ra-core";
+import { useQuery } from "@tanstack/react-query";
 import { useCallback, useMemo } from "react";
 import { useFormContext } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -16,11 +18,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { toSlug } from "@/lib/toSlug";
 import { ArrayInput } from "@/components/admin/array-input";
-import { AutocompleteInput } from "@/components/admin/autocomplete-input";
 import { SimpleFormIterator } from "@/components/admin/simple-form-iterator";
 import { TextInput } from "@/components/admin/text-input";
 
 import ImageEditorField from "../misc/ImageEditorField";
+import type { CrmDataProvider } from "../providers/types";
 import {
   useConfigurationContext,
   useConfigurationUpdater,
@@ -103,25 +105,11 @@ export const validateItemsInUse = (
   return undefined;
 };
 
-const getCurrencyChoices = () => {
-  const displayNames = new Intl.DisplayNames(
-    typeof navigator !== "undefined"
-      ? (navigator.languages as string[])
-      : ["en"],
-    { type: "currency" },
-  );
-  return Intl.supportedValuesOf("currency").map((code) => ({
-    id: code,
-    name: `${code} – ${displayNames.of(code)}`,
-  }));
-};
-
 const transformFormValues = (data: Record<string, any>) => ({
   config: {
     title: data.title,
     lightModeLogo: data.lightModeLogo,
     darkModeLogo: data.darkModeLogo,
-    currency: data.currency,
     companySectors: ensureValues(data.companySectors),
     dealCategories: ensureValues(data.dealCategories),
     taskTypes: ensureValues(data.taskTypes),
@@ -131,20 +119,30 @@ const transformFormValues = (data: Record<string, any>) => ({
   } as ConfigurationContextValue,
 });
 
+// The configuration row of a business has the business id. The base currency
+// and the formats come from the business itself, not from this form.
 export const SettingsPage = () => {
   const updateConfiguration = useConfigurationUpdater();
+  const { currency, locale } = useConfigurationContext();
   const notify = useNotify();
+  const dataProvider = useDataProvider<CrmDataProvider>();
+  const { data: businessId } = useQuery({
+    queryKey: ["businesses", "current"],
+    queryFn: () => dataProvider.getCurrentBusinessId(),
+  });
+
+  if (!businessId) return null;
 
   return (
     <EditBase
       resource="configuration"
-      id={1}
+      id={businessId}
       mutationMode="pessimistic"
       redirect={false}
       transform={transformFormValues}
       mutationOptions={{
         onSuccess: (data: any) => {
-          updateConfiguration(data.config);
+          updateConfiguration({ ...data.config, currency, locale });
           notify("crm.settings.saved");
         },
         onError: () => {
@@ -169,7 +167,6 @@ const SettingsForm = () => {
       title: config.title,
       lightModeLogo: { src: config.lightModeLogo },
       darkModeLogo: { src: config.darkModeLogo },
-      currency: config.currency,
       companySectors: config.companySectors,
       dealCategories: config.dealCategories,
       taskTypes: config.taskTypes,
@@ -189,7 +186,6 @@ const SettingsForm = () => {
 
 const SettingsFormFields = () => {
   const translate = useTranslate();
-  const currencyChoices = useMemo(() => getCurrencyChoices(), []);
   const {
     watch,
     setValue,
@@ -338,19 +334,6 @@ const SettingsFormFields = () => {
                 smart_count: 2,
               })}
             </h2>
-            <h3 className="text-lg font-medium text-muted-foreground">
-              {translate("crm.settings.deals.currency")}
-            </h3>
-            <AutocompleteInput
-              source="currency"
-              label={false}
-              choices={currencyChoices}
-              inputText={(choice) => choice?.id}
-              modal
-            />
-
-            <Separator />
-
             <h3 className="text-lg font-medium text-muted-foreground">
               {translate("crm.settings.deals.stages")}
             </h3>

@@ -4,6 +4,7 @@ import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal } from "../types";
 import { findDealLabel } from "./dealUtils";
 import { DealCard } from "./DealCard";
+import { formatMoney } from "../money/money";
 
 export const DealColumn = ({
   stage,
@@ -13,7 +14,7 @@ export const DealColumn = ({
   deals: Deal[];
 }) => {
   const totalAmount = deals.reduce((sum, deal) => sum + deal.amount, 0);
-  const { dealStages, currency } = useConfigurationContext();
+  const { dealStages, currency, locale } = useConfigurationContext();
   return (
     <div className="flex-1 pb-8">
       <div className="flex flex-col items-center">
@@ -21,13 +22,7 @@ export const DealColumn = ({
           {findDealLabel(dealStages, stage)}
         </h3>
         <p className="text-sm text-muted-foreground">
-          {totalAmount.toLocaleString("en-US", {
-            notation: "compact",
-            style: "currency",
-            currency,
-            currencyDisplay: "narrowSymbol",
-            minimumSignificantDigits: 3,
-          })}
+          {formatMoney(totalAmount, currency, locale, { compact: true })}
         </p>
       </div>
       <Droppable droppableId={stage}>

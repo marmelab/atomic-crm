@@ -9,6 +9,7 @@ import { CompanyAvatar } from "../companies/CompanyAvatar";
 import { findDealLabel } from "../deals/dealUtils";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal } from "../types";
+import { formatMoney } from "../money/money";
 
 /**
  * This component displays the deals pipeline for the current user.
@@ -17,7 +18,7 @@ import type { Deal } from "../types";
 export const DealsPipeline = () => {
   const translate = useTranslate();
   const { identity } = useGetIdentity();
-  const { dealStages, dealPipelineStatuses, currency } =
+  const { dealStages, dealPipelineStatuses, locale } =
     useConfigurationContext();
   const { data, total, isPending } = useGetList<Deal>(
     "deals",
@@ -66,13 +67,7 @@ export const DealsPipeline = () => {
           isPending={isPending}
           primaryText={(deal) => deal.name}
           secondaryText={(deal) =>
-            `${deal.amount.toLocaleString("en-US", {
-              notation: "compact",
-              style: "currency",
-              currency,
-              currencyDisplay: "narrowSymbol",
-              minimumSignificantDigits: 3,
-            })} , ${findDealLabel(dealStages, deal.stage)}`
+            `${formatMoney(deal.amount, deal.currency, locale, { compact: true })}, ${findDealLabel(dealStages, deal.stage)}`
           }
           leftAvatar={(deal) => (
             <ReferenceField

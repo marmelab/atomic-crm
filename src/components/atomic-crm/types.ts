@@ -121,7 +121,10 @@ export type Deal = {
   categories: string[];
   stage: string;
   description: string;
+  /** Integer amount in minor units of currency (kopecks, grosze, cents) */
   amount: number;
+  /** ISO 4217 code; the business base currency unless set otherwise */
+  currency: string;
   created_at: string;
   updated_at: string;
   archived_at?: string;

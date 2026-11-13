@@ -3,7 +3,6 @@ import { AutocompleteArrayInput } from "@/components/admin/autocomplete-array-in
 import { ReferenceArrayInput } from "@/components/admin/reference-array-input";
 import { ReferenceInput } from "@/components/admin/reference-input";
 import { TextInput } from "@/components/admin/text-input";
-import { NumberInput } from "@/components/admin/number-input";
 import { DateInput } from "@/components/admin/date-input";
 import { SelectInput } from "@/components/admin/select-input";
 import { Separator } from "@/components/ui/separator";
@@ -13,6 +12,7 @@ import { useConfigurationContext } from "../root/ConfigurationContext";
 import { AutocompleteCompanyInput } from "../companies/AutocompleteCompanyInput.tsx";
 import { AutocompleteContactInput } from "../contacts/AutocompleteContactInput.tsx";
 import { validateClosingDate } from "./dealUtils";
+import { MoneyInput } from "../money/MoneyInput";
 
 export const DealInputs = () => {
   const isMobile = useIsMobile();
@@ -61,7 +61,7 @@ const DealLinkedToInputs = () => {
 };
 
 const DealMiscInputs = () => {
-  const { dealStages, dealCategories } = useConfigurationContext();
+  const { dealStages, dealCategories, currency } = useConfigurationContext();
   const translate = useTranslate();
   return (
     <div className="flex flex-col gap-4 flex-1">
@@ -76,8 +76,10 @@ const DealMiscInputs = () => {
         optionValue="value"
         helperText={false}
       />
-      <NumberInput
+      {/* Amounts are kept in the business base currency (deals.currency) */}
+      <MoneyInput
         source="amount"
+        currency={currency}
         defaultValue={0}
         helperText={false}
         validate={required()}

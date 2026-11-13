@@ -44,6 +44,7 @@ import {
 } from "./CompanyAside";
 import { CompanyAvatar } from "./CompanyAvatar";
 import { CompanyContactsMobile } from "./CompanyContactsMobile";
+import { formatMoney } from "../money/money";
 
 export const CompanyShow = (props: ShowBaseProps = {}) => {
   const isMobile = useIsMobile();
@@ -269,7 +270,11 @@ const DealsIterator = () => {
   const translate = useTranslate();
   const [locale = "en"] = useLocaleState();
   const { data: deals, error, isPending } = useListContext<Deal>();
-  const { dealStages, dealCategories, currency } = useConfigurationContext();
+  const {
+    dealStages,
+    dealCategories,
+    locale: businessLocale,
+  } = useConfigurationContext();
   if (isPending || error) return null;
   return (
     <div>
@@ -284,12 +289,8 @@ const DealsIterator = () => {
                 <div className="font-medium">{deal.name}</div>
                 <div className="text-sm text-muted-foreground">
                   {findDealLabel(dealStages, deal.stage)},{" "}
-                  {deal.amount.toLocaleString("en-US", {
-                    notation: "compact",
-                    style: "currency",
-                    currency,
-                    currencyDisplay: "narrowSymbol",
-                    minimumSignificantDigits: 3,
+                  {formatMoney(deal.amount, deal.currency, businessLocale, {
+                    compact: true,
                   })}
                   {deal.categories?.length
                     ? `, ${formatDealCategories(dealCategories, deal.categories)}`

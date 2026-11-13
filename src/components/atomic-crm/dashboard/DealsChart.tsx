@@ -7,6 +7,7 @@ import { memo, useMemo } from "react";
 import { findDealLabel } from "../deals/dealUtils";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal } from "../types";
+import { formatMoney, fromMinor, toMinor } from "../money/money";
 
 const multiplier = {
   opportunity: 0.2,
@@ -19,14 +20,9 @@ const threeMonthsAgo = new Date(
   new Date().setMonth(new Date().getMonth() - 6),
 ).toISOString();
 
-const DEFAULT_LOCALE = "en-US";
-
 export const DealsChart = memo(() => {
   const translate = useTranslate();
-  const { dealStages, currency } = useConfigurationContext();
-  const acceptedLanguages = navigator
-    ? navigator.languages || [navigator.language]
-    : [DEFAULT_LOCALE];
+  const { dealStages, currency, locale } = useConfigurationContext();
   const wonLabel = findDealLabel(dealStages, "won") ?? "Won";
   const lostLabel = findDealLabel(dealStages, "lost") ?? "Lost";
 
@@ -57,27 +53,27 @@ export const DealsChart = memo(() => {
         won: dealsByMonth[month]
           .filter((deal: Deal) => deal.stage === "won")
           .reduce((acc: number, deal: Deal) => {
-            acc += deal.amount;
+            acc += fromMinor(deal.amount, currency);
             return acc;
           }, 0),
         pending: dealsByMonth[month]
           .filter((deal: Deal) => !["won", "lost"].includes(deal.stage))
           .reduce((acc: number, deal: Deal) => {
             // @ts-expect-error - multiplier type issue
-            acc += deal.amount * multiplier[deal.stage];
+            acc += fromMinor(deal.amount, currency) * multiplier[deal.stage];
             return acc;
           }, 0),
         lost: dealsByMonth[month]
           .filter((deal: Deal) => deal.stage === "lost")
           .reduce((acc: number, deal: Deal) => {
-            acc -= deal.amount;
+            acc -= fromMinor(deal.amount, currency);
             return acc;
           }, 0),
       };
     });
 
     return amountByMonth;
-  }, [data]);
+  }, [data, currency]);
 
   if (isPending) return null; // FIXME return skeleton instead
   const range = months.reduce(
@@ -117,10 +113,9 @@ export const DealsChart = memo(() => {
           enableLabel={false}
           tooltip={({ value, indexValue }) => (
             <div className="p-2 bg-secondary rounded shadow inline-flex items-center gap-1 text-secondary-foreground">
-              <strong>{indexValue}: </strong>&nbsp;{value > 0 ? "+" : ""}
-              {value.toLocaleString(acceptedLanguages.at(0) ?? DEFAULT_LOCALE, {
-                style: "currency",
-                currency,
+              <strong>{indexValue}: </strong>&nbsp;{" "}
+              {formatMoney(toMinor(value, currency), currency, locale, {
+                signed: true,
               })}
             </div>
           )}

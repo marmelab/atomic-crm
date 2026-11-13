@@ -360,6 +360,7 @@ Use this tool for data modifications such as:
 Row Level Security (RLS) is enforced - mutations only affect data the authenticated user has permission to modify.
 
 IMPORTANT: Never specify sales_id in INSERT or UPDATE statements — it is automatically set to the authenticated user by a database trigger.
+Money: deals.amount is an integer in minor units of deals.currency (kopecks for UAH, grosze for PLN): 18 000 UAH is amount = 1800000. Divide by 100 to show amounts to people.
 IMPORTANT: Never specify business_id in INSERT or UPDATE statements — it defaults to the user's current business, and rows of other businesses are neither visible nor writable.
 
 String comparisons in WHERE clauses are case-sensitive in this tool, including on citext columns (companies.website, sales.email): use ILIKE or lower() for case-insensitive matching.

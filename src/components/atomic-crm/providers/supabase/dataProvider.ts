@@ -301,15 +301,38 @@ const getDataProviderWithCustomMethods = () => {
     },
     // One configuration per business (id = business id); RLS only returns
     // the one of the current business.
+    // Money is shown in the base currency and with the formats of the
+    // business country (TZ section 9), whatever the configuration says.
     async getConfiguration(): Promise<ConfigurationContextValue> {
-      const { data, error } = await getSupabaseClient()
-        .from("configuration")
-        .select("config")
-        .maybeSingle();
+      const businessId = await getCurrentBusinessId();
+      const [configResult, businessResult] = await Promise.all([
+        getSupabaseClient()
+          .from("configuration")
+          .select("config")
+          .maybeSingle(),
+        getSupabaseClient()
+          .from("businesses")
+          .select("currency, country_packs(locale)")
+          .eq("id", businessId)
+          .maybeSingle(),
+      ]);
+      const error = configResult.error ?? businessResult.error;
       if (error) {
         throw new HttpError("Failed to load the configuration", 500, error);
       }
-      return (data?.config as ConfigurationContextValue) ?? {};
+      const config = (configResult.data?.config ??
+        {}) as ConfigurationContextValue;
+      const business = businessResult.data as {
+        currency: string;
+        country_packs: { locale: string } | null;
+      } | null;
+      return {
+        ...config,
+        ...(business ? { currency: business.currency } : {}),
+        ...(business?.country_packs
+          ? { locale: business.country_packs.locale }
+          : {}),
+      };
     },
     async updateConfiguration(
       config: ConfigurationContextValue,

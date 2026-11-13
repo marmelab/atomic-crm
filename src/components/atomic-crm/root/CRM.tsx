@@ -153,6 +153,7 @@ export const CRM = ({
       store.setItem(CONFIGURATION_STORE_KEY, {
         companySectors,
         currency,
+        locale: "en-US",
         dealCategories,
         dealPipelineStatuses,
         dealStages,
