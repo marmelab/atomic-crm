@@ -11,99 +11,84 @@ import { ImportPage } from "../misc/ImportPage";
 import { ChangelogPage } from "../misc/ChangelogPage";
 import { GlobalSearchButton } from "../search/GlobalSearchButton";
 import { BusinessMenu } from "./BusinessMenu";
+import { QuickCreateButton } from "./QuickCreateButton";
 
+const SALES_PATHS = ["/deals", "/contacts", "/companies"];
+
+/**
+ * Desktop header. The menu has the enabled sections of TZ section 4.1 only
+ * (Today, Sales); chats, purchases and money appear with their modules.
+ * Settings live in the profile menu.
+ */
 const Header = () => {
   const { darkModeLogo, lightModeLogo, title } = useConfigurationContext();
   const location = useLocation();
   const translate = useTranslate();
 
-  let currentPath: string | boolean = "/";
-  if (matchPath("/", location.pathname)) {
-    currentPath = "/";
-  } else if (matchPath("/contacts/*", location.pathname)) {
-    currentPath = "/contacts";
-  } else if (matchPath("/companies/*", location.pathname)) {
-    currentPath = "/companies";
-  } else if (matchPath("/deals/*", location.pathname)) {
-    currentPath = "/deals";
-  } else {
-    currentPath = false;
-  }
+  const isToday = matchPath("/", location.pathname) != null;
+  const salesPath = SALES_PATHS.find(
+    (path) => matchPath(`${path}/*`, location.pathname) != null,
+  );
 
   return (
-    <>
-      <nav className="grow">
-        <header className="bg-secondary">
-          <div className="px-4">
-            <div className="flex justify-between items-center flex-1">
-              <Link
-                to="/"
-                className="flex items-center gap-2 text-secondary-foreground no-underline"
-              >
-                <img
-                  className="[.light_&]:hidden h-6"
-                  src={darkModeLogo}
-                  alt={title}
-                />
-                <img
-                  className="[.dark_&]:hidden h-6"
-                  src={lightModeLogo}
-                  alt={title}
-                />
-                <h1 className="text-xl font-semibold">{title}</h1>
-              </Link>
-              <div>
-                <nav className="flex">
-                  <NavigationTab
-                    label={translate("ra.page.dashboard")}
-                    to="/"
-                    isActive={currentPath === "/"}
-                  />
-                  <NavigationTab
-                    label={translate("resources.contacts.name", {
-                      smart_count: 2,
-                    })}
-                    to="/contacts"
-                    isActive={currentPath === "/contacts"}
-                  />
-                  <NavigationTab
-                    label={translate("resources.companies.name", {
-                      smart_count: 2,
-                    })}
-                    to="/companies"
-                    isActive={currentPath === "/companies"}
-                  />
-                  <NavigationTab
-                    label={translate("resources.deals.name", {
-                      smart_count: 2,
-                    })}
-                    to="/deals"
-                    isActive={currentPath === "/deals"}
-                  />
-                </nav>
-              </div>
-              <div className="flex items-center">
-                <GlobalSearchButton />
-                <ThemeModeToggle />
-                <RefreshButton />
-                <UserMenu>
-                  <BusinessMenu />
-                  <ProfileMenu />
-                  <CanAccess resource="sales" action="list">
-                    <UsersMenu />
-                  </CanAccess>
-                  <CanAccess resource="configuration" action="edit">
-                    <SettingsMenu />
-                  </CanAccess>
-                  <ImportFromJsonMenuItem />
-                  <ChangelogMenuItem />
-                </UserMenu>
-              </div>
-            </div>
+    <nav aria-label={translate("crm.navigation.label")} className="grow">
+      <header className="border-b border-border bg-card">
+        <div className="mx-auto flex h-16 max-w-screen-xl items-center gap-6 px-4">
+          <Link
+            to="/"
+            className="flex shrink-0 items-center gap-2 text-foreground no-underline"
+          >
+            <img className="[.light_&]:hidden h-6" src={darkModeLogo} alt="" />
+            <img className="[.dark_&]:hidden h-6" src={lightModeLogo} alt="" />
+            <span className="text-lg font-semibold">{title}</span>
+          </Link>
+          <div className="flex h-full items-stretch gap-1">
+            <NavigationTab
+              label={translate("crm.nav.today")}
+              to="/"
+              isActive={isToday}
+            />
+            <NavigationTab
+              label={translate("crm.nav.sales")}
+              to="/deals"
+              isActive={salesPath != null}
+            />
           </div>
-        </header>
-      </nav>
-    </>
+          <div className="ml-auto flex items-center gap-1">
+            <QuickCreateButton />
+            <GlobalSearchButton />
+            <ThemeModeToggle />
+            <RefreshButton />
+            <UserMenu>
+              <BusinessMenu />
+              <ProfileMenu />
+              <CanAccess resource="sales" action="list">
+                <UsersMenu />
+              </CanAccess>
+              <CanAccess resource="configuration" action="edit">
+                <SettingsMenu />
+              </CanAccess>
+              <ImportFromJsonMenuItem />
+              <ChangelogMenuItem />
+            </UserMenu>
+          </div>
+        </div>
+        {salesPath != null ? (
+          <div className="mx-auto flex max-w-screen-xl gap-1 px-4">
+            {SALES_PATHS.map((path) => (
+              <SubNavigationTab
+                key={path}
+                to={path}
+                isActive={path === salesPath}
+                label={translate(`resources.${path.slice(1)}.name`, {
+                  smart_count: 2,
+                })}
+              />
+            ))}
+          </div>
+        ) : null}
+      </header>
+    </nav>
   );
 };
 
@@ -118,10 +103,33 @@ const NavigationTab = ({
 }) => (
   <Link
     to={to}
-    className={`px-6 py-3 text-sm font-medium transition-colors border-b-2 ${
+    aria-current={isActive ? "page" : undefined}
+    className={`flex items-center border-b-2 px-3 text-base font-medium transition-colors duration-150 ${
       isActive
-        ? "text-secondary-foreground border-secondary-foreground"
-        : "text-secondary-foreground/70 border-transparent hover:text-secondary-foreground/80"
+        ? "border-primary text-foreground"
+        : "border-transparent text-muted-foreground hover:text-foreground"
+    }`}
+  >
+    {label}
+  </Link>
+);
+
+const SubNavigationTab = ({
+  label,
+  to,
+  isActive,
+}: {
+  label: string;
+  to: string;
+  isActive: boolean;
+}) => (
+  <Link
+    to={to}
+    aria-current={isActive ? "page" : undefined}
+    className={`rounded-t-md px-3 py-2 text-sm font-medium transition-colors duration-150 ${
+      isActive
+        ? "bg-background text-foreground"
+        : "text-muted-foreground hover:text-foreground"
     }`}
   >
     {label}

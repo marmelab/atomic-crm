@@ -65,7 +65,7 @@ export const MobileNavigation = () => {
           <NavigationButton
             href="/"
             Icon={Home}
-            label={translate("ra.page.dashboard")}
+            label={translate("crm.nav.today")}
             isActive={currentPath === "/"}
           />
           <NavigationButton

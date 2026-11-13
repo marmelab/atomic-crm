@@ -41,6 +41,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { MobileBusinessSection } from "../business/MobileBusinessSection";
 
 import { MobileContent } from "../layout/MobileContent";
 import MobileHeader from "../layout/MobileHeader";
@@ -110,6 +111,7 @@ export const SettingsPageMobile = () => {
         <div className="flex flex-col min-h-[calc(100dvh-4.5rem-6rem)]">
           <div className="space-y-6">
             <ProfileSection />
+            <MobileBusinessSection />
             <PreferencesSection />
             <InboundEmailSection />
             <McpServerSection />
