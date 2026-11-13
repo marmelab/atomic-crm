@@ -2,7 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { McpServer } from "npm:@modelcontextprotocol/sdk@1.28.0/server/mcp.js";
 import { WebStandardStreamableHTTPServerTransport } from "npm:@modelcontextprotocol/sdk@1.28.0/server/webStandardStreamableHttp.js";
 import { createRemoteJWKSet, jwtVerify, decodeJwt } from "npm:jose@5";
-import { Pool } from "https://deno.land/x/postgres@v0.17.0/mod.ts";
+import pg from "npm:pg@8.23.1";
 import { z } from "npm:zod@^3.25";
 import { validateReadOnly, validateWrite } from "./validateSql.ts";
 import { TASK_LIST_HTML, TASK_LIST_UI_URI } from "./taskListUi.ts";
@@ -22,7 +22,18 @@ const JWKS = createRemoteJWKSet(
 const connectionString =
   Deno.env.get("SUPABASE_DB_URL") ||
   "postgresql://postgres:postgres@db:5432/postgres";
-const pool = new Pool(connectionString, 1);
+// Local Supabase names the database host supabase_db_<project>, which the
+// node:dns resolver used by pg rejects (underscores are not valid in DNS
+// labels). The same container also answers to `db`.
+const dbUrl = new URL(connectionString);
+if (dbUrl.hostname.includes("_")) {
+  dbUrl.hostname = "db";
+}
+const pool = new pg.Pool({ connectionString: dbUrl.toString(), max: 1 });
+
+// pg returns int8 (ids, COUNT(*)) as strings. Return numbers instead, so the
+// model can pass ids straight back to the tools that expect integers.
+pg.types.setTypeParser(pg.types.builtins.INT8, Number);
 
 // --- URL Helpers ---
 
@@ -85,7 +96,7 @@ async function getSchemaData(): Promise<string> {
   const client = await pool.connect();
   try {
     // Query 1: All columns from public schema
-    const columnsResult = await client.queryObject<{
+    const columnsResult = await client.query<{
       table_name: string;
       column_name: string;
       data_type: string;
@@ -108,7 +119,7 @@ async function getSchemaData(): Promise<string> {
     `);
 
     // Query 2: Foreign key relationships
-    const fkResult = await client.queryObject<{
+    const fkResult = await client.query<{
       source_table: string;
       source_column: string;
       target_table: string;
@@ -222,31 +233,22 @@ async function executeQueryWithRLS(
     const jwtClaims = decodeJwt(userToken);
     const claimsJson = JSON.stringify(jwtClaims);
 
-    await client.queryObject("BEGIN");
+    await client.query("BEGIN");
     // set_config(..., is_local=true) is the parameterized equivalent of
     // SET LOCAL — avoids interpolating JWT claims into a SQL string.
-    await client.queryObject(
-      "SELECT set_config('role', 'authenticated', true)",
-    );
-    await client.queryObject({
-      text: "SELECT set_config('request.jwt.claims', $1, true)",
-      args: [claimsJson],
-    });
+    await client.query("SELECT set_config('role', 'authenticated', true)");
+    await client.query("SELECT set_config('request.jwt.claims', $1, true)", [
+      claimsJson,
+    ]);
 
-    const result = await client.queryObject(sql);
-    await client.queryObject("COMMIT");
+    // The extended query protocol runs the text as a single statement.
+    const result = await client.query({ text: sql, queryMode: "extended" });
+    await client.query("COMMIT");
 
-    // Convert BigInt values to numbers (Deno Postgres returns bigint for
-    // PostgreSQL int8/count results, but JSON.stringify can't handle them)
-    const rows = JSON.parse(
-      JSON.stringify(result.rows, (_key, value) =>
-        typeof value === "bigint" ? Number(value) : value,
-      ),
-    );
-    return { success: true, data: rows };
+    return { success: true, data: result.rows };
   } catch (error) {
     try {
-      await client.queryObject("ROLLBACK");
+      await client.query("ROLLBACK");
     } catch {
       // Ignore rollback errors
     }
