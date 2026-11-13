@@ -4,7 +4,7 @@ BEGIN
     SELECT 1 FROM vault.secrets WHERE name = 'delete_note_attachments_secret'
   ) THEN
     PERFORM vault.create_secret(
-      encode(extensions.gen_random_bytes(32), 'hex'),
+      gen_random_uuid()::text,
       'delete_note_attachments_secret'
     );
   END IF;
@@ -39,9 +39,13 @@ AS $function$
         RETURN NEW;
       END IF;
 
-      SELECT decrypted_secret INTO function_secret
-      FROM vault.decrypted_secrets
-      WHERE name = 'delete_note_attachments_secret';
+      BEGIN
+        SELECT decrypted_secret INTO function_secret
+        FROM vault.decrypted_secrets
+        WHERE name = 'delete_note_attachments_secret';
+      EXCEPTION WHEN OTHERS THEN
+        RAISE WARNING 'Cannot read Vault secret delete_note_attachments_secret: %', SQLERRM;
+      END;
 
       IF function_secret IS NULL THEN
         RAISE WARNING 'Vault secret delete_note_attachments_secret is missing, note attachments were not deleted';
