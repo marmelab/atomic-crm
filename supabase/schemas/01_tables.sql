@@ -9,7 +9,6 @@ create extension if not exists "citext" with schema "extensions";
 create extension if not exists "pg_net" with schema "extensions";
 create extension if not exists "supabase_vault" with schema "vault";
 
--- Vault secret authenticating the note triggers to delete_note_attachments
 DO $$
 BEGIN
   IF NOT EXISTS (

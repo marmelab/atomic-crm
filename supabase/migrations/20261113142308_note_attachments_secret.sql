@@ -45,6 +45,12 @@ AS $function$
         WHERE name = 'delete_note_attachments_secret';
       EXCEPTION WHEN OTHERS THEN
         RAISE WARNING 'Cannot read Vault secret delete_note_attachments_secret: %', SQLERRM;
+
+        IF TG_OP = 'DELETE' THEN
+          RETURN OLD;
+        END IF;
+
+        RETURN NEW;
       END;
 
       IF function_secret IS NULL THEN
