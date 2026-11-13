@@ -10,6 +10,7 @@ import {
   useRefresh,
   useTranslate,
   useUpdate,
+  useLocaleState,
 } from "ra-core";
 import { DeleteButton } from "@/components/admin/delete-button";
 import { EditButton } from "@/components/admin/edit-button";
@@ -56,6 +57,7 @@ export const DealShow = ({ open, id }: { open: boolean; id?: string }) => {
 const DealShowContent = () => {
   const translate = useTranslate();
   const { dealStages, dealCategories, locale } = useConfigurationContext();
+  const [uiLocale = "en"] = useLocaleState();
   const record = useRecordContext<Deal>();
   if (!record) return null;
   const closingDate = record.expected_closing_date;
@@ -100,7 +102,7 @@ const DealShowContent = () => {
                 <span className="text-sm">
                   {closingDate == null
                     ? translate("resources.deals.no_closing_date")
-                    : (formatISODateString(closingDate) ??
+                    : (formatISODateString(closingDate, uiLocale) ??
                       translate("resources.deals.invalid_date"))}
                 </span>
                 {isISODateString(closingDate) &&

@@ -152,7 +152,7 @@ export const LoginPage = (props: { redirectTo?: string }) => {
                 to={"/sign-up"}
                 className="block text-sm text-center hover:underline"
               >
-                {translate("crm.auth.create_account", {
+                {translate("crm.signup_link", {
                   _: "No account yet? Create one",
                 })}
               </Link>

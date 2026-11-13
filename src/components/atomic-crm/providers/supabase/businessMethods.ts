@@ -76,12 +76,17 @@ export const businessMethods = {
     const { data, error } = await getSupabaseClient()
       .from("businesses")
       .select(
-        "id, name, country_code, business_type, requisites, currency, timezone, is_demo",
+        "id, name, country_code, business_type, requisites, currency, timezone, is_demo, country_packs(language)",
       )
       .eq("id", businessId)
       .maybeSingle();
     if (error) fail("Failed to load the business", error);
-    return (data as Business | null) ?? null;
+    if (!data) return null;
+    const { country_packs, ...business } = data as unknown as Omit<
+      Business,
+      "language"
+    > & { country_packs: { language: string } | null };
+    return { ...business, language: country_packs?.language ?? null };
   },
 
   async updateBusiness(

@@ -1,11 +1,10 @@
 import { mergeTranslations } from "ra-core";
 import polyglotI18nProvider from "ra-i18n-polyglot";
 import englishMessages from "ra-language-english";
-import frenchMessages from "ra-language-french";
 import { raSupabaseEnglishMessages } from "ra-supabase-language-english";
-import { raSupabaseFrenchMessages } from "ra-supabase-language-french";
 import { englishCrmMessages } from "./englishCrmMessages";
-import { frenchCrmMessages } from "./frenchCrmMessages";
+import { ukrainianCrmMessages } from "./ukrainianCrmMessages";
+import { ukrainianRaMessages } from "./ukrainianRaMessages";
 
 const raSupabaseEnglishMessagesOverride = {
   "ra-supabase": {
@@ -24,24 +23,6 @@ const raSupabaseEnglishMessagesOverride = {
   },
 };
 
-const raSupabaseFrenchMessagesOverride = {
-  "ra-supabase": {
-    auth: {
-      password_reset:
-        "Consultez vos emails pour trouver le message de reinitialisation du mot de passe.",
-    },
-    oauth: {
-      authorize: "Autoriser l'application",
-      authorize_details: "Cette application souhaite accéder à votre compte.",
-      access_scope:
-        "Elle pourra lire et modifier vos données, avec les mêmes droits que votre compte.",
-      approved: "Autorisation accordée",
-      close_tab: "Vous pouvez fermer cet onglet.",
-      no_request: "Aucune demande d'autorisation trouvée",
-    },
-  },
-};
-
 const englishCatalog = mergeTranslations(
   englishMessages,
   raSupabaseEnglishMessages,
@@ -49,38 +30,43 @@ const englishCatalog = mergeTranslations(
   englishCrmMessages,
 );
 
-const frenchCatalog = mergeTranslations(
+// English is the base: a key missing in Ukrainian falls back to English
+const ukrainianCatalog = mergeTranslations(
   englishCatalog,
-  frenchMessages,
-  raSupabaseFrenchMessages,
-  raSupabaseFrenchMessagesOverride,
-  frenchCrmMessages,
+  ukrainianRaMessages,
+  ukrainianCrmMessages,
 );
 
-export const getInitialLocale = (): "en" | "fr" => {
+export const SUPPORTED_LOCALES = ["uk", "en"] as const;
+export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number];
+
+/** The interface language for a language code: Ukrainian, else English. */
+export const toSupportedLocale = (language?: string | null): SupportedLocale =>
+  language?.toLowerCase().startsWith("en") ? "en" : "uk";
+
+/** The interface language for a business country pack: Ukrainian for
+ * Ukraine, English for the countries without a translation yet (Poland). */
+export const businessLocale = (language: string): SupportedLocale =>
+  language === "uk" ? "uk" : "en";
+
+/**
+ * Ukrainian by default (the product starts in Ukraine); English when the
+ * browser asks for English. Once a business exists, its country decides
+ * (see useBusinessLocale), unless the person chose a language themselves.
+ */
+export const getInitialLocale = (): SupportedLocale => {
   if (typeof navigator === "undefined") {
-    return "en";
+    return "uk";
   }
-
-  const browserLocale = navigator.languages?.[0] ?? navigator.language;
-  if (browserLocale?.toLowerCase().startsWith("fr")) {
-    return "fr";
-  }
-
-  return "en";
+  return toSupportedLocale(navigator.languages?.[0] ?? navigator.language);
 };
 
 export const i18nProvider = polyglotI18nProvider(
-  (locale) => {
-    if (locale === "fr") {
-      return frenchCatalog;
-    }
-    return englishCatalog;
-  },
+  (locale) => (locale === "en" ? englishCatalog : ukrainianCatalog),
   getInitialLocale(),
   [
+    { locale: "uk", name: "Українська" },
     { locale: "en", name: "English" },
-    { locale: "fr", name: "Français" },
   ],
   { allowMissing: true },
 );

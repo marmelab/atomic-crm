@@ -1,4 +1,5 @@
 import { format } from "date-fns";
+import { getDateFnsLocale } from "../misc/RelativeDate";
 
 import type { DealStage, LabeledValue } from "../types";
 
@@ -69,7 +70,10 @@ export const validateClosingDate = (value: unknown): string | undefined =>
     : "resources.deals.invalid_date";
 
 /** Returns null for anything but a YYYY-MM-DD date, which the caller shows as invalid. */
-export function formatISODateString(dateString: string): string | null {
+export function formatISODateString(
+  dateString: string,
+  locale = "en",
+): string | null {
   if (!isISODateString(dateString)) {
     return null;
   }
@@ -78,5 +82,5 @@ export function formatISODateString(dateString: string): string | null {
   const [year, month, day] = dateString.split("-").map(Number);
   const date = new Date(year, month - 1, day);
 
-  return format(date, "PP");
+  return format(date, "PP", { locale: getDateFnsLocale(locale) });
 }

@@ -1,65 +1,72 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { getInitialLocale, i18nProvider } from "./i18nProvider";
+import {
+  businessLocale,
+  getInitialLocale,
+  i18nProvider,
+  toSupportedLocale,
+} from "./i18nProvider";
 
 afterEach(() => {
   vi.unstubAllGlobals();
 });
 
 describe("i18nProvider", () => {
-  it("registers en and fr locales", () => {
+  it("offers Ukrainian and English", () => {
     expect(i18nProvider.getLocales?.()).toEqual([
+      { locale: "uk", name: "Українська" },
       { locale: "en", name: "English" },
-      { locale: "fr", name: "Français" },
     ]);
   });
 
-  it("translates the language key in french", async () => {
-    await i18nProvider.changeLocale("fr");
+  it("translates the CRM into Ukrainian", async () => {
+    await i18nProvider.changeLocale("uk");
 
-    expect(i18nProvider.translate("crm.language")).toBe("Langue");
+    expect(i18nProvider.translate("crm.language")).toBe("Мова");
+    expect(i18nProvider.translate("crm.setup.create")).toBe("Створити бізнес");
+    expect(i18nProvider.translate("ra.action.save")).toBe("Зберегти");
   });
 
-  it("falls back to english for unknown locales", async () => {
-    await i18nProvider.changeLocale("es");
+  it("uses the three Ukrainian plural forms", async () => {
+    await i18nProvider.changeLocale("uk");
+    const contacts = (n: number) =>
+      i18nProvider.translate("resources.companies.nb_contacts", {
+        smart_count: n,
+      });
+
+    expect(contacts(1)).toBe("1 контакт");
+    expect(contacts(3)).toBe("3 контакти");
+    expect(contacts(5)).toBe("5 контактів");
+    expect(contacts(21)).toBe("21 контакт");
+  });
+
+  it("keeps English for English", async () => {
+    await i18nProvider.changeLocale("en");
 
     expect(i18nProvider.translate("crm.language")).toBe("Language");
-  });
-
-  it("uses customized password reset overrides for en and fr", async () => {
-    await i18nProvider.changeLocale("en");
     expect(i18nProvider.translate("ra-supabase.auth.password_reset")).toBe(
       "Check your emails for a Reset Password message.",
     );
-
-    await i18nProvider.changeLocale("fr");
-    expect(i18nProvider.translate("ra-supabase.auth.password_reset")).toBe(
-      "Consultez vos emails pour trouver le message de reinitialisation du mot de passe.",
-    );
   });
 
-  it("translates recently added fr crm keys", async () => {
-    await i18nProvider.changeLocale("fr");
+  it("starts in Ukrainian unless the browser asks for English", () => {
+    vi.stubGlobal("navigator", { language: "uk-UA", languages: ["uk-UA"] });
+    expect(getInitialLocale()).toBe("uk");
 
-    expect(i18nProvider.translate("resources.deals.empty.title")).toBe(
-      "Aucune affaire trouvée",
-    );
-  });
-
-  it("uses browser french locale when available", () => {
-    vi.stubGlobal("navigator", {
-      language: "fr-FR",
-      languages: ["fr-FR", "en-US"],
-    });
-
-    expect(getInitialLocale()).toBe("fr");
-  });
-
-  it("falls back to english when browser locale is unsupported", () => {
-    vi.stubGlobal("navigator", {
-      language: "es-ES",
-      languages: ["es-ES", "pt-BR"],
-    });
-
+    vi.stubGlobal("navigator", { language: "en-US", languages: ["en-US"] });
     expect(getInitialLocale()).toBe("en");
+
+    vi.stubGlobal("navigator", { language: "pl-PL", languages: ["pl-PL"] });
+    expect(getInitialLocale()).toBe("uk");
+  });
+
+  it("speaks Ukrainian in a Ukrainian business, English elsewhere", () => {
+    expect(businessLocale("uk")).toBe("uk");
+    expect(businessLocale("pl")).toBe("en");
+  });
+
+  it("maps a business language to a supported interface language", () => {
+    expect(toSupportedLocale("uk")).toBe("uk");
+    expect(toSupportedLocale("en")).toBe("en");
+    expect(toSupportedLocale(null)).toBe("uk");
   });
 });

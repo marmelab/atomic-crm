@@ -47,6 +47,8 @@ export interface Business {
   currency: string;
   timezone: string;
   is_demo: boolean;
+  /** Language of the country pack (uk, pl), null without a country */
+  language: string | null;
 }
 
 export interface BusinessMember {

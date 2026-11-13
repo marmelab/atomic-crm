@@ -1,6 +1,7 @@
 import { XIcon } from "lucide-react";
 import { type ReactNode, useRef } from "react";
 import { Button } from "@/components/ui/button";
+import { Translate } from "ra-core";
 import {
   Drawer,
   DrawerClose,
@@ -62,7 +63,9 @@ export const FormDrawer = ({
             }
           >
             <XIcon className="size-5" />
-            <span className="sr-only">Close</span>
+            <span className="sr-only">
+              <Translate i18nKey="ra.action.close">Close</Translate>
+            </span>
           </DrawerClose>
         </DrawerContent>
       </DrawerVirtualKeyboardProvider>

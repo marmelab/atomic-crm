@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { Translate } from "ra-core"
 import { Dialog as SheetPrimitive } from "@base-ui/react/dialog"
 import { cn } from "@/lib/utils"
 
@@ -71,7 +72,9 @@ function SheetContent({
             }
           >
             <XIcon className="size-6 md:size-4" />
-            <span className="sr-only">Close</span>
+            <span className="sr-only">
+              <Translate i18nKey="ra.action.close">Close</Translate>
+            </span>
           </SheetPrimitive.Close>
         )}
       </SheetPrimitive.Popup>

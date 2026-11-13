@@ -4,6 +4,7 @@ import { useDataProvider, useDebouncedEvent, useTranslate } from "ra-core";
 import { type RefObject, useEffect, useMemo, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { useNavigate } from "react-router";
+import { Translate } from "ra-core";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -310,7 +311,9 @@ export const GlobalSearchDialog = ({
           {searchInput}
           <DrawerClose render={<Button variant="ghost" size="icon-lg" />}>
             <XIcon className="size-5" />
-            <span className="sr-only">Close</span>
+            <span className="sr-only">
+              <Translate i18nKey="ra.action.close">Close</Translate>
+            </span>
           </DrawerClose>
         </div>
       ) : (

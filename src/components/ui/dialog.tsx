@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { Translate } from "ra-core"
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog"
 import { cn } from "@/lib/utils"
 
@@ -71,7 +72,9 @@ function DialogContent({
             }
           >
             <XIcon />
-            <span className="sr-only">Close</span>
+            <span className="sr-only">
+              <Translate i18nKey="ra.action.close">Close</Translate>
+            </span>
           </DialogPrimitive.Close>
         )}
       </DialogPrimitive.Popup>

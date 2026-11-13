@@ -124,23 +124,23 @@ insert into public.configuration (id) values ('00000000-0000-4000-8000-000000000
 
 insert into public.tags (name, color, business_id) values
     ('VIP', '#eddcd2', '00000000-0000-4000-8000-000000000001'),
-    ('Partner', '#d6e2e9', '00000000-0000-4000-8000-000000000001'),
-    ('Wholesale', '#fff1e6', '00000000-0000-4000-8000-000000000001'),
-    ('Recurring', '#dbe7e4', '00000000-0000-4000-8000-000000000001');
+    ('Партнер', '#d6e2e9', '00000000-0000-4000-8000-000000000001'),
+    ('Опт', '#fff1e6', '00000000-0000-4000-8000-000000000001'),
+    ('Постійний', '#dbe7e4', '00000000-0000-4000-8000-000000000001');
 
 insert into public.companies (name, sector, size, website, phone_number, city, country, description, business_id)
 select
     c.name, c.sector, c.size, c.website, c.phone, c.city, 'UA', c.description,
     '00000000-0000-4000-8000-000000000001'
 from (values
-    ('Kvitka Beauty Studio', 'consumer-discretionary', 10, 'https://kvitka.example', '+380 44 123 45 01', 'Kyiv', 'Beauty salon, 6 masters'),
-    ('Dnipro Auto Service', 'industrials', 10, 'https://dnipro-auto.example', '+380 56 123 45 02', 'Dnipro', 'Car repair and tyre service'),
-    ('Lviv Coffee Roasters', 'consumer-staples', 50, 'https://lviv-coffee.example', '+380 32 123 45 03', 'Lviv', 'Coffee roasting and wholesale'),
-    ('Odesa Furniture Workshop', 'industrials', 10, 'https://odesa-mebli.example', '+380 48 123 45 04', 'Odesa', 'Custom furniture production'),
-    ('Kharkiv IT Outsourcing', 'information-technology', 50, 'https://kharkiv-it.example', '+380 57 123 45 05', 'Kharkiv', 'Software development for SMBs'),
-    ('Zdorovia Dental Clinic', 'health-care', 10, 'https://zdorovia.example', '+380 44 123 45 06', 'Kyiv', 'Family dental clinic'),
-    ('Poltava Agro Supply', 'materials', 50, 'https://poltava-agro.example', '+380 53 123 45 07', 'Poltava', 'Seeds and fertilizer distributor'),
-    ('Vinnytsia Print House', 'communication-services', 10, 'https://vin-print.example', '+380 43 123 45 08', 'Vinnytsia', 'Printing and packaging')
+    ('Студія краси «Квітка»', 'consumer-discretionary', 10, 'https://kvitka.example', '+380 44 123 45 01', 'Київ', 'Салон краси, 6 майстрів'),
+    ('СТО «Дніпро Авто»', 'industrials', 10, 'https://dnipro-auto.example', '+380 56 123 45 02', 'Дніпро', 'Ремонт авто й шиномонтаж'),
+    ('Львівська кавова обсмажувальня', 'consumer-staples', 50, 'https://lviv-coffee.example', '+380 32 123 45 03', 'Львів', 'Обсмаження кави й опт'),
+    ('Одеська меблева майстерня', 'industrials', 10, 'https://odesa-mebli.example', '+380 48 123 45 04', 'Одеса', 'Меблі на замовлення'),
+    ('Харків IT Аутсорс', 'information-technology', 50, 'https://kharkiv-it.example', '+380 57 123 45 05', 'Харків', 'Розробка програм для малого бізнесу'),
+    ('Стоматологія «Здоровʼя»', 'health-care', 10, 'https://zdorovia.example', '+380 44 123 45 06', 'Київ', 'Сімейна стоматологія'),
+    ('Полтава Агропостач', 'materials', 50, 'https://poltava-agro.example', '+380 53 123 45 07', 'Полтава', 'Насіння й добрива, дистрибуція'),
+    ('Вінницький друкарський дім', 'communication-services', 10, 'https://vin-print.example', '+380 43 123 45 08', 'Вінниця', 'Друк і пакування')
 ) as c(name, sector, size, website, phone, city, description);
 
 insert into public.contacts (first_name, last_name, gender, title, status, company_id, email_jsonb, phone_jsonb, first_seen, last_seen, has_newsletter, tags, business_id)
@@ -156,22 +156,22 @@ select
          else array[(select id from public.tags where name = p.tag and business_id = '00000000-0000-4000-8000-000000000001')] end,
     '00000000-0000-4000-8000-000000000001'
 from (values
-    ('Olena', 'Kovalenko', 'female', 'Owner', 'hot', 'Kvitka Beauty Studio', '+380 67 000 00 01', 40, 'VIP'),
-    ('Iryna', 'Shevchenko', 'female', 'Administrator', 'warm', 'Kvitka Beauty Studio', '+380 67 000 00 02', 35, null),
-    ('Andrii', 'Melnyk', 'male', 'Director', 'warm', 'Dnipro Auto Service', '+380 67 000 00 03', 60, 'Recurring'),
-    ('Taras', 'Bondarenko', 'male', 'Head mechanic', 'cold', 'Dnipro Auto Service', '+380 67 000 00 04', 55, null),
-    ('Sofiia', 'Tkachenko', 'female', 'Purchasing manager', 'hot', 'Lviv Coffee Roasters', '+380 67 000 00 05', 20, 'Wholesale'),
-    ('Maksym', 'Kravchenko', 'male', 'CEO', 'in-contract', 'Lviv Coffee Roasters', '+380 67 000 00 06', 90, 'VIP'),
-    ('Nataliia', 'Oliinyk', 'female', 'Designer', 'warm', 'Odesa Furniture Workshop', '+380 67 000 00 07', 15, null),
-    ('Dmytro', 'Shevchuk', 'male', 'Owner', 'cold', 'Odesa Furniture Workshop', '+380 67 000 00 08', 70, null),
-    ('Yuliia', 'Polishchuk', 'female', 'Project manager', 'hot', 'Kharkiv IT Outsourcing', '+380 67 000 00 09', 10, 'Partner'),
-    ('Oleksandr', 'Lysenko', 'male', 'CTO', 'warm', 'Kharkiv IT Outsourcing', '+380 67 000 00 10', 45, 'Partner'),
-    ('Kateryna', 'Moroz', 'female', 'Chief doctor', 'in-contract', 'Zdorovia Dental Clinic', '+380 67 000 00 11', 120, 'Recurring'),
-    ('Viktor', 'Savchenko', 'male', 'Office manager', 'cold', 'Zdorovia Dental Clinic', '+380 67 000 00 12', 30, null),
-    ('Halyna', 'Rudenko', 'female', 'Accountant', 'warm', 'Poltava Agro Supply', '+380 67 000 00 13', 25, 'Wholesale'),
-    ('Serhii', 'Marchenko', 'male', 'Sales director', 'hot', 'Poltava Agro Supply', '+380 67 000 00 14', 8, 'Wholesale'),
-    ('Oksana', 'Pavlenko', 'female', 'Owner', 'warm', 'Vinnytsia Print House', '+380 67 000 00 15', 50, null),
-    ('Roman', 'Karpenko', 'male', 'Production lead', 'cold', 'Vinnytsia Print House', '+380 67 000 00 16', 65, null)
+    ('Олена', 'Коваленко', 'female', 'Власниця', 'hot', 'Студія краси «Квітка»', '+380 67 000 00 01', 40, 'VIP'),
+    ('Ірина', 'Шевченко', 'female', 'Адміністраторка', 'warm', 'Студія краси «Квітка»', '+380 67 000 00 02', 35, null),
+    ('Андрій', 'Мельник', 'male', 'Директор', 'warm', 'СТО «Дніпро Авто»', '+380 67 000 00 03', 60, 'Постійний'),
+    ('Тарас', 'Бондаренко', 'male', 'Старший механік', 'cold', 'СТО «Дніпро Авто»', '+380 67 000 00 04', 55, null),
+    ('Софія', 'Ткаченко', 'female', 'Менеджерка із закупівель', 'hot', 'Львівська кавова обсмажувальня', '+380 67 000 00 05', 20, 'Опт'),
+    ('Максим', 'Кравченко', 'male', 'Директор', 'in-contract', 'Львівська кавова обсмажувальня', '+380 67 000 00 06', 90, 'VIP'),
+    ('Наталія', 'Олійник', 'female', 'Дизайнерка', 'warm', 'Одеська меблева майстерня', '+380 67 000 00 07', 15, null),
+    ('Дмитро', 'Шевчук', 'male', 'Власник', 'cold', 'Одеська меблева майстерня', '+380 67 000 00 08', 70, null),
+    ('Юлія', 'Поліщук', 'female', 'Проєктна менеджерка', 'hot', 'Харків IT Аутсорс', '+380 67 000 00 09', 10, 'Партнер'),
+    ('Олександр', 'Лисенко', 'male', 'Технічний директор', 'warm', 'Харків IT Аутсорс', '+380 67 000 00 10', 45, 'Партнер'),
+    ('Катерина', 'Мороз', 'female', 'Головна лікарка', 'in-contract', 'Стоматологія «Здоровʼя»', '+380 67 000 00 11', 120, 'Постійний'),
+    ('Віктор', 'Савченко', 'male', 'Офіс-менеджер', 'cold', 'Стоматологія «Здоровʼя»', '+380 67 000 00 12', 30, null),
+    ('Галина', 'Руденко', 'female', 'Бухгалтерка', 'warm', 'Полтава Агропостач', '+380 67 000 00 13', 25, 'Опт'),
+    ('Сергій', 'Марченко', 'male', 'Директор з продажів', 'hot', 'Полтава Агропостач', '+380 67 000 00 14', 8, 'Опт'),
+    ('Оксана', 'Павленко', 'female', 'Власниця', 'warm', 'Вінницький друкарський дім', '+380 67 000 00 15', 50, null),
+    ('Роман', 'Карпенко', 'male', 'Начальник виробництва', 'cold', 'Вінницький друкарський дім', '+380 67 000 00 16', 65, null)
 ) as p(first_name, last_name, gender, title, status, company, phone, days_ago, tag);
 
 -- Amounts in the table below are whole hryvnias, stored in kopecks
@@ -187,16 +187,16 @@ select
     d.idx,
     '00000000-0000-4000-8000-000000000001'
 from (values
-    ('Online booking for salon', 'Kvitka Beauty Studio', 'website-design', 'opportunity', 'Booking widget and reminders', 18000, 5, 0),
-    ('Loyalty cards print run', 'Vinnytsia Print House', 'print-project', 'opportunity', '5,000 loyalty cards', 9500, 12, 1),
-    ('Coffee shop rebranding', 'Lviv Coffee Roasters', 'ui-design', 'proposal-sent', 'New packaging and menu design', 42000, 20, 0),
-    ('Service station CRM rollout', 'Dnipro Auto Service', 'other', 'proposal-sent', 'Customer base and reminders', 25000, 18, 1),
-    ('Clinic website', 'Zdorovia Dental Clinic', 'website-design', 'in-negociation', 'Website with online appointments', 60000, 25, 0),
-    ('Wholesale price list', 'Poltava Agro Supply', 'copywriting', 'in-negociation', 'Catalogue texts for 300 products', 15000, 9, 1),
-    ('Showroom catalogue', 'Odesa Furniture Workshop', 'print-project', 'won', 'Printed catalogue, 40 pages', 31000, 40, 0),
-    ('Developer portal', 'Kharkiv IT Outsourcing', 'website-design', 'won', 'Partner portal design', 75000, 50, 1),
-    ('Summer promo flyers', 'Kvitka Beauty Studio', 'print-project', 'lost', 'Lost on price', 6000, 60, 0),
-    ('Mobile app mockups', 'Kharkiv IT Outsourcing', 'ui-design', 'delayed', 'Postponed to next quarter', 54000, 30, 0)
+    ('Онлайн-запис для салону', 'Студія краси «Квітка»', 'website-design', 'opportunity', 'Віджет запису й нагадування', 18000, 5, 0),
+    ('Друк карток лояльності', 'Вінницький друкарський дім', 'print-project', 'opportunity', '5 000 карток лояльності', 9500, 12, 1),
+    ('Ребрендинг кавʼярні', 'Львівська кавова обсмажувальня', 'ui-design', 'proposal-sent', 'Нове пакування й меню', 42000, 20, 0),
+    ('CRM для СТО', 'СТО «Дніпро Авто»', 'other', 'proposal-sent', 'База клієнтів і нагадування', 25000, 18, 1),
+    ('Сайт клініки', 'Стоматологія «Здоровʼя»', 'website-design', 'in-negociation', 'Сайт з онлайн-записом', 60000, 25, 0),
+    ('Оптовий прайс-лист', 'Полтава Агропостач', 'copywriting', 'in-negociation', 'Тексти каталогу на 300 товарів', 15000, 9, 1),
+    ('Каталог для шоуруму', 'Одеська меблева майстерня', 'print-project', 'won', 'Друкований каталог, 40 сторінок', 31000, 40, 0),
+    ('Портал для партнерів', 'Харків IT Аутсорс', 'website-design', 'won', 'Дизайн порталу для партнерів', 75000, 50, 1),
+    ('Літні флаєри', 'Студія краси «Квітка»', 'print-project', 'lost', 'Програли за ціною', 6000, 60, 0),
+    ('Макети мобільного застосунку', 'Харків IT Аутсорс', 'ui-design', 'delayed', 'Перенесли на наступний квартал', 54000, 30, 0)
 ) as d(name, company, category, stage, description, amount, days_ago, idx)
 join public.companies co on co.name = d.company and co.business_id = '00000000-0000-4000-8000-000000000001';
 
@@ -206,32 +206,32 @@ select
     date_trunc('day', now()) + make_interval(days => t.due_in_days, hours => 10),
     '00000000-0000-4000-8000-000000000001'
 from (values
-    ('Kovalenko', 'call', 'Call about the booking widget', 0),
-    ('Tkachenko', 'email', 'Send the price list', 0),
-    ('Moroz', 'meeting', 'Discuss the website structure', 1),
-    ('Marchenko', 'follow-up', 'Follow up on the catalogue texts', -2),
-    ('Melnyk', 'demo', 'Show the CRM demo', 3),
-    ('Polishchuk', 'call', 'Confirm the portal launch date', -1),
-    ('Pavlenko', 'email', 'Send the print proof', 2),
-    ('Oliinyk', 'meeting', 'Showroom visit', 5)
+    ('Коваленко', 'call', 'Подзвонити щодо віджета запису', 0),
+    ('Ткаченко', 'email', 'Надіслати прайс-лист', 0),
+    ('Мороз', 'meeting', 'Обговорити структуру сайту', 1),
+    ('Марченко', 'follow-up', 'Нагадати про тексти каталогу', -2),
+    ('Мельник', 'demo', 'Показати демо CRM', 3),
+    ('Поліщук', 'call', 'Підтвердити дату запуску порталу', -1),
+    ('Павленко', 'email', 'Надіслати макет на погодження', 2),
+    ('Олійник', 'meeting', 'Візит до шоуруму', 5)
 ) as t(last_name, type, text, due_in_days)
 join public.contacts c on c.last_name = t.last_name and c.business_id = '00000000-0000-4000-8000-000000000001';
 
 insert into public.contact_notes (contact_id, text, date, status, business_id)
 select c.id, n.text, now() - make_interval(days => n.days_ago), n.status, '00000000-0000-4000-8000-000000000001'
 from (values
-    ('Kovalenko', 'Wants clients to book online and get SMS reminders.', 3, 'hot'),
-    ('Kravchenko', 'Signed the annual roasting contract.', 15, 'in-contract'),
-    ('Moroz', 'Asked for an estimate before the end of the month.', 6, 'warm'),
-    ('Marchenko', 'Needs the catalogue texts in Ukrainian and English.', 2, 'hot')
+    ('Коваленко', 'Хоче, щоб клієнти записувалися онлайн і отримували SMS-нагадування.', 3, 'hot'),
+    ('Кравченко', 'Підписали річний договір на обсмаження.', 15, 'in-contract'),
+    ('Мороз', 'Просить кошторис до кінця місяця.', 6, 'warm'),
+    ('Марченко', 'Потрібні тексти каталогу українською та англійською.', 2, 'hot')
 ) as n(last_name, text, days_ago, status)
 join public.contacts c on c.last_name = n.last_name and c.business_id = '00000000-0000-4000-8000-000000000001';
 
 insert into public.deal_notes (deal_id, type, text, date, business_id)
 select d.id, 'email', n.text, now() - make_interval(days => n.days_ago), '00000000-0000-4000-8000-000000000001'
 from (values
-    ('Clinic website', 'Sent the second version of the proposal.', 4),
-    ('Coffee shop rebranding', 'Client liked the moodboard.', 10)
+    ('Сайт клініки', 'Надіслали другу версію пропозиції.', 4),
+    ('Ребрендинг кавʼярні', 'Клієнту сподобався мудборд.', 10)
 ) as n(deal, text, days_ago)
 join public.deals d on d.name = n.deal and d.business_id = '00000000-0000-4000-8000-000000000001';
 
