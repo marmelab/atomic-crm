@@ -122,6 +122,7 @@
     "vitest-browser-react": "^2.3.0"
   },
   "overrides": {
-    "react-router-dom": "^7.17.0"
+    "react-router-dom": "^7.17.0",
+    "@swc/html": "1.16.2"
   }
 }

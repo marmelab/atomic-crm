@@ -43,3 +43,5 @@ The **developer** is one agent, no modes: it implements a `TICKET_FILE` (COMPLEX
 ## Rules & hooks
 
 Mechanics live in `.claude/rules/` (worktree-scope, agent-output-format, validation-commands, lsp-usage, security-triggers, launcher-interface). Project facts (validation steps, roles, deploy adapter, app smoke, launcher extension points) live in `harness.config.json`. Hooks in `.claude/settings.json` / `.claude/hooks/` are `.mjs` ES modules.
+
+@docs/PRODUCT_RULES.md
