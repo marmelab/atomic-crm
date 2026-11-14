@@ -1,4 +1,4 @@
-import { Building, Truck, Users } from "lucide-react";
+import { Building, Handshake, Truck, Users } from "lucide-react";
 import { FilterLiveForm, useGetIdentity, useTranslate } from "ra-core";
 import { ToggleFilterButton } from "@/components/admin/toggle-filter-button";
 import { SearchInput } from "@/components/admin/search-input";
@@ -8,6 +8,7 @@ import { useConfigurationContext } from "../root/ConfigurationContext";
 import { AccountManagerFilter } from "../sales/AccountManagerInput";
 import { getTranslatedCompanySizeLabel } from "./getTranslatedCompanySizeLabel";
 import { sizes } from "./sizes";
+import { COUNTERPARTY_ROLES } from "../counterparties/counterpartyOptions";
 
 export const CompanyListFilter = () => {
   const { identity } = useGetIdentity();
@@ -22,6 +23,20 @@ export const CompanyListFilter = () => {
       <FilterLiveForm>
         <SearchInput source="q" />
       </FilterLiveForm>
+
+      <FilterCategory
+        icon={<Handshake className="h-4 w-4" />}
+        label="crm.counterparty.filter_roles"
+      >
+        {COUNTERPARTY_ROLES.map((role) => (
+          <ToggleFilterButton
+            className="w-full justify-between"
+            label={translate(`crm.counterparty.roles.${role}`)}
+            key={role}
+            value={{ "roles@cs": `{${role}}` }}
+          />
+        ))}
+      </FilterCategory>
 
       <FilterCategory
         icon={<Building className="h-4 w-4" />}

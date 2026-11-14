@@ -97,13 +97,13 @@ describe("DataImportButton", () => {
     const options = screen.getByRole("listbox");
 
     await expect.element(options.getByText("Contacts")).toBeVisible();
-    await expect.element(options.getByText("Companies")).toBeVisible();
+    await expect.element(options.getByText("Counterparties")).toBeVisible();
     await expect.element(options.getByText("Deals")).toBeVisible();
   });
 
   it.each([
     ["contacts", "Import contacts"],
-    ["companies", "Import companies"],
+    ["companies", "Import counterparties"],
     ["deals", "Import deals"],
   ] as const)(
     "imports %s from a dialog with no resource to pick",

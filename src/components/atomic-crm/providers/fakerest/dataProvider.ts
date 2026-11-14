@@ -38,6 +38,10 @@ import { getContactAvatar } from "../commons/getContactAvatar";
 import { mergeContacts } from "../commons/mergeContacts";
 import { getSearchResults } from "./search";
 import type { CrmDataProvider } from "../types";
+import type {
+  CompanyDuplicate,
+  VatCheckResult,
+} from "../../counterparties/types";
 import {
   authProvider as defaultAuthProvider,
   USER_STORAGE_KEY,
@@ -315,6 +319,18 @@ export const createDataProvider = ({
       _changes: { role?: BusinessRole; disabled?: boolean },
     ): Promise<void> => {},
     deleteBusiness: async (_id: string, _name: string): Promise<void> => {},
+    findCompanyDuplicates: async (
+      _id: Identifier | null | undefined,
+      _requisites: Requisites,
+      _vatId: string | null | undefined,
+    ): Promise<CompanyDuplicate[]> => [],
+    checkVat: async (
+      countryCode: string,
+      vatNumber: string,
+    ): Promise<VatCheckResult> => ({
+      status: "unavailable",
+      vatId: `${countryCode}${vatNumber}`,
+    }),
     isInitialized: async (): Promise<boolean> => {
       const sales = await dataProvider.getList<Sale>("sales", {
         filter: {},

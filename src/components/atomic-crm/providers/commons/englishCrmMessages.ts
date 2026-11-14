@@ -1,10 +1,10 @@
 export const englishCrmMessages = {
   resources: {
     companies: {
-      name: "Company |||| Companies",
-      forcedCaseName: "Company",
+      name: "Counterparty |||| Counterparties",
+      forcedCaseName: "Counterparty",
       fields: {
-        name: "Company name",
+        name: "Name",
         website: "Website",
         linkedin_url: "LinkedIn URL",
         phone_number: "Phone number",
@@ -13,7 +13,14 @@ export const englishCrmMessages = {
         revenue: "Revenue",
         sector: "Sector",
         size: "Size",
-        tax_identifier: "Tax Identifier",
+        tax_identifier: "Tax number",
+        kind: "Kind",
+        roles: "Roles",
+        country_code: "Country",
+        vat_id: "VAT ID (EU)",
+        currency: "Currency",
+        payment_terms_days: "Payment delay, days",
+        credit_limit: "Credit limit",
         address: "Address",
         city: "City",
         zipcode: "Zip code",
@@ -24,11 +31,11 @@ export const englishCrmMessages = {
         sales_id: "Account manager",
       },
       empty: {
-        description: "It seems your company list is empty.",
-        title: "No companies found",
+        description: "Clients, suppliers and partners will appear here.",
+        title: "No counterparties yet",
       },
       import: {
-        title: "Import companies",
+        title: "Import counterparties",
       },
       field_categories: {
         contact: "Contact details",
@@ -37,10 +44,10 @@ export const englishCrmMessages = {
         context: "Context",
       },
       action: {
-        create: "Create Company",
-        edit: "Edit company",
-        new: "New Company",
-        show: "Show company",
+        create: "Create counterparty",
+        edit: "Edit counterparty",
+        new: "New counterparty",
+        show: "Show counterparty",
       },
       added_on: "Added on %{date}",
       followed_by: "Followed by %{name}",
@@ -370,6 +377,32 @@ export const englishCrmMessages = {
     },
   },
   crm: {
+    counterparty: {
+      title: "Counterparty",
+      kinds: {
+        company: "Company",
+        sole_proprietor: "Sole proprietor",
+        person: "Private person",
+      },
+      roles: {
+        client: "Client",
+        supplier: "Supplier",
+        partner: "Partner",
+      },
+      roles_required: "Choose at least one role",
+      no_country: "Country not set",
+      terms: "Terms",
+      duplicate: "A counterparty with the same number already exists:",
+      vat_check: "Fill in by VAT number",
+      vat_status: {
+        valid: "VAT number is valid (VIES)",
+        invalid: "VAT number is not valid (VIES)",
+        unavailable: "Could not check: VIES is not answering, try later",
+      },
+      payment_terms:
+        "%{smart_count} day to pay |||| %{smart_count} days to pay",
+      filter_roles: "Role",
+    },
     action: {
       reset_password: "Reset Password",
     },
@@ -476,7 +509,7 @@ export const englishCrmMessages = {
       show_more: "Show more",
       groups: {
         contacts: "Contacts",
-        companies: "Companies",
+        companies: "Counterparties",
         deals: "Deals",
         tasks: "Tasks",
         contact_notes: "Contact notes",
@@ -692,7 +725,7 @@ export const englishCrmMessages = {
     quick_create: {
       label: "Create",
       contact: "Contact",
-      company: "Company",
+      company: "Counterparty",
       deal: "Deal",
       task: "Task",
     },

@@ -13,6 +13,8 @@ export interface ConfigurationContextValue {
   currency: string;
   /** Formats of dates, numbers and money of the current business, e.g. uk-UA */
   locale: string;
+  /** Country of the current business (ISO 3166-1 alpha-2), null without one */
+  countryCode: string | null;
   dealCategories: LabeledValue[];
   dealPipelineStatuses: string[];
   dealStages: DealStage[];

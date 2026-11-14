@@ -9,6 +9,8 @@ interface RequisiteFieldsProps {
   fields: RequisiteField[];
   value: Requisites;
   onChange: (value: Requisites) => void;
+  /** Mark required fields: a business must fill them, a counterparty may not */
+  showRequired?: boolean;
 }
 
 /** One input per requisite of the country, checked as the user types. */
@@ -16,6 +18,7 @@ export const RequisiteFields = ({
   fields,
   value,
   onChange,
+  showRequired = true,
 }: RequisiteFieldsProps) => {
   const translate = useTranslate();
   const invalid = new Set(findInvalidRequisites(fields, value));
@@ -32,7 +35,7 @@ export const RequisiteFields = ({
           <div key={field.key} className="flex flex-col gap-1.5">
             <Label htmlFor={id}>
               {translate(`crm.requisites.${field.key}`, { _: field.label })}
-              {field.required ? " *" : ""}
+              {showRequired && field.required ? " *" : ""}
             </Label>
             <Input
               id={id}
@@ -55,7 +58,7 @@ export const RequisiteFields = ({
           </div>
         );
       })}
-      {groups.has("tax_id") ? (
+      {showRequired && groups.has("tax_id") ? (
         <p className="text-sm text-muted-foreground">
           {translate("crm.requisites.tax_id_hint", {
             _: "A company enters its EDRPOU code, a sole proprietor the individual tax number.",

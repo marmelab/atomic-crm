@@ -3,11 +3,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { CancelButton } from "@/components/admin/cancel-button";
 import { SaveButton } from "@/components/admin/form";
 
+import { useConfigurationContext } from "../root/ConfigurationContext";
 import { CompanyInputs } from "./CompanyInputs";
 
 export const CompanyCreate = () => {
   const { identity } = useGetIdentity();
   const translate = useTranslate();
+  const { countryCode } = useConfigurationContext();
   return (
     <CreateBase
       redirect="show"
@@ -21,7 +23,15 @@ export const CompanyCreate = () => {
     >
       <div className="mt-2 flex lg:mr-72">
         <div className="flex-1">
-          <Form defaultValues={{ sales_id: identity?.id }}>
+          <Form
+            defaultValues={{
+              sales_id: identity?.id,
+              kind: "company",
+              roles: ["client"],
+              country_code: countryCode,
+              requisites: {},
+            }}
+          >
             <Card>
               <CardContent>
                 <CompanyInputs />

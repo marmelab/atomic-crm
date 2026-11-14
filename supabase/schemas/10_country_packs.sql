@@ -243,11 +243,6 @@ CREATE OR REPLACE FUNCTION "public"."check_business_requisites"() RETURNS "trigg
     LANGUAGE "plpgsql"
     SET "search_path" TO ''
     AS $$
-declare
-  item record;
-  field public.requisite_fields;
-  normalized jsonb := '{}'::jsonb;
-  invalid text[] := '{}';
 begin
   if new.requisites = '{}'::jsonb then
     return new;
@@ -258,28 +253,8 @@ begin
       using errcode = '23514';
   end if;
 
-  for item in select key, value from jsonb_each(new.requisites) loop
-    select * into field from public.active_requisite_fields(new.country_code) f where f.key = item.key;
-    if not found or jsonb_typeof(item.value) <> 'string' then
-      invalid := invalid || item.key;
-      continue;
-    end if;
-    if item.value #>> '{}' = '' then
-      continue;
-    end if;
-    if not public.requisite_is_valid(field.validator, item.value #>> '{}') then
-      invalid := invalid || item.key;
-      continue;
-    end if;
-    normalized := normalized || jsonb_build_object(item.key, public.normalize_requisite(field.validator, item.value #>> '{}'));
-  end loop;
-
-  if array_length(invalid, 1) > 0 then
-    raise exception 'Invalid requisites: %', array_to_string(invalid, ', ')
-      using errcode = '23514', detail = array_to_string(invalid, ',');
-  end if;
-
-  new.requisites := normalized;
+  -- public.validated_requisites() lives in 13_counterparties.sql
+  new.requisites := public.validated_requisites(new.country_code, new.requisites);
   return new;
 end;
 $$;

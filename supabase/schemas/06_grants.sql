@@ -170,9 +170,6 @@ grant all on table public.activity_log to anon;
 grant all on table public.activity_log to authenticated;
 grant all on table public.activity_log to service_role;
 
-grant all on table public.companies_summary to anon;
-grant all on table public.companies_summary to authenticated;
-grant all on table public.companies_summary to service_role;
 
 grant all on table public.contacts_summary to anon;
 grant all on table public.contacts_summary to authenticated;

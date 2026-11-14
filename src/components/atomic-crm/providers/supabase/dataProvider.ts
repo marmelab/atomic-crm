@@ -27,6 +27,7 @@ import {
 } from "./authProvider";
 import { searchDealCategories } from "./searchDealCategories";
 import { businessMethods } from "./businessMethods";
+import { counterpartyMethods } from "./counterpartyMethods";
 import { getSupabaseClient } from "./supabase";
 
 const getBaseDataProvider = () =>
@@ -319,7 +320,7 @@ const getDataProviderWithCustomMethods = () => {
           .maybeSingle(),
         getSupabaseClient()
           .from("businesses")
-          .select("currency, country_packs(locale)")
+          .select("currency, country_code, country_packs(locale)")
           .eq("id", businessId)
           .maybeSingle(),
       ]);
@@ -331,11 +332,14 @@ const getDataProviderWithCustomMethods = () => {
         {}) as ConfigurationContextValue;
       const business = businessResult.data as {
         currency: string;
+        country_code: string | null;
         country_packs: { locale: string } | null;
       } | null;
       return {
         ...config,
-        ...(business ? { currency: business.currency } : {}),
+        ...(business
+          ? { currency: business.currency, countryCode: business.country_code }
+          : {}),
         ...(business?.country_packs
           ? { locale: business.country_packs.locale }
           : {}),
@@ -385,6 +389,7 @@ const getDataProviderWithCustomMethods = () => {
       clearCache();
     },
     ...businessMethods,
+    ...counterpartyMethods,
   } satisfies DataProvider;
 };
 

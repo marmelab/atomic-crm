@@ -13,6 +13,10 @@ import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Company, Sale } from "../types";
 import { getTranslatedCompanySizeLabel } from "./getTranslatedCompanySizeLabel";
 import { sizes } from "./sizes";
+import {
+  CounterpartyIdentityInputs,
+  CounterpartyTermsInputs,
+} from "../counterparties/CounterpartyInputs";
 
 const isUrl = (url: string) => {
   if (!url) return;
@@ -34,13 +38,15 @@ export const CompanyInputs = () => {
     <div className="flex flex-col gap-4 p-1">
       <CompanyDisplayInputs />
       <div className={`flex gap-6 ${isMobile ? "flex-col" : "flex-row"}`}>
-        <div className="flex flex-col gap-10 flex-1">
+        <div className="flex flex-col gap-10 flex-1 min-w-0">
+          <CounterpartyIdentityInputs />
           <CompanyContactInputs />
           <CompanyContextInputs />
         </div>
         <Separator orientation={isMobile ? "horizontal" : "vertical"} />
-        <div className="flex flex-col gap-8 flex-1">
+        <div className="flex flex-col gap-8 flex-1 min-w-0">
           <CompanyAddressInputs />
+          <CounterpartyTermsInputs />
           <CompanyAdditionalInformationInputs />
         </div>
       </div>
@@ -117,7 +123,6 @@ const CompanyContextInputs = () => {
       />
       <SelectInput source="size" choices={translatedSizes} helperText={false} />
       <TextInput source="revenue" helperText={false} />
-      <TextInput source="tax_identifier" helperText={false} />
     </div>
   );
 };
@@ -135,7 +140,6 @@ const CompanyAddressInputs = () => {
       <TextInput source="city" helperText={false} />
       <TextInput source="zipcode" helperText={false} />
       <TextInput source="state_abbr" helperText={false} />
-      <TextInput source="country" helperText={false} />
     </div>
   );
 };

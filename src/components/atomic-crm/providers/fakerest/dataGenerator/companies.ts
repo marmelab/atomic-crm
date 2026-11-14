@@ -48,6 +48,16 @@ export const generateCompanies = (db: Db, size = 55): Required<Company>[] => {
       tax_identifier: random.alphaNumeric(10),
       country: random.arrayElement(["USA", "France", "UK"]),
       context_links: [],
+      kind: "company",
+      roles: ["client"],
+      country_code: null,
+      requisites: {},
+      vat_id: null,
+      vat_status: null,
+      vat_checked_at: null,
+      currency: null,
+      payment_terms_days: null,
+      credit_limit: null,
     };
   });
 };

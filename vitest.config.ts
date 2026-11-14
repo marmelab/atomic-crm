@@ -72,6 +72,7 @@ export default defineConfig({
             "**/node_modules/**",
             "doc/**",
             "supabase/**",
+            "connectors/**",
             ".supabase-e2e/**",
             "e2e/**/*.spec.{ts,tsx}",
             // Harness hook tests are Node-only (they import node:fs / node:path
@@ -115,7 +116,10 @@ export default defineConfig({
           name: "functions",
           globals: true,
           environment: "node",
-          include: ["supabase/functions/**/*.test.ts"],
+          include: [
+            "supabase/functions/**/*.test.ts",
+            "connectors/**/*.test.ts",
+          ],
           exclude: ["**/node_modules/**", ".supabase-e2e/**"],
         },
       },

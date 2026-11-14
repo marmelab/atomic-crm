@@ -19,6 +19,7 @@ import type { Company } from "../types";
 import { getTranslatedCompanySizeLabel } from "./getTranslatedCompanySizeLabel";
 import { sizes } from "./sizes";
 import { useGetSalesName } from "../sales/useGetSalesName";
+import { CounterpartyInfo } from "../counterparties/CounterpartyInfo";
 
 interface CompanyAsideProps {
   link?: string;
@@ -38,6 +39,8 @@ export const CompanyAside = ({ link = "edit" }: CompanyAsideProps) => {
           <ShowButton label={translate("resources.companies.action.show")} />
         )}
       </div>
+
+      <CounterpartyInfo record={record} />
 
       <CompanyInfo record={record} />
 

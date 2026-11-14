@@ -4,10 +4,10 @@ import type { CrmMessages } from "./englishCrmMessages";
 export const ukrainianCrmMessages = {
   resources: {
     companies: {
-      name: "Компанія |||| Компанії |||| Компаній",
-      forcedCaseName: "Компанія",
+      name: "Контрагент |||| Контрагенти |||| Контрагентів",
+      forcedCaseName: "Контрагент",
       fields: {
-        name: "Назва компанії",
+        name: "Назва",
         website: "Сайт",
         linkedin_url: "Сторінка LinkedIn",
         phone_number: "Телефон",
@@ -17,6 +17,13 @@ export const ukrainianCrmMessages = {
         sector: "Галузь",
         size: "Розмір",
         tax_identifier: "Податковий номер",
+        kind: "Вид",
+        roles: "Ролі",
+        country_code: "Країна",
+        vat_id: "VAT ID (ЄС)",
+        currency: "Валюта",
+        payment_terms_days: "Відстрочка оплати, днів",
+        credit_limit: "Кредитний ліміт",
         address: "Адреса",
         city: "Місто",
         zipcode: "Поштовий індекс",
@@ -27,11 +34,11 @@ export const ukrainianCrmMessages = {
         sales_id: "Відповідальний",
       },
       empty: {
-        description: "Тут поки немає жодної компанії.",
-        title: "Компаній не знайдено",
+        description: "Тут зʼявляться ваші клієнти, постачальники й партнери.",
+        title: "Контрагентів поки немає",
       },
       import: {
-        title: "Імпорт компаній",
+        title: "Імпорт контрагентів",
       },
       field_categories: {
         contact: "Контакти",
@@ -40,10 +47,10 @@ export const ukrainianCrmMessages = {
         context: "Контекст",
       },
       action: {
-        create: "Створити компанію",
-        edit: "Редагувати компанію",
-        new: "Нова компанія",
-        show: "Переглянути компанію",
+        create: "Створити контрагента",
+        edit: "Редагувати контрагента",
+        new: "Новий контрагент",
+        show: "Переглянути контрагента",
       },
       added_on: "Додано %{date}",
       followed_by: "Веде %{name}",
@@ -372,6 +379,33 @@ export const ukrainianCrmMessages = {
     },
   },
   crm: {
+    counterparty: {
+      title: "Контрагент",
+      kinds: {
+        company: "Компанія",
+        sole_proprietor: "ФОП",
+        person: "Фізична особа",
+      },
+      roles: {
+        client: "Клієнт",
+        supplier: "Постачальник",
+        partner: "Партнер",
+      },
+      roles_required: "Оберіть хоча б одну роль",
+      no_country: "Країну не вказано",
+      terms: "Умови роботи",
+      duplicate: "Контрагент з таким номером уже є:",
+      vat_check: "Заповнити за VAT",
+      vat_status: {
+        valid: "VAT-номер дійсний (VIES)",
+        invalid: "VAT-номер недійсний (VIES)",
+        unavailable:
+          "Не вдалося перевірити: VIES не відповідає, спробуйте пізніше",
+      },
+      payment_terms:
+        "%{smart_count} день на оплату |||| %{smart_count} дні на оплату |||| %{smart_count} днів на оплату",
+      filter_roles: "Роль",
+    },
     action: {
       reset_password: "Скинути пароль",
     },
@@ -477,7 +511,7 @@ export const ukrainianCrmMessages = {
       show_more: "Показати ще",
       groups: {
         contacts: "Контакти",
-        companies: "Компанії",
+        companies: "Контрагенти",
         deals: "Угоди",
         tasks: "Справи",
         contact_notes: "Нотатки до контактів",
@@ -688,7 +722,7 @@ export const ukrainianCrmMessages = {
     quick_create: {
       label: "Створити",
       contact: "Контакт",
-      company: "Компанію",
+      company: "Контрагента",
       deal: "Угоду",
       task: "Справу",
     },

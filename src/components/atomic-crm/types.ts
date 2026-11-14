@@ -70,6 +70,18 @@ export type Company = {
   tax_identifier: string;
   country: string;
   context_links?: string[];
+  kind?: "company" | "sole_proprietor" | "person";
+  roles?: ("client" | "supplier" | "partner")[];
+  country_code?: string | null;
+  requisites?: Record<string, string>;
+  vat_id?: string | null;
+  vat_status?: "valid" | "invalid" | "unavailable" | null;
+  vat_checked_at?: string | null;
+  /** Terms: currency (the business currency when empty) */
+  currency?: string | null;
+  payment_terms_days?: number | null;
+  /** Credit limit in minor units of currency */
+  credit_limit?: number | null;
   nb_contacts?: number;
   nb_deals?: number;
 } & Pick<RaRecord, "id">;
