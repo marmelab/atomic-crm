@@ -1,5 +1,72 @@
 export const englishCrmMessages = {
   resources: {
+    products: {
+      name: "Product |||| Products",
+      forcedCaseName: "Product",
+      fields: {
+        kind: "Kind",
+        name: "Name",
+        sku: "Article",
+        unit_code: "Unit",
+        price: "Sale price",
+        vat_rate_code: "VAT",
+        barcodes: "Barcodes",
+        description: "Description",
+        archived: "Archived",
+        quantity: "In stock",
+        average_cost: "Average cost",
+      },
+      action: { new: "New product" },
+      empty: {
+        title: "No products yet",
+        description:
+          "Add goods, services and materials, or import them from a CSV file.",
+      },
+      import: { title: "Import products" },
+    },
+    stock_moves: {
+      name: "Stock move |||| Stock moves",
+      forcedCaseName: "Stock move",
+      fields: {
+        moved_at: "Date",
+        kind: "Operation",
+        product_id: "Product",
+        from_warehouse_id: "From warehouse",
+        to_warehouse_id: "To warehouse",
+        warehouse: "Warehouse",
+        quantity: "Quantity",
+        unit_cost: "Purchase cost",
+        counterparty_id: "Supplier",
+        note: "Note",
+      },
+      action: { new: "Stock move" },
+      empty: {
+        title: "No stock moves yet",
+        description: "Receipts, issues and transfers will appear here.",
+      },
+    },
+    stock_levels: {
+      name: "Stock |||| Stock",
+      fields: {
+        product_id: "Product",
+        warehouse_id: "Warehouse",
+        quantity: "Quantity",
+      },
+      empty: {
+        title: "Nothing in stock",
+        description: "Post a receipt to put goods in a warehouse.",
+      },
+    },
+    warehouses: {
+      name: "Warehouse |||| Warehouses",
+      forcedCaseName: "Warehouse",
+      fields: { name: "Name", archived: "Archived" },
+      action: { new: "New warehouse" },
+    },
+    supplier_skus: {
+      name: "Supplier article |||| Supplier articles",
+      fields: { supplier_id: "Supplier", sku: "Supplier article" },
+    },
     companies: {
       name: "Counterparty |||| Counterparties",
       forcedCaseName: "Counterparty",
@@ -377,6 +444,91 @@ export const englishCrmMessages = {
     },
   },
   crm: {
+    products: {
+      kinds: { goods: "Goods", service: "Service", material: "Material" },
+      all_kinds: "All kinds",
+      no_vat: "No VAT",
+      vat: {
+        standard: "Standard rate",
+        reduced_14: "14%",
+        reduced_7: "7%",
+        reduced_8: "8%",
+        reduced_5: "5%",
+        zero: "0%",
+      },
+      barcodes_hint:
+        "Type a barcode and press Enter; a product may have several.",
+      supplier_skus: "Supplier articles",
+      no_supplier_skus: "No supplier article yet.",
+      supplier_sku_failed:
+        "Could not add the article: this supplier already uses it",
+      delete_has_moves:
+        "This product has stock moves: archive it instead of deleting",
+    },
+    units: {
+      pcs: "pcs",
+      kg: "kg",
+      g: "g",
+      l: "l",
+      ml: "ml",
+      m: "m",
+      m2: "m²",
+      h: "h",
+      pack: "pack",
+      service: "service",
+    },
+    stock: {
+      default_warehouse: "Main warehouse",
+      default: "Default",
+      archived: "Archived",
+      all_warehouses: "All warehouses",
+      all_kinds: "All operations",
+      kinds: {
+        receipt: "Receipt",
+        issue: "Issue",
+        transfer: "Transfer",
+        adjustment: "Correction",
+        reversal: "Cancellation",
+      },
+      form_kinds: {
+        receipt: "Receipt (from a supplier)",
+        issue: "Issue (sale, use, write-off)",
+        transfer: "Transfer between warehouses",
+        adjustment_in: "Correction: more than recorded",
+        adjustment_out: "Correction: less than recorded",
+      },
+      post: "Post",
+      history: "Moves",
+      per_warehouse: "Stock per warehouse",
+      none: "Nothing in stock.",
+      reverse: "Cancel",
+      reverse_confirm:
+        "Cancel this move? A reverse move will be posted; the original stays in the history.",
+      reversed: "The move is cancelled",
+      was_reversed: "Cancelled",
+      reverse_failed: "Could not cancel the move",
+      not_enough: "Not enough stock to cancel this move",
+      not_enough_detail:
+        "Not enough stock: only %{available} left in this warehouse",
+      service_no_stock: "A service is not kept in stock",
+      move_failed: "Could not post the move",
+    },
+    inventory: {
+      title: "Inventory",
+      find: "Barcode, article or name",
+      scan: "Scan with camera",
+      camera_denied:
+        "The camera is not available. Allow it in the browser or type the barcode.",
+      not_found: "Nothing found for %{code}",
+      pick: "Several products match, pick one:",
+      empty: "Find a product by its barcode, article or name and count it.",
+      expected: "Recorded: %{quantity}",
+      counted: "Counted %{name}",
+      post: "Post the inventory",
+      posted:
+        "Inventory posted: %{smart_count} correction |||| Inventory posted: %{smart_count} corrections",
+      failed: "Could not post the inventory",
+    },
     counterparty: {
       title: "Counterparty",
       kinds: {
@@ -706,6 +858,9 @@ export const englishCrmMessages = {
     nav: {
       today: "Today",
       sales: "Sales",
+      counterparties: "Counterparties",
+      stock: "Stock",
+      inventory: "Inventory",
       more: "More",
     },
     today: {

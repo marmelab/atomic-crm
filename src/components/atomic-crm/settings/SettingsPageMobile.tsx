@@ -42,6 +42,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { MobileBusinessSection } from "../business/MobileBusinessSection";
+import { MobileStockSection } from "../stock/MobileStockSection";
 
 import { MobileContent } from "../layout/MobileContent";
 import MobileHeader from "../layout/MobileHeader";
@@ -112,6 +113,7 @@ export const SettingsPageMobile = () => {
           <div className="space-y-6">
             <ProfileSection />
             <MobileBusinessSection />
+            <MobileStockSection />
             <PreferencesSection />
             <InboundEmailSection />
             <McpServerSection />

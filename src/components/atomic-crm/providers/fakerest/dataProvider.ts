@@ -324,6 +324,13 @@ export const createDataProvider = ({
       _requisites: Requisites,
       _vatId: string | null | undefined,
     ): Promise<CompanyDuplicate[]> => [],
+    reverseStockMove: async (_id: Identifier, _note?: string) =>
+      Promise.reject(new Error("Stock is not available in the demo")),
+    postInventory: async (
+      _warehouseId: Identifier,
+      _counts: { product_id: Identifier; quantity: number }[],
+      _note?: string,
+    ): Promise<number> => 0,
     checkVat: async (
       countryCode: string,
       vatNumber: string,

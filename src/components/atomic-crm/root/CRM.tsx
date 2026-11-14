@@ -18,6 +18,9 @@ import { OAuthConsentPage } from "@/components/supabase/oauth-consent-page";
 import companies from "../companies";
 import contacts from "../contacts";
 import deals from "../deals";
+import products from "../products";
+import { stockLevels, stockMoves, warehouses } from "../stock";
+import { InventoryPage } from "../stock/InventoryPage";
 import { Layout } from "../layout/Layout";
 import { SetupPage } from "../business/SetupPage";
 import { TodayPage } from "../today/TodayPage";
@@ -269,6 +272,7 @@ const DesktopAdmin = (
         />
         <Route path={ImportPage.path} element={<ImportPage />} />
         <Route path={ChangelogPage.path} element={<ChangelogPage />} />
+        <Route path={InventoryPage.path} element={<InventoryPage />} />
       </CustomRoutes>
       <Resource name="deals" {...deals} />
       <Resource name="contacts" {...contacts} />
@@ -278,6 +282,11 @@ const DesktopAdmin = (
       <Resource name="tasks" />
       <Resource name="sales" {...sales} />
       <Resource name="tags" />
+      <Resource name="products" {...products} />
+      <Resource name="stock_moves" {...stockMoves} />
+      <Resource name="stock_levels" {...stockLevels} />
+      <Resource name="warehouses" {...warehouses} />
+      <Resource name="supplier_skus" />
     </Admin>
   );
 };
@@ -349,6 +358,7 @@ const MobileAdmin = (
             path={BusinessSettingsPage.path}
             element={<BusinessSettingsPage />}
           />
+          <Route path={InventoryPage.path} element={<InventoryPage />} />
         </CustomRoutes>
         <Resource
           name="contacts"
@@ -360,6 +370,12 @@ const MobileAdmin = (
         </Resource>
         <Resource name="companies" show={CompanyShow} />
         <Resource name="tasks" list={MobileTasksList} />
+        <Resource
+          name="products"
+          list={products.list}
+          show={products.show}
+          recordRepresentation={products.recordRepresentation}
+        />
       </Admin>
     </PersistQueryClientProvider>
   );

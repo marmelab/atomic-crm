@@ -3,6 +3,73 @@ import type { CrmMessages } from "./englishCrmMessages";
 // Plurals use the three Ukrainian forms: 1 контакт |||| 2 контакти |||| 5 контактів
 export const ukrainianCrmMessages = {
   resources: {
+    products: {
+      name: "Товар |||| Товари |||| Товарів",
+      forcedCaseName: "Товар",
+      fields: {
+        kind: "Вид",
+        name: "Назва",
+        sku: "Артикул",
+        unit_code: "Одиниця",
+        price: "Ціна продажу",
+        vat_rate_code: "ПДВ",
+        barcodes: "Штрихкоди",
+        description: "Опис",
+        archived: "В архіві",
+        quantity: "Залишок",
+        average_cost: "Середня собівартість",
+      },
+      action: { new: "Новий товар" },
+      empty: {
+        title: "Товарів поки немає",
+        description:
+          "Додайте товари, послуги й матеріали або імпортуйте їх із CSV-файлу.",
+      },
+      import: { title: "Імпорт товарів" },
+    },
+    stock_moves: {
+      name: "Рух товару |||| Рухи товару |||| Рухів товару",
+      forcedCaseName: "Рух товару",
+      fields: {
+        moved_at: "Дата",
+        kind: "Операція",
+        product_id: "Товар",
+        from_warehouse_id: "Зі складу",
+        to_warehouse_id: "На склад",
+        warehouse: "Склад",
+        quantity: "Кількість",
+        unit_cost: "Ціна закупівлі",
+        counterparty_id: "Постачальник",
+        note: "Примітка",
+      },
+      action: { new: "Рух товару" },
+      empty: {
+        title: "Рухів поки немає",
+        description: "Тут зʼявляться приходи, списання й переміщення.",
+      },
+    },
+    stock_levels: {
+      name: "Залишок |||| Залишки |||| Залишків",
+      fields: {
+        product_id: "Товар",
+        warehouse_id: "Склад",
+        quantity: "Кількість",
+      },
+      empty: {
+        title: "На складі порожньо",
+        description: "Оформіть прихід, щоб товар зʼявився на складі.",
+      },
+    },
+    warehouses: {
+      name: "Склад |||| Склади |||| Складів",
+      forcedCaseName: "Склад",
+      fields: { name: "Назва", archived: "В архіві" },
+      action: { new: "Новий склад" },
+    },
+    supplier_skus: {
+      name: "Артикул постачальника |||| Артикули постачальників |||| Артикулів постачальників",
+      fields: { supplier_id: "Постачальник", sku: "Артикул постачальника" },
+    },
     companies: {
       name: "Контрагент |||| Контрагенти |||| Контрагентів",
       forcedCaseName: "Контрагент",
@@ -379,6 +446,92 @@ export const ukrainianCrmMessages = {
     },
   },
   crm: {
+    products: {
+      kinds: { goods: "Товар", service: "Послуга", material: "Матеріал" },
+      all_kinds: "Усі види",
+      no_vat: "Без ПДВ",
+      vat: {
+        standard: "Основна ставка",
+        reduced_14: "14%",
+        reduced_7: "7%",
+        reduced_8: "8%",
+        reduced_5: "5%",
+        zero: "0%",
+      },
+      barcodes_hint:
+        "Введіть штрихкод і натисніть Enter; у товару їх може бути кілька.",
+      supplier_skus: "Артикули постачальників",
+      no_supplier_skus: "Артикулів постачальників поки немає.",
+      supplier_sku_failed:
+        "Не вдалося додати: цей артикул у постачальника вже є",
+      delete_has_moves:
+        "У товару є рухи по складу: перенесіть його в архів замість видалення",
+    },
+    units: {
+      pcs: "шт",
+      kg: "кг",
+      g: "г",
+      l: "л",
+      ml: "мл",
+      m: "м",
+      m2: "м²",
+      h: "год",
+      pack: "уп",
+      service: "посл.",
+    },
+    stock: {
+      default_warehouse: "Основний склад",
+      default: "Основний",
+      archived: "В архіві",
+      all_warehouses: "Усі склади",
+      all_kinds: "Усі операції",
+      kinds: {
+        receipt: "Прихід",
+        issue: "Списання",
+        transfer: "Переміщення",
+        adjustment: "Коригування",
+        reversal: "Сторно",
+      },
+      form_kinds: {
+        receipt: "Прихід (від постачальника)",
+        issue: "Списання (продаж, використання, брак)",
+        transfer: "Переміщення між складами",
+        adjustment_in: "Коригування: більше, ніж в обліку",
+        adjustment_out: "Коригування: менше, ніж в обліку",
+      },
+      post: "Провести",
+      history: "Рухи",
+      per_warehouse: "Залишки по складах",
+      none: "На складах немає.",
+      reverse: "Сторнувати",
+      reverse_confirm:
+        "Скасувати цей рух? Буде проведено зворотний рух, а цей залишиться в історії.",
+      reversed: "Рух скасовано",
+      was_reversed: "Скасовано",
+      reverse_failed: "Не вдалося скасувати рух",
+      not_enough: "Недостатньо товару, щоб скасувати цей рух",
+      not_enough_detail:
+        "Недостатньо товару: на цьому складі лише %{available}",
+      service_no_stock: "Послуга не зберігається на складі",
+      move_failed: "Не вдалося провести рух",
+    },
+    inventory: {
+      title: "Інвентаризація",
+      find: "Штрихкод, артикул або назва",
+      scan: "Сканувати камерою",
+      camera_denied:
+        "Камера недоступна. Дозвольте її в браузері або введіть штрихкод.",
+      not_found: "Нічого не знайдено за «%{code}»",
+      pick: "Підходить кілька товарів, оберіть один:",
+      empty:
+        "Знайдіть товар за штрихкодом, артикулом або назвою і порахуйте його.",
+      expected: "В обліку: %{quantity}",
+      counted: "Пораховано: %{name}",
+      post: "Провести інвентаризацію",
+      posted:
+        "Інвентаризацію проведено: %{smart_count} коригування |||| Інвентаризацію проведено: %{smart_count} коригування |||| Інвентаризацію проведено: %{smart_count} коригувань",
+      failed: "Не вдалося провести інвентаризацію",
+    },
     counterparty: {
       title: "Контрагент",
       kinds: {
@@ -702,6 +855,9 @@ export const ukrainianCrmMessages = {
     nav: {
       today: "Сьогодні",
       sales: "Продажі",
+      counterparties: "Контрагенти",
+      stock: "Склад",
+      inventory: "Інвентаризація",
       more: "Ще",
     },
     today: {

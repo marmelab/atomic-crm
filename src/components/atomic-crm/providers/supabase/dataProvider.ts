@@ -28,6 +28,7 @@ import {
 import { searchDealCategories } from "./searchDealCategories";
 import { businessMethods } from "./businessMethods";
 import { counterpartyMethods } from "./counterpartyMethods";
+import { stockMethods } from "./stockMethods";
 import { getSupabaseClient } from "./supabase";
 
 const getBaseDataProvider = () =>
@@ -80,6 +81,9 @@ const getDataProviderWithCustomMethods = () => {
       if (resource === "contacts") {
         return baseDataProvider.getList("contacts_summary", params);
       }
+      if (resource === "products") {
+        return baseDataProvider.getList("products_summary", params);
+      }
       if (resource === "activity_log") {
         const { data, total } = await baseDataProvider.getList(
           "activity_log",
@@ -110,6 +114,9 @@ const getDataProviderWithCustomMethods = () => {
       }
       if (resource === "contacts") {
         return baseDataProvider.getOne("contacts_summary", params);
+      }
+      if (resource === "products") {
+        return baseDataProvider.getOne("products_summary", params);
       }
       if (resource === "sales") {
         return baseDataProvider.getOne(resource, withSalesColumns(params));
@@ -390,6 +397,7 @@ const getDataProviderWithCustomMethods = () => {
     },
     ...businessMethods,
     ...counterpartyMethods,
+    ...stockMethods,
   } satisfies DataProvider;
 };
 
@@ -497,6 +505,12 @@ const lifeCycleCallbacks: ResourceCallbacks[] = [
     resource: "contacts_summary",
     beforeGetList: async (params) => {
       return applyFullTextSearch(["first_name", "last_name"])(params);
+    },
+  },
+  {
+    resource: "products",
+    beforeGetList: async (params) => {
+      return applyFullTextSearch(["name", "sku"])(params);
     },
   },
   {

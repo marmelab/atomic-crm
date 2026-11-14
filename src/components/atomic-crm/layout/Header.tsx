@@ -13,22 +13,43 @@ import { GlobalSearchButton } from "../search/GlobalSearchButton";
 import { BusinessMenu } from "./BusinessMenu";
 import { QuickCreateButton } from "./QuickCreateButton";
 
-const SALES_PATHS = ["/deals", "/contacts", "/companies"];
-
 /**
- * Desktop header. The menu has the enabled sections of TZ section 4.1 only
- * (Today, Sales); chats, purchases and money appear with their modules.
- * Settings live in the profile menu.
+ * The menu of TZ section 4.1, at most 5 items: Today plus one tab per enabled
+ * module. A tab covers several pages, shown as sub-tabs when there are more
+ * than one; chats, purchases and money join with their modules.
  */
+const SECTIONS = [
+  { key: "sales", paths: ["/deals"] },
+  { key: "counterparties", paths: ["/companies", "/contacts"] },
+  {
+    key: "stock",
+    paths: [
+      "/products",
+      "/stock_levels",
+      "/stock_moves",
+      "/warehouses",
+      "/inventory",
+    ],
+  },
+] as const;
+
+/** Sub-tab label: the resource name, or the page name for the inventory. */
+const pageLabelKey = (path: string) =>
+  path === "/inventory"
+    ? "crm.nav.inventory"
+    : `resources.${path.slice(1)}.name`;
+
+/** Desktop header. Settings live in the profile menu. */
 const Header = () => {
   const { darkModeLogo, lightModeLogo, title } = useConfigurationContext();
   const location = useLocation();
   const translate = useTranslate();
 
   const isToday = matchPath("/", location.pathname) != null;
-  const salesPath = SALES_PATHS.find(
-    (path) => matchPath(`${path}/*`, location.pathname) != null,
-  );
+  const isOn = (path: string) =>
+    matchPath(`${path}/*`, location.pathname) != null;
+  const section = SECTIONS.find((item) => item.paths.some(isOn));
+  const currentPath = section?.paths.find(isOn);
 
   return (
     <nav aria-label={translate("crm.navigation.label")} className="grow">
@@ -48,11 +69,14 @@ const Header = () => {
               to="/"
               isActive={isToday}
             />
-            <NavigationTab
-              label={translate("crm.nav.sales")}
-              to="/deals"
-              isActive={salesPath != null}
-            />
+            {SECTIONS.map((item) => (
+              <NavigationTab
+                key={item.key}
+                label={translate(`crm.nav.${item.key}`)}
+                to={item.paths[0]}
+                isActive={item === section}
+              />
+            ))}
           </div>
           <div className="ml-auto flex items-center gap-1">
             <QuickCreateButton />
@@ -73,16 +97,14 @@ const Header = () => {
             </UserMenu>
           </div>
         </div>
-        {salesPath != null ? (
-          <div className="mx-auto flex max-w-screen-xl gap-1 px-4">
-            {SALES_PATHS.map((path) => (
+        {section && section.paths.length > 1 ? (
+          <div className="mx-auto flex max-w-screen-xl gap-1 overflow-x-auto px-4">
+            {section.paths.map((path) => (
               <SubNavigationTab
                 key={path}
                 to={path}
-                isActive={path === salesPath}
-                label={translate(`resources.${path.slice(1)}.name`, {
-                  smart_count: 2,
-                })}
+                isActive={path === currentPath}
+                label={translate(pageLabelKey(path), { smart_count: 2 })}
               />
             ))}
           </div>
