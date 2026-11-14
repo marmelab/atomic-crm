@@ -5,6 +5,7 @@ import { mapSizeToCategory } from "../companies/sizes";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { createEachRow } from "./createEachRow";
 import { toConfiguredValue, toNumber, toText } from "./parseCell";
+import { toCounterparty } from "./counterpartyColumns";
 import type { ImportCell, ProcessImportBatch } from "./types";
 
 /**
@@ -36,6 +37,7 @@ export function useCompanyImport(): ProcessImportBatch {
               description: toText(row.description),
               revenue: toText(row.revenue),
               tax_identifier: toText(row.tax_identifier),
+              ...toCounterparty(row),
               sales_id: identity?.id,
               created_at: new Date().toISOString(),
             },

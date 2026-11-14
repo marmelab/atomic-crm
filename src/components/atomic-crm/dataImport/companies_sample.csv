@@ -1,3 +1,5 @@
-name,sector,size,linkedin_url,website,phone_number,address,zipcode,city,state_abbr,country,description,revenue,tax_identifier
-Acme,Information Technology,50,https://www.linkedin.com/company/acme,https://acme.example,555-0100,1 Main Street,10001,New York,NY,USA,Long-time partner on print projects,5M,US-123456789
-Globex,Industrials,250,,https://globex.example,555-0111,42 Industrial Road,60601,Chicago,IL,USA,,20M,
+name,sector,size,linkedin_url,website,phone_number,address,zipcode,city,state_abbr,country,description,revenue,tax_identifier,kind,roles,country_code,edrpou,ipn,iban,nip,regon,vat_id,currency,payment_terms_days
+Acme,Information Technology,50,https://www.linkedin.com/company/acme,https://acme.example,555-0100,1 Main Street,10001,New York,NY,USA,Long-time partner on print projects,5M,US-123456789,company,client,US,,,,,,,USD,30
+Globex,Industrials,250,,https://globex.example,555-0111,42 Industrial Road,60601,Chicago,IL,USA,,20M,,company,client;supplier,US,,,,,,,,
+Квітка,Retail,10,,https://kvitka.example,+380441234567,вул. Хрещатик 1,01001,Київ,,Україна,Постачальник квітів,,,company,supplier,UA,14360570,,UA213223130000026007233566001,,,,UAH,14
+ORLEN,Energy,500,,https://orlen.pl,,Chemików 7,09-411,Płock,,Polska,,,,company,client;supplier,PL,,,,7740001454,,PL7740001454,PLN,30

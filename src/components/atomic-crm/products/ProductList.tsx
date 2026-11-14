@@ -5,6 +5,7 @@ import { List } from "@/components/admin/list";
 import { SearchInput } from "@/components/admin/search-input";
 import { SelectInput } from "@/components/admin/select-input";
 
+import { DataImportButton } from "../dataImport/DataImportButton";
 import { TopToolbar } from "../layout/TopToolbar";
 import { formatMoney } from "../money/money";
 import { useConfigurationContext } from "../root/ConfigurationContext";
@@ -13,6 +14,7 @@ import type { Product } from "./types";
 
 const ProductListActions = () => (
   <TopToolbar>
+    <DataImportButton resource="products" />
     <CreateButton label="resources.products.action.new" />
   </TopToolbar>
 );

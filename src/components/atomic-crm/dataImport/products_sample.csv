@@ -1,0 +1,4 @@
+name,sku,kind,unit,price,vat_rate,barcode,opening_stock,cost,description
+Шампунь трав’яний 250 мл,SH-250,goods,pcs,249.50,20,4820000000017,24,120.00,
+Фарба для волосся,DYE-01,material,ml,1.20,20,,5000,0.45,Тюбики по 60 мл
+Стрижка,,service,service,450,,,,,
