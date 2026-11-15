@@ -22,7 +22,10 @@ export const fetchRecordsWithCache = async function <T>(
     const response = await dataProvider.getList(resource, {
       filter: {
         "name@in": `(${uncachedRecordNames
-          .map((name) => `"${name}"`)
+          .map(
+            (name) =>
+              `"${name.replaceAll("\\", "\\\\").replaceAll('"', '\\"')}"`,
+          )
           .join(",")})`,
       },
       pagination: { page, perPage },
