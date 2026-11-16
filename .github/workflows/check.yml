@@ -42,7 +42,7 @@ jobs:
               uses: wearerequired/lint-action@548d8a7c4b04d3553d32ed5b6e91eb171e10e7bb # v2
               with:
                   eslint: true
-                  eslint_args: "**/*.{mjs,ts,tsx}"
+                  eslint_args: "--max-warnings 0 **/*.{mjs,ts,tsx}"
                   prettier: true
                   prettier_args: "--config ./.prettierrc.json \"**/*.{js,json,ts,tsx,css,md,html}\""
 

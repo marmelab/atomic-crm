@@ -43,6 +43,8 @@ You must follow the coding style of the existing files. atomic-crm uses eslint a
 make lint
 ```
 
+Besides, the modified files are linted automatically at commit using a git pre-commit hook. This means you won't be able to commit your changes if they contain ESLint errors or warnings.
+
 **Tip**: If possible, enable linting in your editor to get realtime feedback and/or fixes.
 
 ## License

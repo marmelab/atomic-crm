@@ -14,7 +14,7 @@
     "typecheck": "tsc --noEmit --project tsconfig.app.json",
     "preview": "vite preview",
     "lint:apply": "eslint **/*.{mjs,ts,tsx} --fix",
-    "lint": "eslint **/*.{mjs,ts,tsx}",
+    "lint": "eslint **/*.{mjs,ts,tsx} --max-warnings 0",
     "prettier:apply": "prettier --config ./.prettierrc.json --write --list-different \"**/*.{mjs,js,json,ts,tsx,css,md,html}\"",
     "prettier": "prettier --config ./.prettierrc.json --check \"**/*.{mjs,js,json,ts,tsx,css,md,html}\"",
     "registry:build": "npx shadcn build",
