@@ -1,4 +1,5 @@
 import { decode } from "base64-arraybuffer";
+import { getSafeContentType } from "../_shared/attachments.ts";
 import { supabaseAdmin } from "../_shared/supabaseAdmin.ts";
 
 export type Attachment = {
@@ -57,12 +58,15 @@ export const extractAndUploadAttachments = async (
           return null;
         }
 
+        // The sender picks ContentType: never serve it as is (e.g. an SVG
+        // running a script).
+        const contentType = getSafeContentType(ContentType);
         const fileParts = Name.split(".");
         const fileExt = fileParts.length > 1 ? `.${Name.split(".").pop()}` : "";
         const fileName = `${Math.random()}${fileExt}`;
         const { error: uploadError } = await supabaseAdmin.storage
           .from("attachments")
-          .upload(fileName, decodedContent);
+          .upload(fileName, decodedContent, { contentType });
 
         if (uploadError) {
           console.error("uploadError", uploadError);
@@ -75,7 +79,7 @@ export const extractAndUploadAttachments = async (
 
         return {
           title: Name,
-          type: ContentType,
+          type: contentType,
           path: fileName,
           src: fixPublicUrl(data.publicUrl),
         };

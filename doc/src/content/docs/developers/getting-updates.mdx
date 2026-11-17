@@ -27,6 +27,22 @@ pnpm dlx skills add shadcn/ui
 
 Then ask your coding agent `migrate accordion to base-ui`, and so on. The [Shadcn Admin Kit migration guide](https://marmelab.com/shadcn-admin-kit/docs/migrate) covers the details.
 
+## One-off: Hardening Existing Attachments
+
+The `attachments` bucket is public, and files used to be served with the content type the uploader chose, so an uploaded SVG could run a script when opened. New uploads now get a content type a browser cannot run, and the bucket rejects every other type.
+
+Files uploaded before this change keep their old types until you retype them. The registry does not update your Supabase project, so:
+
+1. Copy the `supabase/migrations/20261030140000_harden_attachments_bucket.sql` migration and the `supabase/functions` changes (`_shared/attachments.ts`, `postmark`) into your fork, then apply the migration (`npx supabase db push`) and deploy the functions (`npx supabase functions deploy`).
+2. Retype the existing files with the project's service role key, first as a dry run:
+
+```sh
+SUPABASE_URL=https://<project-ref>.supabase.co SUPABASE_SERVICE_ROLE_KEY=<service-role-key> \
+  node ./scripts/retype-attachments.mjs --dry-run
+```
+
+Then run it again without `--dry-run`. It uploads each file with an unsafe type again under the same name as `application/octet-stream`, and updates the type stored in the notes that hold it. File URLs do not change. Running it again is safe: retyped files are skipped.
+
 ## Refreshing Your Fork
 
 Commit or stash any pending work first, this command overwrites files, and you'll want a clean diff to review the changes:
