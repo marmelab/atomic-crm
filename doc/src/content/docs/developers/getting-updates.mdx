@@ -7,67 +7,9 @@ Atomic CRM is meant to be forked and customized: there is no npm package to inst
 
 This registry is not meant to bootstrap a new project. If you're starting a new CRM, follow the [Installation](https://github.com/marmelab/atomic-crm#installation) instructions instead. The registry is only useful once you already have a running fork and want to catch up with upstream improvements (bug fixes, new features, dependency bumps in `src/components/admin` and `src/components/ui`).
 
-## One-off: Switching Your Fork to Base UI
+## Breaking Changes
 
-Atomic CRM now builds on [Base UI](https://base-ui.com/) instead of Radix UI, following [Shadcn Admin Kit 2.0](https://marmelab.com/shadcn-admin-kit/docs/migrate). Before pulling this release into an older fork, switch your own `components.json` to the Base UI style:
-
-```json
-{
-  "style": "base-vega"
-}
-```
-
-Skipping this step leaves the `src/components/ui` files your fork already owns on Radix while the incoming application code uses the Base UI API (`render` instead of `asChild`, an `items` map on `<Select>`, array values on `<ToggleGroup>`), and `tsc` will fail.
-
-Your own components keep using Radix until you migrate them. Shadcn ships an agent skill for that, one component at a time:
-
-```sh
-pnpm dlx skills add shadcn/ui
-```
-
-Then ask your coding agent `migrate accordion to base-ui`, and so on. The [Shadcn Admin Kit migration guide](https://marmelab.com/shadcn-admin-kit/docs/migrate) covers the details.
-
-## One-off: Loading the Runtime Configuration
-
-Atomic CRM now reads its deployment settings (Supabase URL and key, inbound email...) from a `config.js` file at runtime instead of inlining the `VITE_*` variables in the bundle (see [Runtime Configuration](../deploy#runtime-configuration)). The registry updates the code that reads this file, but not the files that produce and load it. Before pulling this release into an older fork, copy them from upstream, otherwise the app fails on startup with "config.js is not loaded":
-
-1. Copy [`scripts/renderRuntimeConfig.ts`](https://github.com/marmelab/atomic-crm/blob/main/scripts/renderRuntimeConfig.ts) into your `scripts/` directory.
-2. Add its plugin to `vite.config.ts` (and `vite.demo.config.ts`, if you have it), and remove the `define` block that inlined the `VITE_*` variables:
-
-   ```ts title="vite.config.ts"
-   import { runtimeConfig } from "./scripts/renderRuntimeConfig.ts";
-
-   export default defineConfig({
-     plugins: [
-       // ...
-       runtimeConfig(),
-     ],
-   });
-   ```
-
-3. If you use `VitePWA`, keep `config.js` out of the precache, so that a rewritten file isn't served stale:
-
-   ```ts title="vite.config.ts"
-   workbox: {
-     // ...
-     globIgnores: ["**/node_modules/**/*", "config.js"],
-     runtimeCaching: [
-       {
-         urlPattern: /\/config\.js$/,
-         handler: "NetworkFirst",
-         options: { networkTimeoutSeconds: 3 },
-       },
-     ],
-   },
-   ```
-
-4. Load the file in `index.html`, before the app's script:
-
-   ```html title="index.html"
-   <script vite-ignore src="./config.js"></script>
-   ```
-
-Your `.env` files and deployment variables keep working unchanged: the dev server serves `config.js` from them, and `vite build` writes it from them. If your own unit tests stub `VITE_*` variables with `vi.stubEnv()`, set `window._atomicCrmConfig` in a `vi.hoisted()` block instead, since the configuration is read once, on import.
+Some releases also change files the registry doesn't ship (`components.json`, `vite.config.ts`, `index.html`...). Before refreshing your fork across a major version, follow the manual steps in the [Upgrade Guide](../upgrade).
 
 ## Refreshing Your Fork
 

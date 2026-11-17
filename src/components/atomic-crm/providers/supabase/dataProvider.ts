@@ -409,7 +409,7 @@ const lifeCycleCallbacks: ResourceCallbacks[] = [
 export const getDataProvider = () => {
   if (!window._atomicCrmConfig) {
     throw new Error(
-      "config.js is not loaded: index.html must load it before the app. See https://marmelab.com/atomic-crm/doc/developers/getting-updates/",
+      "config.js is not loaded: index.html must load it before the app. See https://marmelab.com/atomic-crm/doc/developers/upgrade/",
     );
   }
   if (!config.supabaseUrl) {
