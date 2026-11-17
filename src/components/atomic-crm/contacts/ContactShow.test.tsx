@@ -99,6 +99,11 @@ describe("ContactShow", () => {
       </StoryWrapper>,
     );
 
+    // The form renders before the record loads, then resets to it: typing
+    // earlier gets overwritten.
+    await expect
+      .element(screen.getByLabelText(/first name/i))
+      .toHaveValue("Ada");
     await screen.getByLabelText(/first name/i).fill("Grace");
     await screen.getByRole("button", { name: /^save$/i }).click();
 

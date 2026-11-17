@@ -216,6 +216,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/root/config.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/root/ConfigurationContext.tsx",
           "type": "registry:component"
         },

@@ -82,7 +82,7 @@ make test-e2e
 Note: the `make test-e2e` will run the the e2e test in ui mode against a vite server with hot reload for ease of development. On the CI the e2e test will be run against the built app. If you need to run the test against the built file instead. You can run:
 
 ```sh
-make start-e2e-ci # To launch the CI e2e environment (serving the built app)
+make build && make start-e2e-ci # To build the app and launch the CI e2e environment (serving the built app)
 # followed by
 npx playwright test --ui
 ```

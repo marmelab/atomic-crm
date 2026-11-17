@@ -8,6 +8,7 @@ import { Welcome } from "./Welcome";
 import MobileHeader from "../layout/MobileHeader";
 import { MobileContent } from "../layout/MobileContent";
 import { useConfigurationContext } from "../root/ConfigurationContext";
+import { config } from "../root/config";
 
 const Wrapper = ({ children }: { children: React.ReactNode }) => {
   const { darkModeLogo, lightModeLogo, title } = useConfigurationContext();
@@ -82,7 +83,7 @@ export const MobileDashboard = () => {
   return (
     <Wrapper>
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mt-1">
-        {import.meta.env.VITE_IS_DEMO === "true" ? <Welcome /> : null}
+        {config.isDemo ? <Welcome /> : null}
         <DashboardActivityLog />
       </div>
     </Wrapper>

@@ -47,6 +47,42 @@ npm run ghpages:deploy
 
 The CRM will be available at `https://<username>.github.io/atomic-crm/`.
 
+## Runtime Configuration
+
+The built bundle contains no environment-specific setting. It reads them from a `config.js` file, which `index.html` loads before the app. This means you can build the frontend once, and deploy the same `dist` directory to several environments (staging, production, one instance per customer...), each with its own `config.js`.
+
+`make build` writes a `config.js` from the `VITE_*` variables available at build time (e.g. in `.env.production.local`), the same way the dev server serves one from your `.env` files. To point a build to another environment, overwrite its `config.js` from environment variables (requires Node.js 22.18 or later):
+
+```sh
+VITE_SUPABASE_URL=https://xxxxxxxx.supabase.co \
+VITE_SB_PUBLISHABLE_KEY=sb_publishable_xxxxxxxx \
+node scripts/renderRuntimeConfig.ts dist/config.js
+```
+
+The generated file is plain JavaScript, so you can also write it by hand:
+
+```js title="dist/config.js"
+window._atomicCrmConfig = {
+  supabaseUrl: "https://xxxxxxxx.supabase.co",
+  supabasePublishableKey: "sb_publishable_xxxxxxxx",
+  inboundEmail: "xxxxxxxx@inbound.postmarkapp.com",
+};
+```
+
+| Environment variable                         | `config.js` key                      |
+| -------------------------------------------- | ------------------------------------ |
+| `VITE_SUPABASE_URL`                          | `supabaseUrl`                        |
+| `VITE_SB_PUBLISHABLE_KEY`                    | `supabasePublishableKey`             |
+| `VITE_INBOUND_EMAIL`                         | `inboundEmail`                       |
+| `VITE_ATTACHMENTS_BUCKET`                    | `attachmentsBucket`                  |
+| `VITE_GOOGLE_WORKPLACE_DOMAIN`               | `googleWorkplaceDomain`              |
+| `VITE_DISABLE_EMAIL_PASSWORD_AUTHENTICATION` | `disableEmailPasswordAuthentication` |
+| `VITE_IS_DEMO`                               | `isDemo`                             |
+
+:::note
+Like the rest of the frontend, `config.js` is public: only put public values in it. Its name has no content hash, so your host may cache it for a few minutes after you change it (10 minutes on GitHub Pages).
+:::
+
 ## Deploying Updates
 
 If you've modified the code, run the following command to deploy a new version of your CRM:
@@ -77,4 +113,4 @@ VITE_ATTACHMENTS_BUCKET: The name of the bucket used to store attachments. Optio
 
 > **Note:** The `POSTMARK_*` and `VITE_INBOUND_EMAIL` variables are required for Atomic CRM's inbound email features. Have a look at the the [inbound email configuration](../inbound-email-configuration) to learn more about their usage and setup.
 
-The GitHub action will run the `prod-deploy` command on every push to the `main` branch, deploying the frontend to GitHub pages and updating the Supabase instance.
+On every push to the `main` branch, the check GitHub action builds the frontend once and runs the tests against that build. Once all checks pass, the deploy action updates the Supabase instance and deploys that same build to GitHub Pages, with a `config.js` generated from the secrets above (see [Runtime Configuration](#runtime-configuration)).

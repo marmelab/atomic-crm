@@ -1,2 +1,3 @@
-export const ATTACHMENTS_BUCKET =
-  import.meta.env.VITE_ATTACHMENTS_BUCKET || "attachments";
+import { config } from "../../root/config";
+
+export const ATTACHMENTS_BUCKET = config.attachmentsBucket || "attachments";

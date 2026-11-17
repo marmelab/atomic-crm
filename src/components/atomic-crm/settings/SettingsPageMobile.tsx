@@ -47,6 +47,7 @@ import MobileHeader from "../layout/MobileHeader";
 import { ChangelogPage } from "../misc/ChangelogPage";
 import ImageEditorField from "../misc/ImageEditorField";
 import type { CrmDataProvider } from "../providers/types";
+import { config } from "../root/config";
 import { getSalesErrorNotification } from "../sales/salesErrorNotification";
 import type { SalesFormData } from "../types";
 
@@ -541,7 +542,7 @@ const ThemeRow = () => {
 const InboundEmailSection = () => {
   const translate = useTranslate();
 
-  if (!import.meta.env.VITE_INBOUND_EMAIL) return null;
+  if (!config.inboundEmail) return null;
 
   return (
     <div>
@@ -553,7 +554,7 @@ const InboundEmailSection = () => {
         })}
       </p>
       <SettingsGroup>
-        <CopyPasteRow value={import.meta.env.VITE_INBOUND_EMAIL} />
+        <CopyPasteRow value={config.inboundEmail} />
       </SettingsGroup>
     </div>
   );
@@ -573,9 +574,7 @@ const McpServerSection = () => {
         })}
       </p>
       <SettingsGroup>
-        <CopyPasteRow
-          value={`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/mcp`}
-        />
+        <CopyPasteRow value={`${config.supabaseUrl}/functions/v1/mcp`} />
       </SettingsGroup>
     </div>
   );
