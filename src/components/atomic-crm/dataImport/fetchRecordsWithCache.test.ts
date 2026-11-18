@@ -29,6 +29,39 @@ const makeDataProvider = (records: Company[]) => {
 };
 
 describe("fetchRecordsWithCache", () => {
+  it("escapes quotes and backslashes in names without changing cached records", async () => {
+    const companies = [
+      { id: 1, name: 'Acme "Research"' },
+      { id: 2, name: "Back\\slash" },
+      { id: 3, name: 'Mixed\\"Name' },
+      { id: 4, name: "Comma, (Inc.)" },
+    ];
+    const dataProvider = {
+      getList: vi.fn().mockResolvedValue({ data: companies }),
+      create: vi.fn(),
+    } as unknown as DataProvider;
+    const cache = new Map<string, Company>();
+
+    const records = await fetchRecordsWithCache<Company>(
+      "companies",
+      cache,
+      companies.map(({ name }) => name),
+      (name) => ({ name }),
+      dataProvider,
+    );
+
+    expect(dataProvider.getList).toHaveBeenCalledWith("companies", {
+      filter: {
+        "name@in": String.raw`("Acme \"Research\"","Back\\slash","Mixed\\\"Name","Comma, (Inc.)")`,
+      },
+      pagination: { page: 1, perPage: 4 },
+      sort: { field: "id", order: "ASC" },
+    });
+    expect(dataProvider.create).not.toHaveBeenCalled();
+    expect([...records.values()]).toEqual(companies);
+    expect([...cache.keys()]).toEqual(companies.map(({ name }) => name));
+  });
+
   it("finds existing records when another name has duplicates", async () => {
     const dataProvider = makeDataProvider([
       { id: 1, name: "Acme" },
