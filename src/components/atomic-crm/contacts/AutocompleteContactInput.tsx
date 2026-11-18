@@ -1,4 +1,7 @@
-import { useCreateSuggestionContext } from "ra-core";
+import {
+  useCreateSuggestionContext,
+  useGetRecordRepresentation,
+} from "ra-core";
 import type { InputProps, RaRecord } from "ra-core";
 import { useQueryClient } from "@tanstack/react-query";
 import { useWatch } from "react-hook-form";
@@ -17,17 +20,22 @@ import { ContactCreateSheet } from "./ContactCreateSheet";
 export const AutocompleteContactInput = ({
   validate,
   label,
-}: Pick<InputProps, "validate" | "label">) => (
-  <AutocompleteArrayInput
-    label={label}
-    validate={validate}
-    optionText={contactOptionText}
-    helperText={false}
-    create={<CreateContact />}
-    createItemLabel="resources.contacts.autocomplete.create_item"
-    createLabel="resources.contacts.autocomplete.create_label"
-  />
-);
+}: Pick<InputProps, "validate" | "label">) => {
+  // The rich option (avatar, title) is too tall for a selected chip
+  const getContactName = useGetRecordRepresentation("contacts");
+  return (
+    <AutocompleteArrayInput
+      label={label}
+      validate={validate}
+      optionText={contactOptionText}
+      inputText={getContactName}
+      helperText={false}
+      create={<CreateContact />}
+      createItemLabel="resources.contacts.autocomplete.create_item"
+      createLabel="resources.contacts.autocomplete.create_label"
+    />
+  );
+};
 
 const splitFullName = (fullName: string | undefined) => {
   const [first_name, ...rest] = (fullName ?? "").trim().split(/\s+/);

@@ -40,7 +40,7 @@ describe("DealInputs", () => {
 
     // back on the deal form, the new contact is selected
     await expect.element(screen.getByRole("dialog")).not.toBeInTheDocument();
-    await expect.element(screen.getByText("Grace Hopper")).toBeInTheDocument();
+    await expect.element(screen.getByText(/Grace Hopper/)).toBeInTheDocument();
   });
 
   it("rejects a closing date the database would refuse", async () => {
