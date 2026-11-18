@@ -1,6 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { sql } from "https://esm.sh/kysely@0.27.2";
-import { AuthMiddleware } from "../_shared/authentication.ts";
 import { db } from "../_shared/db.ts";
 import { supabaseAdmin } from "../_shared/supabaseAdmin.ts";
 import { getCandidateNames, type WebhookPayload } from "./candidateNames.ts";
@@ -11,8 +10,8 @@ const ATTACHMENTS_BUCKET =
 // The note triggers call this function when a note is updated or deleted,
 // sending the note as it was before the change.
 //
-// Any logged-in user can call this endpoint with a made-up payload, so the
-// payload is not trusted: its attachments are only files we *may* delete.
+// The triggers authenticate with a secret they read from Vault. The payload is
+// still not trusted: its attachments are only files we *may* delete.
 // Each of them is deleted only if no row of the database still uses it.
 // At worst, a caller can delete files that nothing uses anymore.
 const deleteNoteAttachments = async (req: Request) => {
@@ -59,9 +58,38 @@ const deleteNoteAttachments = async (req: Request) => {
   return jsonResponse({ status: "ok", deleted: data.length });
 };
 
-Deno.serve(async (req: Request) =>
-  AuthMiddleware(req, async (req: Request) => deleteNoteAttachments(req)),
-);
+Deno.serve(async (req: Request) => {
+  let isAuthorized: boolean;
+  try {
+    isAuthorized = await hasValidSecret(req);
+  } catch (error) {
+    console.error("Failed to check the note attachments secret", { error });
+    return jsonResponse({ error: "Failed to check the secret" }, 500);
+  }
+
+  if (!isAuthorized) {
+    return jsonResponse({ error: "Unauthorized" }, 401);
+  }
+
+  return deleteNoteAttachments(req);
+});
+
+const hasValidSecret = async (req: Request): Promise<boolean> => {
+  const secret = req.headers.get("x-note-attachments-secret");
+  if (!secret) {
+    return false;
+  }
+
+  const { rows } = await sql<{ is_valid: boolean }>`
+    select exists (
+      select 1 from vault.decrypted_secrets
+      where name = 'delete_note_attachments_secret'
+        and decrypted_secret = ${secret}
+    ) as is_valid
+  `.execute(db);
+
+  return rows[0]?.is_valid === true;
+};
 
 // Returns the files that no row uses anymore, among the given ones.
 //

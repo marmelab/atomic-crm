@@ -6,6 +6,20 @@
 -- Extensions
 create extension if not exists "http" with schema "extensions";
 create extension if not exists "citext" with schema "extensions";
+create extension if not exists "pg_net" with schema "extensions";
+create extension if not exists "supabase_vault" with schema "vault";
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM vault.secrets WHERE name = 'delete_note_attachments_secret'
+  ) THEN
+    PERFORM vault.create_secret(
+      gen_random_uuid()::text,
+      'delete_note_attachments_secret'
+    );
+  END IF;
+END $$;
 
 -- Private schema (used by sales policies migration)
 create schema if not exists "private";
