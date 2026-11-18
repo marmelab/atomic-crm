@@ -1,3 +1,65 @@
+## v2.0.0 - 2026-11-18
+
+## Breaking Changes
+
+* Atomic CRM now uses [Shadcn Admin Kit v2](https://marmelab.com/shadcn-admin-kit/docs/migrate), built on Base UI instead of Radix UI. Forks must switch their `components.json` style to `base-vega` before pulling this release.
+* The application build is now environment-agnostic: deployment settings are read at runtime from a `config.js` file instead of being inlined from the `VITE_*` variables. Forks must copy `scripts/renderRuntimeConfig.ts`, register its Vite plugin, and load `config.js` in `index.html`.
+
+See the [Upgrade Guide](https://marmelab.com/atomic-crm/doc/developers/upgrade/) for the detailed steps.
+
+## What's Changed
+
+* [Breaking] Update to Shadcn Admin Kit v2, use Base UI instead of Radix UI by @nawan-b in #358
+* [Breaking] Make application build environment-agnostic by @ThieryMichel in #423
+* Add global search by @nawan-b in #355
+* Add recently viewed contacts by @fzaninotto in #408
+* Add ability to create contact from deal by @nawan-b in #336
+* Add ability to delete a tag by @nawan-b in #363
+* Add ability to assign more than one category to a deal by @nawan-b in #374
+* Add ability to remove tag in bulk by @fzaninotto in #378
+* Add list of contacts to the mobile company page by @fzaninotto in #420
+* Update company icon search to use favicon fetch instead of favicon.show when possible by @nawan-b in #424
+* Remove mobile refresh buttons now that pull-to-refresh exists by @fzaninotto in #418
+* Remove success snackbars on mobile, except for deletions by @fzaninotto in #419
+* Fix contact CSV import stops when its dialog closes by @pysnooLab in #342
+* Fix layout misses bottom spacing by @pysnooLab in #362
+* Fix import may duplicate companies and tags by @porkedchop in #377
+* Fix deleted users reappearing in the sales list by @fzaninotto in #381
+* Fix global search hiding contacts behind newer notes by @fzaninotto in #383
+* Fix search result visual balance by @fzaninotto in #385
+* Fix blank ContactShow on error on mobile by @nawan-b in #393
+* Fix global search to rank name matches first by @fzaninotto in #394
+* Fix ability to delete the wrong note attachment by @fzaninotto in #398
+* Fix global search showing an error instead of logging out on an expired session by @fzaninotto in #406
+* Fix mobile sheets UX (redirect after creation, long titles, and iOS keyboard) by @fzaninotto in #409
+* Fix invalid deal closing dates crashes the deal page by @nawan-b in #411
+* Fix browser logout revoking MCP OAuth sessions by @alexechoi in #422
+* [Security] Log out of Supabase after running the init command by @nawan-b in #367
+* [Security] Deny access to the user creation page for non-admins by @fzaninotto in #369
+* [Security] Remove default privileges from declarative grants schema by @fzaninotto in #382
+* [Security] Tighten SQL execution in the MCP server by @fzaninotto in #397
+* [Deps] Upgrade dependencies by @ThieryMichel in #386
+* [Deps] Update zod to 4.6.7 by @fzaninotto in #395
+* [DevDeps] Bump the npm_and_yarn group across 2 directories by @dependabot[bot] in #370
+* [DevDeps] Upgrade doc dependencies by @fzaninotto in #387
+* [DevDeps] Bump undici to 8.12.3 in doc by @fzaninotto in #396
+* [DevDeps] Bump hono, `@hono/node-server` and astro to fix Dependabot alerts by @nawan-b in #430
+* [Doc] Update CRM Builder screenshot in agent harness doc by @pysnooLab in #380
+* [Doc] Add upgrade documentation for breaking changes by @fzaninotto in #432
+* [Chore] Migrate MCP server to `@supabase/server` middleware by @fzaninotto in #373
+* [Chore] Scope CI deploy credentials to the steps that need them by @fzaninotto in #403
+* [Chore] Pin the Supabase CLI through the lockfile instead of setup-cli by @fzaninotto in #404
+* [Chore] Fix Supabase config for CLI v3 by @nawan-b in #407
+* [Chore] Update pre-commit hook to fail on ESLint warnings by @nawan-b in #425
+* [Harness] Move the harness e2e suite into a hook, and cover the untested guards by @pysnooLab in #341
+* [Harness] Remove npm install hook, use npm's release-age floor instead by @pysnooLab in #372
+
+## New Contributors
+* @porkedchop made their first contribution in https://github.com/marmelab/atomic-crm/pull/377
+* @alexechoi made their first contribution in https://github.com/marmelab/atomic-crm/pull/422
+
+**Full Changelog**: https://github.com/marmelab/atomic-crm/compare/v1.6.0...v2.0.0
+
 ## v1.6.0 - 2026-09-22
 
 ## What's Changed
