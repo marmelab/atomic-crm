@@ -5,6 +5,7 @@ import {
   isDueTomorrow,
   isDueThisWeek,
   isDueLater,
+  getPostponedDueDate,
 } from "./tasksPredicate";
 import { startOfToday } from "date-fns/startOfToday";
 import { endOfToday } from "date-fns/endOfToday";
@@ -203,6 +204,29 @@ describe("tasksPredicate", () => {
       expect(isDueTomorrow(twoDaysFromNow)).toBe(false);
       expect(isDueThisWeek(twoDaysFromNow)).toBe(true);
       expect(isDueLater(twoDaysFromNow)).toBe(false);
+    });
+  });
+
+  describe("getPostponedDueDate", () => {
+    it("returns a full timestamp, not a date-only string", () => {
+      expect(getPostponedDueDate(1)).toMatch(/T\d{2}:\d{2}:\d{2}/);
+    });
+
+    it("postponing by one day is due tomorrow (local time)", () => {
+      expect(isDueTomorrow(getPostponedDueDate(1))).toBe(true);
+    });
+
+    it("postponing by one day is not overdue nor due today", () => {
+      const due = getPostponedDueDate(1);
+      expect(isOverdue(due)).toBe(false);
+      expect(isDueToday(due)).toBe(false);
+    });
+
+    it("postponing by seven days is not due today or tomorrow", () => {
+      const due = getPostponedDueDate(7);
+      expect(isOverdue(due)).toBe(false);
+      expect(isDueToday(due)).toBe(false);
+      expect(isDueTomorrow(due)).toBe(false);
     });
   });
 });
