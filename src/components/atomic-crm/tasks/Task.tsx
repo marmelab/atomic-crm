@@ -23,6 +23,7 @@ import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Contact, Task as TData } from "../types";
 import { TaskEdit } from "./TaskEdit";
 import { TaskEditSheet } from "./TaskEditSheet";
+import { getPostponedDueDate } from "./tasksPredicate";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 export const Task = ({
@@ -169,9 +170,7 @@ export const Task = ({
                 update("tasks", {
                   id: task.id,
                   data: {
-                    due_date: new Date(Date.now() + 24 * 60 * 60 * 1000)
-                      .toISOString()
-                      .slice(0, 10),
+                    due_date: getPostponedDueDate(1),
                   },
                   previousData: task,
                 });
@@ -185,9 +184,7 @@ export const Task = ({
                 update("tasks", {
                   id: task.id,
                   data: {
-                    due_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-                      .toISOString()
-                      .slice(0, 10),
+                    due_date: getPostponedDueDate(7),
                   },
                   previousData: task,
                 });

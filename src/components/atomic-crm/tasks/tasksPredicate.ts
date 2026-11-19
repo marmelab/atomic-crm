@@ -3,7 +3,7 @@ import { endOfToday } from "date-fns/endOfToday";
 import { endOfTomorrow } from "date-fns/endOfTomorrow";
 import { endOfWeek } from "date-fns/endOfWeek";
 
-import { getDay, isAfter } from "date-fns";
+import { addDays, getDay, isAfter } from "date-fns";
 
 export const isBeforeFriday = () => getDay(new Date()) < 5; // Friday is represented by 5
 
@@ -11,6 +11,12 @@ type Task = {
   due_date: string;
   done_date: string | null;
 };
+
+// due_date is a timestamptz column: postponing must store a full timestamp.
+// A date-only string ("YYYY-MM-DD") is parsed as UTC midnight, which falls on
+// the previous local day for users west of UTC.
+export const getPostponedDueDate = (days: number) =>
+  addDays(new Date(), days).toISOString();
 
 export const isDone = (task: Task) => task.done_date != null;
 
