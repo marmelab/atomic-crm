@@ -16,15 +16,20 @@ Atomic CRM is designed to be easy to customize and extend by developers with bas
 
 ## Installation
 
-1. Fork the Atomic CRM repository on GitHub to your own account.
+1. Create your own repository from the Atomic CRM template: on the [Atomic CRM repository](https://github.com/marmelab/atomic-crm), click **Use this template** > **Create a new repository** (or follow [this link](https://github.com/new?template_name=atomic-crm&template_owner=marmelab)), then choose a name and a visibility.
 
-    ![Fork the repository](../images/atomic-crm-repository.png)
-
-2. Clone your forked repository to your local machine:
+2. Clone your new repository to your local machine:
 
     ```bash
-    git clone https://github.com/[username]/atomic-crm.git
-    cd atomic-crm
+    git clone https://github.com/[username]/my-crm.git
+    cd my-crm
+    ```
+
+    Alternatively, the [GitHub CLI](https://cli.github.com/) does both steps at once:
+
+    ```bash
+    gh repo create my-crm --template marmelab/atomic-crm --public --clone
+    cd my-crm
     ```
 
 3. Install the dependencies:
@@ -312,7 +317,7 @@ The script will ask you for the Supabase instance name, create the database, app
 
 If the script logs you into the Supabase CLI, it creates an access token that never expires: see [Supabase Configuration](./developers/supabase-configuration) to revoke it or to use a token that expires.
 
-The frontend of the CRM is a Single-Page App that can be deployed to any CDN. Since you have forked the Atomic CRM repository on GitHub, you can use GitHub Pages to host the frontend.
+The frontend of the CRM is a Single-Page App that can be deployed to any CDN. Since your CRM lives in a GitHub repository, you can use GitHub Pages to host the frontend.
 
 First, build the frontend bundle with:
 
