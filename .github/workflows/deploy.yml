@@ -25,7 +25,7 @@ jobs:
         name: 🚀 Deploy (doc)
         runs-on: ubuntu-latest
         timeout-minutes: 5
-        if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' }}
+        if: ${{ github.repository == 'marmelab/atomic-crm' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' }}
 
         steps:
             - name: 📥 Checkout repo
@@ -71,7 +71,7 @@ jobs:
         name: 🚀 Deploy (demo)
         runs-on: ubuntu-latest
         timeout-minutes: 10
-        if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' }}
+        if: ${{ github.repository == 'marmelab/atomic-crm' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' }}
 
         # Public runtime-config values only, on top of .env.demo. The deploy
         # token is scoped to the steps that push, below.
@@ -225,7 +225,9 @@ jobs:
               env:
                   SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
                   SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
-              run: npx supabase functions deploy
+              run: |
+                  npx supabase secrets set "SB_PUBLISHABLE_KEY=$VITE_SB_PUBLISHABLE_KEY"
+                  npx supabase functions deploy
 
             - if: ${{ !env.HAS_SUPABASE_ACCESS_TOKEN }}
               name: Check SUPABASE_ACCESS_TOKEN secret
@@ -263,10 +265,11 @@ jobs:
               name: Supabase deployment skipped
               run: echo ':warning:Supabase deployment skipped' >> $GITHUB_STEP_SUMMARY
 
-            - name: ⚙️ Setup git
+            - if: ${{ env.IS_SUPABASE_CONFIGURED }}
+              name: ⚙️ Setup git
               env:
-                  DEPLOY_REMOTE: https://git:${{ secrets.DEPLOY_TOKEN || secrets.GITHUB_TOKEN }}@github.com/${{ vars.DEPLOY_REPOSITORY }}
-                  DEPLOY_REPOSITORY: ${{ vars.DEPLOY_REPOSITORY }}
+                  DEPLOY_REMOTE: https://git:${{ secrets.DEPLOY_TOKEN || secrets.GITHUB_TOKEN }}@github.com/${{ vars.DEPLOY_REPOSITORY || github.repository }}
+                  DEPLOY_REPOSITORY: ${{ vars.DEPLOY_REPOSITORY || github.repository }}
               run: |
                   echo "Deploying to pages to $DEPLOY_REPOSITORY"
                   git remote set-url origin "$DEPLOY_REMOTE"
@@ -274,7 +277,8 @@ jobs:
                   git config --global user.email support+actions@github.com
                   git config --global user.name github-actions-bot
 
-            - name: 📡 Deploy GitHub pages
+            - if: ${{ env.IS_SUPABASE_CONFIGURED }}
+              name: 📡 Deploy GitHub pages
               run: npx gh-pages --remote production -d dist -b ${{ vars.DEPLOY_BRANCH || 'gh-pages' }}
               env:
                   GITHUB_TOKEN: ${{ secrets.DEPLOY_TOKEN || secrets.GITHUB_TOKEN }}

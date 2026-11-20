@@ -18,7 +18,7 @@ Atomic CRM is free and open-source. You can test it online at <https://marmelab.
 - 📜 **Track Activity History**: View all interactions in aggregated activity logs.
 - 🔗 **Integrate via API**: Connect seamlessly with other systems using our API.
 - 🛠️ **Customize Everything**: Add custom fields, change the theme, and replace any component to fit your needs.
-- 📦 **Stay Up To Date**: Pull the latest component updates into your fork via the Atomic CRM shadcn registry.
+- 📦 **Stay Up To Date**: Pull the latest component updates into your CRM via the Atomic CRM shadcn registry.
 
 ## Installation
 
@@ -28,16 +28,22 @@ To run this project locally, you will need the following tools installed on your
 - Node 24 LTS
 - Docker (required by Supabase)
 
-Fork the [`marmelab/atomic-crm`](https://github.com/marmelab/atomic-crm) repository to your user/organization, then clone it locally:
+Create your own repository from the [`marmelab/atomic-crm`](https://github.com/marmelab/atomic-crm) template: click **Use this template** > **Create a new repository** (or follow [this link](https://github.com/new?template_name=atomic-crm&template_owner=marmelab)), choose a name and a visibility, then clone it locally:
 
 ```sh
-git clone https://github.com/[username]/atomic-crm.git
+git clone https://github.com/[username]/my-crm.git
+```
+
+Alternatively, the [GitHub CLI](https://cli.github.com/) does both steps at once:
+
+```sh
+gh repo create my-crm --template marmelab/atomic-crm --public --clone
 ```
 
 Install dependencies:
 
 ```sh
-cd atomic-crm
+cd my-crm
 make install
 ```
 
@@ -92,11 +98,11 @@ And you can also add your own e2e test. The e2e test files should be placed insi
 
 ## Shadcn Registry
 
-Atomic CRM components are published as a [shadcn registry](https://marmelab.com/atomic-crm/r/atomic-crm.json). This registry can't be used to bootstrap a new CRM app (use [Installation](#installation) for that), but it's a convenient way to keep the components you forked in sync with upstream.
+Atomic CRM components are published as a [shadcn registry](https://marmelab.com/atomic-crm/r/atomic-crm.json). This registry can't be used to bootstrap a new CRM app (use [Installation](#installation) for that), but it's a convenient way to keep the components of your CRM in sync with upstream.
 
 ### For Users: Getting Updates
 
-Once you've forked and customized Atomic CRM, periodically run the following command to pull in the latest component updates:
+Once you've created and customized your CRM, periodically run the following command to pull in the latest component updates:
 
 ```sh
 npx shadcn add https://marmelab.com/atomic-crm/r/atomic-crm.json -o -y

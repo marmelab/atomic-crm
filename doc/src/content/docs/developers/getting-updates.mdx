@@ -3,7 +3,7 @@ title: Getting Updates
 description: How to keep a forked Atomic CRM installation up to date using the shadcn registry.
 ---
 
-Atomic CRM is meant to be forked and customized: there is no npm package to install as a dependency and upgrade. Instead, Atomic CRM components, hooks, and lib files are published as a [shadcn registry](https://marmelab.com/atomic-crm/r/atomic-crm.json), which you can use to pull upstream changes into your fork.
+Atomic CRM is meant to be copied and customized: there is no npm package to install as a dependency and upgrade. A repository created from the Atomic CRM template doesn't share any git history with upstream, so you can't `git pull` the changes either. Instead, Atomic CRM components, hooks, and lib files are published as a [shadcn registry](https://marmelab.com/atomic-crm/r/atomic-crm.json), which you can use to pull upstream changes into your fork.
 
 This registry is not meant to bootstrap a new project. If you're starting a new CRM, follow the [Installation](https://github.com/marmelab/atomic-crm#installation) instructions instead. The registry is only useful once you already have a running fork and want to catch up with upstream improvements (bug fixes, new features, dependency bumps in `src/components/admin` and `src/components/ui`).
 
