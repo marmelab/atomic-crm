@@ -25,8 +25,6 @@ jobs:
         name: 🚀 Deploy (doc)
         runs-on: ubuntu-latest
         timeout-minutes: 5
-        # Upstream only: repositories created from the Atomic CRM template must
-        # not publish the Atomic CRM documentation and registry.
         if: ${{ github.repository == 'marmelab/atomic-crm' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' }}
 
         steps:
