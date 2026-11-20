@@ -73,7 +73,6 @@ jobs:
         name: 🚀 Deploy (demo)
         runs-on: ubuntu-latest
         timeout-minutes: 10
-        # Upstream only: the public demo is deployed from the Atomic CRM repository.
         if: ${{ github.repository == 'marmelab/atomic-crm' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' }}
 
         # Public runtime-config values only, on top of .env.demo. The deploy
@@ -266,9 +265,6 @@ jobs:
               name: Supabase deployment skipped
               run: echo ':warning:Supabase deployment skipped' >> $GITHUB_STEP_SUMMARY
 
-            # The frontend is useless without its backend, so it is only
-            # published once Supabase is configured. It defaults to the current
-            # repository's GitHub Pages.
             - if: ${{ env.IS_SUPABASE_CONFIGURED }}
               name: ⚙️ Setup git
               env:
