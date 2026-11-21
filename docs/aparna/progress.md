@@ -42,3 +42,7 @@
 - Checked the official Claude Code cloud docs: cloud sessions include docker, dockerd and docker compose, 4 vCPUs, 16 GB RAM; Trusted network covers Docker Hub, ghcr.io and public.ecr.aws. My earlier "no Docker" finding came from the planning chat sandbox, a different machine.
 - Changed: ADR-A15 (cloud runs the full local stack; CI is the second verifier; hand-written migrations only as fallback), CLAUDE-aparna.md commands + Mistakes Log, MVP.md §8, TRANSITION T11, R-15, aparna-loop START/CLOSE, M-001 and M-103 acceptance, KICKOFF Part A4 (exact environment dialog steps), Part B (mode dropdown, Auto-fix), Part E (fallback).
 - Next: merge the plan PR, create the `aparna-crm` environment, run M0.
+
+### 2026-11-21 — Field visits requested by the Owner
+- Added PRD §15, ADR-A17 (Proposed), risk R-16, slice SF with F-1100..F-1105. Check-ins with consent, Owner-only access, 90-day coordinate retention, production owned by the client. Ships after role RLS (F-101); not in the MVP.
+- Install on phones: already supported (web app manifest + home-screen icons in `public/`); branding of icons happens in M1.

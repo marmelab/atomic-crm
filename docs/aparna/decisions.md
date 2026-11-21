@@ -118,6 +118,14 @@ Status: Proposed · Date: 2026-11-21
 - Decision: after a slice that freezes the schema merges, independent slices run in separate cloud sessions (each its own VM and branch). Each slice owns a list of files (`MVP.md` §7); touching another slice's file means stop and ask. Max 2 parallel sessions (R-5). The upstream `#technical-harness` (worktrees inside one session) is reserved for big full-build slices.
 - Reversal condition: a merge conflict between parallel slices costs more than 30 minutes → run that pair sequentially next time.
 
+### ADR-A17 — Field visits use consented point-in-time check-ins, Owner-only access
+Status: Proposed · Date: 2026-11-21
+- Context: the Owner asked for field activity tracking of staff. Location data about employees is personal data (DPDP 2023: notice and consent) and can be misused by anyone who can read it.
+- Options: A) check-in/check-out snapshots with consent, Owner-only RLS, 90-day coordinate retention. B) continuous background tracking (needs a native app and store approval for background location; far more intrusive). C) no location, visit log only.
+- Decision: A, with C as the automatic fallback for staff who do not consent.
+- Consequences: needs role RLS first (after T5/F-101); production Supabase project and its keys owned by Aparna's account, not by Intrigues; developers work on staging and demo data only.
+- Reversal condition: the Owner shows a concrete need that check-ins cannot meet; any move toward B needs a new ADR, written staff consent and a legal check.
+
 ## Provenance & audit
 Sources: chat analysis 20–21 Nov 2026, upstream repo inspection, Meta and Razorpay docs.
 Checked: each ADR has options, decision, consequences and an observable reversal condition; ADR IDs referenced in PRD/ARCHITECTURE exist here (A03, A07); none marked Accepted before Gate A.

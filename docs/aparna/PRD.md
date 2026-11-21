@@ -296,7 +296,18 @@ Template wording is owned by the Owner and approved in Meta before go-live.
 6. Q6: Lead sources and countries (for source list and time-zone defaults). Before S1.
 7. Q7: Class platform (Zoom or Meet) and whether each batch has a fixed link. Before S2.
 
-## Provenance & audit
+## 15. Field visits with location check-in (added 2026-11-21, Owner request)
+
+Purpose: staff who do field activity (school visits, seminars, demo sessions, marketing drives) log each visit with where and when it happened.
+
+1. **Check-in, not tracking.** Location is captured only when a staff member taps **Check in** or **Check out** on a visit. No background or continuous tracking (browsers cannot do it anyway, and it is not needed).
+2. **Consent first.** Each staff member sees a one-time notice (what is saved, why, who can see it, how long) and chooses to allow location. Without consent they can still log visits without coordinates. Consent can be withdrawn in their profile.
+3. **Who sees it.** A staff member sees only their own visits. **Only the Owner** sees everyone's visits and coordinates. Nobody else, including Intrigues developers, has access in production.
+4. **Retention.** Coordinates are deleted after 90 days; the visit record (date, purpose, place name, notes) stays.
+5. **Screen.** "Field visits": New visit (purpose, place name, optional linked admission) → Check in → Check out → notes. Owner view: list by staff and date with a map link per check-in.
+6. **Depends on** role-based access (F-100, F-101). It cannot ship in the MVP, where every signed-in user can read every table.
+
+
 
 Sources: discovery answers from the founder (20 Nov 2026); public website, Facebook and Instagram audit (20 Nov 2026); upstream Atomic CRM schema (`supabase/schemas/01_tables.sql`); Meta WhatsApp pricing and Coexistence docs (Nov 2026).
 Checked: every flow F1–F9 maps to features in `features.json`; every automation AR1–AR13 has a guard column; every screen in §7 maps to a slice in `project_plan.md`; permission matrix matches RLS plan in `ARCHITECTURE.md` §4; no staff personal names in this file.

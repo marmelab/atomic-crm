@@ -35,7 +35,7 @@ Read the pilot numbers in `progress.md`, then:
 3. **Teachers** need to log in (attendance, feedback) → T5 first (roles + RLS), then T1, T6.
 4. Otherwise → T5, T1 (foundation for everything else), then T3.
 
-T5 always comes before any Teacher account, whichever order is chosen.
+T5 always comes before any Teacher account and before field visits (SF, ADR-A17), whichever order is chosen.
 
 ## Provenance & audit
 Sources: MVP decisions (21 Nov 2026), `PRD.md`, `ARCHITECTURE.md`, ADR-A03..A15.

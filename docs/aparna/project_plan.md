@@ -59,6 +59,7 @@ Parallelism rules (ADR-A16): only after the slice that freezes the schema is mer
 | S5 | Payment links, Razorpay webhook | F-500..F-505 | — |
 | S6 | `handle_payment`, enrolment, follow-ups, Today payment section | F-600..F-605 | Gate B |
 | S7–S10 | Fees, attendance, progress notes, dashboard | F-700..F-1003 | Gate C |
+| SF | Field visits with consented check-ins (after F-101) | F-1100..F-1105 | — |
 
 ## 4. Gates
 

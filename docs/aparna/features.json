@@ -1044,6 +1044,75 @@
       ],
       "verify": "manual:Gate C entry in progress.md",
       "passes": false
+    },
+    {
+      "id": "F-1100",
+      "slice": "SF",
+      "title": "Field visits table and RLS",
+      "acceptance": [
+        "field_visits: staff_id, purpose, place_name, notes, linked deal, check_in/out times, lat, lng, accuracy",
+        "staff read/write only own rows",
+        "Owner reads all",
+        "Counsellor and Teacher cannot read others' rows"
+      ],
+      "verify": "sql:supabase/tests/rls_field_visits.test.sql",
+      "passes": false
+    },
+    {
+      "id": "F-1101",
+      "slice": "SF",
+      "title": "Location consent",
+      "acceptance": [
+        "one-time notice states what is saved, why, who sees it, 90-day retention",
+        "consent stored with timestamp; withdraw in profile",
+        "no consent = visits saved without coordinates"
+      ],
+      "verify": "cmd:npx vitest run --project app src/components/atomic-crm/fieldVisits",
+      "passes": false
+    },
+    {
+      "id": "F-1102",
+      "slice": "SF",
+      "title": "Check in and check out",
+      "acceptance": [
+        "coordinates captured only on tap via the browser Geolocation API",
+        "clear message when permission is denied or GPS is unavailable",
+        "works in an installed home-screen app on Android Chrome and iOS Safari"
+      ],
+      "verify": "manual:tested on one Android and one iPhone, recorded in progress.md",
+      "passes": false
+    },
+    {
+      "id": "F-1103",
+      "slice": "SF",
+      "title": "Owner field view",
+      "acceptance": [
+        "Owner lists visits by staff and date with a map link per check-in",
+        "no map SDK; plain link to a maps URL"
+      ],
+      "verify": "e2e:e2e/aparna/fieldVisits.spec.ts",
+      "passes": false
+    },
+    {
+      "id": "F-1104",
+      "slice": "SF",
+      "title": "Coordinate retention",
+      "acceptance": [
+        "daily job clears lat/lng/accuracy older than 90 days; visit record kept"
+      ],
+      "verify": "sql:supabase/tests/field_visits_retention.test.sql",
+      "passes": false
+    },
+    {
+      "id": "F-1105",
+      "slice": "SF",
+      "title": "Production ownership",
+      "acceptance": [
+        "production Supabase project and Vercel production are in the client's account",
+        "Intrigues accounts have no production database or service-role access"
+      ],
+      "verify": "manual:Owner confirms in progress.md",
+      "passes": false
     }
   ]
 }
