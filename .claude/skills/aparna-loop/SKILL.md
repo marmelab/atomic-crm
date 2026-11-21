@@ -5,19 +5,19 @@ description: Start or close one build session of the Aparna's English Coaching C
 
 # aparna-loop
 
-One session = one slice = one branch = one PR. Handoff between sessions = `features.json` + `progress.md` + git history (long-running-agent pattern). Cloud sessions have no Docker (P-10): anything that needs Docker is proven by the GitHub Actions `Check` run on the PR.
+One session = one slice = one branch = one PR. Handoff between sessions = `features.json` + `progress.md` + git history (long-running-agent pattern). Cloud sessions have Docker: run the local stack; the GitHub Actions `Check` run on the PR is the second, independent verifier.
 
 ## START
 
 1. `pwd`, `git status --short`, `git branch --show-current`, `git log --oneline -10`.
 2. Read, and nothing else yet: the last entry of `docs/aparna/progress.md`; the features of the requested slice in `docs/aparna/features.json`; the slice row and file ownership in `docs/aparna/MVP.md` §7 (MVP track) or `project_plan.md` §3 (full build); for full-build slices also `TRANSITION.md`.
 3. Check dependencies: every slice this one depends on is merged into `main` (`git log origin/main`). If not, stop and say which.
-4. Install and run baseline checks: `npm ci` (if `node_modules` is missing), `make typecheck`, `make lint`. Try `make test`; if Chromium is missing, run `npx playwright install chromium` once; if that is blocked, note "app unit tests run in CI" and continue. Never build on a red baseline: report and stop.
+4. Install and run baseline checks: `npm ci` (if `node_modules` is missing), `npx playwright install chromium`; if `docker info` fails, start Docker (`sudo service docker start` or `sudo dockerd > /tmp/dockerd.log 2>&1 &`); `make start` (run it in the background; it pulls images on the first run); then `make typecheck`, `make lint`, `make test`. If Docker cannot start, say so and follow the ADR-A15 fallback. Never build on a red baseline: report and stop.
 5. Report in ≤ 10 lines: branch, last session, baseline status, slice and feature IDs, files this slice owns, open questions. Then produce the plan (no edits) and wait for "go".
 
 ## CLOSE
 
-1. Run every local `cmd:` verify of the slice's features. Quote the decisive output lines.
+1. Run every `cmd:` verify and, for `ci:` features, the same check locally first (`npx supabase test db`, the named e2e spec). Quote the decisive output lines.
 2. Commit, push the branch, open a PR titled `[<slice>] <summary>` (use `gh pr create` if available, otherwise the session's PR button). The PR body lists feature IDs and what to check on the Vercel Preview.
 3. Wait for the GitHub Actions `Check` run (`gh pr checks --watch` if available). If red: fix, push, repeat (max 3 rounds on the same cause, then stop and ask).
 4. In `features.json` change ONLY `passes` → true for features whose `cmd:` or `ci:` verify is green now. `manual:` features stay false until the human confirms.
@@ -30,4 +30,4 @@ One session = one slice = one branch = one PR. Handoff between sessions = `featu
 
 - Same verify red after 3 focused attempts → stop, log in `problems.md`, ask.
 - The change needs a file owned by another slice, or contradicts an Accepted ADR → stop and ask.
-- A step needs secrets, Docker or production access in the cloud session → stop; it belongs to CI or the human.
+- A step needs secrets or production access in the cloud session → stop; it belongs to CI or the human.

@@ -44,7 +44,7 @@
       "slice": "M0",
       "title": "Gate MVP-A check",
       "acceptance": [
-        "cloud session installs deps and runs make typecheck and make lint",
+        "cloud session: npm ci, docker info, make start, make typecheck, make lint and make test all run (or the failure is recorded and ADR-A15 falls back)",
         "assumptions in KICKOFF.md M0 checked with file:line evidence",
         "gate-reviewer MODE gate on MVP.md, TRANSITION.md, decisions A11-A15 scores >= 80, no blocking findings",
         "Owner go recorded"
@@ -79,7 +79,7 @@
       "slice": "M1",
       "title": "MVP schema",
       "acceptance": [
-        "deals and contacts columns from MVP.md section 4 exist in supabase/schemas and in one migration",
+        "deals and contacts columns from MVP.md section 4 exist in supabase/schemas and in one migration generated with supabase db diff",
         "types.ts updated",
         "contacts_summary view still valid"
       ],

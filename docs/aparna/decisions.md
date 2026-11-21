@@ -106,11 +106,12 @@ Status: Proposed · Date: 2026-11-21 · Defers ADR-A07
 - Reversal condition: none — this rule is lifted only by F-101 passing.
 
 ### ADR-A15 — Cloud development workflow
-Status: Proposed · Date: 2026-11-21
-- Context: Claude Code cloud sessions have no Docker daemon (P-10). The repo's GitHub Actions `Check` (lint, typecheck, unit, e2e with local Supabase) and `Deploy` (`supabase db push` on main) already run with Docker.
-- Options: A) cloud sessions write code; CI runs everything that needs Docker; Vercel Preview in demo mode for visual checks. B) all work on WSL. C) remote dev database from the cloud (needs raw Postgres network access).
-- Decision: A. Migrations are hand-written by the main session (allowed; the hook only blocks harness developers) next to the declarative schema change; CI proves they apply; a `supabase db diff` drift check on WSL runs before each gate. No production secrets in cloud environments.
-- Reversal condition: two slices in a row lose more than half a day waiting on CI, or a drift check finds schema and migrations out of sync.
+Status: Proposed · Date: 2026-11-21 · Revised 2026-11-21 (P-10)
+- Context: Claude Code cloud sessions include Docker (docker, dockerd, docker compose), 4 vCPUs and 16 GB RAM; the Trusted allowlist covers Docker Hub, ghcr.io and public.ecr.aws. The repo's GitHub Actions `Check` (lint, typecheck, unit, e2e with local Supabase) and `Deploy` (`supabase db push` on main) also run with Docker.
+- Options: A) cloud sessions run the full local stack and follow upstream conventions; CI is the independent second verifier; Vercel Preview (demo mode) for visual checks. B) cloud writes code only, CI runs everything Docker needs, migrations hand-written. C) all work on WSL.
+- Decision: A. Migrations are generated with `npx supabase db diff --local -f <name>` as upstream intends. No production secrets in cloud environments.
+- Consequences: each session spends a few minutes on `make start` (image pulls); faster feedback than waiting on CI.
+- Reversal condition: M0 shows Docker or `make start` does not work in the cloud environment → fall back to option B (hand-written migrations, CI as the only Docker).
 
 ### ADR-A16 — Parallel work = separate cloud sessions with file ownership
 Status: Proposed · Date: 2026-11-21

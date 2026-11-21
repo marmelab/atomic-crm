@@ -37,3 +37,8 @@
 - Found in repo: sign-up is invitation-only after the first user (`handle_new_user`); `block-migration-writes` only blocks harness developers; upstream `check.yml` runs e2e with Supabase and `deploy.yml` pushes migrations on main → CI is the Docker-capable verifier (ADR-A15).
 - Rewrote `KICKOFF.md` for Claude Code online: setup (GitHub, Supabase, Vercel, cloud environment), session flow, COMMON + per-slice prompts.
 - Next: you do KICKOFF Part A, then run M0 in a cloud session.
+
+### 2026-11-21 — Correction: cloud sessions have Docker (P-10)
+- Checked the official Claude Code cloud docs: cloud sessions include docker, dockerd and docker compose, 4 vCPUs, 16 GB RAM; Trusted network covers Docker Hub, ghcr.io and public.ecr.aws. My earlier "no Docker" finding came from the planning chat sandbox, a different machine.
+- Changed: ADR-A15 (cloud runs the full local stack; CI is the second verifier; hand-written migrations only as fallback), CLAUDE-aparna.md commands + Mistakes Log, MVP.md §8, TRANSITION T11, R-15, aparna-loop START/CLOSE, M-001 and M-103 acceptance, KICKOFF Part A4 (exact environment dialog steps), Part B (mode dropdown, Auto-fix), Part E (fallback).
+- Next: merge the plan PR, create the `aparna-crm` environment, run M0.

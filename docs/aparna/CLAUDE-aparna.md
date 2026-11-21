@@ -16,9 +16,9 @@ Facts only. Procedures live in skills (`/aparna-loop`). Keep under 80 lines. EDI
 
 ## Commands
 
-- Cloud session: `npm ci`, `make typecheck`, `make lint`, `make test` (needs Chromium), `npm run test:unit:functions`, `make start-demo` (UI with fake data).
-- Needs Docker (CI or WSL only): `make start`, `npx supabase db diff --local -f <name>`, `npx supabase test db`, Playwright e2e.
-- Schema: edit `supabase/schemas/*.sql` AND add the matching hand-written migration in `supabase/migrations/` (ADR-A15). CI proves it applies.
+- Cloud session start: `npm ci`, `npx playwright install chromium`, start Docker if `docker info` fails (`sudo service docker start` or `sudo dockerd &`), then `make start`.
+- Verify: `make typecheck`, `make lint`, `make test`, `npm run test:unit:functions`, `npx supabase test db` (pgTAP), Playwright e2e. CI `Check` re-runs them on the PR.
+- Schema: edit `supabase/schemas/*.sql`, then `npx supabase db diff --local -f <name>`; never hand-write migrations unless ADR-A15 falls back.
 
 ## Rules that are easy to miss
 
@@ -38,9 +38,11 @@ Facts only. Procedures live in skills (`/aparna-loop`). Keep under 80 lines. EDI
 - `deals.lost_reason` was dropped upstream; we re-add it on purpose (ADR-A03).
 - Upstream RLS is `using (true)`; any table we touch in the full build gets role policies (ADR-A07).
 - `demo/App.tsx` does not use `src/App.tsx`; domain options go in `root/defaultConfiguration.ts` (P-11).
-- Cloud sessions have no Docker daemon (P-10); do not try `make start` there.
+- Planning chat sandboxes are not Claude Code cloud sessions: check facts about the cloud VM in code.claude.com docs or in the session itself (P-10).
 - First sign-up on a fresh Supabase project becomes the administrator (R-13).
 
 ## Mistakes Log
+
+- 2026-11-21 — assumed Claude Code cloud sessions lack Docker from a check in a different sandbox → encoded as: fact above (Gotchas) + `docker info` in M-001 acceptance.
 
 <!-- YYYY-MM-DD — what failed → encoded as <hook|rule|fact|skill>: <where> -->

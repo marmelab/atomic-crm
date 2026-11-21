@@ -100,15 +100,16 @@ File ownership in parallel (prevents merge conflicts): M2 owns `deals/` forms an
 | M4 | M-401..M-402 | 4 |
 | M5 | M-501..M-503 | 5 + pilot week |
 
-## 8. Where things are verified (cloud has no Docker, P-10)
+## 8. Where things are verified
 
 | Check | Runs in |
 |---|---|
-| `make typecheck`, `make lint`, `npm run test:unit:functions` | Cloud session |
-| `make test` (Vitest browser mode, needs Chromium) | Cloud session if Chromium installs; otherwise CI |
-| Migrations apply, pgTAP (`npx supabase test db`), Playwright e2e | GitHub Actions `Check` on the PR (Docker available) |
+| `make typecheck`, `make lint`, `make test`, `npm run test:unit:functions` | Cloud session |
+| Local Supabase (`make start`), migrations via `supabase db diff`, pgTAP (`npx supabase test db`), Playwright e2e | Cloud session (Docker), then again in GitHub Actions `Check` on the PR |
 | Looks right on a phone | Vercel Preview (demo mode, fake data) |
 | Real data | Production after merge (`Deploy` workflow pushes migrations) |
+
+If M0 finds Docker unusable in the cloud environment, ADR-A15 falls back to CI as the only Docker.
 
 ## 9. Exit gate (MVP)
 

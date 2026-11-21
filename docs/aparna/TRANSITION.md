@@ -19,7 +19,7 @@
 | T8 | Numbers | "This week" strip, client-side counts | Dashboard M1–M8 from views | S10 | Use pilot numbers as baselines in `progress.md` | F-1000..F-1003 |
 | T9 | Lead capture | Manual quick-add | Website form edge function + WhatsApp inbound creates leads | S1 (form), S4 (inbound) | Reuse the phone helper and duplicate logic from M2 | F-108, F-405 |
 | T10 | Config | Domain options in `defaultConfiguration.ts` | Same, plus Owner settings for automations | S4 | Add settings only for rules that exist | F-411 |
-| T11 | Dev workflow | Cloud sessions write code; CI runs migrations, pgTAP, e2e; hand-written small migrations (ADR-A15) | Same; drift check `supabase db diff` on WSL before each gate | Always | Run drift check at Gate MVP exit and every full-build gate | — |
+| T11 | Dev workflow | Cloud sessions run the local stack (Docker); CI `Check` re-verifies each PR (ADR-A15) | Same; add `supabase db diff` drift check at each gate | Always | Run drift check at Gate MVP exit and every full-build gate | — |
 | T12 | Hosting | Supabase project + Vercel (Preview = demo mode, Production = real) | Same; Supabase Pro before real data grows; staging project when automations start | Before go-live of real data / before S4 | Upgrade plan; add a staging project and point Preview to it | F-112 |
 
 ## 2. Full-build features the MVP already covers (re-verify, do not rebuild)

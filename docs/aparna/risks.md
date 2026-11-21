@@ -18,7 +18,7 @@
 
 - **R-13 — First sign-up takes the Owner role.** On a fresh Supabase project the first person to sign up becomes administrator; later sign-ups are blocked unless invited. Mitigation: the Owner signs up immediately after the first production deploy; verify `sales` has exactly the expected users.
 - **R-14 — MVP debt hardens.** The longer the MVP runs, the more data sits in temporary columns (ADR-A12). Mitigation: start T1 within 8 weeks of MVP go-live or before the first multi-child family, whichever is first.
-- **R-15 — CI is the only Docker.** If GitHub Actions minutes run out or the workflow breaks, migrations and e2e go unverified. Mitigation: keep WSL able to run `make start` and `npx supabase test db`; check Actions usage monthly.
+- **R-15 — One verifier fails silently.** If the cloud stack or GitHub Actions breaks, a slice could merge with only one layer of checks. Mitigation: a PR merges only with green local evidence pasted AND a green `Check` run; check Actions usage monthly.
 
 ## Provenance & audit
 Sources: loop-engineering default risks R-1..R-5 (renamed to fit), project analysis.
