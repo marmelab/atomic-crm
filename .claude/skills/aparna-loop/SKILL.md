@@ -1,32 +1,33 @@
 ---
 name: aparna-loop
-description: Start or close one build session of the Aparna's English Coaching CRM. Use at the START of every session (orient, run checks, pick the next slice) and at the END of every session or slice (record evidence, flip passes, log decisions, problems and changes, encode fixes, commit). Trigger on "/aparna-loop", "start session", "next slice", "close the loop", "wrap up".
+description: Start or close one build session of the Aparna's English Coaching CRM (MVP slices M0-M5, full-build slices S1-S10). Use at the START of every session (orient, run checks, confirm the slice and its owned files) and at the END of every slice (evidence, passes, logs, encode fixes, commit, PR). Trigger on "/aparna-loop", "start session", "next slice", "close the loop", "wrap up".
 ---
 
 # aparna-loop
 
-One loop = one slice from `docs/aparna/project_plan.md`. This skill is the handoff between sessions (long-running-agent pattern: feature list + progress file + git history).
+One session = one slice = one branch = one PR. Handoff between sessions = `features.json` + `progress.md` + git history (long-running-agent pattern). Cloud sessions have no Docker (P-10): anything that needs Docker is proven by the GitHub Actions `Check` run on the PR.
 
 ## START
 
-1. `pwd` and `git status --short` and `git branch --show-current`. If not on a `slice/S<n>-<slug>` branch for the slice you will work on, create it from the latest `main`.
-2. Read, in this order and nothing else yet: the last entry of `docs/aparna/progress.md`, `docs/aparna/features.json` (only features where `passes` is false), `git log --oneline -10`.
-3. Run the baseline checks: `make typecheck`, `make test`. If the local stack is up, also `npx supabase test db`. If anything is red on a clean branch, fix that first or stop and report. Never build on red.
-4. Name the next slice: the lowest slice in the phase graph whose dependencies are done and that still has `passes: false` features. Check any open question it needs (PRD §14) is answered; if not, stop and ask.
-5. Report in ≤10 lines: branch, last session summary, checks status, chosen slice, its feature IDs, blocking questions. Then wait for the human to enter plan mode for the slice.
+1. `pwd`, `git status --short`, `git branch --show-current`, `git log --oneline -10`.
+2. Read, and nothing else yet: the last entry of `docs/aparna/progress.md`; the features of the requested slice in `docs/aparna/features.json`; the slice row and file ownership in `docs/aparna/MVP.md` §7 (MVP track) or `project_plan.md` §3 (full build); for full-build slices also `TRANSITION.md`.
+3. Check dependencies: every slice this one depends on is merged into `main` (`git log origin/main`). If not, stop and say which.
+4. Install and run baseline checks: `npm ci` (if `node_modules` is missing), `make typecheck`, `make lint`. Try `make test`; if Chromium is missing, run `npx playwright install chromium` once; if that is blocked, note "app unit tests run in CI" and continue. Never build on a red baseline: report and stop.
+5. Report in ≤ 10 lines: branch, last session, baseline status, slice and feature IDs, files this slice owns, open questions. Then produce the plan (no edits) and wait for "go".
 
 ## CLOSE
 
-1. For each feature worked on, run its `verify` command. Quote the decisive lines of output.
-2. In `features.json` change ONLY `passes` (false → true) for features whose verify ran green now. Never edit any other field.
-3. Append one entry to `docs/aparna/progress.md` (≤15 lines): date, slice, what changed, features passed with the quoted evidence, what is left, next step.
-4. If a choice with alternatives was made: add an ADR to `docs/aparna/decisions.md` (context, options, decision, consequences, reversal condition). Do not mark it Accepted; the human does that.
-5. If anything failed, surprised you, or the human corrected you: add a row to `docs/aparna/problems.md` with an "encoded as" column, and encode the fix at the strongest layer that holds it: hook or DB constraint > `.claude/rules/*.md` > a line in `docs/aparna/CLAUDE-aparna.md` (Gotchas or Mistakes Log) > a skill edit. A row without "encoded as" stays open.
-6. Add user-visible changes to `docs/aparna/CHANGELOG.md` under an Unreleased heading.
-7. Re-check `docs/aparna/CLAUDE-aparna.md` is still under 80 lines and contains facts only.
-8. Commit on the slice branch: `feat(S<n>): <summary>` with feature IDs in the body. Do not push to `main`. Tell the human the branch is ready for review.
+1. Run every local `cmd:` verify of the slice's features. Quote the decisive output lines.
+2. Commit, push the branch, open a PR titled `[<slice>] <summary>` (use `gh pr create` if available, otherwise the session's PR button). The PR body lists feature IDs and what to check on the Vercel Preview.
+3. Wait for the GitHub Actions `Check` run (`gh pr checks --watch` if available). If red: fix, push, repeat (max 3 rounds on the same cause, then stop and ask).
+4. In `features.json` change ONLY `passes` → true for features whose `cmd:` or `ci:` verify is green now. `manual:` features stay false until the human confirms.
+5. Append one entry to `docs/aparna/progress.md` (≤ 15 lines): date, slice, PR link, features passed with evidence, preview checklist for the human, next step.
+6. Choice with alternatives made → ADR in `decisions.md` (Proposed). Failure, surprise or human correction → row in `problems.md` with "encoded as", and encode at the strongest layer: hook or DB constraint > `.claude/rules/*.md` > line in `docs/aparna/CLAUDE-aparna.md` > skill edit.
+7. User-visible changes → `docs/aparna/CHANGELOG.md` under Unreleased. Keep `CLAUDE-aparna.md` under 80 lines, facts only.
+8. Commit these doc updates to the same PR. Tell the human: PR link, Preview URL to check, and the one thing to look at.
 
 ## Stop conditions
 
-- Any verify red after 3 focused attempts on the same cause → stop, log in `problems.md`, ask.
-- A required change contradicts an Accepted ADR → stop, propose a new ADR, ask.
+- Same verify red after 3 focused attempts → stop, log in `problems.md`, ask.
+- The change needs a file owned by another slice, or contradicts an Accepted ADR → stop and ask.
+- A step needs secrets, Docker or production access in the cloud session → stop; it belongs to CI or the human.

@@ -5,13 +5,15 @@
 ## Reading order (for humans and for Claude)
 
 1. `CLAUDE-aparna.md` — project facts (also auto-loaded via root `CLAUDE.md`).
-2. `PRD.md` — what we build and why (problem, metrics, roles, flows, rules, screens).
-3. `ARCHITECTURE.md` — how (schema, RLS, edge functions, outbox, integrations, tests, deploy).
-4. `project_plan.md` — order (phase graph, slices, gates, the per-slice loop).
-5. `features.json` — the definition of done (machine-checkable; only `passes` changes).
-6. `decisions.md` — ADRs (LAW once Accepted). `risks.md` — named risks. `problems.md` — what went wrong and how it was encoded.
-7. `progress.md` — latest session handoff. `CHANGELOG.md` — our changes.
-8. `KICKOFF.md` — copy-paste prompts for Claude Code.
+2. `MVP.md` — **current track**: the 1-week "never lose a lead" MVP (scope, slices M0–M5, file ownership).
+3. `TRANSITION.md` — every MVP shortcut, point by point, and how the full build pays it back.
+4. `PRD.md` — the full build: what and why (problem, metrics, roles, flows, rules, screens).
+5. `ARCHITECTURE.md` — how (schema, RLS, edge functions, outbox, integrations, tests, deploy).
+6. `project_plan.md` — order (phase graph, slices, gates, the per-slice loop).
+7. `features.json` — the definition of done (machine-checkable; only `passes` changes).
+8. `decisions.md` — ADRs (LAW once Accepted). `risks.md` — named risks. `problems.md` — what went wrong and how it was encoded.
+9. `progress.md` — latest session handoff. `CHANGELOG.md` — our changes.
+10. `KICKOFF.md` — environment manual for Claude Code online + copy-paste prompts per slice.
 
 ## Claude layer added to this repo
 

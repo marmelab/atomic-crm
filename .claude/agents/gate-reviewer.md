@@ -28,6 +28,8 @@ Score each axis 0–100 with one verifiable evidence line each:
 | Security & privacy | RLS per role, webhook signatures, secrets handling, children's data (DPDP), opt-out |
 | Verification quality | Verify commands are deterministic; no "looks good"; pgTAP/Vitest/Playwright used where they fit |
 
+For gate MVP-A, read the axes against `docs/aparna/MVP.md` and `TRANSITION.md`: Completeness = every problem in MVP.md §2 maps to M- features; Traceability = every MVP shortcut has a TRANSITION.md row with a closing feature; Security = ADR-A14 (no Teacher accounts) and R-13 (first sign-up) are enforced or checked, and no secrets reach cloud sessions.
+
 Safety cap: overall score is capped at 60 while any Security & privacy finding is open.
 Blocking findings (any = FAIL): a role can read data the PRD matrix forbids; a webhook without signature check; a payment state change without idempotency; a business-initiated message path that bypasses the outbox guard; staff personal names in committed files.
 Also run the Berkeley checklist: (1) roles vague or instructions conflicting? (2) context withheld or handoffs broken? (3) verification missing or superficial?

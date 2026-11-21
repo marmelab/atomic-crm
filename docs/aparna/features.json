@@ -2,7 +2,9 @@
   "_rules": [
     "Claude may ONLY change the 'passes' field. Never delete, reword or reorder features; propose changes in decisions.md instead.",
     "Set 'passes' to true only after the 'verify' command ran green in the same session and its output is quoted in progress.md.",
-    "verify prefixes: 'cmd:' run the command; 'e2e:' Playwright spec; 'sql:' pgTAP file run by npx supabase test db; 'manual:' a human step recorded in progress.md."
+    "verify prefixes: 'cmd:' run the command; 'e2e:' Playwright spec; 'sql:' pgTAP file run by npx supabase test db; 'manual:' a human step recorded in progress.md.",
+    "'ci:' = the GitHub Actions 'Check' workflow is green on the slice PR and includes the named test (used for checks that need Docker: migrations, pgTAP, Playwright).",
+    "MVP features (slices M0-M5) come first. Full-build features that the MVP already covers are listed in TRANSITION.md section 2 and are re-verified, not rebuilt."
   ],
   "features": [
     {
@@ -35,6 +37,276 @@
         "Owner go recorded"
       ],
       "verify": "manual:Gate A entry in progress.md",
+      "passes": false
+    },
+    {
+      "id": "M-001",
+      "slice": "M0",
+      "title": "Gate MVP-A check",
+      "acceptance": [
+        "cloud session installs deps and runs make typecheck and make lint",
+        "assumptions in KICKOFF.md M0 checked with file:line evidence",
+        "gate-reviewer MODE gate on MVP.md, TRANSITION.md, decisions A11-A15 scores >= 80, no blocking findings",
+        "Owner go recorded"
+      ],
+      "verify": "manual:Gate MVP-A entry in progress.md",
+      "passes": false
+    },
+    {
+      "id": "M-101",
+      "slice": "M1",
+      "title": "Domain config",
+      "acceptance": [
+        "title, stages (enquiry, trial_booked, trial_done, payment_pending, enrolled, lost), task types, courses, boards, sources, lost reasons, currency INR set in defaultConfiguration.ts",
+        "same config visible in demo mode and real mode"
+      ],
+      "verify": "cmd:make typecheck && make test",
+      "passes": false
+    },
+    {
+      "id": "M-102",
+      "slice": "M1",
+      "title": "Labels and menu",
+      "acceptance": [
+        "UI says Admission/Admissions and Parent/Parents instead of Deal and Contact",
+        "Companies hidden from the menu"
+      ],
+      "verify": "ci:e2e/aparna/mvpBoard.spec.ts",
+      "passes": false
+    },
+    {
+      "id": "M-103",
+      "slice": "M1",
+      "title": "MVP schema",
+      "acceptance": [
+        "deals and contacts columns from MVP.md section 4 exist in supabase/schemas and in one migration",
+        "types.ts updated",
+        "contacts_summary view still valid"
+      ],
+      "verify": "ci:migrations apply in Check e2e job",
+      "passes": false
+    },
+    {
+      "id": "M-104",
+      "slice": "M1",
+      "title": "MVP constraints",
+      "acceptance": [
+        "open stage without next_action_at is rejected",
+        "lost without lost_reason is rejected",
+        "duplicate phone_e164 is rejected"
+      ],
+      "verify": "ci:supabase/tests/mvp_constraints.test.sql",
+      "passes": false
+    },
+    {
+      "id": "M-105",
+      "slice": "M1",
+      "title": "pgTAP in CI",
+      "acceptance": [
+        "Check workflow runs npx supabase test db after Supabase starts",
+        "a failing test fails the PR"
+      ],
+      "verify": "ci:Check workflow log shows supabase test db",
+      "passes": false
+    },
+    {
+      "id": "M-106",
+      "slice": "M1",
+      "title": "Realistic demo data",
+      "acceptance": [
+        "FakeRest generators create parents (Indian and foreign numbers, time zones), admissions in every stage with next actions, enrolled students with fees"
+      ],
+      "verify": "cmd:make test",
+      "passes": false
+    },
+    {
+      "id": "M-107",
+      "slice": "M1",
+      "title": "Deploy",
+      "acceptance": [
+        "Vercel Preview builds demo mode, Production builds real mode",
+        "Deploy workflow pushed migrations to the Supabase project",
+        "Owner signed up first; Counsellor invited"
+      ],
+      "verify": "manual:production URL, preview URL and login check in progress.md",
+      "passes": false
+    },
+    {
+      "id": "M-201",
+      "slice": "M2",
+      "title": "Phone helper",
+      "acceptance": [
+        "Indian numbers in +91, 0-prefixed and spaced forms normalise to one E.164",
+        "foreign numbers keep their country code",
+        "invalid numbers give a clear message",
+        "country guessed from the number"
+      ],
+      "verify": "cmd:npx vitest run --project app src/components/atomic-crm/misc/phone.test.ts",
+      "passes": false
+    },
+    {
+      "id": "M-202",
+      "slice": "M2",
+      "title": "Quick-add enquiry",
+      "acceptance": [
+        "one dialog creates parent + admission in enquiry with next_action_at now+2h",
+        "duplicate number links the existing parent and warns",
+        "button on board header"
+      ],
+      "verify": "cmd:npx vitest run --project app src/components/atomic-crm/contacts",
+      "passes": false
+    },
+    {
+      "id": "M-203",
+      "slice": "M2",
+      "title": "Next action required",
+      "acceptance": [
+        "edit form blocks save of an open stage without next action",
+        "dragging to an open stage without next action asks for one"
+      ],
+      "verify": "cmd:npx vitest run --project app src/components/atomic-crm/deals",
+      "passes": false
+    },
+    {
+      "id": "M-204",
+      "slice": "M2",
+      "title": "Lost reason",
+      "acceptance": ["moving to Lost asks for a reason from the fixed list"],
+      "verify": "cmd:npx vitest run --project app src/components/atomic-crm/deals",
+      "passes": false
+    },
+    {
+      "id": "M-205",
+      "slice": "M2",
+      "title": "Board card",
+      "acceptance": [
+        "card shows child, course, next action (red when overdue), days in stage"
+      ],
+      "verify": "ci:e2e/aparna/mvpBoard.spec.ts",
+      "passes": false
+    },
+    {
+      "id": "M-301",
+      "slice": "M3",
+      "title": "Today screen",
+      "acceptance": [
+        "landing page after login",
+        "sections: New with minutes-waiting timer, Follow-ups due/overdue, Trials today/tomorrow, Payment pending, Fees due in 3 days/overdue",
+        "each row opens the admission"
+      ],
+      "verify": "cmd:npx vitest run --project app src/components/atomic-crm/today",
+      "passes": false
+    },
+    {
+      "id": "M-302",
+      "slice": "M3",
+      "title": "Time-zone helper",
+      "acceptance": [
+        "formatInZone shows IST and parent local time side by side",
+        "handles America/New_York and Europe/London daylight saving"
+      ],
+      "verify": "cmd:npx vitest run --project app src/components/atomic-crm/misc/time.test.ts",
+      "passes": false
+    },
+    {
+      "id": "M-303",
+      "slice": "M3",
+      "title": "WhatsApp templates",
+      "acceptance": [
+        "8 templates from MVP.md section 6 with filled variables",
+        "wa.me URL uses E.164 digits and URL-encodes text"
+      ],
+      "verify": "cmd:npx vitest run --project app src/components/atomic-crm/whatsapp",
+      "passes": false
+    },
+    {
+      "id": "M-304",
+      "slice": "M3",
+      "title": "One-tap send and log",
+      "acceptance": [
+        "button opens wa.me in a new tab",
+        "confirm dialog logs note 'WhatsApp: <key>', sets first_response_at if empty, sets next follow-up",
+        "payment_link and fee_reminder ask for the Razorpay link first"
+      ],
+      "verify": "cmd:npx vitest run --project app src/components/atomic-crm/whatsapp",
+      "passes": false
+    },
+    {
+      "id": "M-305",
+      "slice": "M3",
+      "title": "Mark fee paid",
+      "acceptance": [
+        "moves next_fee_due forward by fee_period",
+        "logs a note with amount"
+      ],
+      "verify": "cmd:npx vitest run --project app src/components/atomic-crm/today",
+      "passes": false
+    },
+    {
+      "id": "M-306",
+      "slice": "M3",
+      "title": "This-week strip",
+      "acceptance": [
+        "shows enquiries, median first-response time, trials, enrolled, lost by reason for the current week"
+      ],
+      "verify": "cmd:npx vitest run --project app src/components/atomic-crm/today",
+      "passes": false
+    },
+    {
+      "id": "M-401",
+      "slice": "M4",
+      "title": "Import current students",
+      "acceptance": [
+        "CSV: parent name, phone, country, child name, grade, board, course, fee amount, fee period, next fee due",
+        "dry run lists row errors and duplicates by phone",
+        "creates parent + enrolled admission",
+        "sample CSV downloadable"
+      ],
+      "verify": "cmd:npx vitest run --project app src/components/atomic-crm/dataImport",
+      "passes": false
+    },
+    {
+      "id": "M-402",
+      "slice": "M4",
+      "title": "Import open enquiries",
+      "acceptance": [
+        "CSV: parent, phone, child, course, source, stage, next follow-up, note",
+        "rows without next follow-up get tomorrow 10:00 IST"
+      ],
+      "verify": "cmd:npx vitest run --project app src/components/atomic-crm/dataImport",
+      "passes": false
+    },
+    {
+      "id": "M-501",
+      "slice": "M5",
+      "title": "Counsellor guide",
+      "acceptance": [
+        "one-page plain-language guide in docs/aparna/COUNSELLOR-GUIDE.md",
+        "30-minute training done"
+      ],
+      "verify": "manual:training date in progress.md",
+      "passes": false
+    },
+    {
+      "id": "M-502",
+      "slice": "M5",
+      "title": "Pilot week",
+      "acceptance": [
+        "5 working days, every new enquiry in the CRM",
+        "M2 = 0 at end of each day",
+        "baseline table in progress.md filled"
+      ],
+      "verify": "manual:pilot log in progress.md",
+      "passes": false
+    },
+    {
+      "id": "M-503",
+      "slice": "M5",
+      "title": "Pilot fixes",
+      "acceptance": [
+        "every pilot issue is fixed, or deferred with a row in problems.md"
+      ],
+      "verify": "manual:issue list in progress.md",
       "passes": false
     },
     {

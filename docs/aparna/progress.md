@@ -30,3 +30,10 @@
 - Evidence: features.json parses; 72 features, IDs unique, all `passes: false`; slice ranges in `project_plan.md` §3 match the `slice` fields; every PRD flow F1–F9 and rule AR1–AR13 maps to at least one feature (gaps found and added: F-208 family export/delete, F-411 automation settings, F-605 Today payment section; consent capture added to F-108); root `CLAUDE.md` diff is one import line; Prettier applied with repo config.
 - Not done here: Gate A cold read (needs a fresh context; first step of `KICKOFF.md` Prompt 1).
 - Next: run `KICKOFF.md` Prompt 1 in Claude Code (environment check + Gate A cold read). Stop at Gate A.
+
+### 2026-11-21 — MVP track added (chat session, no product code)
+- Decided: MVP first ("never lose a lead", ~1 week), full build after a pilot (ADR-A11..A16, Proposed).
+- Added: `MVP.md` (scope, data, screens, slices M0–M5, file ownership), `TRANSITION.md` (T1–T12 shortcut ledger, re-verify list, how to pick the first full-build slice), 24 M- features in `features.json`, risks R-13..R-15, problems P-10 (cloud has no Docker) and P-11 (demo entry ignores `src/App.tsx`).
+- Found in repo: sign-up is invitation-only after the first user (`handle_new_user`); `block-migration-writes` only blocks harness developers; upstream `check.yml` runs e2e with Supabase and `deploy.yml` pushes migrations on main → CI is the Docker-capable verifier (ADR-A15).
+- Rewrote `KICKOFF.md` for Claude Code online: setup (GitHub, Supabase, Vercel, cloud environment), session flow, COMMON + per-slice prompts.
+- Next: you do KICKOFF Part A, then run M0 in a cloud session.

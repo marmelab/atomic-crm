@@ -79,6 +79,44 @@ Status: Proposed · Date: 2026-11-21
 - Decision: our editable memory is `docs/aparna/CLAUDE-aparna.md`, imported by one line in root `CLAUDE.md`. Our changelog is `docs/aparna/CHANGELOG.md`.
 - Reversal condition: the import line is lost in an upstream merge twice → move the import into `.claude/CLAUDE.md`.
 
+### ADR-A11 — MVP first ("never lose a lead"), full build after a pilot
+Status: Proposed · Date: 2026-11-21
+- Context: The full build is 8–10 weeks at part-time pace. The founder's pain (lost leads, forgotten follow-ups) can be relieved in about 1 week without automation.
+- Options: A) MVP in ~1 week, pilot, then full build chosen by pilot numbers. B) Full build straight away. C) Spreadsheet + WhatsApp labels only.
+- Decision: A. Scope in `MVP.md`; every shortcut and its payback in `TRANSITION.md`.
+- Consequences: planned data debt (A12) and manual sending (A13); real baseline numbers before automation.
+- Reversal condition: the pilot shows the Counsellor still loses leads with the MVP (M2 > 0 on 3 of 5 days) → stop and fix adoption before any full-build slice.
+
+### ADR-A12 — MVP stores child and fee data on the admission (temporary)
+Status: Proposed · Date: 2026-11-21 · Temporarily departs from ADR-A03 (students table)
+- Options: A) child + fee columns on `deals`. B) build `students`/`enrolments` now. C) store in notes text.
+- Decision: A. One admission = one child. Payback: `TRANSITION.md` T1, T2.
+- Reversal condition: a family with 2+ children enrols, or the full build starts — whichever comes first.
+
+### ADR-A13 — MVP sends WhatsApp with one-tap `wa.me` links (temporary)
+Status: Proposed · Date: 2026-11-21 · Defers ADR-A05
+- Options: A) `wa.me` prefilled links + logged note. B) Cloud API now. C) A BSP inbox.
+- Decision: A. No Meta verification, templates or message costs in the MVP. Meta business verification starts on MVP day 1 anyway (it can take days to weeks). Payback: `TRANSITION.md` T3.
+- Reversal condition: more than 40 one-tap sends per day during the pilot, or night enquiries waiting more than 8 hours on most days.
+
+### ADR-A14 — MVP has two staff users and no Teacher accounts (temporary, hard rule)
+Status: Proposed · Date: 2026-11-21 · Defers ADR-A07
+- Context: Upstream RLS gives every signed-in user full access. Sign-up is invitation-only after the first user (`handle_new_user`).
+- Decision: only Owner and Counsellor accounts in the MVP. **No Teacher account may be created until F-101 (role RLS) passes.** The Owner signs up first on any fresh production project (R-13).
+- Reversal condition: none — this rule is lifted only by F-101 passing.
+
+### ADR-A15 — Cloud development workflow
+Status: Proposed · Date: 2026-11-21
+- Context: Claude Code cloud sessions have no Docker daemon (P-10). The repo's GitHub Actions `Check` (lint, typecheck, unit, e2e with local Supabase) and `Deploy` (`supabase db push` on main) already run with Docker.
+- Options: A) cloud sessions write code; CI runs everything that needs Docker; Vercel Preview in demo mode for visual checks. B) all work on WSL. C) remote dev database from the cloud (needs raw Postgres network access).
+- Decision: A. Migrations are hand-written by the main session (allowed; the hook only blocks harness developers) next to the declarative schema change; CI proves they apply; a `supabase db diff` drift check on WSL runs before each gate. No production secrets in cloud environments.
+- Reversal condition: two slices in a row lose more than half a day waiting on CI, or a drift check finds schema and migrations out of sync.
+
+### ADR-A16 — Parallel work = separate cloud sessions with file ownership
+Status: Proposed · Date: 2026-11-21
+- Decision: after a slice that freezes the schema merges, independent slices run in separate cloud sessions (each its own VM and branch). Each slice owns a list of files (`MVP.md` §7); touching another slice's file means stop and ask. Max 2 parallel sessions (R-5). The upstream `#technical-harness` (worktrees inside one session) is reserved for big full-build slices.
+- Reversal condition: a merge conflict between parallel slices costs more than 30 minutes → run that pair sequentially next time.
+
 ## Provenance & audit
 Sources: chat analysis 20–21 Nov 2026, upstream repo inspection, Meta and Razorpay docs.
 Checked: each ADR has options, decision, consequences and an observable reversal condition; ADR IDs referenced in PRD/ARCHITECTURE exist here (A03, A07); none marked Accepted before Gate A.
