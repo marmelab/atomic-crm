@@ -2,6 +2,27 @@
 
 Requires: Node (version in `.nvmrc`), Docker (for local Supabase), Claude Code v2.1.139+ (for `/goal`). On Windows run everything inside WSL (risk R-4).
 
+## Cloud sessions (Claude Code on the web)
+
+Cloud sessions have no Docker daemon (P-10), so the local Supabase stack does not run there. Split the work:
+
+| Work | Where |
+| --- | --- |
+| UI, components, FakeRest generators, unit tests (`make typecheck`, `make lint`, `make test`) | Cloud session (`make start-demo` for the UI) |
+| Edge functions + their Vitest tests (`npm run test:unit:functions`) | Cloud session |
+| Schema edits in `supabase/schemas/` | Cloud session |
+| `npx supabase db diff` (migration generation) and `npx supabase test db` (pgTAP) | WSL with Docker, or against a dev Supabase project (try `--linked` / `--db-url`; confirm in P0) |
+| Deploys | Vercel Git integration (preview per branch); `npx supabase db push` from WSL or CI |
+
+One-time setup for cloud sessions:
+
+1. In the cloud environment settings, allow network access to `*.supabase.co`, `api.supabase.com` and `api.vercel.com` (the default allowlist covers package registries only).
+2. Add environment variables: `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF` (dev project), `SUPABASE_DB_PASSWORD`.
+3. In Vercel, import the repo, build command `npm run build`, output `dist`, and set `VITE_SUPABASE_URL` and `VITE_SB_PUBLISHABLE_KEY` (the Supabase–Vercel integration creates differently named variables; map them to these names).
+4. Production on Vercel needs a Pro plan (Hobby is for non-commercial use), or deploy to GitHub Pages with the upstream script.
+
+In Prompt 1, step 2 becomes: run `make install`, `make typecheck`, `make test`, `make start-demo`; skip `make start` and report which DB checks need WSL or the dev project.
+
 ## 0. One-time setup
 
 ```bash

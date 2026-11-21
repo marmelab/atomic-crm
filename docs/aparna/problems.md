@@ -14,6 +14,7 @@
 | P-07 | 2026-11-21 | Upstream added then dropped `deals.lost_reason` | Re-adding looks like a mistake to a reviewer | Documented as deliberate | ADR-A03 + `CLAUDE-aparna.md` gotcha |
 | P-08 | 2026-11-21 | Harness smoke test runs in FakeRest demo mode | New resources without generators break the smoke run | Every new resource ships a FakeRest generator | ARCHITECTURE §3 + `CLAUDE-aparna.md` fact |
 | P-09 | 2026-11-21 | Meta pricing changed on 1 Oct 2026 (utility charged inside the 24 h window; 1,000 free service replies per number) | Older cost estimates are wrong | Cost recalculated in ARCHITECTURE §6, §10 | `risks.md` R-9 |
+| P-10 | 2026-11-21 | Claude Code cloud sessions have a `docker` binary but no Docker daemon (checked: `docker info` fails; 2 CPUs, 7 GB RAM) | `make start`, `supabase db diff --local` and local pgTAP runs cannot work in the cloud | Hybrid: UI, edge functions and unit tests in the cloud (FakeRest demo mode); schema diffs and DB tests on WSL or against a dev Supabase project | `KICKOFF.md` "Cloud sessions" section |
 
 ## Provenance & audit
 Sources: discovery chat (20 Nov 2026), repo inspection (21 Nov 2026), Meta pricing pages.
