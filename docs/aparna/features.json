@@ -1,0 +1,777 @@
+{
+  "_rules": [
+    "Claude may ONLY change the 'passes' field. Never delete, reword or reorder features; propose changes in decisions.md instead.",
+    "Set 'passes' to true only after the 'verify' command ran green in the same session and its output is quoted in progress.md.",
+    "verify prefixes: 'cmd:' run the command; 'e2e:' Playwright spec; 'sql:' pgTAP file run by npx supabase test db; 'manual:' a human step recorded in progress.md."
+  ],
+  "features": [
+    {
+      "id": "F-000",
+      "slice": "S0",
+      "title": "Local stack runs",
+      "acceptance": [
+        "make install and make start succeed",
+        "app loads at localhost:5173 and login works"
+      ],
+      "verify": "cmd:make typecheck && make test",
+      "passes": false
+    },
+    {
+      "id": "F-001",
+      "slice": "S0",
+      "title": "Baseline metrics recorded",
+      "acceptance": [
+        "progress.md has baseline values or 'unknown' for M1-M8 with source"
+      ],
+      "verify": "manual:Owner confirms baseline table in progress.md",
+      "passes": false
+    },
+    {
+      "id": "F-002",
+      "slice": "S0",
+      "title": "Gate A passed",
+      "acceptance": [
+        "gate-reviewer scorecard >= 80 with no blocking findings saved in progress.md",
+        "Owner go recorded"
+      ],
+      "verify": "manual:Gate A entry in progress.md",
+      "passes": false
+    },
+    {
+      "id": "F-100",
+      "slice": "S1",
+      "title": "Staff roles",
+      "acceptance": [
+        "sales.role exists with owner|counsellor|teacher",
+        "staff_role() returns caller role and null for disabled users",
+        "Owner can change a role in Settings"
+      ],
+      "verify": "sql:supabase/tests/roles.test.sql",
+      "passes": false
+    },
+    {
+      "id": "F-101",
+      "slice": "S1",
+      "title": "RLS by role",
+      "acceptance": [
+        "teacher cannot select invoices or messages",
+        "teacher sees only parents/students linked to own batches or trials",
+        "counsellor cannot edit settings tables"
+      ],
+      "verify": "sql:supabase/tests/rls_roles.test.sql",
+      "passes": false
+    },
+    {
+      "id": "F-102",
+      "slice": "S1",
+      "title": "Admissions pipeline config",
+      "acceptance": [
+        "Kanban columns are enquiry, trial_booked, trial_done, payment_pending, enrolled, lost",
+        "UI says Admission and Parent instead of Deal and Contact",
+        "Companies hidden from menu"
+      ],
+      "verify": "e2e:e2e/aparna/admissionsBoard.spec.ts",
+      "passes": false
+    },
+    {
+      "id": "F-103",
+      "slice": "S1",
+      "title": "Next action required on open admissions",
+      "acceptance": [
+        "DB check rejects open stage without next_action_at",
+        "form blocks save without next action"
+      ],
+      "verify": "sql:supabase/tests/deals_constraints.test.sql",
+      "passes": false
+    },
+    {
+      "id": "F-104",
+      "slice": "S1",
+      "title": "Lost needs a reason",
+      "acceptance": [
+        "moving to lost opens a reason picker",
+        "DB check rejects lost without lost_reason"
+      ],
+      "verify": "sql:supabase/tests/deals_constraints.test.sql",
+      "passes": false
+    },
+    {
+      "id": "F-105",
+      "slice": "S1",
+      "title": "Parent fields",
+      "acceptance": [
+        "contacts have country, timezone, phone_e164, whatsapp_opt_in, consent_at, source",
+        "phone_e164 unique",
+        "FakeRest generator updated"
+      ],
+      "verify": "cmd:make typecheck && make test",
+      "passes": false
+    },
+    {
+      "id": "F-106",
+      "slice": "S1",
+      "title": "Phone normalisation",
+      "acceptance": [
+        "+91, 0-prefixed and spaced Indian numbers normalise to one E.164",
+        "foreign numbers keep country code",
+        "invalid numbers rejected with a clear message"
+      ],
+      "verify": "cmd:npx vitest run --project app src/components/atomic-crm/misc/phone.test.ts",
+      "passes": false
+    },
+    {
+      "id": "F-107",
+      "slice": "S1",
+      "title": "Manual lead entry",
+      "acceptance": [
+        "counsellor creates parent + student + admission in one form",
+        "duplicate phone links to existing parent"
+      ],
+      "verify": "e2e:e2e/aparna/manualLead.spec.ts",
+      "passes": false
+    },
+    {
+      "id": "F-108",
+      "slice": "S1",
+      "title": "Website lead capture function",
+      "acceptance": [
+        "capture_lead validates input with Zod",
+        "honeypot rejects bots silently",
+        "more than 10 requests per IP per hour returns 429",
+        "creates admission in enquiry with source website and next_action_at now+2h",
+        "requires a consent checkbox and stores consent_at and whatsapp_opt_in"
+      ],
+      "verify": "cmd:npm run test:unit:functions -- capture_lead",
+      "passes": false
+    },
+    {
+      "id": "F-109",
+      "slice": "S1",
+      "title": "Today v1",
+      "acceptance": [
+        "shows new enquiries with minutes-since timer",
+        "shows overdue next actions",
+        "each row opens the admission"
+      ],
+      "verify": "e2e:e2e/aparna/today.spec.ts",
+      "passes": false
+    },
+    {
+      "id": "F-110",
+      "slice": "S1",
+      "title": "Time-zone display helper",
+      "acceptance": [
+        "formatInZone shows IST and parent local side by side",
+        "handles DST zones (America/New_York, Europe/London)"
+      ],
+      "verify": "cmd:npx vitest run --project app src/components/atomic-crm/misc/time.test.ts",
+      "passes": false
+    },
+    {
+      "id": "F-111",
+      "slice": "S1",
+      "title": "Branding",
+      "acceptance": ["title and logo set for the business", "currency INR"],
+      "verify": "manual:screenshot in progress.md",
+      "passes": false
+    },
+    {
+      "id": "F-112",
+      "slice": "S1",
+      "title": "Staging deploy",
+      "acceptance": [
+        "staging Supabase migrated",
+        "frontend deployed with runtime config",
+        "Owner can log in"
+      ],
+      "verify": "manual:staging URL and login recorded in progress.md",
+      "passes": false
+    },
+    {
+      "id": "F-200",
+      "slice": "S2",
+      "title": "Students resource",
+      "acceptance": [
+        "list, show, create, edit students linked to a parent",
+        "students_summary view",
+        "FakeRest generator"
+      ],
+      "verify": "e2e:e2e/aparna/students.spec.ts",
+      "passes": false
+    },
+    {
+      "id": "F-201",
+      "slice": "S2",
+      "title": "Courses resource",
+      "acceptance": [
+        "Owner manages courses with fee and billing period",
+        "counsellor read-only"
+      ],
+      "verify": "sql:supabase/tests/rls_courses.test.sql",
+      "passes": false
+    },
+    {
+      "id": "F-202",
+      "slice": "S2",
+      "title": "Batches resource",
+      "acceptance": [
+        "batch has course, teacher, weekdays, IST start time, class link, capacity",
+        "roster shows active enrolments"
+      ],
+      "verify": "e2e:e2e/aparna/batches.spec.ts",
+      "passes": false
+    },
+    {
+      "id": "F-203",
+      "slice": "S2",
+      "title": "Admission links student and course",
+      "acceptance": [
+        "admission form selects student and course",
+        "board card shows student name and course"
+      ],
+      "verify": "e2e:e2e/aparna/admissionsBoard.spec.ts",
+      "passes": false
+    },
+    {
+      "id": "F-204",
+      "slice": "S2",
+      "title": "Import parents + students",
+      "acceptance": [
+        "CSV dry run lists row errors and duplicates by phone",
+        "commit creates records with import_id",
+        "sample CSV downloadable"
+      ],
+      "verify": "cmd:npx vitest run --project app src/components/atomic-crm/dataImport",
+      "passes": false
+    },
+    {
+      "id": "F-205",
+      "slice": "S2",
+      "title": "Import batches and enrolments",
+      "acceptance": [
+        "dry run validates teacher and course names",
+        "commit links students to batches"
+      ],
+      "verify": "cmd:npx vitest run --project app src/components/atomic-crm/dataImport",
+      "passes": false
+    },
+    {
+      "id": "F-206",
+      "slice": "S2",
+      "title": "Import admissions",
+      "acceptance": [
+        "existing deals importer accepts stage, next_action_at, source, student phone"
+      ],
+      "verify": "cmd:npx vitest run --project app src/components/atomic-crm/dataImport",
+      "passes": false
+    },
+    {
+      "id": "F-207",
+      "slice": "S2",
+      "title": "CSV export of every list",
+      "acceptance": ["students, batches, admissions, invoices export to CSV"],
+      "verify": "e2e:e2e/aparna/exports.spec.ts",
+      "passes": false
+    },
+    {
+      "id": "F-208",
+      "slice": "S2",
+      "title": "Family data export and delete (Owner)",
+      "acceptance": [
+        "Owner exports all data of one family as CSV/JSON",
+        "Owner deletes a family on request; students, trials, attendance and notes removed; invoices kept anonymised",
+        "action logged"
+      ],
+      "verify": "sql:supabase/tests/family_delete.test.sql",
+      "passes": false
+    },
+    {
+      "id": "F-300",
+      "slice": "S3",
+      "title": "Book trial",
+      "acceptance": [
+        "counsellor books teacher + time from admission",
+        "stage moves to trial_booked",
+        "trial shows IST and parent local time"
+      ],
+      "verify": "e2e:e2e/aparna/trial.spec.ts",
+      "passes": false
+    },
+    {
+      "id": "F-301",
+      "slice": "S3",
+      "title": "Teacher My classes",
+      "acceptance": [
+        "teacher sees today's batches and trials only",
+        "usable at 375px width"
+      ],
+      "verify": "e2e:e2e/aparna/teacherMobile.spec.ts",
+      "passes": false
+    },
+    {
+      "id": "F-302",
+      "slice": "S3",
+      "title": "Trial feedback",
+      "acceptance": [
+        "teacher marks attended with level, recommended batch, comment",
+        "stage moves to trial_done with next_action_at now+4h"
+      ],
+      "verify": "e2e:e2e/aparna/trial.spec.ts",
+      "passes": false
+    },
+    {
+      "id": "F-303",
+      "slice": "S3",
+      "title": "Trial no-show",
+      "acceptance": [
+        "no_show moves admission back to enquiry",
+        "creates counsellor task for tomorrow"
+      ],
+      "verify": "sql:supabase/tests/trials.test.sql",
+      "passes": false
+    },
+    {
+      "id": "F-304",
+      "slice": "S3",
+      "title": "Teacher column guard",
+      "acceptance": [
+        "teacher update to any trial column other than status, level, recommended_batch_id, feedback is rejected"
+      ],
+      "verify": "sql:supabase/tests/trials.test.sql",
+      "passes": false
+    },
+    {
+      "id": "F-305",
+      "slice": "S3",
+      "title": "Today trials sections",
+      "acceptance": [
+        "trials today/tomorrow",
+        "trials done waiting for decision"
+      ],
+      "verify": "e2e:e2e/aparna/today.spec.ts",
+      "passes": false
+    },
+    {
+      "id": "F-306",
+      "slice": "S3",
+      "title": "Gate R1 pilot",
+      "acceptance": [
+        "5 working days of real enquiries in the CRM",
+        "M2 = 0 at end of each day"
+      ],
+      "verify": "manual:pilot log in progress.md",
+      "passes": false
+    },
+    {
+      "id": "F-400",
+      "slice": "S4",
+      "title": "Spike: Coexistence onboarding path",
+      "acceptance": [
+        "documented whether direct Embedded Signup works or a BSP is needed",
+        "decision recorded as ADR"
+      ],
+      "verify": "manual:ADR in decisions.md",
+      "passes": false
+    },
+    {
+      "id": "F-401",
+      "slice": "S4",
+      "title": "Outbox table and enqueue",
+      "acceptance": [
+        "enqueue_message applies quiet hours in parent time zone",
+        "skips opted-out parents",
+        "dedupe_key prevents duplicates"
+      ],
+      "verify": "sql:supabase/tests/outbox.test.sql",
+      "passes": false
+    },
+    {
+      "id": "F-402",
+      "slice": "S4",
+      "title": "Guards",
+      "acceptance": [
+        "message_guard returns false when state changed (e.g. trial cancelled, invoice paid)",
+        "guarded rows become skipped, never sent"
+      ],
+      "verify": "sql:supabase/tests/outbox.test.sql",
+      "passes": false
+    },
+    {
+      "id": "F-403",
+      "slice": "S4",
+      "title": "Dispatcher",
+      "acceptance": [
+        "claims with FOR UPDATE SKIP LOCKED",
+        "sends template via Graph API",
+        "retries up to 3 with backoff then failed"
+      ],
+      "verify": "cmd:npm run test:unit:functions -- dispatch_outbox",
+      "passes": false
+    },
+    {
+      "id": "F-404",
+      "slice": "S4",
+      "title": "WhatsApp webhook security",
+      "acceptance": [
+        "GET verify token works",
+        "POST without valid X-Hub-Signature-256 returns 401"
+      ],
+      "verify": "cmd:npm run test:unit:functions -- whatsapp_webhook",
+      "passes": false
+    },
+    {
+      "id": "F-405",
+      "slice": "S4",
+      "title": "Inbound creates or touches lead",
+      "acceptance": [
+        "new number creates parent + admission in enquiry with source whatsapp",
+        "known number logs message on timeline"
+      ],
+      "verify": "cmd:npm run test:unit:functions -- whatsapp_webhook",
+      "passes": false
+    },
+    {
+      "id": "F-406",
+      "slice": "S4",
+      "title": "Status updates",
+      "acceptance": [
+        "sent, delivered, read, failed update messages.status by wa_message_id"
+      ],
+      "verify": "cmd:npm run test:unit:functions -- whatsapp_webhook",
+      "passes": false
+    },
+    {
+      "id": "F-407",
+      "slice": "S4",
+      "title": "Opt-out (AR13)",
+      "acceptance": [
+        "inbound STOP sets opted_out_at",
+        "no business-initiated message is sent afterwards"
+      ],
+      "verify": "sql:supabase/tests/outbox.test.sql",
+      "passes": false
+    },
+    {
+      "id": "F-408",
+      "slice": "S4",
+      "title": "Rules AR1-AR6",
+      "acceptance": [
+        "welcome on new lead",
+        "trial confirmation, T-24h and T-1h reminders",
+        "teacher notification",
+        "feedback and reschedule messages"
+      ],
+      "verify": "sql:supabase/tests/rules.test.sql",
+      "passes": false
+    },
+    {
+      "id": "F-409",
+      "slice": "S4",
+      "title": "Messages screen",
+      "acceptance": [
+        "log with status and failure reason",
+        "failed sends appear on Today"
+      ],
+      "verify": "e2e:e2e/aparna/messages.spec.ts",
+      "passes": false
+    },
+    {
+      "id": "F-410",
+      "slice": "S4",
+      "title": "Sandbox run",
+      "acceptance": [
+        "Meta test number receives welcome and trial reminder",
+        "status callbacks recorded"
+      ],
+      "verify": "manual:screenshots + message ids in progress.md",
+      "passes": false
+    },
+    {
+      "id": "F-411",
+      "slice": "S4",
+      "title": "Automation settings (Owner)",
+      "acceptance": [
+        "each rule AR1-AR13 has an on/off switch",
+        "template keys map to approved WhatsApp template names",
+        "quiet hours editable",
+        "disabled rule enqueues nothing"
+      ],
+      "verify": "sql:supabase/tests/outbox.test.sql",
+      "passes": false
+    },
+    {
+      "id": "F-500",
+      "slice": "S5",
+      "title": "Create payment link",
+      "acceptance": [
+        "counsellor sends link with course, batch, amount, currency",
+        "invoice row with razorpay_link_id",
+        "stage moves to payment_pending"
+      ],
+      "verify": "cmd:npm run test:unit:functions -- payment_links",
+      "passes": false
+    },
+    {
+      "id": "F-501",
+      "slice": "S5",
+      "title": "Razorpay webhook signature",
+      "acceptance": [
+        "invalid X-Razorpay-Signature returns 401",
+        "valid signature accepted"
+      ],
+      "verify": "cmd:npm run test:unit:functions -- razorpay_webhook",
+      "passes": false
+    },
+    {
+      "id": "F-502",
+      "slice": "S5",
+      "title": "Webhook idempotency",
+      "acceptance": ["same event id twice processes once (provider_events)"],
+      "verify": "cmd:npm run test:unit:functions -- razorpay_webhook",
+      "passes": false
+    },
+    {
+      "id": "F-503",
+      "slice": "S5",
+      "title": "Teachers cannot see money",
+      "acceptance": ["teacher select on invoices returns zero rows"],
+      "verify": "sql:supabase/tests/rls_roles.test.sql",
+      "passes": false
+    },
+    {
+      "id": "F-504",
+      "slice": "S5",
+      "title": "Manual mark paid (Owner only)",
+      "acceptance": ["Owner can mark paid with a note", "counsellor cannot"],
+      "verify": "sql:supabase/tests/rls_invoices.test.sql",
+      "passes": false
+    },
+    {
+      "id": "F-505",
+      "slice": "S5",
+      "title": "Test-mode run",
+      "acceptance": ["Razorpay test payment marks invoice paid on staging"],
+      "verify": "manual:payment id in progress.md",
+      "passes": false
+    },
+    {
+      "id": "F-600",
+      "slice": "S6",
+      "title": "handle_payment",
+      "acceptance": [
+        "one transaction: invoice paid, admission enrolled, enrolment created",
+        "safe to call twice"
+      ],
+      "verify": "sql:supabase/tests/handle_payment.test.sql",
+      "passes": false
+    },
+    {
+      "id": "F-601",
+      "slice": "S6",
+      "title": "Welcome + teacher notice (AR9)",
+      "acceptance": [
+        "parent gets batch time in own time zone and class link",
+        "teacher notified with level and trial notes"
+      ],
+      "verify": "sql:supabase/tests/rules.test.sql",
+      "passes": false
+    },
+    {
+      "id": "F-602",
+      "slice": "S6",
+      "title": "Payment follow-ups (AR7)",
+      "acceptance": ["D+1, D+3, D+5 queued", "each skipped if paid"],
+      "verify": "sql:supabase/tests/rules.test.sql",
+      "passes": false
+    },
+    {
+      "id": "F-603",
+      "slice": "S6",
+      "title": "Auto-lost (AR8)",
+      "acceptance": [
+        "unpaid at D+10 moves to lost with reason no_response",
+        "counsellor task created",
+        "can be reopened"
+      ],
+      "verify": "sql:supabase/tests/rules.test.sql",
+      "passes": false
+    },
+    {
+      "id": "F-604",
+      "slice": "S6",
+      "title": "Gate B end-to-end",
+      "acceptance": [
+        "staging: form enquiry -> welcome -> trial -> feedback -> link -> test payment -> enrolled -> welcome"
+      ],
+      "verify": "e2e:e2e/aparna/fullFunnel.spec.ts",
+      "passes": false
+    },
+    {
+      "id": "F-605",
+      "slice": "S6",
+      "title": "Today payment section",
+      "acceptance": [
+        "Today lists payment links sent and not paid, oldest first",
+        "row shows days since link sent"
+      ],
+      "verify": "e2e:e2e/aparna/today.spec.ts",
+      "passes": false
+    },
+    {
+      "id": "F-700",
+      "slice": "S7",
+      "title": "Invoice generation",
+      "acceptance": [
+        "next invoice created 7 days before period end per billing period",
+        "no duplicates"
+      ],
+      "verify": "sql:supabase/tests/invoices.test.sql",
+      "passes": false
+    },
+    {
+      "id": "F-701",
+      "slice": "S7",
+      "title": "Fee reminders (AR10)",
+      "acceptance": ["link at D-3, reminders D0 and D+3 if unpaid"],
+      "verify": "sql:supabase/tests/rules.test.sql",
+      "passes": false
+    },
+    {
+      "id": "F-702",
+      "slice": "S7",
+      "title": "Overdue",
+      "acceptance": [
+        "D+7 unpaid sets overdue and creates counsellor task",
+        "Today shows fees overdue"
+      ],
+      "verify": "sql:supabase/tests/invoices.test.sql",
+      "passes": false
+    },
+    {
+      "id": "F-703",
+      "slice": "S7",
+      "title": "Fees screen",
+      "acceptance": ["filter due, overdue, paid", "resend link", "void"],
+      "verify": "e2e:e2e/aparna/fees.spec.ts",
+      "passes": false
+    },
+    {
+      "id": "F-704",
+      "slice": "S7",
+      "title": "Pause and end enrolment",
+      "acceptance": ["pause stops invoices", "end requires reason"],
+      "verify": "sql:supabase/tests/invoices.test.sql",
+      "passes": false
+    },
+    {
+      "id": "F-800",
+      "slice": "S8",
+      "title": "Attendance screen",
+      "acceptance": [
+        "one tap per student, present by default",
+        "saves per class date",
+        "teacher only for own batches"
+      ],
+      "verify": "e2e:e2e/aparna/attendance.spec.ts",
+      "passes": false
+    },
+    {
+      "id": "F-801",
+      "slice": "S8",
+      "title": "Absence rule (AR11)",
+      "acceptance": [
+        "two consecutive absences queue parent check-in and counsellor task",
+        "one absence does nothing",
+        "student appears in the Today 'absent twice' section"
+      ],
+      "verify": "sql:supabase/tests/rules.test.sql",
+      "passes": false
+    },
+    {
+      "id": "F-802",
+      "slice": "S8",
+      "title": "Unmarked attendance reminder",
+      "acceptance": ["teacher task when class not marked within 24h"],
+      "verify": "sql:supabase/tests/rules.test.sql",
+      "passes": false
+    },
+    {
+      "id": "F-803",
+      "slice": "S8",
+      "title": "Attendance on student",
+      "acceptance": ["student detail shows attendance % last 30 days"],
+      "verify": "e2e:e2e/aparna/students.spec.ts",
+      "passes": false
+    },
+    {
+      "id": "F-900",
+      "slice": "S9",
+      "title": "Progress note form",
+      "acceptance": [
+        "teacher fills 3 ratings + comment per student per month",
+        "one per student per month"
+      ],
+      "verify": "e2e:e2e/aparna/progress.spec.ts",
+      "passes": false
+    },
+    {
+      "id": "F-901",
+      "slice": "S9",
+      "title": "Monthly task",
+      "acceptance": [
+        "on the 25th each teacher gets one task per active student"
+      ],
+      "verify": "sql:supabase/tests/rules.test.sql",
+      "passes": false
+    },
+    {
+      "id": "F-902",
+      "slice": "S9",
+      "title": "Send note (AR12)",
+      "acceptance": [
+        "submitted note queued to parent respecting quiet hours",
+        "sent_at set on send"
+      ],
+      "verify": "sql:supabase/tests/rules.test.sql",
+      "passes": false
+    },
+    {
+      "id": "F-1000",
+      "slice": "S10",
+      "title": "Funnel metrics",
+      "acceptance": ["M1, M3, M4, M5, M6 computed from data for a date range"],
+      "verify": "sql:supabase/tests/metrics.test.sql",
+      "passes": false
+    },
+    {
+      "id": "F-1001",
+      "slice": "S10",
+      "title": "Retention and fees metrics",
+      "acceptance": ["M2, M7, M8 computed"],
+      "verify": "sql:supabase/tests/metrics.test.sql",
+      "passes": false
+    },
+    {
+      "id": "F-1002",
+      "slice": "S10",
+      "title": "Dashboard screen",
+      "acceptance": [
+        "Owner sees metric cards, weekly funnel, leads by source and country",
+        "counsellor read-only, teacher none"
+      ],
+      "verify": "e2e:e2e/aparna/dashboard.spec.ts",
+      "passes": false
+    },
+    {
+      "id": "F-1003",
+      "slice": "S10",
+      "title": "Gate C",
+      "acceptance": [
+        "one full fee cycle processed",
+        "Owner reconciles dashboard with Razorpay totals"
+      ],
+      "verify": "manual:Gate C entry in progress.md",
+      "passes": false
+    }
+  ]
+}
