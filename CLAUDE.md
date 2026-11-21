@@ -1,4 +1,5 @@
 @AGENTS.md
+@docs/aparna/CLAUDE-aparna.md
 
 # Agent Workflow
 
