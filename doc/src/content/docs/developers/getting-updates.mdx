@@ -8,7 +8,7 @@ Atomic CRM is meant to be copied and customized: there is no npm package to inst
 - The application code (components, hooks, and lib files) is published as a [shadcn registry](https://marmelab.com/atomic-crm/r/atomic-crm.json), which you can use to pull upstream changes into your project.
 - The other files (database schema and migrations, edge functions, CI workflows, scripts) are updated by applying the changes upstream made between two releases, with a three-way merge.
 
-None of these are meant to bootstrap a new project. If you're starting a new CRM, follow the [Installation](https://github.com/marmelab/atomic-crm#installation) instructions instead.
+Neither of them is meant to bootstrap a new project. If you're starting a new CRM, follow the [Installation](https://github.com/marmelab/atomic-crm#installation) instructions instead.
 
 ## Breaking Changes
 
@@ -58,7 +58,7 @@ Replace `v2.0.0` with the release your project is based on (the first entry of `
 
 ## Updating A Fork
 
-Projects forked from Atomic CRM before it became a template keep working: the registry and the three-way merge described above work the same way. As a fork shares its history with upstream, you can also merge a release directly:
+Forks of Atomic CRM keep working: the registry and the three-way merge described above work the same way. As a fork shares its history with upstream, you can also merge a release directly:
 
 ```sh
 git fetch upstream --tags
