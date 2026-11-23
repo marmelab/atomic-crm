@@ -26,7 +26,7 @@ grant all on function public.get_note_attachments_function_url() to anon;
 grant all on function public.get_note_attachments_function_url() to authenticated;
 grant all on function public.get_note_attachments_function_url() to service_role;
 
-revoke all on function public.get_user_id_by_email(text) from public;
+revoke all on function public.get_user_id_by_email(text) from public, anon, authenticated;
 grant all on function public.get_user_id_by_email(text) to service_role;
 
 grant all on function public.handle_company_saved() to anon;
