@@ -207,4 +207,56 @@ describe("fakerest dataProvider", () => {
       "Design review",
     ]);
   });
+
+  describe("company logo", () => {
+    const createProvider = () =>
+      createDataProvider({
+        db: { companies: [], contacts: [] } as unknown as Db,
+        latency: 0,
+        silent: true,
+      });
+
+    it("stores the cropped picture, not the original file", async () => {
+      const dataProvider = createProvider();
+      const cropped = "data:image/png;base64,Y3JvcHBlZA==";
+
+      const { data: company } = await dataProvider.create("companies", {
+        data: {
+          name: "Acme",
+          logo: {
+            src: cropped,
+            title: "logo.png",
+            rawFile: new File(["original"], "logo.png", { type: "image/png" }),
+          },
+        },
+      });
+
+      expect(company.logo).toEqual({ src: cropped, title: "logo.png" });
+    });
+
+    it("keeps the logo when it is cropped again without picking a new file", async () => {
+      const dataProvider = createProvider();
+      const firstCrop = "data:image/png;base64,Zmlyc3Q=";
+      const secondCrop = "data:image/png;base64,c2Vjb25k";
+      const { data: company } = await dataProvider.create("companies", {
+        data: { name: "Acme", logo: { src: firstCrop, title: "logo.png" } },
+      });
+
+      // The image editor sends an empty file named after the previous picture
+      const { data: updated } = await dataProvider.update("companies", {
+        id: company.id,
+        data: {
+          ...company,
+          logo: {
+            src: secondCrop,
+            title: firstCrop,
+            rawFile: new File([], firstCrop),
+          },
+        },
+        previousData: company,
+      });
+
+      expect(updated.logo.src).toBe(secondCrop);
+    });
+  });
 });
