@@ -22,7 +22,7 @@ export const CompanyAvatar = (props: {
         className="object-contain"
       />
       <AvatarFallback className={width !== 40 ? "text-xs" : "text-sm"}>
-        {record.name.charAt(0)}
+        {record.name?.charAt(0)}
       </AvatarFallback>
     </Avatar>
   );

@@ -58,7 +58,7 @@ const CompanyDisplayInputs = () => {
         type="avatar"
         width={60}
         height={60}
-        emptyText={record?.name.charAt(0)}
+        emptyText={record?.name?.charAt(0)}
         linkPosition="bottom"
       />
       <TextInput
