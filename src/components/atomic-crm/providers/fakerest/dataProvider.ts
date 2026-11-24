@@ -73,6 +73,11 @@ async function processContactAvatar(
   params: CreateParams<Contact> | UpdateParams<Contact>,
 ): Promise<CreateParams<Contact> | UpdateParams<Contact>> {
   const { data } = params;
+  if (data.avatar?.rawFile instanceof File) {
+    // A picture the user just picked: its src is already a data URL
+    const { src, title } = data.avatar;
+    return { ...params, data: { ...data, avatar: { src, title } } };
+  }
   if (data.avatar?.src || !data.email_jsonb || !data.email_jsonb.length) {
     return params;
   }

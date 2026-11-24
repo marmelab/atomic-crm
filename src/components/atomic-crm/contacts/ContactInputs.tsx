@@ -7,7 +7,7 @@ import {
   useNotify,
 } from "ra-core";
 import type { FocusEvent, ClipboardEventHandler } from "react";
-import { useFormContext } from "react-hook-form";
+import { useFormContext, useWatch } from "react-hook-form";
 import { Separator } from "@/components/ui/separator";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { BooleanInput } from "@/components/admin/boolean-input";
@@ -18,10 +18,10 @@ import { SelectInput } from "@/components/admin/select-input";
 import { ArrayInput } from "@/components/admin/array-input";
 import { SimpleFormIterator } from "@/components/admin/simple-form-iterator";
 
+import ImageEditorField from "../misc/ImageEditorField";
 import { isLinkedinUrl } from "../misc/isLinkedInUrl";
 import { StatusSelector } from "../notes";
 import type { Sale, Contact } from "../types";
-import { Avatar } from "./Avatar";
 import { AutocompleteCompanyInput } from "../companies/AutocompleteCompanyInput.tsx";
 import {
   contactGender,
@@ -34,8 +34,8 @@ export const ContactInputs = () => {
 
   return (
     <div className="flex flex-col gap-2 p-1 relative md:static">
-      <div className="absolute top-0 right-1 md:static">
-        <Avatar />
+      <div className="absolute top-0 right-1 md:static md:w-fit">
+        <ContactAvatarInput />
       </div>
       <div className="flex gap-10 md:gap-6 flex-col md:flex-row">
         <div className="flex flex-col gap-10 flex-1">
@@ -51,6 +51,24 @@ export const ContactInputs = () => {
         </div>
       </div>
     </div>
+  );
+};
+
+const ContactAvatarInput = () => {
+  const isMobile = useIsMobile();
+  const [firstName, lastName] = useWatch({ name: ["first_name", "last_name"] });
+  const initials =
+    `${firstName?.charAt(0) ?? ""}${lastName?.charAt(0) ?? ""}`.toUpperCase();
+  return (
+    <ImageEditorField
+      source="avatar"
+      type="avatar"
+      width={40}
+      height={40}
+      emptyText={initials}
+      // On mobile the picture sits in the corner, with no room for the link
+      linkPosition={isMobile ? "none" : "bottom"}
+    />
   );
 };
 
