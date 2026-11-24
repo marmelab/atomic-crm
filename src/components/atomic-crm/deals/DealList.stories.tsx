@@ -7,6 +7,7 @@ import {
   StoryWrapper,
   buildCompany,
   buildDeal,
+  buildDealWithRequiredFieldsOnly,
   buildSale,
 } from "@/test/StoryWrapper";
 
@@ -43,6 +44,16 @@ export const AdminAccountManagerFilter = () => (
     <ResourceContextProvider value="deals">
       <DealList />
     </ResourceContextProvider>
+  </StoryWrapper>
+);
+
+// The path opens the board, a deal page (/deals/1/show) or its edit form (/deals/1)
+export const RequiredFieldsOnly = ({ path = "/deals" }: { path?: string }) => (
+  <StoryWrapper
+    data={{ deals: [buildDealWithRequiredFieldsOnly()] }}
+    initialEntries={[path]}
+  >
+    {null}
   </StoryWrapper>
 );
 
