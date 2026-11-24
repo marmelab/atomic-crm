@@ -49,6 +49,18 @@ const processCompanyLogo = async (params: any) => {
   };
 };
 
+const processContactAvatar = async <T extends { data: any }>(
+  params: T,
+): Promise<T> => {
+  const avatar = params.data.avatar;
+
+  if (avatar?.rawFile instanceof File) {
+    await uploadToBucket(avatar);
+  }
+
+  return params;
+};
+
 const getDataProviderWithCustomMethods = () => {
   const baseDataProvider = getBaseDataProvider();
 
@@ -360,6 +372,8 @@ const lifeCycleCallbacks: ResourceCallbacks[] = [
         "background",
       ])(params);
     },
+    beforeCreate: processContactAvatar,
+    beforeUpdate: processContactAvatar,
   },
   {
     resource: "companies",

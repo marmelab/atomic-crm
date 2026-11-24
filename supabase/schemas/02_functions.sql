@@ -221,7 +221,8 @@ begin
         return new;
     end if;
 
-    if tg_op = 'UPDATE' and new.email_jsonb is not distinct from old.email_jsonb then
+    -- Look the avatar up again when the emails changed or the avatar was just removed
+    if tg_op = 'UPDATE' and new.email_jsonb is not distinct from old.email_jsonb and old.avatar is null then
         return new;
     end if;
 

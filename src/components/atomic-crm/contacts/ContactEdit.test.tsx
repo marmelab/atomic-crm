@@ -7,7 +7,19 @@ import {
   ContactEditBasic as ContactEditMobileBasic,
   ContactEditWithEmailsAndPhones as ContactEditMobileWithEmailsAndPhones,
 } from "./ContactEdit.mobile.stories";
-import { page } from "vitest/browser";
+import { page, userEvent } from "vitest/browser";
+
+// A real image: the editor crops what the user picked before submitting it
+const buildPicture = async () => {
+  const canvas = document.createElement("canvas");
+  canvas.width = 64;
+  canvas.height = 64;
+  canvas.getContext("2d")!.fillRect(0, 0, 64, 64);
+  const blob = await new Promise<Blob>((resolve) =>
+    canvas.toBlob((result) => resolve(result!), "image/png"),
+  );
+  return new File([blob], "ada.png", { type: "image/png" });
+};
 
 describe("ContactEdit", () => {
   describe("desktop", () => {
@@ -27,6 +39,33 @@ describe("ContactEdit", () => {
       await expect
         .element(screen.getByPlaceholder("Phone number"))
         .toBeInTheDocument();
+    });
+
+    it("saves the picture picked by the user as the contact avatar", async () => {
+      const updateMock = vi.fn().mockResolvedValue({ data: {} });
+      const screen = await render(
+        <ContactEditBasic silent dataProvider={{ update: updateMock }} />,
+      );
+
+      await screen.getByRole("button", { name: "Change" }).click();
+      const dialog = screen.getByRole("dialog");
+      await userEvent.upload(
+        dialog.element().querySelector('input[type="file"]')!,
+        await buildPicture(),
+      );
+      await dialog.getByRole("button", { name: "Update Image" }).click();
+      await expect.element(dialog).not.toBeInTheDocument();
+
+      await screen.getByRole("button", { name: /^save$/i }).click();
+      await expect
+        .poll(() => screen.getByText("Element updated"))
+        .toBeInTheDocument();
+      await screen.getByLabelText("Close toast").click();
+
+      const { avatar } = updateMock.mock.calls[0][1].data;
+      expect(avatar.title).toBe("ada.png");
+      expect(avatar.src).toMatch(/^data:image\/png/);
+      expect(avatar.rawFile).toBeInstanceOf(File);
     });
 
     it("does not submit empty email and phone entries", async () => {
