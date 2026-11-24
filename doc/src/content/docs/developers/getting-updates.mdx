@@ -1,17 +1,20 @@
 ---
 title: Getting Updates
-description: How to keep a forked Atomic CRM installation up to date using the shadcn registry.
+description: How to keep your Atomic CRM project up to date with upstream releases.
 ---
 
-Atomic CRM is meant to be forked and customized: there is no npm package to install as a dependency and upgrade. Instead, Atomic CRM components, hooks, and lib files are published as a [shadcn registry](https://marmelab.com/atomic-crm/r/atomic-crm.json), which you can use to pull upstream changes into your fork.
+Atomic CRM is meant to be copied and customized: there is no npm package to install as a dependency and upgrade. A repository created from the Atomic CRM template doesn't share any git history with upstream either, so you can't merge upstream changes or use GitHub's **Sync fork** button. Instead, upstream changes reach your project in two ways:
 
-This registry is not meant to bootstrap a new project. If you're starting a new CRM, follow the [Installation](https://github.com/marmelab/atomic-crm#installation) instructions instead. The registry is only useful once you already have a running fork and want to catch up with upstream improvements (bug fixes, new features, dependency bumps in `src/components/admin` and `src/components/ui`).
+- The application code (components, hooks, and lib files) is published as a [shadcn registry](https://marmelab.com/atomic-crm/r/atomic-crm.json), which you can use to pull upstream changes into your project.
+- The other files (database schema and migrations, edge functions, CI workflows, scripts) are updated by applying the changes upstream made between two releases, with a three-way merge.
+
+Neither of them is meant to bootstrap a new project. If you're starting a new CRM, follow the [Installation](https://github.com/marmelab/atomic-crm#installation) instructions instead.
 
 ## Breaking Changes
 
-Some releases also change files the registry doesn't ship (`components.json`, `vite.config.ts`, `index.html`...). Before refreshing your fork across a major version, follow the manual steps in the [Upgrade Guide](../upgrade).
+Some releases also change files that neither method updates (`components.json`, `vite.config.ts`, `index.html`...). Before updating your project across a major version, follow the manual steps in the [Upgrade Guide](../upgrade).
 
-## Refreshing Your Fork
+## Refreshing The Application Code
 
 Commit or stash any pending work first, this command overwrites files, and you'll want a clean diff to review the changes:
 
@@ -34,9 +37,54 @@ Resolve any conflict with your own customizations, run the test suite (`make tes
 
 The registry mirrors the files tracked by `scripts/generate-registry.mjs`: everything under `src/components/atomic-crm`, `src/components/supabase`, most of `src/hooks`, and most of `src/lib`. It does not touch your Supabase schema, your `docs/project-context.json` configuration, or any file you added outside those directories.
 
-## Keeping Your Own Fork's Registry Up To Date
+## Updating The Other Files
 
-If you maintain your own fork long-term (for example to distribute your customized CRM to several deployments), regenerate and republish the registry the same way Atomic CRM's CI does:
+To update the files the registry doesn't ship, apply the changes upstream made between the release your project is based on and the release you want to upgrade to. First, add the Atomic CRM repository as a remote (only once), and fetch its release tags:
+
+```sh
+git remote add upstream https://github.com/marmelab/atomic-crm.git
+git fetch upstream --tags
+```
+
+Then, with no pending work, apply the upstream changes between the two releases:
+
+```sh
+git diff v2.0.0 v2.1.0 -- supabase .github scripts makefile | git apply -3
+```
+
+Replace `v2.0.0` with the release your project is based on (the first entry of `CHANGELOG.md` when you created your project, or the release of your last update), and `v2.1.0` with the target release (see the [releases page](https://github.com/marmelab/atomic-crm/releases)).
+
+`git apply -3` merges the upstream changes with your own: changes to files you didn't customize apply cleanly, and overlapping changes are left as conflict markers in the files listed by `git status`. Resolve them, apply the new migrations to your local database (`npx supabase migration up --local`), run the test suite, then commit. Mention the target release in the commit message (e.g. "Update Atomic CRM to v2.1.0"), so you know where to start from next time.
+
+## Updating A Fork
+
+Forks of Atomic CRM keep working: the registry and the three-way merge described above work the same way. As a fork shares its history with upstream, you can also merge a release directly:
+
+```sh
+git fetch upstream --tags
+git merge v2.1.0
+```
+
+### Moving A Fork To A Standalone Repository
+
+A fork stays attached to the Atomic CRM repository: it can't be made private, and it appears in the Atomic CRM fork network. To turn your fork into a standalone repository, [duplicate it](https://docs.github.com/en/repositories/creating-and-managing-repositories/duplicating-a-repository):
+
+1. Create a new empty repository on GitHub (without README, license, or `.gitignore`).
+2. Push the whole history of your fork to it:
+
+    ```sh
+    git clone --bare https://github.com/[username]/atomic-crm.git
+    cd atomic-crm.git
+    git push --mirror https://github.com/[username]/my-crm.git
+    ```
+
+3. Clone the new repository, copy your GitHub Actions secrets and variables to it, and archive or delete the fork.
+
+The new repository keeps the upstream history, so you can still merge upstream releases into it.
+
+## Keeping Your Own Registry Up To Date
+
+If you maintain your own project long-term (for example to distribute your customized CRM to several deployments), regenerate and republish the registry the same way Atomic CRM's CI does:
 
 ```sh
 make registry-gen    # regenerates registry.json from the current source tree

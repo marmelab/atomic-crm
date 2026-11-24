@@ -45,7 +45,7 @@ If you want to deploy it to GitHub pages, you can use the following command:
 npm run ghpages:deploy
 ```
 
-The CRM will be available at `https://<username>.github.io/atomic-crm/`.
+The CRM will be available at `https://<username>.github.io/<repository>/`.
 
 ## Runtime Configuration
 
@@ -95,22 +95,33 @@ It will apply migrations, deploy edge functions and push the built applications 
 
 ## Automating Deployments With GitHub Actions
 
-Atomic CRM contains GitHub actions for continuous integration and delivery. To enable these actions, you will
-have to create the following secrets on GitHub:
+Atomic CRM contains GitHub actions for continuous integration and delivery. On every push to the `main` branch, the check GitHub action builds the frontend once and runs the tests against that build. Once all checks pass, the deploy action updates the Supabase instance and deploys that same build to GitHub Pages, with a `config.js` generated from the secrets and variables below (see [Runtime Configuration](#runtime-configuration)).
 
-```bash
-SUPABASE_ACCESS_TOKEN: Your personal access token, can be found at https://supabase.com/dashboard/account/tokens
-SUPABASE_DB_PASSWORD: Your supabase database password
-SUPABASE_PROJECT_ID: Your supabase project id
-SUPABASE_URL: Your supabase project URL
-SB_PUBLISHABLE_KEY: Your supabase project publishable key
-POSTMARK_WEBHOOK_USER: User configured in Postmark to secure the webhook
-POSTMARK_WEBHOOK_PASSWORD: Password configured in Postmark to secure the webhook
-POSTMARK_WEBHOOK_AUTHORIZED_IPS: List of IPs (comma separated) authorized to send requests to the Postmark webhook
-VITE_INBOUND_EMAIL: The email address configured in Postmark to receive inbound emails
-VITE_ATTACHMENTS_BUCKET: The name of the bucket used to store attachments. Optional default to `attachments`
-```
+The deploy action skips the deployment until Supabase is configured. To enable it:
 
-> **Note:** The `POSTMARK_*` and `VITE_INBOUND_EMAIL` variables are required for Atomic CRM's inbound email features. Have a look at the the [inbound email configuration](../inbound-email-configuration) to learn more about their usage and setup.
+1. Create a project on [supabase.com](https://supabase.com/dashboard), or run `make supabase-remote-init` (see [Supabase Configuration](../supabase-configuration)).
 
-On every push to the `main` branch, the check GitHub action builds the frontend once and runs the tests against that build. Once all checks pass, the deploy action updates the Supabase instance and deploys that same build to GitHub Pages, with a `config.js` generated from the secrets above (see [Runtime Configuration](#runtime-configuration)).
+2. In your GitHub repository, go to **Settings** > **Secrets and variables** > **Actions**, and create the following secrets (`VITE_INBOUND_EMAIL` and `VITE_ATTACHMENTS_BUCKET` go in the **Variables** tab):
+
+    ```bash
+    SUPABASE_ACCESS_TOKEN: Your personal access token, can be found at https://supabase.com/dashboard/account/tokens
+    SUPABASE_DB_PASSWORD: Your supabase database password
+    SUPABASE_PROJECT_ID: Your supabase project id (Project Settings > General)
+    SUPABASE_URL: Your supabase project URL (https://<project_id>.supabase.co)
+    SB_PUBLISHABLE_KEY: Your supabase project publishable key (Project Settings > API Keys)
+    POSTMARK_WEBHOOK_USER: User configured in Postmark to secure the webhook
+    POSTMARK_WEBHOOK_PASSWORD: Password configured in Postmark to secure the webhook
+    POSTMARK_WEBHOOK_AUTHORIZED_IPS: List of IPs (comma separated) authorized to send requests to the Postmark webhook
+    VITE_INBOUND_EMAIL: The email address configured in Postmark to receive inbound emails
+    VITE_ATTACHMENTS_BUCKET: The name of the bucket used to store attachments. Optional default to `attachments`
+    ```
+
+    > **Note:** The `POSTMARK_*` and `VITE_INBOUND_EMAIL` variables are required for Atomic CRM's inbound email features. Have a look at the [inbound email configuration](../inbound-email-configuration) to learn more about their usage and setup.
+
+3. Push to the `main` branch, or re-run the latest deploy action.
+
+4. If GitHub Pages isn't enabled yet, go to **Settings** > **Pages**, choose **Deploy from a branch**, then select the `gh-pages` branch and the `/ (root)` folder.
+
+5. Set the frontend URL as the Site URL of your Supabase instance (see [Setting The Login Callback](../supabase-configuration#setting-the-login-callback)).
+
+The CRM will be available at `https://<username>.github.io/<repository>/`.
