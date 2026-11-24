@@ -48,8 +48,9 @@ const processCompanyLogo = async (params: any) => {
   if (typeof logo !== "object" || logo === null || !logo.src) {
     logo = await getCompanyAvatar(params.data);
   } else if (logo.rawFile instanceof File) {
-    const base64Logo = await convertFileToBase64(logo);
-    logo = { src: base64Logo, title: logo.title };
+    // The image editor already puts the cropped picture, as a data URL, in src.
+    // rawFile is the uncropped original, or an empty file after a re-crop.
+    logo = { src: logo.src, title: logo.title };
   }
 
   return {
