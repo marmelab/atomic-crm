@@ -127,6 +127,26 @@ export const buildDeal = (overrides: Partial<Deal> = {}): Deal => ({
   ...overrides,
 });
 
+/**
+ * A deal whose nullable columns are all empty, as a deal inserted with plain SQL
+ * (e.g. by the MCP server) can be, although the Deal type says most are set.
+ */
+export const buildDealWithRequiredFieldsOnly = (
+  overrides: Partial<Deal> = {},
+): Deal =>
+  ({
+    ...buildDeal(),
+    amount: null,
+    categories: null,
+    company_id: null,
+    contact_ids: null,
+    description: null,
+    expected_closing_date: null,
+    index: null,
+    sales_id: null,
+    ...overrides,
+  }) as unknown as Deal;
+
 export const StoryWrapper = ({
   authProvider: authProviderOverrides,
   children,

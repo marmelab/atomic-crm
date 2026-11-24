@@ -4,6 +4,7 @@ import { page, userEvent } from "vitest/browser";
 import {
   AdminAccountManagerFilter,
   NonAdminAccountManagerFilter,
+  RequiredFieldsOnly,
 } from "./DealList.stories";
 
 describe("DealList", () => {
@@ -34,6 +35,15 @@ describe("DealList", () => {
     await expect.element(screen.getByText("Acme - Jane deal")).toBeVisible();
     await expect.element(screen.getByText("Acme - Marie deal")).toBeVisible();
   });
+
+  it.each(["/deals", "/deals/1/show", "/deals/1"])(
+    "shows a deal that only has the fields the database requires at %s",
+    async (path) => {
+      const screen = await render(<RequiredFieldsOnly path={path} />);
+
+      await expect.element(screen.getByText(/Acme deal/).first()).toBeVisible();
+    },
+  );
 
   it("keeps the only-mine switch for a user who is not an admin", async () => {
     const screen = await render(<NonAdminAccountManagerFilter />);

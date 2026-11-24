@@ -1,5 +1,10 @@
 import { render } from "vitest-browser-react";
-import { buildCompany, buildContact, StoryWrapper } from "@/test/StoryWrapper";
+import {
+  buildCompany,
+  buildContact,
+  buildDealWithRequiredFieldsOnly,
+  StoryWrapper,
+} from "@/test/StoryWrapper";
 import { CompanyShow } from "./CompanyShow";
 
 const mockIsMobile = vi.hoisted(() => vi.fn(() => true));
@@ -66,5 +71,27 @@ describe("CompanyShow on mobile", () => {
     await expect
       .element(screen.getByRole("heading", { name: "Contacts" }))
       .not.toBeInTheDocument();
+  });
+});
+
+describe("CompanyShow on desktop", () => {
+  beforeEach(() => {
+    mockIsMobile.mockReturnValue(false);
+  });
+
+  it("lists a deal that only has the fields the database requires", async () => {
+    const screen = await render(
+      <StoryWrapper
+        data={{
+          companies: [buildCompany({ id: 1, nb_deals: 1 })],
+          deals: [buildDealWithRequiredFieldsOnly({ company_id: 1 })],
+        }}
+        initialEntries={["/companies/1/show/deals"]}
+      >
+        {null}
+      </StoryWrapper>,
+    );
+
+    await expect.element(screen.getByText("Acme deal")).toBeVisible();
   });
 });
