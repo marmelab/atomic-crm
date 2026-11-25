@@ -1,10 +1,8 @@
 // Based on https://github.com/supabase/supabase/blob/master/examples/edge-functions/supabase/functions/_shared/jwt/default.ts
 import * as jose from "jsr:@panva/jose@6";
 import { createClient, type User } from "jsr:@supabase/supabase-js@2";
+import { getAcceptedIssuers } from "./jwtIssuer.ts";
 import { createErrorResponse } from "./utils.ts";
-
-const SUPABASE_JWT_ISSUER =
-  Deno.env.get("SB_JWT_ISSUER") ?? Deno.env.get("SUPABASE_URL") + "/auth/v1";
 
 const SUPABASE_JWT_KEYS = jose.createRemoteJWKSet(
   new URL(Deno.env.get("SUPABASE_URL")! + "/auth/v1/.well-known/jwks.json"),
@@ -23,9 +21,23 @@ function getAuthToken(req: Request) {
   return token;
 }
 
-function verifySupabaseJWT(jwt: string) {
+let acceptedIssuers: Promise<string[]> | undefined;
+
+function getSupabaseJWTIssuers() {
+  acceptedIssuers ??= getAcceptedIssuers(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SB_JWT_ISSUER"),
+  ).then(({ issuers, discovered }) => {
+    // Retry the discovery on the next request if the auth server was unreachable
+    if (!discovered) acceptedIssuers = undefined;
+    return issuers;
+  });
+  return acceptedIssuers;
+}
+
+async function verifySupabaseJWT(jwt: string) {
   return jose.jwtVerify(jwt, SUPABASE_JWT_KEYS, {
-    issuer: SUPABASE_JWT_ISSUER,
+    issuer: await getSupabaseJWTIssuers(),
   });
 }
 
