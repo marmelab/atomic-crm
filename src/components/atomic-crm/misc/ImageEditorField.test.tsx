@@ -1,5 +1,6 @@
 import { Form } from "ra-core";
 import { describe, expect, it, vi } from "vitest";
+import { userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 
 import { StoryWrapper } from "@/test/StoryWrapper";
@@ -22,8 +23,10 @@ const createPicture = (width: number, height: number, type = "image/png") =>
 
 const renderEditor = async ({
   record = {},
+  linkPosition = "bottom",
 }: {
   record?: Record<string, unknown>;
+  linkPosition?: "bottom" | "none";
 } = {}) => {
   const onSubmit = vi.fn();
   const screen = await render(
@@ -33,7 +36,7 @@ const renderEditor = async ({
           source="logo"
           type="avatar"
           emptyText="AC"
-          linkPosition="bottom"
+          linkPosition={linkPosition}
         />
         <button type="submit">Save</button>
       </Form>
@@ -60,5 +63,28 @@ describe("ImageEditorField", () => {
     await screen.getByRole("button", { name: "Save" }).click();
     await expect.poll(() => onSubmit).toHaveBeenCalledTimes(1);
     expect(onSubmit.mock.calls[0][0].logo).toBeNull();
+  });
+
+  it("opens the editor from the keyboard when the change link is hidden", async () => {
+    const { screen } = await renderEditor({ linkPosition: "none" });
+
+    await userEvent.keyboard("{Tab}");
+    await expect
+      .element(screen.getByRole("button", { name: "Change" }))
+      .toHaveFocus();
+    await userEvent.keyboard("{Enter}");
+
+    await expect.element(screen.getByRole("dialog")).toBeVisible();
+  });
+
+  it("shows a single change button when the change link is visible", async () => {
+    const { screen } = await renderEditor({ linkPosition: "bottom" });
+
+    await expect
+      .element(screen.getByRole("button", { name: "Change" }))
+      .toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "Change" }).elements(),
+    ).toHaveLength(1);
   });
 });

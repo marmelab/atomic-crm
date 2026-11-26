@@ -25,22 +25,20 @@ const ImageEditorField = (props: ImageEditorFieldProps) => {
 
   const { type = "image", emptyText, linkPosition = "none" } = props;
 
-  const commonProps = {
-    src: imageUrl,
-    onClick: () => setIsDialogOpen(true),
-    style: { cursor: "pointer" },
-    className: `${props.className || ""}`,
-  };
-
   const width = props.width || (type === "avatar" ? 50 : 200);
   const height = props.height || (type === "avatar" ? 50 : 200);
 
   return (
     <>
-      <div
+      <button
+        type="button"
+        onClick={() => setIsDialogOpen(true)}
+        aria-label={translate("crm.image_editor.change")}
         className={`flex ${
           linkPosition === "right" ? "flex-row" : "flex-col"
-        } items-center ${linkPosition === "right" ? "gap-2" : "gap-1"}`}
+        } items-center ${
+          linkPosition === "right" ? "gap-2" : "gap-1"
+        } cursor-pointer rounded outline-none focus-visible:ring-3 focus-visible:ring-ring/50`}
       >
         <div
           className={`rounded ${props.backgroundImageColor ? "p-4" : "p-0"}`}
@@ -49,35 +47,25 @@ const ImageEditorField = (props: ImageEditorFieldProps) => {
           }}
         >
           {props.type === "avatar" ? (
-            <Avatar
-              {...commonProps}
-              className={`cursor-pointer`}
-              style={{ width, height }}
-            >
+            <Avatar style={{ width, height }}>
               <AvatarImage src={imageUrl} />
               <AvatarFallback>{emptyText}</AvatarFallback>
             </Avatar>
           ) : (
             <img
-              {...commonProps}
-              className="cursor-pointer object-cover"
+              src={imageUrl}
+              className="object-cover"
               style={{ width, height }}
-              alt={translate("crm.image_editor.editable_content", {
-                _: "Editable content",
-              })}
+              alt=""
             />
           )}
         </div>
         {linkPosition !== "none" && (
-          <button
-            type="button"
-            onClick={() => setIsDialogOpen(true)}
-            className="text-xs underline hover:no-underline cursor-pointer text-center"
-          >
+          <span className="text-xs underline hover:no-underline text-center">
             {translate("crm.image_editor.change")}
-          </button>
+          </span>
         )}
-      </div>
+      </button>
       <ImageEditorDialog
         open={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}
