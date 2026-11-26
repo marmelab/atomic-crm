@@ -3,7 +3,7 @@ import { createRef, useCallback, useState } from "react";
 import type { ReactCropperElement } from "react-cropper";
 import { Cropper } from "react-cropper";
 import { useDropzone } from "react-dropzone";
-import { useFormContext } from "react-hook-form";
+import { useController, useFormContext } from "react-hook-form";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -90,6 +90,7 @@ const ImageEditorField = (props: ImageEditorFieldProps) => {
 const ImageEditorDialog = (props: ImageEditorDialogProps) => {
   const translate = useTranslate();
   const { setValue, handleSubmit } = useFormContext();
+  const { field } = useController({ name: props.source });
   const cropperRef = createRef<ReactCropperElement>();
   const initialValue = useFieldValue({ source: props.source });
   const [file, setFile] = useState<File | undefined>();
@@ -127,7 +128,7 @@ const ImageEditorDialog = (props: ImageEditorDialogProps) => {
   };
 
   const deleteImage = () => {
-    setValue(props.source, null, { shouldDirty: true });
+    field.onChange(null);
     if (props.onSave) {
       handleSubmit(props.onSave)();
     }
