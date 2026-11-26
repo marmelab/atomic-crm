@@ -486,7 +486,6 @@ export const englishCrmMessages = {
     image_editor: {
       change: "Change",
       drop_hint: "Drop a file to upload, or click to select it.",
-      editable_content: "Editable content",
       title: "Upload and resize image",
       update_image: "Update Image",
     },

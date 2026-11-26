@@ -3,7 +3,7 @@ import { createRef, useCallback, useState } from "react";
 import type { ReactCropperElement } from "react-cropper";
 import { Cropper } from "react-cropper";
 import { useDropzone } from "react-dropzone";
-import { useFormContext } from "react-hook-form";
+import { useController, useFormContext } from "react-hook-form";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,22 +25,20 @@ const ImageEditorField = (props: ImageEditorFieldProps) => {
 
   const { type = "image", emptyText, linkPosition = "none" } = props;
 
-  const commonProps = {
-    src: imageUrl,
-    onClick: () => setIsDialogOpen(true),
-    style: { cursor: "pointer" },
-    className: `${props.className || ""}`,
-  };
-
   const width = props.width || (type === "avatar" ? 50 : 200);
   const height = props.height || (type === "avatar" ? 50 : 200);
 
   return (
     <>
-      <div
+      <button
+        type="button"
+        onClick={() => setIsDialogOpen(true)}
+        aria-label={translate("crm.image_editor.change")}
         className={`flex ${
           linkPosition === "right" ? "flex-row" : "flex-col"
-        } items-center ${linkPosition === "right" ? "gap-2" : "gap-1"}`}
+        } items-center ${
+          linkPosition === "right" ? "gap-2" : "gap-1"
+        } cursor-pointer rounded outline-none focus-visible:ring-3 focus-visible:ring-ring/50`}
       >
         <div
           className={`rounded ${props.backgroundImageColor ? "p-4" : "p-0"}`}
@@ -49,35 +47,25 @@ const ImageEditorField = (props: ImageEditorFieldProps) => {
           }}
         >
           {props.type === "avatar" ? (
-            <Avatar
-              {...commonProps}
-              className={`cursor-pointer`}
-              style={{ width, height }}
-            >
+            <Avatar style={{ width, height }}>
               <AvatarImage src={imageUrl} />
               <AvatarFallback>{emptyText}</AvatarFallback>
             </Avatar>
           ) : (
             <img
-              {...commonProps}
-              className="cursor-pointer object-cover"
+              src={imageUrl}
+              className="object-cover"
               style={{ width, height }}
-              alt={translate("crm.image_editor.editable_content", {
-                _: "Editable content",
-              })}
+              alt=""
             />
           )}
         </div>
         {linkPosition !== "none" && (
-          <button
-            type="button"
-            onClick={() => setIsDialogOpen(true)}
-            className="text-xs underline hover:no-underline cursor-pointer text-center"
-          >
+          <span className="text-xs underline hover:no-underline text-center">
             {translate("crm.image_editor.change")}
-          </button>
+          </span>
         )}
-      </div>
+      </button>
       <ImageEditorDialog
         open={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}
@@ -90,6 +78,7 @@ const ImageEditorField = (props: ImageEditorFieldProps) => {
 const ImageEditorDialog = (props: ImageEditorDialogProps) => {
   const translate = useTranslate();
   const { setValue, handleSubmit } = useFormContext();
+  const { field } = useController({ name: props.source });
   const cropperRef = createRef<ReactCropperElement>();
   const initialValue = useFieldValue({ source: props.source });
   const [file, setFile] = useState<File | undefined>();
@@ -127,7 +116,7 @@ const ImageEditorDialog = (props: ImageEditorDialogProps) => {
   };
 
   const deleteImage = () => {
-    setValue(props.source, null, { shouldDirty: true });
+    field.onChange(null);
     if (props.onSave) {
       handleSubmit(props.onSave)();
     }
